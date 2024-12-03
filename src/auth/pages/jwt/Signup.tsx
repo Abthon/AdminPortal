@@ -86,7 +86,7 @@ const Signup = () => {
           <div className="flex items-center justify-center font-medium">
             <span className="text-2sm text-gray-600 me-1.5">Already have an Account ?</span>
             <Link
-              to={currentLayout?.name === 'auth-branded' ? '/auth/login' : '/auth/classic/login'}
+              to={'/auth/login'}
               className="text-2sm link"
             >
               Sign In
@@ -94,7 +94,7 @@ const Signup = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        {/* <div className="grid grid-cols-2 gap-2.5">
           <a href="#" className="btn btn-light btn-sm justify-center">
             <img
               src={toAbsoluteUrl('/media/brand-logos/google.svg')}
@@ -114,13 +114,13 @@ const Signup = () => {
             />
             Use Apple
           </a>
-        </div>
+        </div> */}
 
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <span className="border-t border-gray-200 w-full"></span>
           <span className="text-2xs text-gray-500 font-medium uppercase">Or</span>
           <span className="border-t border-gray-200 w-full"></span>
-        </div>
+        </div> */}
 
         {formik.status && <Alert variant="danger">{formik.status}</Alert>}
 
@@ -217,7 +217,7 @@ const Signup = () => {
           )}
         </div>
 
-        <label className="checkbox-group">
+        {/* <label className="checkbox-group">
           <input
             className="checkbox checkbox-sm"
             type="checkbox"
@@ -235,7 +235,7 @@ const Signup = () => {
           <span role="alert" className="text-danger text-xs mt-1">
             {formik.errors.acceptTerms}
           </span>
-        )}
+        )} */}
 
         <button
           type="submit"

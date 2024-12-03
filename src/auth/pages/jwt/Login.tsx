@@ -82,7 +82,7 @@ const Login = () => {
           <div className="flex items-center justify-center font-medium">
             <span className="text-2sm text-gray-600 me-1.5">Need an account?</span>
             <Link
-              to={currentLayout?.name === 'auth-branded' ? '/auth/signup' : '/auth/classic/signup'}
+              to={'/auth/signup'}
               className="text-2sm link"
             >
               Sign up
@@ -90,7 +90,7 @@ const Login = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        {/* <div className="grid grid-cols-2 gap-2.5">
           <a href="#" className="btn btn-light btn-sm justify-center">
             <img
               src={toAbsoluteUrl('/media/brand-logos/google.svg')}
@@ -110,18 +110,18 @@ const Login = () => {
             />
             Use Apple
           </a>
-        </div>
+        </div> */}
 
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <span className="border-t border-gray-200 w-full"></span>
           <span className="text-2xs text-gray-500 font-medium uppercase">Or</span>
           <span className="border-t border-gray-200 w-full"></span>
-        </div>
+        </div> */}
 
-        <Alert variant="primary">
+        {/* <Alert variant="primary">
           Use <span className="font-semibold text-gray-900">demo@keenthemes.com</span> username and{' '}
           <span className="font-semibold text-gray-900">demo1234</span> password.
-        </Alert>
+        </Alert> */}
 
         {formik.status && <Alert variant="danger">{formik.status}</Alert>}
 
@@ -148,11 +148,7 @@ const Login = () => {
           <div className="flex items-center justify-between gap-1">
             <label className="form-label text-gray-900">Password</label>
             <Link
-              to={
-                currentLayout?.name === 'auth-branded'
-                  ? '/auth/reset-password'
-                  : '/auth/classic/reset-password'
-              }
+              to={'/auth/reset-password'}
               className="text-2sm link shrink-0"
             >
               Forgot Password?
