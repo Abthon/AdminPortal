@@ -6,7 +6,6 @@ import { PathnameProvider } from '@/providers';
 import { Toaster } from '@/components/ui/sonner';
 
 const { BASE_URL } = import.meta.env;
-
 const App = () => {
   const { settings } = useSettings();
 

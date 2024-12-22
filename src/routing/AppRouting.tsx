@@ -23,18 +23,22 @@ const AppRouting = (): ReactElement => {
 
   useEffect(() => {
     if (!firstLoad) {
-      setProgressBarLoader(true);
-      verify()
-        .catch(() => {
-          throw new Error('User verify request failed!');
-        })
-        .finally(() => {
-          setPreviousLocation(path);
-          setProgressBarLoader(false);
-          if (path === previousLocation) {
-            setPreviousLocation('');
-          }
-        });
+      setPreviousLocation(path);
+      if (path === previousLocation) {
+        setPreviousLocation('');
+      }
+      // setProgressBarLoader(true);
+      // verify()
+      //   .catch(() => {
+      //     throw new Error('User verify request failed!');
+      //   })
+      //   .finally(() => {
+      //     setPreviousLocation(path);
+      //     setProgressBarLoader(false);
+      //     if (path === previousLocation) {
+      //       setPreviousLocation('');
+      //     }
+      //   });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);

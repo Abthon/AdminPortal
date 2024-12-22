@@ -1,3 +1,5 @@
+import { json } from "stream/consumers";
+
 const getData = (key: string): unknown | undefined => {
   try {
     const data = localStorage.getItem(key);

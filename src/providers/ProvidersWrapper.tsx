@@ -1,22 +1,30 @@
-import { PropsWithChildren } from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { PropsWithChildren } from "react";
+import { QueryClient, QueryClientProvider } from "react-query";
 
-import { AuthProvider } from '@/auth/providers/JWTProvider';
+// import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
+import { AuthProvider } from "@/auth/providers/JWTProvider";
 import {
   LayoutProvider,
   LoadersProvider,
   MenusProvider,
   SettingsProvider,
-  SnackbarProvider,
-  TranslationProvider
-} from '@/providers';
-import { HelmetProvider } from 'react-helmet-async';
+  TranslationProvider,
+} from "@/providers";
+import { HelmetProvider } from "react-helmet-async";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 0,
+    },
+  },
+});
 
 const ProvidersWrapper = ({ children }: PropsWithChildren) => {
   return (
     <QueryClientProvider client={queryClient}>
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
       <AuthProvider>
         <SettingsProvider>
           <TranslationProvider>

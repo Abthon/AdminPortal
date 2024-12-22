@@ -1,5 +1,10 @@
-import { cn } from '@/lib/utils';
-import { useDataGrid, DataGridLoader, DataGridTable, DataGridPagination } from '.';
+import { cn } from "@/lib/utils";
+import {
+  useDataGrid,
+  DataGridLoader,
+  DataGridTable,
+  DataGridPagination,
+} from ".";
 
 const DataGridInner = () => {
   const { props, table, loading } = useDataGrid();
@@ -7,7 +12,7 @@ const DataGridInner = () => {
   return (
     <div
       className={cn(
-        'grid',
+        "grid",
         props.layout?.card &&
           `
         card
@@ -25,7 +30,7 @@ const DataGridInner = () => {
       {props.toolbar && props.toolbar}
       <div
         className={cn(
-          'relative w-full scrollable-x-auto border rounded-md',
+          "relative w-full scrollable-x-auto border rounded-md",
           props.layout?.classes?.container
         )}
         data-container

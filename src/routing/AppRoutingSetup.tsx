@@ -80,8 +80,12 @@ import { ErrorsRouting } from '@/errors';
 import {
   AuthenticationWelcomeMessagePage,
   AuthenticationAccountDeactivatedPage,
-  AuthenticationGetStartedPage
-} from '@/pages/authentication';
+  AuthenticationGetStartedPage,
+} from "@/pages/authentication";
+import { VehiclePage } from "@/pages/public-profile/table";
+import { VehicleTablePage } from "@/pages/public-profile/v-table";
+import { BookingPage } from "@/pages/public-profile/booking";
+import { ConfigPage } from "@/pages/public-profile/config";
 
 const AppRoutingSetup = (): ReactElement => {
   return (
@@ -90,18 +94,61 @@ const AppRoutingSetup = (): ReactElement => {
         <Route element={<Demo1Layout />}>
           <Route path="/" element={<DefaultPage />} />
           <Route path="/dark-sidebar" element={<Demo1DarkSidebarPage />} />
-          <Route path="/public-profile/profiles/default" element={<ProfileDefaultPage />} />
-          <Route path="/public-profile/profiles/creator" element={<ProfileCreatorPage />} />
-          <Route path="/public-profile/profiles/company" element={<ProfileCompanyPage />} />
-          <Route path="/public-profile/profiles/nft" element={<ProfileNFTPage />} />
-          <Route path="/public-profile/profiles/blogger" element={<ProfileBloggerPage />} />
-          <Route path="/public-profile/profiles/crm" element={<ProfileCRMPage />} />
-          <Route path="/public-profile/profiles/gamer" element={<ProfileGamerPage />} />
-          <Route path="/public-profile/profiles/feeds" element={<ProfileFeedsPage />} />
-          <Route path="/public-profile/profiles/plain" element={<ProfilePlainPage />} />
-          <Route path="/public-profile/profiles/modal" element={<ProfileModalPage />} />
-          <Route path="/public-profile/projects/3-columns" element={<ProjectColumn3Page />} />
-          <Route path="/public-profile/projects/2-columns" element={<ProjectColumn2Page />} />
+          <Route path="/public-profile/table" element={<VehiclePage />} />
+          <Route
+            path="/public-profile/v-table"
+            element={<VehicleTablePage />}
+          />
+          <Route path="/public-profile/bookings" element={<BookingPage />} />
+          <Route path="/public-profile/config" element={<ConfigPage />} />
+          <Route
+            path="/public-profile/profiles/default"
+            element={<ProfileDefaultPage />}
+          />
+          <Route
+            path="/public-profile/profiles/creator"
+            element={<ProfileCreatorPage />}
+          />
+          <Route
+            path="/public-profile/profiles/company"
+            element={<ProfileCompanyPage />}
+          />
+          <Route
+            path="/public-profile/profiles/nft"
+            element={<ProfileNFTPage />}
+          />
+          <Route
+            path="/public-profile/profiles/blogger"
+            element={<ProfileBloggerPage />}
+          />
+          <Route
+            path="/public-profile/profiles/crm"
+            element={<ProfileCRMPage />}
+          />
+          <Route
+            path="/public-profile/profiles/gamer"
+            element={<ProfileGamerPage />}
+          />
+          <Route
+            path="/public-profile/profiles/feeds"
+            element={<ProfileFeedsPage />}
+          />
+          <Route
+            path="/public-profile/profiles/plain"
+            element={<ProfilePlainPage />}
+          />
+          <Route
+            path="/public-profile/profiles/modal"
+            element={<ProfileModalPage />}
+          />
+          <Route
+            path="/public-profile/projects/3-columns"
+            element={<ProjectColumn3Page />}
+          />
+          <Route
+            path="/public-profile/projects/2-columns"
+            element={<ProjectColumn2Page />}
+          />
           <Route path="/public-profile/works" element={<ProfileWorksPage />} />
           <Route path="/public-profile/teams" element={<ProfileTeamsPage />} />
           <Route path="/public-profile/network" element={<ProfileNetworkPage />} />

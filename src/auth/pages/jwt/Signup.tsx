@@ -10,10 +10,11 @@ import { Alert, KeenIcon } from '@/components';
 import { useLayout } from '@/providers';
 
 const initialValues = {
-  email: '',
-  password: '',
-  changepassword: '',
-  acceptTerms: false
+  email: 'abenezerwalelign9@gmail.com',
+  firstname: 'Abeni',
+  lastname: 'Wal',
+  password: 'testpass',
+  changepassword: 'testpass',
 };
 
 const signupSchema = Yup.object().shape({
@@ -22,6 +23,14 @@ const signupSchema = Yup.object().shape({
     .min(3, 'Minimum 3 symbols')
     .max(50, 'Maximum 50 symbols')
     .required('Email is required'),
+  firstname: Yup.string()
+    .min(3, 'Minimum 3 symbols')
+    .max(50, 'Maximum 50 symbols')
+    .required('FirstName is required'),
+  lastname: Yup.string()
+    .min(3, 'Minimum 3 symbols')
+    .max(50, 'Maximum 50 symbols')
+    .required('LastName is required'),
   password: Yup.string()
     .min(3, 'Minimum 3 symbols')
     .max(50, 'Maximum 50 symbols')
@@ -31,7 +40,6 @@ const signupSchema = Yup.object().shape({
     .max(50, 'Maximum 50 symbols')
     .required('Password confirmation is required')
     .oneOf([Yup.ref('password')], "Password and Confirm Password didn't match"),
-  acceptTerms: Yup.bool().required('You must accept the terms and conditions')
 });
 
 const Signup = () => {
@@ -39,7 +47,7 @@ const Signup = () => {
   const { register } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from?.pathname || '/auth/2fa';
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { currentLayout } = useLayout();
@@ -53,8 +61,13 @@ const Signup = () => {
         if (!register) {
           throw new Error('JWTProvider is required for this form.');
         }
-        await register(values.email, values.password, values.changepassword);
-        navigate(from, { replace: true });
+        await register(values.firstname, values.lastname, values.email, values.password);
+        navigate(from, { replace: true, state: {
+          message: "Type the otp we sent to you via email here!",
+          email: values.email,
+        }
+      }
+    );
       } catch (error) {
         console.error(error);
         setStatus('The sign up details are incorrect');
@@ -83,6 +96,15 @@ const Signup = () => {
       >
         <div className="text-center mb-2.5">
           <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">Sign up</h3>
+
+          <div className="flex items-center justify-center font-medium">
+            <span className="text-2sm text-gray-600 me-1.5">Want to verify your account ?</span>
+            <Link
+              to={'/auth/2fa'}
+              className="text-2sm link"
+            >Verify</Link>
+          </div>
+          
           <div className="flex items-center justify-center font-medium">
             <span className="text-2sm text-gray-600 me-1.5">Already have an Account ?</span>
             <Link
@@ -147,6 +169,58 @@ const Signup = () => {
             </span>
           )}
         </div>
+
+        {/* First name Begin*/}
+        <div className="flex flex-col gap-1">
+          <label className="form-label text-gray-900">FirstName</label>
+          <label className="input">
+            <input
+              placeholder="firstname"
+              type="text"
+              autoComplete="off"
+              {...formik.getFieldProps('firstname')}
+              className={clsx(
+                'form-control bg-transparent',
+                { 'is-invalid': formik.touched.firstname && formik.errors.firstname },
+                {
+                  'is-valid': formik.touched.firstname && !formik.errors.firstname
+                }
+              )}
+            />
+          </label>
+          {formik.touched.firstname && formik.errors.firstname && (
+            <span role="alert" className="text-danger text-xs mt-1">
+              {formik.errors.firstname}
+            </span>
+          )}
+        </div>
+        {/* First name Begin*/}
+
+        {/* Last name Begin*/}
+        <div className="flex flex-col gap-1">
+          <label className="form-label text-gray-900">LastName</label>
+          <label className="input">
+            <input
+              placeholder="lastname"
+              type="text"
+              autoComplete="off"
+              {...formik.getFieldProps('lastname')}
+              className={clsx(
+                'form-control bg-transparent',
+                { 'is-invalid': formik.touched.lastname && formik.errors.lastname },
+                {
+                  'is-valid': formik.touched.lastname && !formik.errors.lastname
+                }
+              )}
+            />
+          </label>
+          {formik.touched.lastname && formik.errors.lastname && (
+            <span role="alert" className="text-danger text-xs mt-1">
+              {formik.errors.lastname}
+            </span>
+          )}
+        </div>
+        {/* Last name Begin*/}
 
         <div className="flex flex-col gap-1">
           <label className="form-label text-gray-900">Password</label>
