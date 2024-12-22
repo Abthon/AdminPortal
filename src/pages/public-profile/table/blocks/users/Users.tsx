@@ -29,6 +29,7 @@ interface IUsersData {
   lastName: string;
   phoneNumber: string;
   gender: string;
+  status: string;
 }
 
 interface IColumnFilterProps<TData, TValue> {
@@ -38,15 +39,24 @@ interface IColumnFilterProps<TData, TValue> {
 const Users = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAddOpen: (isOpen: boolean) => void; }) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [approvalMode, setApprovalMode] = useState(false);
   const [currentDriverData, setCurrentDriverData] = useState<IUsersData | null>(null);
 
   const handleClose = () => {
+    setApprovalMode(false);
     setProfileModalOpen(false);
     _handleAddOpen(false);
   };
 
   const handleOpen = (isEdit: boolean, rowData: IUsersData | null = null) => {
+    setApprovalMode(false);
     setEditMode(isEdit);
+    setCurrentDriverData(rowData);
+    setProfileModalOpen(true);
+  };
+
+  const handleApproval = (isEdit: boolean, rowData: IUsersData | null = null) => {
+    setApprovalMode(isEdit);
     setCurrentDriverData(rowData);
     setProfileModalOpen(true);
   };
@@ -73,6 +83,7 @@ const Users = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAddOp
     queryKey: ["Drivers"],
     queryFn: getDrivers,
   });
+
   interface DeleteResponse {
   // Add your API response structure here
   data: any;
@@ -177,6 +188,19 @@ const Users = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAddOp
         },
       },
       {
+        id: "status",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Status" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.status;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
         id: "Edit",
         header: ({ column }) => (
           <DataGridColumnHeader title="Edit" column={column} />
@@ -209,6 +233,26 @@ const Users = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAddOp
               className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
             >
               <KeenIcon icon="trash" />
+            </button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[80px]",
+        },
+      },
+      {
+        id: "Approve",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Approve" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <button
+              onClick={() => handleApproval(true, info.row.original)}
+              className="btn btn-sm btn-icon btn-clear btn-primary hover:text-white"
+            >
+              <KeenIcon icon="double-check" />
             </button>
           );
         },
@@ -296,6 +340,7 @@ const Users = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAddOp
         open={profileModalOpen}
         onOpenChange={handleClose}
         isEdit={editMode}
+        isApproved={approvalMode}
         driverData={currentDriverData}
       />
       <DataGrid
