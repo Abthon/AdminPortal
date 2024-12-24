@@ -1,4 +1,4 @@
-import { Drivers } from "./blocks/users";
+import { Drivers } from "./blocks";
 import { MiscFaq, MiscHelp2 } from "@/partials/misc";
 
 interface VehicleContentProps {

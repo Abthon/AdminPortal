@@ -1,4 +1,4 @@
-import { VechileType } from "./blocks/users";
+import { VechileType } from "./blocks";
 import { MiscFaq, MiscHelp2 } from "@/partials/misc";
 
 interface VehicleTableContentProps {

@@ -1,4 +1,4 @@
-import { Booking } from "./blocks/users";
+import { Booking } from "./blocks";
 import { MiscFaq, MiscHelp2 } from "@/partials/misc";
 
 interface BookingContentProps {

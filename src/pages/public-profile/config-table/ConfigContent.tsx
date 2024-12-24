@@ -1,4 +1,4 @@
-import { Config } from "./blocks/users";
+import { Config } from "./blocks";
 import { MiscFaq, MiscHelp2 } from "@/partials/misc";
 
 interface ConfigContentProps {
