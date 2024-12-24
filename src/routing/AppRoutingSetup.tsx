@@ -82,11 +82,10 @@ import {
   AuthenticationAccountDeactivatedPage,
   AuthenticationGetStartedPage,
 } from "@/pages/authentication";
-import { VehiclePage } from "@/pages/public-profile/table";
-import { VehicleTablePage } from "@/pages/public-profile/v-table";
-import { BookingPage } from "@/pages/public-profile/booking";
-import { ConfigPage } from "@/pages/public-profile/config";
-
+import { VehiclePage } from "@/pages/public-profile/vehicle-type-table";
+import { BookingPage } from "@/pages/public-profile/booking-table";
+import { ConfigPage } from "@/pages/public-profile/config-table";
+import { DriverPage } from "@/pages/public-profile/driver-table"
 const AppRoutingSetup = (): ReactElement => {
   return (
     <Routes>
@@ -94,10 +93,10 @@ const AppRoutingSetup = (): ReactElement => {
         <Route element={<Demo1Layout />}>
           <Route path="/" element={<DefaultPage />} />
           <Route path="/dark-sidebar" element={<Demo1DarkSidebarPage />} />
-          <Route path="/public-profile/table" element={<VehiclePage />} />
+          <Route path="/public-profile/table" element={<DriverPage />} />
           <Route
             path="/public-profile/v-table"
-            element={<VehicleTablePage />}
+            element={<VehiclePage />}
           />
           <Route path="/public-profile/bookings" element={<BookingPage />} />
           <Route path="/public-profile/config" element={<ConfigPage />} />

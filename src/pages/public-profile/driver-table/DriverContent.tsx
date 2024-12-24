@@ -1,4 +1,4 @@
-import { Users } from "./blocks/users";
+import { Drivers } from "./blocks/users";
 import { MiscFaq, MiscHelp2 } from "@/partials/misc";
 
 interface VehicleContentProps {
@@ -6,10 +6,10 @@ interface VehicleContentProps {
   _handleAddOpen: (isOpen: boolean) => void;
 }
 
-const VehicleContent = ({ isAddOpen, _handleAddOpen }: VehicleContentProps) => {
+const DriverContent = ({ isAddOpen, _handleAddOpen }: VehicleContentProps) => {
   return (
     <div className="grid gap-5 lg:gap-7.5">
-      <Users _handleAddOpen={_handleAddOpen} isAddOpen={isAddOpen} />
+      <Drivers _handleAddOpen={_handleAddOpen} isAddOpen={isAddOpen} />
 
       {/* <MiscFaq /> */}
 
@@ -18,4 +18,4 @@ const VehicleContent = ({ isAddOpen, _handleAddOpen }: VehicleContentProps) => {
   );
 };
 
-export { VehicleContent };
+export { DriverContent };

@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 import { useEffect, useMemo, useState } from "react";
-import { toAbsoluteUrl } from "@/utils";
 import {
   DataGrid,
   DataGridColumnHeader,
@@ -18,23 +17,20 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import clsx from "clsx";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { ModalBookingForm } from "@/partials/modals/booking";
-import { Skeleton } from "@mui/material";
+import { ModalVehicleTypeForm } from "@/partials/modals/vehicle-type";
 import { DataGridLoader } from "@/components/data-grid";
+import axiosInstance from "@/auth/_helpers";
 
 interface IUsersData {
   id: string;
-  pickupName: string;
-  pickupLat: number;
-  pickupLng: number;
-  dropOffName: string;
-  dropOffLat: number;
-  dropOffLng: number;
-  estimatedTraveledDistance: number;
-  estimatedPrice: number;
-  status: string;
+  user: string;
+  image: string;
+  name: string;
+  baseFare: number;
+  additionalFarePerKm: number;
+  minWeightCapacity: number;
+  maxWeightCapacity: number;
 }
 
 const BaseURL = `http://195.201.134.129/test/static/vehicle-type/`;
@@ -48,10 +44,10 @@ interface UsersProps {
   _handleAddOpen: (isOpen: boolean) => void;
 }
 
-const Users: React.FC<UsersProps> = ({ isAddOpen, _handleAddOpen }) => {
+const VechileType = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [currentBookingData, setCurrentBookingData] =
+  const [currentVehicleData, setCurrentVehicleData] =
     useState<IUsersData | null>(null);
 
   const handleClose = () => {
@@ -61,43 +57,40 @@ const Users: React.FC<UsersProps> = ({ isAddOpen, _handleAddOpen }) => {
 
   const handleOpen = (isEdit: boolean, rowData: IUsersData | null = null) => {
     setEditMode(isEdit);
-    setCurrentBookingData(rowData);
+    setCurrentVehicleData(rowData);
     console.log(rowData, "rowdata");
     setProfileModalOpen(true);
   };
 
-  async function getBookings(): Promise<IUsersData[]> {
-    const data = await fetch("http://195.201.134.129/test/api/v1/bookings");
-    const res = await data.json();
-    console.log(res.data);
-    return res.data;
+  async function getVehicleType() {
+    const { data } = await axiosInstance.get("/api/v1/vehicle-types");
+    console.log("data retrieved");
+    return data.data;
   }
 
-  async function deleteBooking(id: string): Promise<void> {
-    await fetch(`http://195.201.134.129/test/api/v1/bookings/${id}`, {
-      method: "DELETE",
-    });
+  async function deleteVehicleType(id: string) {
+    const { data } = await axiosInstance.delete(`/api/v1/vehicle-types/${id}`);
+    return data;
   }
 
-  let { isLoading: isBookingLoading, data: BookingData } = useQuery<
-    IUsersData[]
-  >({
-    queryKey: ["Bookings"],
-    queryFn: getBookings,
+  const { isLoading: isVehicleLoading, data: VehicleData } = useQuery({
+    queryKey: ["VehicleType"],
+    queryFn: getVehicleType,
   });
 
   const queryClient = useQueryClient();
 
-  const { isLoading: isDeleting, mutate } = useMutation({
-    mutationFn: deleteBooking,
+  const { isLoading: isDeleting, mutate } = useMutation<string, Error, string>({
+    mutationFn: deleteVehicleType,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["Bookings"],
+        queryKey: ["VehicleType"],
       });
-      toast("Booking successfully deleted!");
+      toast("Vehicle Type successfully deleted!");
     },
-    onError: (error: unknown) => {
-      toast("Error Encountered deleting the booking");
+    onError: (error) => {
+      toast("Error Encountered deleting the vehicle type");
+      console.error(error);
     },
   });
 
@@ -134,11 +127,11 @@ const Users: React.FC<UsersProps> = ({ isAddOpen, _handleAddOpen }) => {
         },
       },
       {
-        accessorFn: (row) => row.id,
-        id: "booking_ID",
+        accessorFn: (row: IUsersData) => row.user,
+        id: "users",
         header: ({ column }) => (
           <DataGridColumnHeader
-            title="ID"
+            title="Member"
             filter={<ColumnInputFilter column={column} />}
             column={column}
           />
@@ -146,132 +139,76 @@ const Users: React.FC<UsersProps> = ({ isAddOpen, _handleAddOpen }) => {
         enableSorting: true,
         cell: ({ row }) => {
           return (
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
+              <img
+                src={`${BaseURL}${row.original.image}`}
+                className="rounded-full size-9 shrink-0"
+                alt={`${row.original.image}`}
+              />
               <div className="flex flex-col gap-0.5">
                 <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-                  {row.original.id}
+                  {row.original.name}
                 </span>
               </div>
             </div>
           );
         },
         meta: {
-          headerClassName: "w-0",
-          className: "w-0",
-          cellClassName: "w-0",
+          className: "min-w-[300px]",
+          cellClassName: "min-w-[250px] text-gray-800 font-normal",
         },
       },
       {
-        accessorFn: (row) => row.pickupName,
-        id: "pickupName",
+        accessorFn: (row) => row.baseFare,
+        id: "baseFare",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Pickup Name" column={column} />
+          <DataGridColumnHeader title="Base Fare" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.pickupName;
+          return info.row.original.baseFare;
         },
         meta: {
-          headerClassName: "min-w-[100px]",
+          headerClassName: "min-w-[180px]",
         },
       },
-      // {
-      //   id: "pickUpLocation",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="PickUp Location" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <span className=" text-gray-800 font-normal">
-      //         {`${info.row.original.pickupLat}, ${info.row.original.pickupLng}`}
-      //       </span>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[165px]",
-      //   },
-      // },
       {
-        accessorFn: (row) => row.dropOffName,
-        id: "dropOffName",
+        accessorFn: (row) => row.additionalFarePerKm,
+        id: "additionalFarePerKm",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Drop Off Name" column={column} />
+          <DataGridColumnHeader title="additionalFarePerKm" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.dropOffName;
+          return info.row.original.additionalFarePerKm;
         },
         meta: {
-          headerClassName: "min-w-[100px]",
+          headerClassName: "min-w-[180px]",
         },
       },
-      // {
-      //   id: "dropOffLocation",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="DropOff Location" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <span className=" text-gray-800 font-normal">
-      //         {`${info.row.original.dropOffLat}, ${info.row.original.dropOffLng}`}
-      //       </span>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[165px]",
-      //   },
-      // },
       {
-        accessorFn: (row) => row.estimatedTraveledDistance,
-        id: "estimatedTraveledDistance",
+        accessorFn: (row) => row.minWeightCapacity,
+        id: "minWeightCapacity",
         header: ({ column }) => (
-          <DataGridColumnHeader
-            title="Estimated Traveled Distance"
-            column={column}
-          />
+          <DataGridColumnHeader title="minWeightCapacity" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.estimatedTraveledDistance;
+          return info.row.original.minWeightCapacity;
         },
         meta: {
-          headerClassName: "min-w-[100px]",
+          headerClassName: "min-w-[180px]",
         },
       },
       {
-        accessorFn: (row) => row.estimatedPrice,
-        id: "estimatedPrice",
+        accessorFn: (row) => row.maxWeightCapacity,
+        id: "maxWeightCapacity",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Estimated Price" column={column} />
+          <DataGridColumnHeader title="maxWeightCapacity" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.estimatedPrice;
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
-        },
-      },
-      {
-        accessorFn: (row) => row.status,
-        id: "status",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Status" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return (
-            <span
-              className={`badge badge-${info.row.original.status === "requested" ? "primary" : "default"} shrink-0 badge-outline rounded-[30px]`}
-            >
-              <span
-                className={`size-1.5 rounded-full bg-${info.row.original.status === "requested" ? "primary" : "default"} me-1.5`}
-              ></span>
-              {info.row.original.status}
-            </span>
-          );
+          return info.row.original.maxWeightCapacity;
         },
         meta: {
           headerClassName: "min-w-[180px]",
@@ -321,7 +258,7 @@ const Users: React.FC<UsersProps> = ({ isAddOpen, _handleAddOpen }) => {
     [mutate]
   );
 
-  const data: IUsersData[] = useMemo(() => BookingData ?? [], [BookingData]);
+  const data: IUsersData[] = useMemo(() => VehicleData ?? [], [VehicleData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -391,85 +328,17 @@ const Users: React.FC<UsersProps> = ({ isAddOpen, _handleAddOpen }) => {
     );
   };
 
-  // isBookingLoading = true;
-  // if (isBookingLoading) {
-  //   return (
-  //     <div>
-  //       {/* Table header skeleton */}
-  //       <div
-  //         style={{ display: "flex", marginBottom: "8px", marginTop: "28px" }}
-  //       >
-  //         <Skeleton
-  //           variant="rectangular"
-  //           width="5%"
-  //           height={90}
-  //           style={{ marginRight: "8px" }}
-  //         />
-  //         <Skeleton
-  //           variant="rectangular"
-  //           width="23.75%"
-  //           height={90}
-  //           style={{ marginRight: "8px" }}
-  //         />
-  //         <Skeleton
-  //           variant="rectangular"
-  //           width="23.75%"
-  //           height={90}
-  //           style={{ marginRight: "8px" }}
-  //         />
-  //         <Skeleton
-  //           variant="rectangular"
-  //           width="23.75%"
-  //           height={90}
-  //           style={{ marginRight: "8px" }}
-  //         />
-  //         <Skeleton variant="rectangular" width="23.75%" height={90} />
-  //       </div>
-  //       {/* Table rows skeleton */}
-  //       {[...Array(5)].map((_, index) => (
-  //         <div key={index} style={{ display: "flex", marginBottom: "8px" }}>
-  //           <Skeleton
-  //             variant="rectangular"
-  //             width="5%"
-  //             height={70}
-  //             style={{ marginRight: "8px" }}
-  //           />
-  //           <Skeleton
-  //             variant="rectangular"
-  //             width="23.75%"
-  //             height={70}
-  //             style={{ marginRight: "8px" }}
-  //           />
-  //           <Skeleton
-  //             variant="rectangular"
-  //             width="23.75%"
-  //             height={70}
-  //             style={{ marginRight: "8px" }}
-  //           />
-  //           <Skeleton
-  //             variant="rectangular"
-  //             width="23.75%"
-  //             height={70}
-  //             style={{ marginRight: "8px", borderRadius: "8px"}}
-  //           />
-  //           <Skeleton variant="rectangular" width="23.75%" height={70} />
-  //         </div>
-  //       ))}
-  //     </div>
-  //   );
-  // }
-
-  if(isBookingLoading){ 
-    return <DataGridLoader message="Loading"/>
+  if (isVehicleLoading) {
+    return <DataGridLoader message="Loading" />;
   }
 
   return (
     <>
-      <ModalBookingForm
+      <ModalVehicleTypeForm
         open={profileModalOpen}
         onOpenChange={handleClose}
         isEdit={editMode}
-        bookingData={currentBookingData}
+        vehicleData={currentVehicleData}
       />
       <DataGrid
         columns={columns}
@@ -484,5 +353,4 @@ const Users: React.FC<UsersProps> = ({ isAddOpen, _handleAddOpen }) => {
     </>
   );
 };
-
-export { Users };
+export { VechileType };

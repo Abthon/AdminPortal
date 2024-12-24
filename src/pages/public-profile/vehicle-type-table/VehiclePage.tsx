@@ -14,7 +14,7 @@ import { VehicleContent } from ".";
 import { useLayout } from "@/providers";
 
 const VehiclePage = () => {
-  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
   const { currentLayout } = useLayout();
 
   return (
@@ -43,7 +43,7 @@ const VehiclePage = () => {
                 }}
                 className="btn btn-sm btn-primary"
               >
-                Add Driver
+                Add Vehicle Type
               </button>
             </ToolbarActions>
           </Toolbar>
@@ -51,7 +51,10 @@ const VehiclePage = () => {
       )}
 
       <Container>
-        <VehicleContent _handleAddOpen={setIsAddOpen} isAddOpen={isAddOpen} />
+        <VehicleContent
+          _handleAddOpen={setIsAddOpen}
+          isAddOpen={isAddOpen}
+        />
       </Container>
     </Fragment>
   );

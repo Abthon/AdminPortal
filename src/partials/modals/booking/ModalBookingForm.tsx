@@ -140,7 +140,7 @@ const ModalBookingForm = ({
       console.log(updatedFields, "there");
 
       const res = await axiosInstance.post(
-        "/bookings/estimate/",
+        "api/v1/bookings/estimate/",
         updatedFields
       );
 
@@ -171,7 +171,7 @@ const ModalBookingForm = ({
 
       console.log(finalReq, "finally");
 
-      const res_3 = await axiosInstance.post("/bookings/admin", finalReq);
+      const res_3 = await axiosInstance.post("api/v1/bookings/admin", finalReq);
       console.log(res_3.status, "the rest status", res_3);
       if (res_3.status !== 201) {
         throw new Error(res_3.data.message || "Failed to create the booking.");
@@ -227,7 +227,7 @@ const ModalBookingForm = ({
     isLoading: isDriversLoading,
     error: driversError,
   } = useQuery("drivers", async () => {
-    const res = await axiosInstance.get("/drivers");
+    const res = await axiosInstance.get("api/v1/drivers");
     if (res.status !== 200) {
       throw new Error("Failed to fetch drivers");
     }
@@ -241,7 +241,7 @@ const ModalBookingForm = ({
     isLoading: isVehicleTypeLoading,
     error: vehicleTypeError,
   } = useQuery("VehicleType", async () => {
-    const res = await axiosInstance.get("/vehicle-types");
+    const res = await axiosInstance.get("api/v1/vehicle-types");
     if (res.status !== 200) {
       throw new Error("Failed to fetch vehicle types");
     }

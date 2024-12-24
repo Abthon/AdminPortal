@@ -1,10 +1,14 @@
 /* eslint-disable prettier/prettier */
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { toAbsoluteUrl } from "@/utils";
+import { DataGridLoader } from "@/components/data-grid";
+
 import {
   DataGrid,
   DataGridColumnHeader,
   KeenIcon,
+  useDataGrid,
   DataGridRowSelectAll,
   DataGridRowSelect,
 } from "@/components";
@@ -18,90 +22,81 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import clsx from "clsx";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { ModalVehicleTypeForm } from "@/partials/modals/vehicle-type";
-import { DataGridLoader } from "@/components/data-grid";
+import { ModalDriverTypeForm } from "@/partials/modals/driver";
+import axiosInstance from "@/auth/_helpers";
 
-interface IUsersData {
+interface IDriversData {
   id: string;
-  user: string;
-  image: string;
-  name: string;
-  baseFare: number;
-  additionalFarePerKm: number;
-  minWeightCapacity: number;
-  maxWeightCapacity: number;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  gender: string;
+  status: string;
 }
-
-const BaseURL = `http://195.201.134.129/test/static/vehicle-type/`;
 
 interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
 }
 
-interface UsersProps {
-  isAddOpen: boolean;
-  _handleAddOpen: (isOpen: boolean) => void;
-}
-
-const Users = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
+const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAddOpen: (isOpen: boolean) => void; }) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [currentVehicleData, setCurrentVehicleData] =
-    useState<IUsersData | null>(null);
+  const [approvalMode, setApprovalMode] = useState(false);
+  const [currentDriverData, setCurrentDriverData] = useState<IDriversData | null>(null);
 
   const handleClose = () => {
+    setApprovalMode(false);
     setProfileModalOpen(false);
     _handleAddOpen(false);
   };
 
-  const handleOpen = (isEdit: boolean, rowData: IUsersData | null = null) => {
+  const handleOpen = (isEdit: boolean, rowData: IDriversData | null = null) => {
+    setApprovalMode(false);
     setEditMode(isEdit);
-    setCurrentVehicleData(rowData);
-    console.log(rowData, "rowdata");
+    setCurrentDriverData(rowData);
     setProfileModalOpen(true);
   };
 
-  async function getVehicleType() {
-    const data = await fetch(
-      "http://195.201.134.129/test/api/v1/vehicle-types"
-    );
-    const res = await data.json();
-    console.log("data retrived");
-    return res.data;
+  const handleApproval = (isEdit: boolean, rowData: IDriversData | null = null) => {
+    setApprovalMode(isEdit);
+    setCurrentDriverData(rowData);
+    setProfileModalOpen(true);
+  };
+
+  async function getDrivers() {
+    const { data } = await axiosInstance.get("/api/v1/drivers");
+    console.log(data);
+    return data.data;
   }
 
-  async function deleteVehicleType(id: string) {
-    const data = await fetch(
-      `http://195.201.134.129/test/api/v1/vehicle-types/${id}`,
-      {
-        method: "DELETE",
-      }
-    );
-    const res = await data.json();
-    return res;
+  async function deleteDriver(id: string) {
+    const { data } = await axiosInstance.delete(`/api/v1/drivers/${id}`);
+    return data;
   }
 
-  const { isLoading: isVehicleLoading, data: VehicleData } = useQuery({
-    queryKey: ["VehicleType"],
-    queryFn: getVehicleType,
+  const { isLoading: isDriverLoading, data: DriverData } = useQuery({
+    queryKey: ["Drivers"],
+    queryFn: getDrivers,
   });
 
-  const queryClient = useQueryClient();
+  interface DeleteResponse {
+  // Add your API response structure here
+  data: any;
+}
 
-  const { isLoading: isDeleting, mutate } = useMutation<string, Error, string>({
-    mutationFn: deleteVehicleType,
+  const queryClient = useQueryClient();
+  const { isLoading: isDeleting, mutate } = useMutation<DeleteResponse, Error, string>({
+    mutationFn: deleteDriver,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["VehicleType"],
+        queryKey: ["Drivers"]
       });
-      toast("Vehicle Type successfully deleted!");
+      toast("Driver successfully deleted!");
     },
     onError: (error) => {
-      toast("Error Encountered deleting the vehicle type");
-      console.error(error);
-    },
+      toast("Error Encountered deleting the driver");
+    }
   });
 
   const ColumnInputFilter = <TData, TValue>({
@@ -124,7 +119,7 @@ const Users = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
     [isAddOpen]
   );
 
-  const columns = useMemo<ColumnDef<IUsersData>[]>(
+  const columns = useMemo<ColumnDef<IDriversData>[]>(
     () => [
       {
         accessorKey: "id",
@@ -137,88 +132,65 @@ const Users = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
         },
       },
       {
-        accessorFn: (row: IUsersData) => row.user,
-        id: "users",
+        id: "fName",
         header: ({ column }) => (
-          <DataGridColumnHeader
-            title="Member"
-            filter={<ColumnInputFilter column={column} />}
-            column={column}
-          />
-        ),
-        enableSorting: true,
-        cell: ({ row }) => {
-          return (
-            <div className="flex items-center gap-4">
-              <img
-                src={`${BaseURL}${row.original.image}`}
-                className="rounded-full size-9 shrink-0"
-                alt={`${row.original.image}`}
-              />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-                  {row.original.name}
-                </span>
-              </div>
-            </div>
-          );
-        },
-        meta: {
-          className: "min-w-[300px]",
-          cellClassName: "min-w-[250px] text-gray-800 font-normal",
-        },
-      },
-      {
-        accessorFn: (row) => row.baseFare,
-        id: "baseFare",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Base Fare" column={column} />
+          <DataGridColumnHeader title="First Name" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.baseFare;
+          return info.row.original.firstName;
         },
         meta: {
           headerClassName: "min-w-[180px]",
         },
       },
       {
-        accessorFn: (row) => row.additionalFarePerKm,
-        id: "additionalFarePerKm",
+        id: "lName",
         header: ({ column }) => (
-          <DataGridColumnHeader title="additionalFarePerKm" column={column} />
+          <DataGridColumnHeader title="Last Name" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.additionalFarePerKm;
+          return info.row.original.lastName;
         },
         meta: {
           headerClassName: "min-w-[180px]",
         },
       },
       {
-        accessorFn: (row) => row.minWeightCapacity,
-        id: "minWeightCapacity",
+        id: "Phone Number",
         header: ({ column }) => (
-          <DataGridColumnHeader title="minWeightCapacity" column={column} />
+          <DataGridColumnHeader title="Phone Number" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.minWeightCapacity;
+          return info.row.original.phoneNumber;
         },
         meta: {
           headerClassName: "min-w-[180px]",
         },
       },
       {
-        accessorFn: (row) => row.maxWeightCapacity,
-        id: "maxWeightCapacity",
+        id: "gender",
         header: ({ column }) => (
-          <DataGridColumnHeader title="maxWeightCapacity" column={column} />
+          <DataGridColumnHeader title="Gender" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.maxWeightCapacity;
+          return info.row.original.gender;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        id: "status",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Status" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.status;
         },
         meta: {
           headerClassName: "min-w-[180px]",
@@ -261,14 +233,34 @@ const Users = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
           );
         },
         meta: {
-          headerClassName: "w-[80px]",
+          headerClassName: "min-w-[80px]",
+        },
+      },
+      {
+        id: "Approve",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Approve" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <button
+              onClick={() => handleApproval(true, info.row.original)}
+              className="btn btn-sm btn-icon btn-clear btn-primary hover:text-white"
+            >
+              <KeenIcon icon="double-check" />
+            </button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[80px]",
         },
       },
     ],
     [mutate]
   );
 
-  const data: IUsersData[] = useMemo(() => VehicleData ?? [], [VehicleData]);
+  const data: IDriversData[] = useMemo(() => DriverData ?? [], [DriverData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -338,18 +330,18 @@ const Users = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
     );
   };
 
-
-  if(isVehicleLoading){ 
-    return <DataGridLoader message="Loading"/>
+  if (isDriverLoading) {
+    return <DataGridLoader message="Loading"/>;
   }
 
   return (
     <>
-      <ModalVehicleTypeForm
+      <ModalDriverTypeForm
         open={profileModalOpen}
         onOpenChange={handleClose}
         isEdit={editMode}
-        vehicleData={currentVehicleData}
+        isApproved={approvalMode}
+        driverData={currentDriverData}
       />
       <DataGrid
         columns={columns}
@@ -364,4 +356,5 @@ const Users = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
     </>
   );
 };
-export { Users };
+
+export { Drivers };

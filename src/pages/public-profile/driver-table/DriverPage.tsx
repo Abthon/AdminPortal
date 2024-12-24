@@ -10,11 +10,11 @@ import {
 } from "@/partials/toolbar";
 
 //NetworkUserTableTeamCrewContent
-import { VehicleTableContent } from ".";
+import { DriverContent } from ".";
 import { useLayout } from "@/providers";
 
-const VehicleTablePage = () => {
-  const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
+const DriverPage = () => {
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const { currentLayout } = useLayout();
 
   return (
@@ -43,7 +43,7 @@ const VehicleTablePage = () => {
                 }}
                 className="btn btn-sm btn-primary"
               >
-                Add Vehicle Type
+                Add Driver
               </button>
             </ToolbarActions>
           </Toolbar>
@@ -51,13 +51,10 @@ const VehicleTablePage = () => {
       )}
 
       <Container>
-        <VehicleTableContent
-          _handleAddOpen={setIsAddOpen}
-          isAddOpen={isAddOpen}
-        />
+        <DriverContent _handleAddOpen={setIsAddOpen} isAddOpen={isAddOpen} />
       </Container>
     </Fragment>
   );
 };
 
-export { VehicleTablePage };
+export { DriverPage };

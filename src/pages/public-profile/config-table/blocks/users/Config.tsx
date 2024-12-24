@@ -19,8 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { IConfigData } from "./ConfigData";
 import { DataGridLoader } from "@/components/data-grid";
+import axiosInstance from "@/auth/_helpers";
 
 const BaseURL = `http://195.201.134.129/test/static/vehicle-type/`;
 
@@ -28,12 +28,19 @@ interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
 }
 
-interface UsersProps {
+interface ConfigProps {
   isAddOpen: boolean;
   _handleAddOpen: (open: boolean) => void;
 }
 
-const Users = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
+interface IConfigData {
+  id: string;
+  name: string;
+  value: string;
+  permissions?: { type: string }[];
+}
+
+const Config = ({ isAddOpen, _handleAddOpen }: ConfigProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
   const [currentConfigData, setcurrentConfigData] = useState<IConfigData | null>(null);
@@ -51,21 +58,14 @@ const Users = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
   };
 
   async function getConfig(): Promise<IConfigData[]> {
-    const data = await fetch("http://195.201.134.129/test/api/v1/params");
-    const res = await data.json();
-    console.log(res.data);
-    return res.data;
+    const { data } = await axiosInstance.get("/api/v1/params");
+    console.log(data.data);
+    return data.data;
   }
 
   async function deleteConfig(id: string) {
-    const data = await fetch(
-      `http://195.201.134.129/test/api/v1/params/${id}`,
-      {
-        method: "DELETE",
-      }
-    );
-    const res = await data.json();
-    return res;
+    const { data } = await axiosInstance.delete(`/api/v1/params/${id}`);
+    return data;
   }
 
   const { isLoading: isConfigLoading, data: configData } = useQuery<IConfigData[]>({
@@ -303,4 +303,4 @@ const Users = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
     </>
   );
 };
-export { Users };
+export { Config };
