@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { IConfigData } from "./ConfigData";
+import { DataGridLoader } from "@/components/data-grid";
 
 const BaseURL = `http://195.201.134.129/test/static/vehicle-type/`;
 
@@ -276,6 +277,10 @@ const Users = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
       </div>
     );
   };
+
+  if(isConfigLoading){ 
+    return <DataGridLoader message="Loading"/>
+  }
 
   return (
     <>

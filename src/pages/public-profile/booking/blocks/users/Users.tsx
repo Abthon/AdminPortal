@@ -22,6 +22,7 @@ import clsx from "clsx";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalBookingForm } from "@/partials/modals/booking";
 import { Skeleton } from "@mui/material";
+import { DataGridLoader } from "@/components/data-grid";
 
 interface IUsersData {
   id: string;
@@ -391,72 +392,75 @@ const Users: React.FC<UsersProps> = ({ isAddOpen, _handleAddOpen }) => {
   };
 
   // isBookingLoading = true;
+  // if (isBookingLoading) {
+  //   return (
+  //     <div>
+  //       {/* Table header skeleton */}
+  //       <div
+  //         style={{ display: "flex", marginBottom: "8px", marginTop: "28px" }}
+  //       >
+  //         <Skeleton
+  //           variant="rectangular"
+  //           width="5%"
+  //           height={90}
+  //           style={{ marginRight: "8px" }}
+  //         />
+  //         <Skeleton
+  //           variant="rectangular"
+  //           width="23.75%"
+  //           height={90}
+  //           style={{ marginRight: "8px" }}
+  //         />
+  //         <Skeleton
+  //           variant="rectangular"
+  //           width="23.75%"
+  //           height={90}
+  //           style={{ marginRight: "8px" }}
+  //         />
+  //         <Skeleton
+  //           variant="rectangular"
+  //           width="23.75%"
+  //           height={90}
+  //           style={{ marginRight: "8px" }}
+  //         />
+  //         <Skeleton variant="rectangular" width="23.75%" height={90} />
+  //       </div>
+  //       {/* Table rows skeleton */}
+  //       {[...Array(5)].map((_, index) => (
+  //         <div key={index} style={{ display: "flex", marginBottom: "8px" }}>
+  //           <Skeleton
+  //             variant="rectangular"
+  //             width="5%"
+  //             height={70}
+  //             style={{ marginRight: "8px" }}
+  //           />
+  //           <Skeleton
+  //             variant="rectangular"
+  //             width="23.75%"
+  //             height={70}
+  //             style={{ marginRight: "8px" }}
+  //           />
+  //           <Skeleton
+  //             variant="rectangular"
+  //             width="23.75%"
+  //             height={70}
+  //             style={{ marginRight: "8px" }}
+  //           />
+  //           <Skeleton
+  //             variant="rectangular"
+  //             width="23.75%"
+  //             height={70}
+  //             style={{ marginRight: "8px", borderRadius: "8px"}}
+  //           />
+  //           <Skeleton variant="rectangular" width="23.75%" height={70} />
+  //         </div>
+  //       ))}
+  //     </div>
+  //   );
+  // }
 
-  if (isBookingLoading) {
-    return (
-      <div>
-        {/* Table header skeleton */}
-        <div
-          style={{ display: "flex", marginBottom: "8px", marginTop: "28px" }}
-        >
-          <Skeleton
-            variant="rectangular"
-            width="5%"
-            height={90}
-            style={{ marginRight: "8px" }}
-          />
-          <Skeleton
-            variant="rectangular"
-            width="23.75%"
-            height={90}
-            style={{ marginRight: "8px" }}
-          />
-          <Skeleton
-            variant="rectangular"
-            width="23.75%"
-            height={90}
-            style={{ marginRight: "8px" }}
-          />
-          <Skeleton
-            variant="rectangular"
-            width="23.75%"
-            height={90}
-            style={{ marginRight: "8px" }}
-          />
-          <Skeleton variant="rectangular" width="23.75%" height={90} />
-        </div>
-        {/* Table rows skeleton */}
-        {[...Array(5)].map((_, index) => (
-          <div key={index} style={{ display: "flex", marginBottom: "8px" }}>
-            <Skeleton
-              variant="rectangular"
-              width="5%"
-              height={70}
-              style={{ marginRight: "8px" }}
-            />
-            <Skeleton
-              variant="rectangular"
-              width="23.75%"
-              height={70}
-              style={{ marginRight: "8px" }}
-            />
-            <Skeleton
-              variant="rectangular"
-              width="23.75%"
-              height={70}
-              style={{ marginRight: "8px" }}
-            />
-            <Skeleton
-              variant="rectangular"
-              width="23.75%"
-              height={70}
-              style={{ marginRight: "8px" }}
-            />
-            <Skeleton variant="rectangular" width="23.75%" height={70} />
-          </div>
-        ))}
-      </div>
-    );
+  if(isBookingLoading){ 
+    return <DataGridLoader message="Loading"/>
   }
 
   return (

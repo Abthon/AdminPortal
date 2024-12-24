@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import clsx from "clsx";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalVehicleTypeForm } from "@/partials/modals/vehicle-type";
+import { DataGridLoader } from "@/components/data-grid";
 
 interface IUsersData {
   id: string;
@@ -336,6 +337,11 @@ const Users = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
       </div>
     );
   };
+
+
+  if(isVehicleLoading){ 
+    return <DataGridLoader message="Loading"/>
+  }
 
   return (
     <>

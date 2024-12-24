@@ -2,6 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toAbsoluteUrl } from "@/utils";
+import { DataGridLoader } from "@/components/data-grid";
+
 import {
   DataGrid,
   DataGridColumnHeader,
@@ -333,6 +335,10 @@ const Users = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAddOp
       </div>
     );
   };
+
+  if (isDriverLoading) {
+    return <DataGridLoader message="Loading"/>;
+  }
 
   return (
     <>

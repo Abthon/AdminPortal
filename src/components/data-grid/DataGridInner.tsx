@@ -36,7 +36,7 @@ const DataGridInner = () => {
         data-container
       >
         <DataGridTable />
-        {loading && <DataGridLoader />}
+        {loading && <DataGridLoader message=""/>}
       </div>
       {table.getRowModel().rows.length > 0 && <DataGridPagination />}
     </div>
