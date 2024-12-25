@@ -204,7 +204,7 @@ const ModalBookingForm = ({
       console.log(updatedFields);
 
       const res = await axiosInstance.patch(
-        `/bookings/admin/${id}`,
+        `api/v1/bookings/admin/${id}`,
         updatedFields
       );
 
@@ -313,7 +313,7 @@ const ModalBookingForm = ({
                       lineHeight: "1",
                       borderRadius: "0.375rem",
                       height: "2.5rem",
-                      backgroundColor: "#F9F9F9",
+                      backgroundColor: "transparent",
                       position: "relative",
                       border: "1px solid #DBDFE9",
                     }}
@@ -340,36 +340,6 @@ const ModalBookingForm = ({
                     )}
                   </label>
                 </div>
-                {/* <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                    Pickup Latitude
-                  </label>
-                  <label className="input">
-                    <input
-                      placeholder="Enter pickupLat"
-                      autoComplete="off"
-                      type="number"
-                      disabled={true}
-                  
-                      {...formik.getFieldProps("pickupLat")}
-                    />
-                  </label>
-                </div> */}
-                {/* <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                    Pickup Longitude
-                  </label>
-                  <label className="input">
-                    <input
-                      placeholder="Enter pickupLng"
-                      autoComplete="off"
-                      type="number"
-                     
-                      disabled={true}
-                      {...formik.getFieldProps("pickupLng")}
-                    />
-                  </label>
-                </div> */}
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
                     DropOff Location name
@@ -386,16 +356,11 @@ const ModalBookingForm = ({
                       lineHeight: "1",
                       borderRadius: "0.375rem",
                       height: "2.5rem",
-                      backgroundColor: "#F9F9F9",
+                      backgroundColor: "transparent",
                       position: "relative",
                       border: "1px solid #DBDFE9",
                     }}
                   >
-                    {/* <input
-                      placeholder="Enter dropOffName"
-                      autoComplete="off"
-                      {...formik.getFieldProps("dropOffName")}
-                    /> */}
                     {isLoaded && (
                       <StandaloneSearchBox
                         onLoad={(ref) => (inputRefDropOff.current = ref)}
@@ -418,34 +383,6 @@ const ModalBookingForm = ({
                     )}
                   </label>
                 </div>
-                {/* <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                    DropOff Latitude
-                  </label>
-                  <label className="input">
-                    <input
-                      placeholder="Enter dropOffLat"
-                      autoComplete="off"
-                      type="number"
-                      disabled={true}
-                      {...formik.getFieldProps("dropOffLat")}
-                    />
-                  </label>
-                </div> */}
-                {/* <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                    DropOff Longitude
-                  </label>
-                  <label className="input">
-                    <input
-                      placeholder="Enter dropOffLng"
-                      autoComplete="off"
-                      type="number"
-                      disabled={true}
-                      {...formik.getFieldProps("dropOffLng")}
-                    />
-                  </label>
-                </div> */}
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Driver</label>
                   {isDriversLoading ? (
@@ -457,6 +394,11 @@ const ModalBookingForm = ({
                       <select
                         {...formik.getFieldProps("driverId")}
                         className="form-control form-select w-full"
+                        style={{
+                          backgroundColor: "transparent",
+                          outline: "none",
+                          borderColor: "blue",
+                        }}
                       >
                         <option value="" disabled>
                           Select a driver
@@ -489,6 +431,11 @@ const ModalBookingForm = ({
                       <select
                         {...formik.getFieldProps("vehicleTypeId")}
                         className="form-control form-select w-full"
+                        style={{
+                          backgroundColor: "transparent",
+                          outline: "none",
+                          borderColor: "blue",
+                        }}
                       >
                         <option value="" disabled>
                           Select a vehicle type
