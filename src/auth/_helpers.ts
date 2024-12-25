@@ -82,7 +82,7 @@ export function setupAxios(axiosInstance: any) {
 }
 
 const axiosInstance = axios.create({
-  baseURL: 'https://static.129.134.201.195.clients.your-server.de/test'
+  baseURL: 'http://static.129.134.201.195.clients.your-server.de/test'
   // baseURL: 'https://static.129.134.201.195.clients.your-server.de/dev'
   // baseURL: 'http://195.201.134.129/test', // This is the base URL
 });
