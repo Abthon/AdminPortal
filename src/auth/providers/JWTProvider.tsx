@@ -14,12 +14,12 @@ import * as authHelper from '../_helpers';
 import { type AuthModel, type UserModel } from '@/auth';
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
-export const LOGIN_URL = `${API_URL}/dev/api/v1/auth/admin/login`;
-export const VARIFY_ACCOUNT_URL = `${API_URL}/dev/api/v1/auth/admin/verify`;
-export const REGISTER_URL = `${API_URL}/dev/api/v1/auth/admin/signup`;
-export const FORGOT_PASSWORD_URL = `${API_URL}/dev/api/v1/auth/admin/forgotPassword`;
-export const RESET_PASSWORD_URL = `${API_URL}/dev/reset-password`;
-export const GET_USER_URL = `${API_URL}/dev/api/v1/admin/1`;
+export const LOGIN_URL = `${API_URL}/test/api/v1/auth/admin/login`;
+export const VARIFY_ACCOUNT_URL = `${API_URL}/test/api/v1/auth/admin/verify`;
+export const REGISTER_URL = `${API_URL}/test/api/v1/auth/admin/signup`;
+export const FORGOT_PASSWORD_URL = `${API_URL}/test/api/v1/auth/admin/forgotPassword`;
+export const RESET_PASSWORD_URL = `${API_URL}/test/reset-password`;
+export const GET_USER_URL = `${API_URL}/test/api/v1/admin/1`;
 
 interface AuthContextProps {
   loading: boolean;
@@ -97,6 +97,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
       saveAuth(data.data);
       return data.data;
     } catch (error) {
+      console.log("error catched", error)
       saveAuth(undefined);
       throw new Error(`Error ${error}`);
     }
@@ -125,14 +126,13 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
           "lastName": lastname, 
           "middleName": "MiddleName",
           "gender": "male",
-          "firebaseToken": "1234567890",
         }
       );
       // saveAuth(auth);
       // const { data: user } = await getUser();
       // setCurrentUser(user);
     } catch (error) {
-      console.log("error catched")
+      console.log("error catched", error)
       saveAuth(undefined);
       throw new Error(`Error ${error}`);
     }

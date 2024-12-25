@@ -61,6 +61,7 @@ const Signup = () => {
         if (!register) {
           throw new Error('JWTProvider is required for this form.');
         }
+        console.log("request lilak");
         await register(values.firstname, values.lastname, values.email, values.password);
         navigate(from, { replace: true, state: {
           message: "Type the otp we sent to you via email here!",
@@ -69,7 +70,7 @@ const Signup = () => {
       }
     );
       } catch (error) {
-        console.error(error);
+        console.error(error, "the error message");
         setStatus('The sign up details are incorrect');
         setSubmitting(false);
         setLoading(false);
