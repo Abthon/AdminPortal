@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import clsx from "clsx";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import {  ModalVehicleRegistrationForm } from "@/partials/modals/vechicle-registration";
+import axiosInstance from "@/auth/_helpers";
 
 interface IVehicleRegistrationData {
   id: string;
@@ -58,27 +59,19 @@ const VehicleRegistration = ({ isAddOpen, _handleAddOpen }: VehicleRegistrationP
   const handleOpen = (isEdit: boolean, rowData: IVehicleRegistrationData | null = null) => {
     setEditMode(isEdit);
     setCurrentVehicleData(rowData);
-    console.log(rowData, "rowdata");
     setProfileModalOpen(true);
   };
 
   async function getVehicle() {
-    const data = await fetch("http://195.201.134.129/test/api/v1/vehicles");
-    const res = await data.json();
-    console.log("here", res.data);
-    return res.data;
+    const { data } = await axiosInstance.get("/api/v1/vehicles");
+    console.log("here", data.data);
+    return data.data;
   }
 
   async function deleteVehicle(id: string) {
-    const data = await fetch(
-      `http://195.201.134.129/test/api/v1/vehicles/${id}`,
-      {
-        method: "DELETE",
-      }
-    );
-    const res = await data.json();
-    console.log(res, "delete");
-    return res;
+    const { data } = await axiosInstance.delete(`/api/v1/vehicles/${id}`);
+    console.log(data, "delete");
+    return data;
   }
 
   const { isLoading: isVehicleLoading, data: VehicleData } = useQuery({
