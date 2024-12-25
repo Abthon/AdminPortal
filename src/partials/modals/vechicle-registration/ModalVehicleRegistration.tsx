@@ -78,7 +78,7 @@ const ModalVehicleRegistrationForm = ({
       console.log(formData, "formdata");
 
       const res = await axiosInstance.post(
-        `/file-upload/image/vehicle`,
+        `api/v1/file-upload/image/vehicle`,
         formData
       );
 
@@ -100,7 +100,7 @@ const ModalVehicleRegistrationForm = ({
       }
 
       const res_2 = await axiosInstance.post(
-        `/file-upload/image/librae`,
+        `api/v1/file-upload/image/librae`,
         formData
       );
 
@@ -118,7 +118,7 @@ const ModalVehicleRegistrationForm = ({
 
       console.log(lastData, "last data");
 
-      const res_3 = await axiosInstance.post("/vehicles", lastData);
+      const res_3 = await axiosInstance.post("api/v1/vehicles", lastData);
 
       if (res_3.status !== 201) {
         throw new Error(res_3.data.message || "Failed to create the booking.");
@@ -154,7 +154,7 @@ const ModalVehicleRegistrationForm = ({
       }
 
       const res = await axiosInstance.post(
-        `/file-upload/image/vehicle`,
+        `api/v1/file-upload/image/vehicle`,
         formData
       );
 
@@ -171,7 +171,7 @@ const ModalVehicleRegistrationForm = ({
       }
 
       const res_2 = await axiosInstance.post(
-        `/file-upload/image/librae`,
+        `api/v1/file-upload/image/librae`,
         newFormData
       );
 
@@ -187,7 +187,7 @@ const ModalVehicleRegistrationForm = ({
         librae: librae_res,
       };
 
-      const res_3 = await axiosInstance.patch(`/vehicles/${id}`, lastData);
+      const res_3 = await axiosInstance.patch(`api/v1/vehicles/${id}`, lastData);
 
       if (res_3.status !== 200) {
         throw new Error(res_3.data.message || "Failed to update the vehicle.");
@@ -208,12 +208,12 @@ const ModalVehicleRegistrationForm = ({
     isLoading: isVehicleTypeLoading,
     error: vehicleTypeError,
   } = useQuery("VehicleType", async () => {
-    const res = await axiosInstance.get("/vehicle-types");
+    const res = await axiosInstance.get("api/v1/vehicle-types");
+    console.log("the vehicle types", res.data);
     if (res.status !== 200) {
       throw new Error("Failed to fetch vehicle types");
     }
     const data = res.data;
-    //console.log("here", data.data);
     return data.data;
   });
 
@@ -369,7 +369,7 @@ const ModalVehicleRegistrationForm = ({
                 <label className="input">
                   <select
                     {...formik.getFieldProps("vehicleTypeId")}
-                    className="form-control form-select w-full"
+                    className="form-control form-select w-full outline-none"
                   >
                     <option value="" disabled>
                       Select a vehicle type
