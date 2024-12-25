@@ -106,7 +106,8 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     try {
       const { data: auth } = await axios.post<AuthModel>(VARIFY_ACCOUNT_URL, {
         "email": email,
-        "otp": otp
+        "otp": otp,
+        "firebaseToken": "1234567890",
       });
       saveAuth(auth);
     } catch (error) {
