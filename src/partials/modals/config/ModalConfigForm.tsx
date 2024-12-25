@@ -12,6 +12,7 @@ import { useFormik } from "formik";
 import { useEffect } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { toast } from "sonner";
+import axiosInstance from "@/auth/_helpers";
 
 interface IModalConfigFormProps {
   open: boolean;
@@ -62,31 +63,14 @@ const ModalConfigForm = ({
 
       console.log(updatedvalues);
 
-      const res = await fetch(`http://195.201.134.129/test/api/v1/params`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedvalues),
-      });
+      const res = await axiosInstance.post(`/api/v1/params`, updatedvalues);
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to create the config.");
-      }
-
-      const data = await res.json();
-
-      console.log("success", data);
+      console.log("success", res.data);
     } catch (err) {
       throw new Error(
-        (err as Error).message || "An error occurred while create the config."
+        (err as Error).message || "An error occurred while creating the config."
       );
     }
-
-    // //data.data.filename
-
-    // console.log(data);
   }
 
   async function editConfig(values: { [key: string]: any }) {
@@ -108,22 +92,9 @@ const ModalConfigForm = ({
 
       console.log(updatedvalues);
 
-      const res = await fetch(
-        `http://195.201.134.129/test/api/v1/params/${id}`,
-        {
-          method: "PATCH", // Using PUT for editing
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedvalues),
-        }
-      );
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to update the config.");
-      }
-      const data = await res.json();
-      return data;
+      const res = await axiosInstance.patch(`/api/v1/params/${id}`, updatedvalues);
+
+      console.log("success", res.data);
     } catch (err) {
       throw new Error(
         (err as Error).message || "An error occurred while editing the config."
