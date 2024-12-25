@@ -12,6 +12,7 @@ import { useFormik } from "formik";
 import { useEffect } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { toast } from "sonner";
+import axiosInstance from "@/auth/_helpers";
 
 interface IModalVehicleTypeFormProps {
   open: boolean;
@@ -66,65 +67,18 @@ const ModalVehicleTypeForm = ({
         formData.append("file", file);
       }
 
-      const res = await fetch(
-        `http://195.201.134.129/test/api/v1/file-upload/image/vehicle-type`,
-        {
-          method: "POST",
-          body: formData, // Send FormData (no need to set Content-Type header)
-        }
-      );
+      const res = await axiosInstance.post(`api/v1/file-upload/image/vehicle-type`, formData);
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(
-          errorData.message || "Failed to create the vehicle type."
-        );
-      }
-
-      const data = await res.json();
-
-      //console.log(data.success, "status");
-
-      // if (data.success === false) {
-      //   console.log("yabsira!");
-      //   return;
-      // }
-
-      //delete updatedFields?.File;
+      const data = res.data;
 
       let finalData = { ...updatedFields, image: data.data.filename };
-      // console.log(finalData, "last data");
 
-      const res_2 = await fetch(
-        `http://195.201.134.129/test/api/v1/vehicle-types`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(finalData),
-        }
-      );
-
-      if (!res_2.ok) {
-        const errorData = await res_2.json();
-        throw new Error(
-          errorData.message || "Failed to create the vehicle type."
-        );
-      }
-
-      const data_2 = res_2.json();
-
-      //console.log("success", data_2);
+      await axiosInstance.post(`api/v1/vehicle-types`, finalData);
     } catch (err) {
       throw new Error(
-        (err as Error).message || "An error occurred while create the vehicle type."
+        (err as Error).message || "An error occurred while creating the vehicle type."
       );
     }
-
-    // //data.data.filename
-
-    // console.log(data);
   }
 
   async function editVehicleType(values: { [key: string]: any }) {
@@ -137,39 +91,10 @@ const ModalVehicleTypeForm = ({
       if (file) {
         formData.append("file", file);
       }
-      const res = await fetch(
-        `http://195.201.134.129/test/api/v1/file-upload/image/vehicle-type`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(
-          errorData.message || "Failed to update the vehicle type."
-        );
-      }
-      const data = await res.json();
+      const res = await axiosInstance.post(`api/v1/file-upload/image/vehicle-type`, formData);
+      const data = res.data;
       let finalData = { ...updatedFields, image: data.data.filename };
-      const res_2 = await fetch(
-        `http://195.201.134.129/test/api/v1/vehicle-types/${id}`,
-        {
-          method: "PATCH", // Using PUT for editing
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(finalData),
-        }
-      );
-      if (!res_2.ok) {
-        const errorData = await res_2.json();
-        throw new Error(
-          errorData.message || "Failed to update the vehicle type."
-        );
-      }
-      const data_2 = await res_2.json();
-      return data_2;
+      await axiosInstance.patch(`api/v1/vehicle-types/${id}`, finalData);
     } catch (err) {
       throw new Error(
         (err as Error).message || "An error occurred while editing the vehicle type."
@@ -181,11 +106,7 @@ const ModalVehicleTypeForm = ({
     initialValues,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
       try {
-        // console.log(values);
-        // const { file, ...updatedFields } = values;
-        // const data = await addVehicleType(values);
         mutate(values);
-        // console.log(values, file);
       } catch {
         // setStatus("The login details are incorrect");
         // setSubmitting(false);
@@ -193,15 +114,7 @@ const ModalVehicleTypeForm = ({
     },
   });
 
-  // useEffect(() => {
-  //   if (isEdit) {
-  //     formik.setValues(vehicleData); // Manually update Formik's values
-  //   } else {
-  //     formik.resetForm();
-  //   }
-  // }, [vehicleData, isEdit]);
   useEffect(() => {
-    //console.log("there rh", isEdit);
     if (open) {
       if (isEdit) {
         formik.setValues(vehicleData || {}); // Populate form with edit data
@@ -210,17 +123,6 @@ const ModalVehicleTypeForm = ({
       }
     }
   }, [isEdit, open, vehicleData]);
-
-  // useEffect(() => {
-  //   // Reset form when the modal is closed
-  //   if (!isEdit) {
-  //     formik.resetForm();
-  //   }
-  // }, [open]);
-
-  // function onFormSubmit(data) {
-  //   mutate(data);
-  // }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -245,10 +147,6 @@ const ModalVehicleTypeForm = ({
                   placeholder="Enter name"
                   autoComplete="off"
                   {...formik.getFieldProps("name")}
-
-                  // className={clsx("form-control", {
-                  //   "is-invalid": formik.touched.email && formik.errors.email,
-                  // })}
                 />
               </label>
             </div>
@@ -261,9 +159,6 @@ const ModalVehicleTypeForm = ({
                   autoComplete="off"
                   {...formik.getFieldProps("baseFare")}
                   type="number"
-                  // className={clsx("form-control", {
-                  //   "is-invalid": formik.touched.email && formik.errors.email,
-                  // })}
                 />
               </label>
             </div>
@@ -278,9 +173,6 @@ const ModalVehicleTypeForm = ({
                   autoComplete="off"
                   {...formik.getFieldProps("additionalFarePerKm")}
                   type="number"
-                  // className={clsx("form-control", {
-                  //   "is-invalid": formik.touched.email && formik.errors.email,
-                  // })}
                 />
               </label>
             </div>
@@ -294,9 +186,6 @@ const ModalVehicleTypeForm = ({
                   autoComplete="off"
                   {...formik.getFieldProps("minWeightCapacity")}
                   type="number"
-                  // className={clsx("form-control", {
-                  //   "is-invalid": formik.touched.email && formik.errors.email,
-                  // })}
                 />
               </label>
             </div>
@@ -310,9 +199,6 @@ const ModalVehicleTypeForm = ({
                   autoComplete="off"
                   {...formik.getFieldProps("maxWeightCapacity")}
                   type="number"
-                  // className={clsx("form-control", {
-                  //   "is-invalid": formik.touched.email && formik.errors.email,
-                  // })}
                 />
               </label>
             </div>
