@@ -11,7 +11,7 @@ import { useFormik } from "formik";
 import { useEffect } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { toast } from "sonner";
-
+import axiosInstance from "@/auth/_helpers";
 const driverSchema = Yup.object().shape({
   firstName: Yup.string().required("First name is required."),
   lastName: Yup.string().required("Last name is required."),
@@ -57,24 +57,12 @@ const ModalDriverTypeForm = ({
       const { id, approvalStatus } = values as { id: string; approvalStatus: string };
 
       const updatedFields = {
-        "status": approvalStatus,
+        status: approvalStatus,
       };
 
-      const res = await fetch(`http://195.201.134.129/test/api/v1/drivers/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedFields),
-      });
+      const res = await axiosInstance.patch(`/api/v1/drivers/${id}`, updatedFields);
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to approve the driver.");
-      }
-
-      const data = await res.json();
-      return data;
+      return res.data;
     } catch (err) {
       const errorMessage =
         (err as Error).message || "An error occurred while approving the driver.";
@@ -95,26 +83,11 @@ const ModalDriverTypeForm = ({
 
   async function addDriver(values: Object) {
     try {
-      console.log(values);
-      const res = await fetch(`http://195.201.134.129/test/api/v1/drivers`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to create the driver.");
-      }
-
-      const data = await res.json();
-
-      console.log("success", data);
+      const res = await axiosInstance.post(`/api/v1/drivers`, values);
+      return res.data;
     } catch (err) {
       const errorMessage =
-        (err as Error).message || "An error occurred while create the driver.";
+        (err as Error).message || "An error occurred while creating the driver.";
       throw new Error(errorMessage);
     }
   }
@@ -135,24 +108,8 @@ const ModalDriverTypeForm = ({
         gender,
       };
 
-      console.log(updatedFields);
-
-      const res = await fetch(
-        `http://195.201.134.129/test/api/v1/drivers/${id}`,
-        {
-          method: "PATCH", // Using PUT for editing
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedFields),
-        }
-      );
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to update the driver.");
-      }
-      const data = await res.json();
-      return data;
+      const res = await axiosInstance.patch(`/api/v1/drivers/${id}`, updatedFields);
+      return res.data;
     } catch (err) {
       const errorMessage =
         (err as Error).message || "An error occurred while editing the driver.";
