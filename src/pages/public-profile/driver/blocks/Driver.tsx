@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalDriverTypeForm } from "@/partials/modals/driver";
 import axiosInstance from "@/auth/_helpers";
+const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface IDriversData {
   id: string;
@@ -33,6 +34,7 @@ interface IDriversData {
   phoneNumber: string;
   gender: string;
   status: string;
+  profilePhoto: string;
 }
 
 interface IColumnFilterProps<TData, TValue> {
@@ -121,6 +123,38 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
 
   const columns = useMemo<ColumnDef<IDriversData>[]>(
     () => [
+      {
+        id: "ProfilePhoto",
+        header: ({ column }) => (
+          <DataGridColumnHeader
+            title="ProfilePicture"
+            filter={<ColumnInputFilter column={column} />}
+            column={column}
+          />
+        ),
+        enableSorting: true,
+        cell: ({ row }) => {
+          console.log(row.original, "the original")
+          return (
+            <div className="flex items-center">
+              <img
+                src={`${BASE_URL}/profile/${row.original.profilePhoto}`}
+                className="rounded-full size-9 shrink-0"
+                alt={`${row.original.profilePhoto}`}
+              />
+              {/* <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+                  {row.original.name}
+                </span>
+              </div> */}
+            </div>
+          );
+        },
+        meta: {
+          className: "min-w-[300px]",
+          cellClassName: "min-w-[250px] text-gray-800 font-normal",
+        },
+      },
       {
         accessorKey: "id",
         header: () => <DataGridRowSelectAll />,
