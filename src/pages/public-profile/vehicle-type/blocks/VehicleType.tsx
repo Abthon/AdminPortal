@@ -21,6 +21,7 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalVehicleTypeForm } from "@/partials/modals/vehicle-type";
 import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
+const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface IUsersData {
   id: string;
@@ -32,8 +33,6 @@ interface IUsersData {
   minWeightCapacity: number;
   maxWeightCapacity: number;
 }
-
-const BaseURL = `http://195.201.134.129/test/static/vehicle-type/`;
 
 interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
@@ -141,7 +140,7 @@ const VechileType = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
           return (
             <div className="flex items-center gap-4">
               <img
-                src={`${BaseURL}${row.original.image}`}
+                src={`${BASE_URL}/vehicle-type/${row.original.image}`}
                 className="rounded-full size-9 shrink-0"
                 alt={`${row.original.image}`}
               />
