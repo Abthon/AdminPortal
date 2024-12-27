@@ -12,10 +12,16 @@ import { useEffect } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { toast } from "sonner";
 import axiosInstance from "@/auth/_helpers";
+
 const driverSchema = Yup.object().shape({
   firstName: Yup.string().required("First name is required."),
   lastName: Yup.string().required("Last name is required."),
   middleName: Yup.string().required("Middle name is required."),
+  gender: Yup.string().required("Gender is required."),
+  phoneNumber: Yup.string().required("Phone number is required."),
+  type: Yup.string().required("Type is required."),
+  drivingLicense: Yup.string().required("Driving license is required."),
+  profilePhoto: Yup.mixed().required("Profile photo is required."),
 });
 
 const approvalSchema = Yup.object().shape({
@@ -53,7 +59,7 @@ const ModalDriverTypeForm = ({
   });
 
   async function approveDriver(values: Object) {
-    try {
+   try {
       const { id, approvalStatus } = values as { id: string; approvalStatus: string };
 
       const updatedFields = {
@@ -78,14 +84,28 @@ const ModalDriverTypeForm = ({
         middleName: "",
         gender: "",
         phoneNumber: "",
+        type: "",
+        drivingLicense: "",
+        profilePhoto: null,
         approvalStatus: "inactive",
       };
 
-  async function addDriver(values: Object) {
+  async function addDriver(values: any) {
     try {
-      const res = await axiosInstance.post(`/api/v1/drivers`, values);
-      return res.data;
+      const formData = new FormData();
+      formData.append("file", values.profilePhoto);
+      const res_1 = await axiosInstance.post(`/api/v1/file-upload/image/profile`, formData);
+
+      if (res_1.status === 201){
+        const profile = res_1.data.data.filename;
+        let {profilePhoto, ...rest} = values;
+        rest = {...rest, profilePhoto: profile};
+        console.log(rest, "result to be sent");
+        const res = await axiosInstance.post(`/api/v1/drivers`, rest);
+        return res.data;
+      }
     } catch (err) {
+      console.log(err, "The error");
       const errorMessage =
         (err as Error).message || "An error occurred while creating the driver.";
       throw new Error(errorMessage);
@@ -94,11 +114,14 @@ const ModalDriverTypeForm = ({
 
   async function editDriver(values: Object) {
     try {
-      const { id, firstName, lastName, gender } = values as {
+      const { id, firstName, lastName, gender, type, drivingLicense, profilePhoto } = values as {
         id: string;
         firstName: string;
         lastName: string;
         gender: string;
+        type: string;
+        drivingLicense: string;
+        profilePhoto: File;
       };
 
       const updatedFields = {
@@ -106,6 +129,9 @@ const ModalDriverTypeForm = ({
         lastName,
         middleName: "A.",
         gender,
+        type,
+        drivingLicense,
+        profilePhoto,
       };
 
       const res = await axiosInstance.patch(`/api/v1/drivers/${id}`, updatedFields);
@@ -122,8 +148,14 @@ const ModalDriverTypeForm = ({
     validationSchema: isApproved ? approvalSchema : driverSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
       try {
-        console.log(values, "the valueee");
-        mutate(values);
+        const formData = new FormData();
+        formData.append("Test", "Abenezer");
+        if (values.profilePhoto) {
+          formData.append("profilePhoto", values.profilePhoto);
+        }
+        let {approvalStatus, ...updatedValues } = values;
+        updatedValues = { ...updatedValues, "firebaseToken":"testToken"};
+        mutate({ ...updatedValues});
       } catch {
         toast("There was an error! Try again");
       }
@@ -193,6 +225,9 @@ const ModalDriverTypeForm = ({
               >
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">First Name</label>
+                  {formik.touched.firstName && formik.errors.firstName ? (
+                    <div className="text-red-500 text-sm">{typeof formik.errors.firstName === 'string' ? formik.errors.firstName : null}</div>
+                  ) : null}
                   <label className="input">
                     <input
                       placeholder="Enter First name"
@@ -203,20 +238,12 @@ const ModalDriverTypeForm = ({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">Last Name</label>
-                  <label className="input">
-                    <input
-                      placeholder="Enter Last name"
-                      autoComplete="off"
-                      {...formik.getFieldProps("lastName")}
-                    />
-                  </label>
-                </div>
-
-                <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
                     Middle Name
                   </label>
+                  {formik.touched.middleName && formik.errors.middleName ? (
+                    <div className="text-red-500 text-sm">{typeof formik.errors.middleName === 'string' ? formik.errors.middleName : null}</div>
+                  ) : null}
                   <label className="input">
                     <input
                       placeholder="Enter Middle name"
@@ -227,13 +254,33 @@ const ModalDriverTypeForm = ({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">Gender</label>
+                  <label className="form-label text-gray-900">Last Name</label>
+                  {formik.touched.lastName && formik.errors.lastName ? (
+                    <div className="text-red-500 text-sm">{typeof formik.errors.lastName === 'string' ? formik.errors.lastName : null}</div>
+                  ) : null}
                   <label className="input">
                     <input
-                      placeholder="Enter Gender"
+                      placeholder="Enter Last name"
                       autoComplete="off"
-                      {...formik.getFieldProps("gender")}
+                      {...formik.getFieldProps("lastName")}
                     />
+                  </label>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">Gender</label>
+                  {formik.touched.gender && formik.errors.gender ? (
+                    <div className="text-red-500 text-sm">{typeof formik.errors.gender === 'string' ? formik.errors.gender : null}</div>
+                  ) : null}
+                  <label className="input">
+                    <select
+                      {...formik.getFieldProps("gender")}
+                      className="form-control form-select w-full outline-none"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                    </select>
                   </label>
                 </div>
 
@@ -241,11 +288,68 @@ const ModalDriverTypeForm = ({
                   <label className="form-label text-gray-900">
                     Phone Number
                   </label>
+                  {formik.touched.phoneNumber && formik.errors.phoneNumber ? (
+                    <div className="text-red-500 text-sm">{typeof formik.errors.phoneNumber === 'string' ? formik.errors.phoneNumber : null}</div>
+                  ) : null}
                   <label className="input">
                     <input
                       placeholder="Enter Phone Number"
                       autoComplete="off"
                       {...formik.getFieldProps("phoneNumber")}
+                    />
+                  </label>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">Type</label>
+                  {formik.touched.type && formik.errors.type ? (
+                    <div className="text-red-500 text-sm">{typeof formik.errors.type === 'string' ? formik.errors.type : null}</div>
+                  ) : null}
+                  <label className="input">
+                    <select
+                      {...formik.getFieldProps("type")}
+                      className="form-control form-select w-full outline-none"
+                    >
+                      <option value="comission">Commission</option>
+                      <option value="payroll">Payroll</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">
+                    Driving License
+                  </label>
+                  {formik.touched.drivingLicense && formik.errors.drivingLicense ? (
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.drivingLicense === 'string' ? formik.errors.drivingLicense : null}
+                    </div>
+                  ) : null}
+                  <label className="input">
+                    <input
+                      placeholder="Enter Driving License"
+                      autoComplete="off"
+                      {...formik.getFieldProps("drivingLicense")}
+                    />
+                  </label>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">
+                    Profile Photo
+                  </label>
+                  {formik.touched.profilePhoto && formik.errors.profilePhoto ? (
+                    <div className="text-red-500 text-sm">{typeof formik.errors.profilePhoto === 'string' ? formik.errors.profilePhoto : null}</div>
+                  ) : null}
+                  <label className="input">
+                    <input
+                      type="file"
+                      name="profilePhoto"
+                      onChange={(event) => {
+                        if (event.currentTarget.files && event.currentTarget.files[0]) {
+                          formik.setFieldValue("profilePhoto", event.currentTarget.files[0]);
+                        }
+                      }}
                     />
                   </label>
                 </div>
