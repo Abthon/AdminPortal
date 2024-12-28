@@ -43,7 +43,7 @@ const CoorporatePage = () => {
                 }}
                 className="btn btn-sm btn-primary"
               >
-                Add Vehicle
+                Add Corporate
               </button>
             </ToolbarActions>
           </Toolbar>
