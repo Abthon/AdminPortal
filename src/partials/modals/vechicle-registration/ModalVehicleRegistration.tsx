@@ -83,7 +83,6 @@ const ModalVehicleRegistrationForm = ({
       );
 
       // console.log(res, "res");
-
       //res.data.data.filename
       const photo_res = res.data.data.filename;
 
@@ -118,15 +117,18 @@ const ModalVehicleRegistrationForm = ({
 
       console.log(lastData, "last data");
 
-      const res_3 = await axiosInstance.post("api/v1/vehicles", lastData);
+      try{
+          const res_3 = await axiosInstance.post("api/v1/vehicles", lastData);
+          if (res_3.status !== 201) {
+            throw new Error(res_3.data.message || "Failed to create the booking.");
+          }
 
-      if (res_3.status !== 201) {
-        throw new Error(res_3.data.message || "Failed to create the booking.");
+          const data_3 = res_3.data;
+          console.log(data_3, "data_3");
+          return data_3;
+      }catch(error){ 
+        console.log(error, "The error.");
       }
-
-      const data_3 = res_3.data;
-      console.log(data_3, "data_3");
-      return data_3;
     } catch (err) {
       throw new Error(
         (err as Error).message ||
@@ -139,14 +141,9 @@ const ModalVehicleRegistrationForm = ({
     // console.log(data);
   }
 
-  async function editVehicleType(values: { [key: string]: any }) {
+  async function editVehicleType(values: any) {
     try {
-      const { photo, librae, id, ...updatedFields } = values as {
-        photo: File;
-        librae: File;
-        id: string;
-        [key: string]: any;
-      };
+      const { photo, librae, id, ...updatedFields } = values;
       const formData = new FormData();
 
       if (photo) {
@@ -163,11 +160,10 @@ const ModalVehicleRegistrationForm = ({
       }
 
       const photo_res = res.data.data.filename;
-
       const newFormData = new FormData();
 
       if (librae) {
-        newFormData.append("librae", librae);
+        newFormData.append("file", librae);
       }
 
       const res_2 = await axiosInstance.post(
@@ -180,21 +176,27 @@ const ModalVehicleRegistrationForm = ({
       }
 
       const librae_res = res_2.data.data.filename;
-
       const lastData = {
         ...updatedFields,
         photo: photo_res,
         librae: librae_res,
       };
 
-      const res_3 = await axiosInstance.patch(`api/v1/vehicles/${id}`, lastData);
+      try{
+        let { owner, createdAt, driver, vehicleType, vehicleTypeId, ...rest } = lastData;
+        rest = { ...rest, vehicleType: "comission", vehicleTypeId: parseInt(vehicleTypeId, 10) };
+        console.log(rest, "data without owner.");
+        const res_3 = await axiosInstance.patch(`api/v1/vehicles/${id}`, rest);
+        if (res_3.status !== 200) {
+          throw new Error(res_3.data.message || "Failed to update the vehicle.");
+        }
 
-      if (res_3.status !== 200) {
-        throw new Error(res_3.data.message || "Failed to update the vehicle.");
+        const data_3 = res_3.data;
+        return data_3;
+
+      }catch(error){ 
+        console.log(error, "The error!");
       }
-
-      const data_3 = res_3.data;
-      return data_3;
     } catch (err) {
       throw new Error(
         (err as Error).message ||

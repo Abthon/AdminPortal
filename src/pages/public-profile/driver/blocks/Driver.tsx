@@ -35,6 +35,7 @@ interface IDriversData {
   gender: string;
   status: string;
   profilePhoto: string;
+  type: string;
 }
 
 interface IColumnFilterProps<TData, TValue> {
@@ -124,6 +125,16 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
   const columns = useMemo<ColumnDef<IDriversData>[]>(
     () => [
       {
+        accessorKey: "id",
+        header: () => <DataGridRowSelectAll />,
+        cell: ({ row }) => <DataGridRowSelect row={row} />,
+        enableSorting: false,
+        enableHiding: false,
+        meta: {
+          headerClassName: "w-0",
+        },
+      },
+      {
         id: "ProfilePhoto",
         header: ({ column }) => (
           <DataGridColumnHeader
@@ -134,7 +145,7 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
         ),
         enableSorting: true,
         cell: ({ row }) => {
-          console.log(row.original, "the original")
+          // console.log(row.original, "the original")
           return (
             <div className="flex items-center">
               <img
@@ -149,20 +160,6 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
               </div> */}
             </div>
           );
-        },
-        meta: {
-          className: "min-w-[300px]",
-          cellClassName: "min-w-[250px] text-gray-800 font-normal",
-        },
-      },
-      {
-        accessorKey: "id",
-        header: () => <DataGridRowSelectAll />,
-        cell: ({ row }) => <DataGridRowSelect row={row} />,
-        enableSorting: false,
-        enableHiding: false,
-        meta: {
-          headerClassName: "w-0",
         },
       },
       {
@@ -218,13 +215,38 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
         },
       },
       {
+        accessorFn: (row) => row.status,
         id: "status",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Status" column={column} />
+          <DataGridColumnHeader title="status" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.status;
+          return (
+            <div className="flex justify-between relative">
+              <span
+                className={`badge ${info.row.original.status === "suspended" && "badge-danger"} ${info.row.original.status === "inactive" && "badge-warning"} ${info.row.original.status === "active" && "badge-success"} ${info.row.original.status === "pending" && "badge-primary"} shrink-0 badge-outline rounded-[30px]`}
+              >
+                <span
+                  className={`size-1.5 rounded-full ${info.row.original.status === "suspended" && "bg-danger"} ${info.row.original.status === "inactive" && "bg-warning"} ${info.row.original.status === "active" && "bg-success"} ${info.row.original.status === "pending" && "bg-primary"} me-1.5`}
+                ></span>
+                {info.row.original.status}
+              </span>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        id: "type",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="type" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.type;
         },
         meta: {
           headerClassName: "min-w-[180px]",
