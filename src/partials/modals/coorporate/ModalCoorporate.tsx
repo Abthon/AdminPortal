@@ -120,7 +120,6 @@ const ModalCoorporateForm = ({
 
   async function addCoorporate(values: { [key: string]: any }) {
     try {
-      console.log(values);
       const { officialStampedLetter, ...updatedFields } = values as {
         officialStampedLetter: File;
         [key: string]: any;
