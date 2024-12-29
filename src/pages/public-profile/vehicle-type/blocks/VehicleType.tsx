@@ -23,7 +23,7 @@ import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
-interface IUsersData {
+interface IVehicleTypeData {
   id: string;
   user: string;
   image: string;
@@ -38,23 +38,23 @@ interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
 }
 
-interface UsersProps {
+interface VehicleTypeProps {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
 }
 
-const VechileType = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
+const VechileType = ({ isAddOpen, _handleAddOpen }: VehicleTypeProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentVehicleData, setCurrentVehicleData] =
-    useState<IUsersData | null>(null);
+    useState<IVehicleTypeData | null>(null);
 
   const handleClose = () => {
     setProfileModalOpen(false);
     _handleAddOpen(false);
   };
 
-  const handleOpen = (isEdit: boolean, rowData: IUsersData | null = null) => {
+  const handleOpen = (isEdit: boolean, rowData: IVehicleTypeData | null = null) => {
     setEditMode(isEdit);
     setCurrentVehicleData(rowData);
     console.log(rowData, "rowdata");
@@ -113,7 +113,7 @@ const VechileType = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
     [isAddOpen]
   );
 
-  const columns = useMemo<ColumnDef<IUsersData>[]>(
+  const columns = useMemo<ColumnDef<IVehicleTypeData>[]>(
     () => [
       {
         accessorKey: "id",
@@ -126,7 +126,7 @@ const VechileType = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
         },
       },
       {
-        accessorFn: (row: IUsersData) => row.user,
+        accessorFn: (row: IVehicleTypeData) => row.user,
         id: "users",
         header: ({ column }) => (
           <DataGridColumnHeader
@@ -257,7 +257,7 @@ const VechileType = ({ isAddOpen, _handleAddOpen }: UsersProps) => {
     [mutate]
   );
 
-  const data: IUsersData[] = useMemo(() => VehicleData ?? [], [VehicleData]);
+  const data: IVehicleTypeData[] = useMemo(() => VehicleData ?? [], [VehicleData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
