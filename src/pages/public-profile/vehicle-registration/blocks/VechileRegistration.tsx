@@ -34,8 +34,6 @@ interface IVehicleRegistrationData {
   vehicleType: number;
 }
 
-const BaseURL = `http://195.201.134.129/test/static/vehicle-type/`;
-
 interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
 }
@@ -127,52 +125,6 @@ const VehicleRegistration = ({ isAddOpen, _handleAddOpen }: VehicleRegistrationP
           headerClassName: "w-0",
         },
       },
-      // {
-      //   accessorFn: (row: IVehicleRegistrationData) => row.user,
-      //   id: "users",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader
-      //       title="Member"
-      //       filter={<ColumnInputFilter column={column} />}
-      //       column={column}
-      //     />
-      //   ),
-      //   enableSorting: true,
-      //   cell: ({ row }) => {
-      //     return (
-      //       <div className="flex items-center gap-4">
-      //         <img
-      //           src={`${BaseURL}${row.original.image}`}
-      //           className="rounded-full size-9 shrink-0"
-      //           alt={`${row.original.image}`}
-      //         />
-      //         <div className="flex flex-col gap-0.5">
-      //           <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-      //             {row.original.name}
-      //           </span>
-      //         </div>
-      //       </div>
-      //     );
-      //   },
-      //   meta: {
-      //     className: "min-w-[300px]",
-      //     cellClassName: "min-w-[250px] text-gray-800 font-normal",
-      //   },
-      // },
-      // {
-      //   accessorFn: (row) => row.vehicleType,
-      //   id: "vehicleType",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="vehicleType ID" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.vehicleType?.id;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
       {
         accessorFn: (row) => row.make,
         id: "make",
