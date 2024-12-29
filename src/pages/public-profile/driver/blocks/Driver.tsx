@@ -253,6 +253,19 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
         },
       },
       {
+        id: "type",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="type" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.type;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
         id: "Edit",
         header: ({ column }) => (
           <DataGridColumnHeader title="Edit" column={column} />
