@@ -25,7 +25,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
       {
         title: "Drivers",
         path: "/public-profile/table",
-      }
+      },
     ],
   },
   {
@@ -59,6 +59,19 @@ export const MENU_SIDEBAR: TMenuConfig = [
       {
         title: "Configs",
         path: "/public-profile/config",
+      },
+    ],
+  },
+  {
+    heading: "Coorporate",
+  },
+  {
+    title: "Coorporate",
+    icon: "profile-circle",
+    children: [
+      {
+        title: "Coorporates",
+        path: "/public-profile/coorporate",
       },
     ],
   },
