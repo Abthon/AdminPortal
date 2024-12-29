@@ -51,7 +51,7 @@ const ModalVehicleRegistrationForm = ({
       toast.error((err as Error).message);
     },
   });
-  // const initialValues = isEdit ? vehicleData : {};
+
   const initialValues = isEdit
     ? vehicleData
     : {
@@ -82,10 +82,7 @@ const ModalVehicleRegistrationForm = ({
         formData
       );
 
-      // console.log(res, "res");
-      //res.data.data.filename
       const photo_res = res.data.data.filename;
-
       if (res.status !== 201) {
         throw new Error(res.data.message || "Failed to edit the booking.");
       }
@@ -115,8 +112,6 @@ const ModalVehicleRegistrationForm = ({
         librae: librae_res,
       };
 
-      console.log(lastData, "last data");
-
       try{
           const res_3 = await axiosInstance.post("api/v1/vehicles", lastData);
           if (res_3.status !== 201) {
@@ -136,9 +131,6 @@ const ModalVehicleRegistrationForm = ({
       );
     }
 
-    // //data.data.filename
-
-    // console.log(data);
   }
 
   async function editVehicleType(values: any) {
