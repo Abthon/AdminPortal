@@ -28,8 +28,15 @@ interface ICoorporateData {
   name: string;
   email: string;
   address: string;
-  booking: string;
   status: string;
+  booking: string;
+  creditLimit: string;
+  paymentPlan: string;
+  license: string;
+  tinNo: string;
+  contactPhoneNumber: string;
+  backupContactPhoneNumber: string;
+  nationalId: string;
 }
 
 interface IColumnFilterProps<TData, TValue> {
@@ -246,6 +253,104 @@ const Coorporate = ({ isAddOpen, _handleAddOpen }: CoorporateProps) => {
               </span>
             </div>
           );
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        accessorFn: (row) => row.email,
+        id: "creditLimit",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="creditLimit" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.creditLimit;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        accessorFn: (row) => row.email,
+        id: "paymentPlan",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="paymentPlan" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.paymentPlan;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        accessorFn: (row) => row.email,
+        id: "license",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="license" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.license;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        accessorFn: (row) => row.email,
+        id: "tinNo",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="tinNo" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.tinNo;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        accessorFn: (row) => row.email,
+        id: "nationalId",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="nationalId" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.nationalId;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        accessorFn: (row) => row.email,
+        id: "contactPhoneNumber",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="contactPhoneNumber" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.contactPhoneNumber;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        accessorFn: (row) => row.email,
+        id: "backupContactPhoneNumber",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="backupContactPhoneNumber" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.backupContactPhoneNumber;
         },
         meta: {
           headerClassName: "min-w-[180px]",

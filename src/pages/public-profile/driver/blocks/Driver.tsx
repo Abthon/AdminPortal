@@ -215,13 +215,38 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
         },
       },
       {
+        accessorFn: (row) => row.status,
         id: "status",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Status" column={column} />
+          <DataGridColumnHeader title="status" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.status;
+          return (
+            <div className="flex justify-between relative">
+              <span
+                className={`badge ${info.row.original.status === "suspended" && "badge-danger"} ${info.row.original.status === "inactive" && "badge-warning"} ${info.row.original.status === "active" && "badge-success"} ${info.row.original.status === "pending" && "badge-primary"} shrink-0 badge-outline rounded-[30px]`}
+              >
+                <span
+                  className={`size-1.5 rounded-full ${info.row.original.status === "suspended" && "bg-danger"} ${info.row.original.status === "inactive" && "bg-warning"} ${info.row.original.status === "active" && "bg-success"} ${info.row.original.status === "pending" && "bg-primary"} me-1.5`}
+                ></span>
+                {info.row.original.status}
+              </span>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        id: "type",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="type" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.type;
         },
         meta: {
           headerClassName: "min-w-[180px]",
