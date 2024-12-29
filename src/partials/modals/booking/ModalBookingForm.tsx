@@ -96,7 +96,7 @@ const ModalBookingForm = ({
   const { mutate, isLoading } = useMutation({
     mutationFn: isEdit ? editBooking : addBooking,
     onSuccess: () => {
-      toast.success(`Vehicle ${isEdit ? "Edited" : "Created"}`);
+      toast.success(`Booking ${isEdit ? "Edited" : "Created"}`);
       queryClient.invalidateQueries({ queryKey: ["Bookings"] });
       onOpenChange();
     },
