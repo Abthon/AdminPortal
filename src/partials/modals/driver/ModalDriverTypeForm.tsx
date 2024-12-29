@@ -45,7 +45,7 @@ const ModalDriverTypeForm = ({
 }: IModalDriverTypeFormProps) => {
   const queryClient = useQueryClient();
   const { mutate } = useMutation({
-    mutationFn: isApproved ? approveDriver : isEdit ? editDriver : addDriver,
+    mutationFn: isApproved ? approveDriver : (isEdit ? editDriver : addDriver),
     onSuccess: () => {
       toast.success(
         `Driver ${isApproved ? "Approved" : isEdit ? "Edited" : "Created"}`
@@ -61,15 +61,14 @@ const ModalDriverTypeForm = ({
   async function approveDriver(values: Object) {
    try {
       const { id, approvalStatus } = values as { id: string; approvalStatus: string };
-
       const updatedFields = {
         status: approvalStatus,
       };
 
-      const res = await axiosInstance.patch(`/api/v1/drivers/${id}`, updatedFields);
-
+      const res = await axiosInstance.patch(`/api/v1/drivers/toggleStatus/${driverData.id}`, updatedFields);
       return res.data;
     } catch (err) {
+      console.log(err, "the error");
       const errorMessage =
         (err as Error).message || "An error occurred while approving the driver.";
       throw new Error(errorMessage);
@@ -112,30 +111,38 @@ const ModalDriverTypeForm = ({
     }
   }
 
-  async function editDriver(values: Object) {
+  
+  async function editDriver(values: any) {
     try {
-      const { id, firstName, lastName, gender, type, drivingLicense, profilePhoto } = values as {
-        id: string;
-        firstName: string;
-        lastName: string;
-        gender: string;
-        type: string;
-        drivingLicense: string;
-        profilePhoto: File;
-      };
-
-      const updatedFields = {
+      const { id, firstName, lastName, middleName, gender, type, phoneNumber, drivingLicense, profilePhoto } = values;
+      let updatedValues: any = {
         firstName,
         lastName,
-        middleName: "A.",
+        middleName,
         gender,
         type,
         drivingLicense,
-        profilePhoto,
       };
 
-      const res = await axiosInstance.patch(`/api/v1/drivers/${id}`, updatedFields);
-      return res.data;
+      const formData = new FormData();
+      if(profilePhoto){
+        formData.append("file", profilePhoto);
+      }
+
+      const res_1 = await axiosInstance.post(`/api/v1/file-upload/image/profile`, formData);
+      console.log("Profile edited!");
+      if (res_1.status === 201){
+        const profile = res_1.data.data.filename;
+        updatedValues = {...updatedValues, profilePhoto: profile};
+        console.log(updatedValues, "result to be sent");
+        try{
+          const res = await axiosInstance.patch(`/api/v1/drivers/${id}`, updatedValues);
+          return res.data;
+        }catch(error){ 
+          console.log(error, "The error");
+        }
+      }
+
     } catch (err) {
       const errorMessage =
         (err as Error).message || "An error occurred while editing the driver.";
@@ -147,15 +154,20 @@ const ModalDriverTypeForm = ({
     initialValues,
     validationSchema: isApproved ? approvalSchema : driverSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
+      console.log(values, "initial values ");
       try {
-        const formData = new FormData();
-        formData.append("Test", "Abenezer");
-        if (values.profilePhoto) {
-          formData.append("profilePhoto", values.profilePhoto);
+        if(!isApproved){
+          const formData = new FormData();
+          if (values.profilePhoto) {
+            formData.append("profilePhoto", values.profilePhoto);
+          }
+          let {approvalStatus, ...updatedValues } = values;
+          updatedValues = { ...updatedValues, "firebaseToken":"testToken"};
+          mutate(updatedValues);
+        }else{ 
+          console.log(values, "the values status");
+          mutate(values);
         }
-        let {approvalStatus, ...updatedValues } = values;
-        updatedValues = { ...updatedValues, "firebaseToken":"testToken"};
-        mutate({ ...updatedValues});
       } catch {
         toast("There was an error! Try again");
       }
@@ -196,7 +208,7 @@ const ModalDriverTypeForm = ({
                   <label className="input">
                     <select
                       {...formik.getFieldProps("approvalStatus")}
-                      className="form-control form-select w-full outline-none"
+                      className="form-control form-select w-full outline-none bg-transparent"
                       defaultValue="inactive"
                     >
                       <option value="inactive">inactive</option>
@@ -274,8 +286,9 @@ const ModalDriverTypeForm = ({
                   ) : null}
                   <label className="input">
                     <select
+                      disabled={isEdit}
                       {...formik.getFieldProps("gender")}
-                      className="form-control form-select w-full outline-none"
+                      className="form-control form-select w-full outline-none bg-transparent"
                     >
                       <option value="">Select Gender</option>
                       <option value="male">Male</option>
@@ -295,6 +308,7 @@ const ModalDriverTypeForm = ({
                     <input
                       placeholder="Enter Phone Number"
                       autoComplete="off"
+                      disabled={isEdit} 
                       {...formik.getFieldProps("phoneNumber")}
                     />
                   </label>
@@ -308,7 +322,7 @@ const ModalDriverTypeForm = ({
                   <label className="input">
                     <select
                       {...formik.getFieldProps("type")}
-                      className="form-control form-select w-full outline-none"
+                      className="form-control form-select w-full outline-none bg-transparent"
                     >
                       <option value="comission">Commission</option>
                       <option value="payroll">Payroll</option>
