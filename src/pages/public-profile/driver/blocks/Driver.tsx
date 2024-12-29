@@ -35,6 +35,7 @@ interface IDriversData {
   gender: string;
   status: string;
   profilePhoto: string;
+  type: string;
 }
 
 interface IColumnFilterProps<TData, TValue> {
@@ -124,6 +125,16 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
   const columns = useMemo<ColumnDef<IDriversData>[]>(
     () => [
       {
+        accessorKey: "id",
+        header: () => <DataGridRowSelectAll />,
+        cell: ({ row }) => <DataGridRowSelect row={row} />,
+        enableSorting: false,
+        enableHiding: false,
+        meta: {
+          headerClassName: "w-0",
+        },
+      },
+      {
         id: "ProfilePhoto",
         header: ({ column }) => (
           <DataGridColumnHeader
@@ -134,7 +145,7 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
         ),
         enableSorting: true,
         cell: ({ row }) => {
-          console.log(row.original, "the original")
+          // console.log(row.original, "the original")
           return (
             <div className="flex items-center">
               <img
@@ -149,20 +160,6 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
               </div> */}
             </div>
           );
-        },
-        meta: {
-          className: "min-w-[300px]",
-          cellClassName: "min-w-[250px] text-gray-800 font-normal",
-        },
-      },
-      {
-        accessorKey: "id",
-        header: () => <DataGridRowSelectAll />,
-        cell: ({ row }) => <DataGridRowSelect row={row} />,
-        enableSorting: false,
-        enableHiding: false,
-        meta: {
-          headerClassName: "w-0",
         },
       },
       {
@@ -225,6 +222,19 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
         enableSorting: true,
         cell: (info) => {
           return info.row.original.status;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        id: "type",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="type" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.type;
         },
         meta: {
           headerClassName: "min-w-[180px]",
