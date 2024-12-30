@@ -583,6 +583,10 @@ const ModalBookingForm = ({
     dropOffLng: "",
     driverId: "",
     vehicleTypeId: "",
+    status: "",
+    remark: "",
+    traveledPath: "",
+    polyline: "",
   };
 
   async function addBooking(values: { [key: string]: any }) {
@@ -629,7 +633,10 @@ const ModalBookingForm = ({
         driverId,
         estimatedPrice: price,
         estimatedTraveledDistance: distance,
+        vehicleType: vehicleTypeId
       };
+
+      console.log(finalReq, "the final request");
 
       const res_3 = await axiosInstance.post("api/v1/bookings/admin", finalReq);
       if (res_3.status !== 201) {
@@ -638,6 +645,7 @@ const ModalBookingForm = ({
 
       return res_3.data;
     } catch (err) {
+      console.log(err, "the error occured!");
       throw new Error(
         (err as Error).message || "An error occurred while creating the book."
       );
@@ -646,27 +654,31 @@ const ModalBookingForm = ({
 
   async function editBooking(values: { [key: string]: any }) {
     try {
-      const { id, status, remark, endTime, traveledPath, polyline } = values;
-      const newDate = new Date(endTime);
+      const { id, status, remark, traveledPath, polyline } = values;
 
       const updatedFields = {
         status,
         remark,
-        endTime: newDate,
         traveledPath,
         polyline,
       };
 
-      const res = await axiosInstance.patch(
-        `api/v1/bookings/admin/${id}`,
-        updatedFields
-      );
+      console.log(updatedFields, "the updated fields");
+      try{
+        const res = await axiosInstance.patch(
+          `api/v1/bookings/${id}`,
+          updatedFields
+        );
 
-      if (res.status !== 200) {
-        throw new Error(res.data.message || "Failed to edit the booking.");
+        if (res.status !== 200) {
+          throw new Error(res.data.message || "Failed to edit the booking.");
+        }
+
+        return res.data;
+      }catch(error){
+        console.log(error, "The error");
       }
 
-      return res.data;
     } catch (err) {
       throw new Error("An error occurred while editing the booking.");
     }
@@ -943,8 +955,86 @@ const ModalBookingForm = ({
                 </button>
               </>
             ) : (
-              // Edit mode fields
-              <></>
+              <>
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">
+                  Status
+                  </label>
+                    <label className="input">
+                      <select
+                        {...formik.getFieldProps("status")}
+                        className="form-control form-select w-full"
+                        style={{
+                          backgroundColor: "transparent",
+                          outline: "none",
+                          borderColor: "blue",
+                        }}
+                      >
+                        <option value="requested">
+                          Requested
+                        </option>
+                        <option value="assigned">
+                          Assigned
+                        </option>
+                        <option value="canceled">
+                          Canceled
+                        </option>
+                        <option value="timeout">
+                          timeout
+                        </option>
+                        <option value="driver_not_found">
+                          driver_not_found
+                        </option>
+                        <option value="completed">
+                          completed
+                        </option>
+                        <option value="started">
+                          started
+                        </option>
+                      </select>
+                    </label>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">remark</label>
+                  <label className="input">
+                    <input
+                      placeholder="Enter remark"
+                      autoComplete="off"
+                      {...formik.getFieldProps("remark")}
+                    />
+                  </label>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">
+                    traveledPath
+                  </label>
+                  <label className="input">
+                    <input
+                      placeholder="Enter traveledPath"
+                      autoComplete="off"
+                      {...formik.getFieldProps("traveledPath")}
+                    />
+                  </label>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">polyline</label>
+                  <label className="input">
+                    <input
+                      placeholder="Enter polyline"
+                      autoComplete="off"
+                      {...formik.getFieldProps("polyline")}
+                    />
+                  </label>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary flex justify-center grow"
+                  disabled={isLoading}
+                >
+                  {isEdit ? "Edit" : "Create"}
+                </button>
+              </>
             )}
           </form>
         </DialogBody>
@@ -954,4 +1044,6 @@ const ModalBookingForm = ({
 };
 
 export { ModalBookingForm };
+
+
 
