@@ -42,11 +42,18 @@ interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
 }
 
-const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAddOpen: (isOpen: boolean) => void; }) => {
+const Drivers = ({
+  isAddOpen,
+  _handleAddOpen,
+}: {
+  isAddOpen: boolean;
+  _handleAddOpen: (isOpen: boolean) => void;
+}) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
-  const [currentDriverData, setCurrentDriverData] = useState<IDriversData | null>(null);
+  const [currentDriverData, setCurrentDriverData] =
+    useState<IDriversData | null>(null);
 
   const handleClose = () => {
     setApprovalMode(false);
@@ -61,7 +68,10 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
     setProfileModalOpen(true);
   };
 
-  const handleApproval = (isEdit: boolean, rowData: IDriversData | null = null) => {
+  const handleApproval = (
+    isEdit: boolean,
+    rowData: IDriversData | null = null
+  ) => {
     setApprovalMode(isEdit);
     setCurrentDriverData(rowData);
     setProfileModalOpen(true);
@@ -84,22 +94,26 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
   });
 
   interface DeleteResponse {
-  // Add your API response structure here
-  data: any;
-}
+    // Add your API response structure here
+    data: any;
+  }
 
   const queryClient = useQueryClient();
-  const { isLoading: isDeleting, mutate } = useMutation<DeleteResponse, Error, string>({
+  const { isLoading: isDeleting, mutate } = useMutation<
+    DeleteResponse,
+    Error,
+    string
+  >({
     mutationFn: deleteDriver,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["Drivers"]
+        queryKey: ["Drivers"],
       });
       toast("Driver successfully deleted!");
     },
     onError: (error) => {
       toast("Error Encountered deleting the driver");
-    }
+    },
   });
 
   const ColumnInputFilter = <TData, TValue>({
@@ -135,72 +149,46 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
         },
       },
       {
-        id: "ProfilePhoto",
+        // accessorFn: (row: IUsersData) => row.user,
+        id: "users_2",
         header: ({ column }) => (
-          <DataGridColumnHeader
-            title="ProfilePicture"
-            filter={<ColumnInputFilter column={column} />}
-            column={column}
-          />
+          <DataGridColumnHeader title="Member" column={column} />
         ),
         enableSorting: true,
         cell: ({ row }) => {
-          // console.log(row.original, "the original")
+          // 'row' argumentini cell funksiyasiga qo'shdik
           return (
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
               <img
                 src={`${BASE_URL}/profile/${row.original.profilePhoto}`}
                 className="rounded-full size-9 shrink-0"
                 alt={`${row.original.profilePhoto}`}
               />
-              {/* <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-                  {row.original.name}
-                </span>
-              </div> */}
+
+              <div className="flex flex-col gap-0.5">
+                <Link
+                  to={`/public-profile/driver/${row.original.id}`}
+                  className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
+                >
+                  {row.original.firstName} {row.original.lastName}
+                </Link>
+
+                <Link
+                  to="#"
+                  className="text-2sm text-gray-700 font-normal hover:text-primary-active"
+                >
+                  {row.original.phoneNumber}
+                </Link>
+              </div>
             </div>
           );
         },
-      },
-      {
-        id: "fName",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="First Name" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.firstName;
-        },
         meta: {
-          headerClassName: "min-w-[180px]",
+          className: "min-w-[300px]",
+          cellClassName: "text-gray-800 font-normal",
         },
       },
-      {
-        id: "lName",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Last Name" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.lastName;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
-        id: "Phone Number",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Phone Number" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.phoneNumber;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
+
       {
         id: "gender",
         header: ({ column }) => (
@@ -234,19 +222,6 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
               </span>
             </div>
           );
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
-        id: "type",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="type" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.type;
         },
         meta: {
           headerClassName: "min-w-[180px]",
@@ -400,7 +375,7 @@ const Drivers = ({ isAddOpen, _handleAddOpen }: { isAddOpen: boolean; _handleAdd
   };
 
   if (isDriverLoading) {
-    return <DataGridLoader message="Loading"/>;
+    return <DataGridLoader message="Loading" />;
   }
 
   return (

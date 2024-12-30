@@ -45,7 +45,7 @@ const ModalDriverTypeForm = ({
 }: IModalDriverTypeFormProps) => {
   const queryClient = useQueryClient();
   const { mutate } = useMutation({
-    mutationFn: isApproved ? approveDriver : (isEdit ? editDriver : addDriver),
+    mutationFn: isApproved ? approveDriver : isEdit ? editDriver : addDriver,
     onSuccess: () => {
       toast.success(
         `Driver ${isApproved ? "Approved" : isEdit ? "Edited" : "Created"}`
@@ -59,18 +59,25 @@ const ModalDriverTypeForm = ({
   });
 
   async function approveDriver(values: Object) {
-   try {
-      const { id, approvalStatus } = values as { id: string; approvalStatus: string };
+    try {
+      const { id, approvalStatus } = values as {
+        id: string;
+        approvalStatus: string;
+      };
       const updatedFields = {
         status: approvalStatus,
       };
 
-      const res = await axiosInstance.patch(`/api/v1/drivers/toggleStatus/${driverData.id}`, updatedFields);
+      const res = await axiosInstance.patch(
+        `/api/v1/drivers/toggleStatus/${driverData.id}`,
+        updatedFields
+      );
       return res.data;
     } catch (err) {
       console.log(err, "the error");
       const errorMessage =
-        (err as Error).message || "An error occurred while approving the driver.";
+        (err as Error).message ||
+        "An error occurred while approving the driver.";
       throw new Error(errorMessage);
     }
   }
@@ -93,12 +100,15 @@ const ModalDriverTypeForm = ({
     try {
       const formData = new FormData();
       formData.append("file", values.profilePhoto);
-      const res_1 = await axiosInstance.post(`/api/v1/file-upload/image/profile`, formData);
+      const res_1 = await axiosInstance.post(
+        `/api/v1/file-upload/image/profile`,
+        formData
+      );
 
-      if (res_1.status === 201){
+      if (res_1.status === 201) {
         const profile = res_1.data.data.filename;
-        let {profilePhoto, ...rest} = values;
-        rest = {...rest, profilePhoto: profile};
+        let { profilePhoto, ...rest } = values;
+        rest = { ...rest, profilePhoto: profile };
         console.log(rest, "result to be sent");
         const res = await axiosInstance.post(`/api/v1/drivers`, rest);
         return res.data;
@@ -106,15 +116,25 @@ const ModalDriverTypeForm = ({
     } catch (err) {
       console.log(err, "The error");
       const errorMessage =
-        (err as Error).message || "An error occurred while creating the driver.";
+        (err as Error).message ||
+        "An error occurred while creating the driver.";
       throw new Error(errorMessage);
     }
   }
 
-  
   async function editDriver(values: any) {
     try {
-      const { id, firstName, lastName, middleName, gender, type, phoneNumber, drivingLicense, profilePhoto } = values;
+      const {
+        id,
+        firstName,
+        lastName,
+        middleName,
+        gender,
+        type,
+        phoneNumber,
+        drivingLicense,
+        profilePhoto,
+      } = values;
       let updatedValues: any = {
         firstName,
         lastName,
@@ -125,24 +145,29 @@ const ModalDriverTypeForm = ({
       };
 
       const formData = new FormData();
-      if(profilePhoto){
+      if (profilePhoto) {
         formData.append("file", profilePhoto);
       }
 
-      const res_1 = await axiosInstance.post(`/api/v1/file-upload/image/profile`, formData);
+      const res_1 = await axiosInstance.post(
+        `/api/v1/file-upload/image/profile`,
+        formData
+      );
       console.log("Profile edited!");
-      if (res_1.status === 201){
+      if (res_1.status === 201) {
         const profile = res_1.data.data.filename;
-        updatedValues = {...updatedValues, profilePhoto: profile};
+        updatedValues = { ...updatedValues, profilePhoto: profile };
         console.log(updatedValues, "result to be sent");
-        try{
-          const res = await axiosInstance.patch(`/api/v1/drivers/${id}`, updatedValues);
+        try {
+          const res = await axiosInstance.patch(
+            `/api/v1/drivers/${id}`,
+            updatedValues
+          );
           return res.data;
-        }catch(error){ 
+        } catch (error) {
           console.log(error, "The error");
         }
       }
-
     } catch (err) {
       const errorMessage =
         (err as Error).message || "An error occurred while editing the driver.";
@@ -156,15 +181,15 @@ const ModalDriverTypeForm = ({
     onSubmit: async (values, { setStatus, setSubmitting }) => {
       console.log(values, "initial values ");
       try {
-        if(!isApproved){
+        if (!isApproved) {
           const formData = new FormData();
           if (values.profilePhoto) {
             formData.append("profilePhoto", values.profilePhoto);
           }
-          let {approvalStatus, ...updatedValues } = values;
-          updatedValues = { ...updatedValues, "firebaseToken":"testToken"};
+          let { approvalStatus, ...updatedValues } = values;
+          updatedValues = { ...updatedValues, firebaseToken: "testToken" };
           mutate(updatedValues);
-        }else{ 
+        } else {
           console.log(values, "the values status");
           mutate(values);
         }
@@ -238,7 +263,11 @@ const ModalDriverTypeForm = ({
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">First Name</label>
                   {formik.touched.firstName && formik.errors.firstName ? (
-                    <div className="text-red-500 text-sm">{typeof formik.errors.firstName === 'string' ? formik.errors.firstName : null}</div>
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.firstName === "string"
+                        ? formik.errors.firstName
+                        : null}
+                    </div>
                   ) : null}
                   <label className="input">
                     <input
@@ -254,7 +283,11 @@ const ModalDriverTypeForm = ({
                     Middle Name
                   </label>
                   {formik.touched.middleName && formik.errors.middleName ? (
-                    <div className="text-red-500 text-sm">{typeof formik.errors.middleName === 'string' ? formik.errors.middleName : null}</div>
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.middleName === "string"
+                        ? formik.errors.middleName
+                        : null}
+                    </div>
                   ) : null}
                   <label className="input">
                     <input
@@ -268,7 +301,11 @@ const ModalDriverTypeForm = ({
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Last Name</label>
                   {formik.touched.lastName && formik.errors.lastName ? (
-                    <div className="text-red-500 text-sm">{typeof formik.errors.lastName === 'string' ? formik.errors.lastName : null}</div>
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.lastName === "string"
+                        ? formik.errors.lastName
+                        : null}
+                    </div>
                   ) : null}
                   <label className="input">
                     <input
@@ -282,7 +319,11 @@ const ModalDriverTypeForm = ({
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Gender</label>
                   {formik.touched.gender && formik.errors.gender ? (
-                    <div className="text-red-500 text-sm">{typeof formik.errors.gender === 'string' ? formik.errors.gender : null}</div>
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.gender === "string"
+                        ? formik.errors.gender
+                        : null}
+                    </div>
                   ) : null}
                   <label className="input">
                     <select
@@ -302,13 +343,17 @@ const ModalDriverTypeForm = ({
                     Phone Number
                   </label>
                   {formik.touched.phoneNumber && formik.errors.phoneNumber ? (
-                    <div className="text-red-500 text-sm">{typeof formik.errors.phoneNumber === 'string' ? formik.errors.phoneNumber : null}</div>
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.phoneNumber === "string"
+                        ? formik.errors.phoneNumber
+                        : null}
+                    </div>
                   ) : null}
                   <label className="input">
                     <input
                       placeholder="Enter Phone Number"
                       autoComplete="off"
-                      disabled={isEdit} 
+                      disabled={isEdit}
                       {...formik.getFieldProps("phoneNumber")}
                     />
                   </label>
@@ -317,7 +362,11 @@ const ModalDriverTypeForm = ({
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Type</label>
                   {formik.touched.type && formik.errors.type ? (
-                    <div className="text-red-500 text-sm">{typeof formik.errors.type === 'string' ? formik.errors.type : null}</div>
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.type === "string"
+                        ? formik.errors.type
+                        : null}
+                    </div>
                   ) : null}
                   <label className="input">
                     <select
@@ -334,9 +383,12 @@ const ModalDriverTypeForm = ({
                   <label className="form-label text-gray-900">
                     Driving License
                   </label>
-                  {formik.touched.drivingLicense && formik.errors.drivingLicense ? (
+                  {formik.touched.drivingLicense &&
+                  formik.errors.drivingLicense ? (
                     <div className="text-red-500 text-sm">
-                      {typeof formik.errors.drivingLicense === 'string' ? formik.errors.drivingLicense : null}
+                      {typeof formik.errors.drivingLicense === "string"
+                        ? formik.errors.drivingLicense
+                        : null}
                     </div>
                   ) : null}
                   <label className="input">
@@ -353,15 +405,25 @@ const ModalDriverTypeForm = ({
                     Profile Photo
                   </label>
                   {formik.touched.profilePhoto && formik.errors.profilePhoto ? (
-                    <div className="text-red-500 text-sm">{typeof formik.errors.profilePhoto === 'string' ? formik.errors.profilePhoto : null}</div>
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.profilePhoto === "string"
+                        ? formik.errors.profilePhoto
+                        : null}
+                    </div>
                   ) : null}
-                  <label className="input">
+                  <label className="input  max-w-[390px] overflow-hidden">
                     <input
                       type="file"
                       name="profilePhoto"
                       onChange={(event) => {
-                        if (event.currentTarget.files && event.currentTarget.files[0]) {
-                          formik.setFieldValue("profilePhoto", event.currentTarget.files[0]);
+                        if (
+                          event.currentTarget.files &&
+                          event.currentTarget.files[0]
+                        ) {
+                          formik.setFieldValue(
+                            "profilePhoto",
+                            event.currentTarget.files[0]
+                          );
                         }
                       }}
                     />
