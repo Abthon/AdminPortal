@@ -604,8 +604,8 @@ const ModalBookingForm = ({
 
       const updatedFields = {
         lat1: pickupLat,
-        lat2: pickupLng,
-        lng1: dropOffLat,
+        lng1: pickupLng,
+        lat2: dropOffLat,
         lng2: dropOffLng,
         vehicleTypeId: Number(vehicleTypeId),
       };
@@ -615,11 +615,13 @@ const ModalBookingForm = ({
         updatedFields
       );
 
+
       if (res.status !== 200) {
         throw new Error(res.data.message || "Failed to create the booking.");
       }
 
       const data = res.data;
+      console.log(data, "estimation response");
       const distance = Math.floor(data.data.estimatedDistance);
       const price = Math.floor(data.data.estimatedPrice);
 
