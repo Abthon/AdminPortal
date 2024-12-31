@@ -4,6 +4,7 @@ export interface IUserProfileHeroInfo {
   email?: string;
   label?: string;
   icon?: string;
+  stat?: string;
 }
 
 export interface IUserProfileHeroProps {
