@@ -152,7 +152,7 @@ const Drivers = ({
         // accessorFn: (row: IUsersData) => row.user,
         id: "users_2",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Member" column={column} />
+          <DataGridColumnHeader title="Driver" column={column} />
         ),
         enableSorting: true,
         cell: ({ row }) => {
