@@ -1,35 +1,59 @@
+import { CommonRating } from "@/partials/common";
+import { formatDistanceToNow } from "date-fns";
+
 interface IGeneralInfoItem {
   label: string;
-  info: string;
+  info: string | React.ReactNode;
   type?: number;
 }
 interface IGeneralInfoItems extends Array<IGeneralInfoItem> {}
 
-const GeneralInfo = () => {
+export function timeAgo(dateISO: string): string {
+  const date = new Date(dateISO);
+  return formatDistanceToNow(date, { addSuffix: true });
+}
+
+export function capitalizeFirstLetter(input: string): string {
+  if (!input) return input; // Handle empty strings
+  return input.charAt(0).toUpperCase() + input.slice(1);
+}
+
+interface GeneralInfoProps {
+  data: any;
+}
+
+const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
   const items: IGeneralInfoItems = [
-    { label: 'Phone:', info: '+31 6 12345678', type: 1 },
-    { label: 'Email:', info: 'jenny@studio.com', type: 2 },
+    { label: "Phone:", info: `+251 ${data.phoneNumber}`, type: 1 },
+    { label: "Rating:", info: <CommonRating rating={data.rating} />, type: 2 },
     {
-      label: 'Status:',
-      info: '<span class="badge badge-sm badge-success badge-outline">Subscribed</span>'
+      label: "Status:",
+      info: `<span class="badge badge-sm ${data.status === "suspended" && "badge-danger"} ${data.status === "inactive" && "badge-warning"} ${data.status === "active" && "badge-success"} ${data.status === "pending" && "badge-primary"} badge-outline">${capitalizeFirstLetter(data.status)}</span>`,
     },
-    { label: 'Type:', info: 'Wholesale' },
-    { label: 'Encryption:', info: 'Strong' },
-    { label: 'Last Order:', info: 'Today at 13:06' },
-    { label: 'Signed Up:', info: '2 months ago' }
+    { label: "Type:", info: capitalizeFirstLetter(data.type) },
+    { label: "Gender:", info: capitalizeFirstLetter(data.gender) },
+    { label: "Created at:", info: timeAgo(data.createdAt) },
+    {
+      label: "Driver License:",
+      info: data.drivingLicense,
+    },
   ];
 
   const renderItems = (item: IGeneralInfoItem, index: number) => {
     return (
       <tr key={index}>
-        <td className="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">{item.label}</td>
+        <td className="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">
+          {item.label}
+        </td>
         <td className="text-sm text-gray-900 pb-3">
           {item.type === 1 ? (
             <span>{item.info}</span>
           ) : item.type === 2 ? (
             <span>{item.info}</span>
           ) : (
-            <span dangerouslySetInnerHTML={{ __html: item.info }}></span>
+            <span
+              dangerouslySetInnerHTML={{ __html: item.info as string }}
+            ></span>
           )}
         </td>
       </tr>
