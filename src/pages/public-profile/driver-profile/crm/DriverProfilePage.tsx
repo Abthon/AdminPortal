@@ -55,7 +55,7 @@ const DriverProfilePage = () => {
         name={`${DriverData.firstName} ${DriverData.lastName}`}
         image={image}
         info={[
-          { label: "KeenThemes", icon: "abstract" },
+          // { stat: DriverData.status },
           { label: "SF, Bay Area", icon: "geolocation" },
           { label: `+251${DriverData.phoneNumber}`, icon: "sms" },
         ]}
@@ -78,7 +78,7 @@ const DriverProfilePage = () => {
       </Container>
 
       <Container>
-        <DriverProfileContent />
+        <DriverProfileContent data={DriverData} />
       </Container>
     </Fragment>
   );
