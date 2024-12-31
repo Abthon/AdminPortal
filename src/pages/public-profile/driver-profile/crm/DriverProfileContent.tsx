@@ -8,12 +8,18 @@ import {
   RecentInvoices,
 } from "./blocks";
 
-const DriverProfileContent = () => {
+interface DriverProfileContentProps {
+  data: any;
+}
+
+const DriverProfileContent: React.FC<DriverProfileContentProps> = ({
+  data,
+}) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5">
       <div className="col-span-1">
         <div className="grid gap-5 lg:gap-7.5">
-          <GeneralInfo />
+          <GeneralInfo data={data} />
 
           <Attributes />
 
