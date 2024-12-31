@@ -5,6 +5,11 @@ import { IUserProfileHeroInfo, IUserProfileHeroProps } from "./types";
 import { toAbsoluteUrl } from "@/utils";
 import { useSettings } from "@/providers";
 
+export function capitalizeFirstLetter(input: string): string {
+  if (!input) return input; // Handle empty strings
+  return input.charAt(0).toUpperCase() + input.slice(1);
+}
+
 const UserProfileHero = ({ image, name, info }: IUserProfileHeroProps) => {
   const { getThemeMode } = useSettings();
 
@@ -12,22 +17,23 @@ const UserProfileHero = ({ image, name, info }: IUserProfileHeroProps) => {
     return info.map((item, index) => {
       return (
         <div className="flex gap-1.25 items-center" key={`info-${index}`}>
+          {item.stat && (
+            <div className="flex justify-between relative">
+              <span
+                className={`badge ${item.stat === "suspended" && "badge-danger"} ${item.stat === "inactive" && "badge-warning"} ${item.stat === "active" && "badge-success"} ${item.stat === "pending" && "badge-primary"} shrink-0 badge-outline rounded-[30px]`}
+              >
+                <span
+                  className={`size-1.5 rounded-full ${item.stat === "suspended" && "bg-danger"} ${item.stat === "inactive" && "bg-warning"} ${item.stat === "active" && "bg-success"} ${item.stat === "pending" && "bg-primary"} me-1.5`}
+                ></span>
+                {item.stat}
+              </span>
+            </div>
+          )}
           {item.icon && (
             <KeenIcon icon={item.icon} className="text-gray-500 text-sm" />
           )}
 
-          {item.email ? (
-            <a
-              href="mailto: {{ item.email }}"
-              target="_blank"
-              className="text-gray-600 font-medium hover:text-primary"
-              rel="noreferrer"
-            >
-              {item.email}
-            </a>
-          ) : (
-            <span className="text-gray-600 font-medium">{item.label}</span>
-          )}
+          <span className="text-gray-600 font-medium">{item.label}</span>
         </div>
       );
     });
