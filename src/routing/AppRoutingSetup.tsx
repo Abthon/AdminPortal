@@ -89,6 +89,9 @@ import { ConfigPage } from "@/pages/public-profile/config-table";
 import { DriverPage } from "@/pages/public-profile/driver";
 import { CoorporatePage } from "@/pages/public-profile/coorporate";
 import { DriverProfilePage } from "@/pages/public-profile/driver-profile/crm";
+import { BookingProfilePage } from "@/pages/public-profile/booking-profile";
+import { VehicleTypeProfilePage } from "@/pages/public-profile/vehicle-type-profile/crm";
+import { VehicleProfilePage } from "@/pages/public-profile/vehicle-profile";
 const AppRoutingSetup = (): ReactElement => {
   return (
     <Routes>
@@ -99,8 +102,16 @@ const AppRoutingSetup = (): ReactElement => {
           <Route path="/public-profile/table" element={<DriverPage />} />
           <Route path="/public-profile/v-table" element={<VehiclePage />} />
           <Route
+            path="/public-profile/v-table/:id"
+            element={<VehicleTypeProfilePage />}
+          />
+          <Route
             path="/public-profile/vehicle-registration"
             element={<VechileRegistrationPage />}
+          />
+          <Route
+            path="/public-profile/vehicle-registration/:id"
+            element={<VehicleProfilePage />}
           />
           <Route
             path="/public-profile/coorporate"
@@ -135,6 +146,10 @@ const AppRoutingSetup = (): ReactElement => {
           <Route
             path="/public-profile/driver/:id"
             element={<DriverProfilePage />}
+          />
+          <Route
+            path="/public-profile/booking/:id"
+            element={<BookingProfilePage />}
           />
           <Route
             path="/public-profile/profiles/gamer"

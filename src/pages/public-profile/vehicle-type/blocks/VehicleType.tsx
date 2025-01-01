@@ -21,6 +21,7 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalVehicleTypeForm } from "@/partials/modals/vehicle-type";
 import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
+import { Link } from "react-router-dom";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface IVehicleTypeData {
@@ -54,7 +55,10 @@ const VechileType = ({ isAddOpen, _handleAddOpen }: VehicleTypeProps) => {
     _handleAddOpen(false);
   };
 
-  const handleOpen = (isEdit: boolean, rowData: IVehicleTypeData | null = null) => {
+  const handleOpen = (
+    isEdit: boolean,
+    rowData: IVehicleTypeData | null = null
+  ) => {
     setEditMode(isEdit);
     setCurrentVehicleData(rowData);
     console.log(rowData, "rowdata");
@@ -145,9 +149,12 @@ const VechileType = ({ isAddOpen, _handleAddOpen }: VehicleTypeProps) => {
                 alt={`${row.original.image}`}
               />
               <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+                <Link
+                  to={`/public-profile/v-table/${row.original.id}`}
+                  className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
+                >
                   {row.original.name}
-                </span>
+                </Link>
               </div>
             </div>
           );
@@ -257,7 +264,10 @@ const VechileType = ({ isAddOpen, _handleAddOpen }: VehicleTypeProps) => {
     [mutate]
   );
 
-  const data: IVehicleTypeData[] = useMemo(() => VehicleData ?? [], [VehicleData]);
+  const data: IVehicleTypeData[] = useMemo(
+    () => VehicleData ?? [],
+    [VehicleData]
+  );
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);

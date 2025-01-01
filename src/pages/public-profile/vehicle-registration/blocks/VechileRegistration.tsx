@@ -20,8 +20,9 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import clsx from "clsx";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import {  ModalVehicleRegistrationForm } from "@/partials/modals/vechicle-registration";
+import { ModalVehicleRegistrationForm } from "@/partials/modals/vechicle-registration";
 import axiosInstance from "@/auth/_helpers";
+import { Link } from "react-router-dom";
 
 interface IVehicleRegistrationData {
   id: string;
@@ -43,7 +44,10 @@ interface VehicleRegistrationProps {
   _handleAddOpen: (isOpen: boolean) => void;
 }
 
-const VehicleRegistration = ({ isAddOpen, _handleAddOpen }: VehicleRegistrationProps) => {
+const VehicleRegistration = ({
+  isAddOpen,
+  _handleAddOpen,
+}: VehicleRegistrationProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentVehicleData, setCurrentVehicleData] =
@@ -54,7 +58,10 @@ const VehicleRegistration = ({ isAddOpen, _handleAddOpen }: VehicleRegistrationP
     _handleAddOpen(false);
   };
 
-  const handleOpen = (isEdit: boolean, rowData: IVehicleRegistrationData | null = null) => {
+  const handleOpen = (
+    isEdit: boolean,
+    rowData: IVehicleRegistrationData | null = null
+  ) => {
     setEditMode(isEdit);
     setCurrentVehicleData(rowData);
     setProfileModalOpen(true);
@@ -133,7 +140,15 @@ const VehicleRegistration = ({ isAddOpen, _handleAddOpen }: VehicleRegistrationP
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.make;
+          return (
+            <Link
+              to={`/public-profile/vehicle-registration/${info.row.original.id}`}
+              className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
+            >
+              {info.row.original.make}
+            </Link>
+          );
+          //info.row.original.make
         },
         meta: {
           headerClassName: "min-w-[180px]",
@@ -239,7 +254,10 @@ const VehicleRegistration = ({ isAddOpen, _handleAddOpen }: VehicleRegistrationP
     [mutate]
   );
 
-  const data: IVehicleRegistrationData[] = useMemo(() => VehicleData ?? [], [VehicleData]);
+  const data: IVehicleRegistrationData[] = useMemo(
+    () => VehicleData ?? [],
+    [VehicleData]
+  );
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);

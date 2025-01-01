@@ -23,6 +23,7 @@ import { ModalBookingForm } from "@/partials/modals/booking";
 import { Skeleton } from "@mui/material";
 import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
+import { Link } from "react-router-dom";
 
 interface IBookingData {
   id: string;
@@ -118,172 +119,180 @@ const Booking: React.FC<BookingProps> = ({ isAddOpen, _handleAddOpen }) => {
     [isAddOpen]
   );
 
-  const columns = useMemo<ColumnDef<IBookingData>[]>(() => [
-    {
-      accessorKey: "id",
-      header: () => <DataGridRowSelectAll />,
-      cell: ({ row }) => <DataGridRowSelect row={row} />,
-      enableSorting: false,
-      enableHiding: false,
-      meta: {
-        headerClassName: "w-0",
+  const columns = useMemo<ColumnDef<IBookingData>[]>(
+    () => [
+      {
+        accessorKey: "id",
+        header: () => <DataGridRowSelectAll />,
+        cell: ({ row }) => <DataGridRowSelect row={row} />,
+        enableSorting: false,
+        enableHiding: false,
+        meta: {
+          headerClassName: "w-0",
+        },
       },
-    },
-    {
-      accessorFn: (row) => row.id,
-      id: "booking_ID",
-      header: ({ column }) => (
-        <DataGridColumnHeader
-          title="ID"
-          filter={<ColumnInputFilter column={column} />}
-          column={column}
-        />
-      ),
-      enableSorting: true,
-      cell: ({ row }) => {
-        return (
-          <div className="flex items-center">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-                {row.original.id}
-              </span>
+      {
+        accessorFn: (row) => row.id,
+        id: "booking_ID",
+        header: ({ column }) => (
+          <DataGridColumnHeader
+            title="ID"
+            filter={<ColumnInputFilter column={column} />}
+            column={column}
+          />
+        ),
+        enableSorting: true,
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center">
+              <div className="flex flex-col gap-0.5">
+                <Link
+                  to={`/public-profile/booking/${row.original.id}`}
+                  className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
+                >
+                  {row.original.id}
+                </Link>
+              </div>
             </div>
-          </div>
-        );
+          );
+        },
+        meta: {
+          headerClassName: "w-0",
+          className: "w-0",
+          cellClassName: "w-0",
+        },
       },
-      meta: {
-        headerClassName: "w-0",
-        className: "w-0",
-        cellClassName: "w-0",
+      {
+        accessorFn: (row) => row.pickupName,
+        id: "pickupName",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Pickup Name" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.pickupName;
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
       },
-    },
-    {
-      accessorFn: (row) => row.pickupName,
-      id: "pickupName",
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Pickup Name" column={column} />
-      ),
-      enableSorting: true,
-      cell: (info) => {
-        return info.row.original.pickupName;
+      {
+        accessorFn: (row) => row.dropOffName,
+        id: "dropOffName",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Drop Off Name" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.dropOffName;
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
       },
-      meta: {
-        headerClassName: "min-w-[100px]",
+      {
+        accessorFn: (row) => row.estimatedTraveledDistance,
+        id: "estimatedTraveledDistance",
+        header: ({ column }) => (
+          <DataGridColumnHeader
+            title="Estimated Traveled Distance"
+            column={column}
+          />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.estimatedTraveledDistance;
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
       },
-    },
-    {
-      accessorFn: (row) => row.dropOffName,
-      id: "dropOffName",
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Drop Off Name" column={column} />
-      ),
-      enableSorting: true,
-      cell: (info) => {
-        return info.row.original.dropOffName;
+      {
+        accessorFn: (row) => row.estimatedPrice,
+        id: "estimatedPrice",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Estimated Price" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.estimatedPrice;
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
       },
-      meta: {
-        headerClassName: "min-w-[100px]",
-      },
-    },
-    {
-      accessorFn: (row) => row.estimatedTraveledDistance,
-      id: "estimatedTraveledDistance",
-      header: ({ column }) => (
-        <DataGridColumnHeader
-          title="Estimated Traveled Distance"
-          column={column}
-        />
-      ),
-      enableSorting: true,
-      cell: (info) => {
-        return info.row.original.estimatedTraveledDistance;
-      },
-      meta: {
-        headerClassName: "min-w-[100px]",
-      },
-    },
-    {
-      accessorFn: (row) => row.estimatedPrice,
-      id: "estimatedPrice",
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Estimated Price" column={column} />
-      ),
-      enableSorting: true,
-      cell: (info) => {
-        return info.row.original.estimatedPrice;
-      },
-      meta: {
-        headerClassName: "min-w-[100px]",
-      },
-    },
-    {
-      accessorFn: (row) => row.status,
-      id: "status",
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Status" column={column} />
-      ),
-      enableSorting: true,
-      cell: (info) => {
-        return (
-          <span
-            className={`badge badge-${
-              info.row.original.status === "requested" ? "primary" : "default"
-            } shrink-0 badge-outline rounded-[30px]`}
-          >
+      {
+        accessorFn: (row) => row.status,
+        id: "status",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Status" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return (
             <span
-              className={`size-1.5 rounded-full bg-${
+              className={`badge badge-${
                 info.row.original.status === "requested" ? "primary" : "default"
-              } me-1.5`}
-            ></span>
-            {info.row.original.status}
-          </span>
-        );
+              } shrink-0 badge-outline rounded-[30px]`}
+            >
+              <span
+                className={`size-1.5 rounded-full bg-${
+                  info.row.original.status === "requested"
+                    ? "primary"
+                    : "default"
+                } me-1.5`}
+              ></span>
+              {info.row.original.status}
+            </span>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
       },
-      meta: {
-        headerClassName: "min-w-[180px]",
+      {
+        id: "Edit",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Edit" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <button
+              onClick={() => handleOpen(true, info.row.original)}
+              className="btn btn-sm btn-icon btn-clear btn-primary"
+            >
+              <KeenIcon icon="notepad-edit" />
+            </button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[80px]",
+        },
       },
-    },
-    {
-      id: "Edit",
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Edit" column={column} />
-      ),
-      enableSorting: false,
-      cell: (info) => {
-        return (
-          <button
-            onClick={() => handleOpen(true, info.row.original)}
-            className="btn btn-sm btn-icon btn-clear btn-primary"
-          >
-            <KeenIcon icon="notepad-edit" />
-          </button>
-        );
+      {
+        id: "Delete",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Delete" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <button
+              onClick={() => mutate(info.row.original.id)}
+              className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+            >
+              <KeenIcon icon="trash" />
+            </button>
+          );
+        },
+        meta: {
+          headerClassName: "w-[80px]",
+        },
       },
-      meta: {
-        headerClassName: "min-w-[80px]",
-      },
-    },
-    {
-      id: "Delete",
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Delete" column={column} />
-      ),
-      enableSorting: false,
-      cell: (info) => {
-        return (
-          <button
-            onClick={() => mutate(info.row.original.id)}
-            className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-          >
-            <KeenIcon icon="trash" />
-          </button>
-        );
-      },
-      meta: {
-        headerClassName: "w-[80px]",
-      },
-    },
-  ], [mutate]);
+    ],
+    [mutate]
+  );
 
   const data: IBookingData[] = useMemo(() => BookingData ?? [], [BookingData]);
 
