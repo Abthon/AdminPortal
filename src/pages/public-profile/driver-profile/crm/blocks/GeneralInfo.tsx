@@ -18,6 +18,12 @@ export function capitalizeFirstLetter(input: string): string {
   return input.charAt(0).toUpperCase() + input.slice(1);
 }
 
+export function truncateString(str: string) {
+  if (str.length > 10) {
+    return `${str.slice(0, 10)}...`;
+  }
+}
+
 interface GeneralInfoProps {
   data: any;
 }
@@ -35,7 +41,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
     { label: "Created at:", info: timeAgo(data.createdAt) },
     {
       label: "Driver License:",
-      info: data.drivingLicense,
+      info: truncateString(data.drivingLicense),
     },
   ];
 
