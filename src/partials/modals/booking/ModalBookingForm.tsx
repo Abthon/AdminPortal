@@ -792,6 +792,8 @@ const ModalBookingForm = ({
                             outline: "none !important", 
                             fontSize: '.85em',
                             paddingLeft: '5px',
+                            maxWidth: "390px",
+                          overflow: "hidden",
                           }),
                           input: (provided) => ({
                             ...provided,
@@ -849,6 +851,8 @@ const ModalBookingForm = ({
                             outline: "none !important", 
                             fontSize: '.85em',
                             paddingLeft: '5px',
+                            maxWidth: "390px",
+                          overflow: "hidden",
                           }),
                           // menu: (provided) => ({
                           //   ...provided,

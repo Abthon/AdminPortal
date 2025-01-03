@@ -1,12 +1,13 @@
-import { Contributors, Tags } from "../../default";
+import { Contributors } from "../../default";
 import {
   Activity,
   ApiCredentials,
-  Attributes,
-  Deals,
+  DriverBooking,
+  DriverVehicleInfo,
   GeneralInfo,
   RecentInvoices,
 } from "./blocks";
+import { DriverLocation } from "./blocks/DriverLocation";
 
 interface DriverProfileContentProps {
   data: any;
@@ -21,24 +22,26 @@ const DriverProfileContent: React.FC<DriverProfileContentProps> = ({
         <div className="grid gap-5 lg:gap-7.5">
           <GeneralInfo data={data} />
 
-          <Attributes />
+          <DriverVehicleInfo data={data.vehicle} />
 
-          <ApiCredentials />
+          {/* <ApiCredentials /> */}
 
-          <Tags title="Skills" />
+          {/* <Tags title="Skills" /> */}
         </div>
       </div>
       <div className="col-span-2">
         <div className="flex flex-col gap-5 lg:gap-7.5">
           <div className="flex flex-col gap-5 lg:gap-7.5">
-            <Deals />
+            <DriverBooking data={data.bookings} />
 
-            <Activity />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-7.5">
+            <DriverLocation data={data} />
+
+            {/* <Activity /> */}
+            {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-7.5">
               <Contributors />
 
               <RecentInvoices />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
