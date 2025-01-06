@@ -31,6 +31,7 @@ interface IColumnFilterProps<TData, TValue> {
 interface ConfigProps {
   isAddOpen: boolean;
   _handleAddOpen: (open: boolean) => void;
+  handleConfigNum: (num: any) => void;
 }
 
 interface IConfigData {
@@ -40,10 +41,15 @@ interface IConfigData {
   permissions?: { type: string }[];
 }
 
-const Config = ({ isAddOpen, _handleAddOpen }: ConfigProps) => {
+const Config = ({
+  isAddOpen,
+  _handleAddOpen,
+  handleConfigNum,
+}: ConfigProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
-  const [currentConfigData, setcurrentConfigData] = useState<IConfigData | null>(null);
+  const [currentConfigData, setcurrentConfigData] =
+    useState<IConfigData | null>(null);
 
   const handleClose = () => {
     setProfileModalOpen(false);
@@ -60,6 +66,7 @@ const Config = ({ isAddOpen, _handleAddOpen }: ConfigProps) => {
   async function getConfig(): Promise<IConfigData[]> {
     const { data } = await axiosInstance.get("/api/v1/params");
     console.log(data.data);
+    handleConfigNum(data.data.length);
     return data.data;
   }
 
@@ -68,14 +75,20 @@ const Config = ({ isAddOpen, _handleAddOpen }: ConfigProps) => {
     return data;
   }
 
-  const { isLoading: isConfigLoading, data: configData } = useQuery<IConfigData[]>({
+  const { isLoading: isConfigLoading, data: configData } = useQuery<
+    IConfigData[]
+  >({
     queryKey: ["Config"],
     queryFn: getConfig,
   });
 
   const queryClient = useQueryClient();
 
-  const { isLoading: isDeleting, mutate } = useMutation<string, unknown, string>({
+  const { isLoading: isDeleting, mutate } = useMutation<
+    string,
+    unknown,
+    string
+  >({
     mutationFn: (id: string) => deleteConfig(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -108,105 +121,108 @@ const Config = ({ isAddOpen, _handleAddOpen }: ConfigProps) => {
     [isAddOpen]
   );
 
-  const columns = useMemo<ColumnDef<IConfigData>[]>(() => [
-    {
-      accessorKey: "id",
-      test: 4,
-      header: () => <DataGridRowSelectAll />,
-      cell: ({ row }) => <DataGridRowSelect row={row} />,
-      enableSorting: false,
-      enableHiding: false,
-      meta: {
-        headerClassName: "w-0",
+  const columns = useMemo<ColumnDef<IConfigData>[]>(
+    () => [
+      {
+        accessorKey: "id",
+        test: 4,
+        header: () => <DataGridRowSelectAll />,
+        cell: ({ row }) => <DataGridRowSelect row={row} />,
+        enableSorting: false,
+        enableHiding: false,
+        meta: {
+          headerClassName: "w-0",
+        },
       },
-    },
-    {
-      accessorFn: (row) => row.name,
-      id: "users",
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Name" column={column} />
-      ),
-      enableSorting: true,
-      cell: (info) => {
-        return info.row.original.name;
+      {
+        accessorFn: (row) => row.name,
+        id: "users",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Name" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.name;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
       },
-      meta: {
-        headerClassName: "min-w-[180px]",
+      {
+        accessorFn: (row) => row.name,
+        id: "value",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="value" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.value;
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
       },
-    },
-    {
-      accessorFn: (row) => row.name,
-      id: "value",
-      header: ({ column }) => (
-        <DataGridColumnHeader title="value" column={column} />
-      ),
-      enableSorting: true,
-      cell: (info) => {
-        return info.row.original.value;
+      {
+        id: "permission",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Permission" column={column} />
+        ),
+        cell: (info) => {
+          return (
+            <div>
+              {info.row.original.permissions?.map((perm, index: number) => (
+                <p key={index}>{perm.type}</p>
+              ))}
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
       },
-      meta: {
-        headerClassName: "min-w-[180px]",
+      {
+        id: "Edit",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Edit" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <button
+              onClick={() => handleOpen(true, info.row.original)}
+              className="btn btn-sm btn-icon btn-clear btn-primary"
+            >
+              <KeenIcon icon="notepad-edit" />
+            </button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[80px]",
+        },
       },
-    },
-    {
-      id: "permission",
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Permission" column={column} />
-      ),
-      cell: (info) => {
-        return (
-          <div>
-            {info.row.original.permissions?.map((perm, index: number) => (
-              <p key={index}>{perm.type}</p>
-            ))}
-          </div>
-        );
+      {
+        id: "Delete",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Delete" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <button
+              onClick={() => mutate(info.row.original.id)}
+              className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+            >
+              <KeenIcon icon="trash" />
+            </button>
+          );
+        },
+        meta: {
+          headerClassName: "w-[80px]",
+        },
       },
-      meta: {
-        headerClassName: "min-w-[180px]",
-      },
-    },
-    {
-      id: "Edit",
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Edit" column={column} />
-      ),
-      enableSorting: false,
-      cell: (info) => {
-        return (
-          <button
-            onClick={() => handleOpen(true, info.row.original)}
-            className="btn btn-sm btn-icon btn-clear btn-primary"
-          >
-            <KeenIcon icon="notepad-edit" />
-          </button>
-        );
-      },
-      meta: {
-        headerClassName: "min-w-[80px]",
-      },
-    },
-    {
-      id: "Delete",
-      header: ({ column }) => (
-        <DataGridColumnHeader title="Delete" column={column} />
-      ),
-      enableSorting: false,
-      cell: (info) => {
-        return (
-          <button
-            onClick={() => mutate(info.row.original.id)}
-            className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-          >
-            <KeenIcon icon="trash" />
-          </button>
-        );
-      },
-      meta: {
-        headerClassName: "w-[80px]",
-      },
-    },
-  ], []);
+    ],
+    []
+  );
 
   const data: IConfigData[] = useMemo(() => configData || [], [configData]);
 
@@ -278,8 +294,8 @@ const Config = ({ isAddOpen, _handleAddOpen }: ConfigProps) => {
     );
   };
 
-  if(isConfigLoading){ 
-    return <DataGridLoader message="Loading"/>
+  if (isConfigLoading) {
+    return <DataGridLoader message="Loading" />;
   }
 
   return (

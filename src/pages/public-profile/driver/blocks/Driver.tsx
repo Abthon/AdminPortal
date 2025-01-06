@@ -45,9 +45,11 @@ interface IColumnFilterProps<TData, TValue> {
 const Drivers = ({
   isAddOpen,
   _handleAddOpen,
+  handleDriverNum,
 }: {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
+  handleDriverNum: (num: any) => void;
 }) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -80,6 +82,8 @@ const Drivers = ({
   async function getDrivers() {
     const { data } = await axiosInstance.get("/api/v1/drivers");
     console.log(data);
+    console.log(data.data.length, "length");
+    handleDriverNum(data.data.length);
     return data.data;
   }
 

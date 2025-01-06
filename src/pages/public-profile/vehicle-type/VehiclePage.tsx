@@ -15,6 +15,7 @@ import { useLayout } from "@/providers";
 
 const VehiclePage = () => {
   const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
+  const [vehicletypeNum, setVehicleTypeNum] = useState(null);
   const { currentLayout } = useLayout();
 
   return (
@@ -26,17 +27,19 @@ const VehiclePage = () => {
               <ToolbarPageTitle />
               <ToolbarDescription>
                 <div className="flex items-center flex-wrap gap-1.5 font-medium">
-                  <span className="text-md text-gray-700">All Members:</span>
+                  <span className="text-md text-gray-700">
+                    All Vehicle Types:
+                  </span>
                   <span className="text-md text-gray-800 font-medium me-2">
-                    49,053
+                    {vehicletypeNum}
                   </span>
                 </div>
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>
-              <a href="#" className="btn btn-sm btn-light">
+              {/* <a href="#" className="btn btn-sm btn-light">
                 Import CSV
-              </a>
+              </a> */}
               <button
                 onClick={() => {
                   setIsAddOpen((open) => !open);
@@ -54,6 +57,7 @@ const VehiclePage = () => {
         <VehicleContent
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
+          handleVehicleTypeNum={setVehicleTypeNum}
         />
       </Container>
     </Fragment>

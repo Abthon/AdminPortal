@@ -24,6 +24,7 @@ import { Skeleton } from "@mui/material";
 import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
 import { Link } from "react-router-dom";
+import { set } from "date-fns";
 
 interface IBookingData {
   id: string;
@@ -47,9 +48,14 @@ interface IColumnFilterProps<TData, TValue> {
 interface BookingProps {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
+  handleBookingNum: (num: any) => void;
 }
 
-const Booking: React.FC<BookingProps> = ({ isAddOpen, _handleAddOpen }) => {
+const Booking: React.FC<BookingProps> = ({
+  isAddOpen,
+  _handleAddOpen,
+  handleBookingNum,
+}) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentBookingData, setCurrentBookingData] =
@@ -70,6 +76,7 @@ const Booking: React.FC<BookingProps> = ({ isAddOpen, _handleAddOpen }) => {
   async function getBookings(): Promise<IBookingData[]> {
     const { data } = await axiosInstance.get("/api/v1/bookings");
     console.log(data.data);
+    handleBookingNum(data.data.length);
     return data.data;
   }
 

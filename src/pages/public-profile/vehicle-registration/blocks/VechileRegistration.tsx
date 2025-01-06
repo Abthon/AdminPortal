@@ -42,11 +42,13 @@ interface IColumnFilterProps<TData, TValue> {
 interface VehicleRegistrationProps {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
+  handleVehicleNum: (num: any) => void;
 }
 
 const VehicleRegistration = ({
   isAddOpen,
   _handleAddOpen,
+  handleVehicleNum,
 }: VehicleRegistrationProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -70,6 +72,7 @@ const VehicleRegistration = ({
   async function getVehicle() {
     const { data } = await axiosInstance.get("/api/v1/vehicles");
     console.log("here", data.data);
+    handleVehicleNum(data.data.length);
     return data.data;
   }
 

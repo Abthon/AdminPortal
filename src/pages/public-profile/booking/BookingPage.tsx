@@ -15,6 +15,7 @@ import { useLayout } from "@/providers";
 
 const BookingPage = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [bookingNum, setBookingNum] = useState(null);
   const { currentLayout } = useLayout();
 
   return (
@@ -26,17 +27,17 @@ const BookingPage = () => {
               <ToolbarPageTitle />
               <ToolbarDescription>
                 <div className="flex items-center flex-wrap gap-1.5 font-medium">
-                  <span className="text-md text-gray-700">All Members:</span>
+                  <span className="text-md text-gray-700">All Bookings:</span>
                   <span className="text-md text-gray-800 font-medium me-2">
-                    49,053
+                    {bookingNum}
                   </span>
                 </div>
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>
-              <a href="#" className="btn btn-sm btn-light">
+              {/* <a href="#" className="btn btn-sm btn-light">
                 Import CSV
-              </a>
+              </a> */}
               <button
                 onClick={() => {
                   setIsAddOpen((open) => !open);
@@ -51,7 +52,11 @@ const BookingPage = () => {
       )}
 
       <Container>
-        <BookingContent _handleAddOpen={setIsAddOpen} isAddOpen={isAddOpen} />
+        <BookingContent
+          _handleAddOpen={setIsAddOpen}
+          isAddOpen={isAddOpen}
+          handleBookingNum={setBookingNum}
+        />
       </Container>
     </Fragment>
   );

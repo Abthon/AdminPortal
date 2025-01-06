@@ -14,6 +14,7 @@ import { useLayout } from "@/providers";
 
 const CoorporatePage = () => {
   const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
+  const [coorporateNum, setCoorporateNum] = useState<number | null>(null);
   const { currentLayout } = useLayout();
 
   return (
@@ -25,17 +26,17 @@ const CoorporatePage = () => {
               <ToolbarPageTitle />
               <ToolbarDescription>
                 <div className="flex items-center flex-wrap gap-1.5 font-medium">
-                  <span className="text-md text-gray-700">All Members:</span>
+                  <span className="text-md text-gray-700">All Coors:</span>
                   <span className="text-md text-gray-800 font-medium me-2">
-                    49,053
+                    {coorporateNum}
                   </span>
                 </div>
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>
-              <a href="#" className="btn btn-sm btn-light">
+              {/* <a href="#" className="btn btn-sm btn-light">
                 Import CSV
-              </a>
+              </a> */}
               <button
                 onClick={() => {
                   setIsAddOpen((open) => !open);
@@ -53,6 +54,7 @@ const CoorporatePage = () => {
         <CoorporateContent
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
+          handleCoorporateNum={setCoorporateNum}
         />
       </Container>
     </Fragment>

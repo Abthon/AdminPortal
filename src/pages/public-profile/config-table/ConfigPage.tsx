@@ -15,6 +15,7 @@ import { useLayout } from "@/providers";
 
 const ConfigPage = () => {
   const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
+  const [configNum, setConfigNum] = useState(null);
   const { currentLayout } = useLayout();
 
   return (
@@ -26,17 +27,21 @@ const ConfigPage = () => {
               <ToolbarPageTitle />
               <ToolbarDescription>
                 <div className="flex items-center flex-wrap gap-1.5 font-medium">
-                  <span className="text-md text-gray-700">All Members:</span>
+                  <span className="text-md text-gray-700">
+                    All Configurations:
+                  </span>
                   <span className="text-md text-gray-800 font-medium me-2">
-                    49,053
+                    {configNum}
                   </span>
                 </div>
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>
-              <a href="#" className="btn btn-sm btn-light">
-                Import CSV
-              </a>
+              {
+                <a href="#" className="btn btn-sm btn-light">
+                  Import CSV
+                </a>
+              }
               <button
                 onClick={() => {
                   setIsAddOpen((open) => !open);
@@ -51,7 +56,11 @@ const ConfigPage = () => {
       )}
 
       <Container>
-        <ConfigContent _handleAddOpen={setIsAddOpen} isAddOpen={isAddOpen} />
+        <ConfigContent
+          _handleAddOpen={setIsAddOpen}
+          isAddOpen={isAddOpen}
+          handleConfigNum={setConfigNum}
+        />
       </Container>
     </Fragment>
   );

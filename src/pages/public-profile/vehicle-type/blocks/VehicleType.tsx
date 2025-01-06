@@ -42,9 +42,14 @@ interface IColumnFilterProps<TData, TValue> {
 interface VehicleTypeProps {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
+  handleVehicleTypeNum: (num: any) => void;
 }
 
-const VechileType = ({ isAddOpen, _handleAddOpen }: VehicleTypeProps) => {
+const VechileType = ({
+  isAddOpen,
+  _handleAddOpen,
+  handleVehicleTypeNum,
+}: VehicleTypeProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentVehicleData, setCurrentVehicleData] =
@@ -68,6 +73,7 @@ const VechileType = ({ isAddOpen, _handleAddOpen }: VehicleTypeProps) => {
   async function getVehicleType() {
     const { data } = await axiosInstance.get("/api/v1/vehicle-types");
     console.log("data retrieved");
+    handleVehicleTypeNum(data.data.length);
     return data.data;
   }
 

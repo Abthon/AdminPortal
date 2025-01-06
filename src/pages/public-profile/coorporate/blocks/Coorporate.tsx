@@ -46,9 +46,14 @@ interface IColumnFilterProps<TData, TValue> {
 interface CoorporateProps {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
+  handleCoorporateNum: (num: any) => void;
 }
 
-const Coorporate = ({ isAddOpen, _handleAddOpen }: CoorporateProps) => {
+const Coorporate = ({
+  isAddOpen,
+  _handleAddOpen,
+  handleCoorporateNum,
+}: CoorporateProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
@@ -83,6 +88,7 @@ const Coorporate = ({ isAddOpen, _handleAddOpen }: CoorporateProps) => {
   async function getCoorporates() {
     const { data } = await axiosInstance.get("/api/v1/coorporate");
     console.log("here", data.data);
+    handleCoorporateNum(data.data.length);
     return data.data;
   }
 
@@ -230,7 +236,7 @@ const Coorporate = ({ isAddOpen, _handleAddOpen }: CoorporateProps) => {
           return info.row.original.address;
         },
         meta: {
-          headerClassName: "min-w-[180px]",
+          headerClassName: "min-w-[250px]",
         },
       },
       {
@@ -346,7 +352,10 @@ const Coorporate = ({ isAddOpen, _handleAddOpen }: CoorporateProps) => {
         accessorFn: (row) => row.email,
         id: "backupContactPhoneNumber",
         header: ({ column }) => (
-          <DataGridColumnHeader title="backupContactPhoneNumber" column={column} />
+          <DataGridColumnHeader
+            title="backupContactPhoneNumber"
+            column={column}
+          />
         ),
         enableSorting: true,
         cell: (info) => {
