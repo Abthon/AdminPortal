@@ -54,6 +54,12 @@ const Drivers = ({
   const [approvalMode, setApprovalMode] = useState(false);
   const [currentDriverData, setCurrentDriverData] =
     useState<IDriversData | null>(null);
+  const [totalPage, setTotalPage] = useState(0);
+  const [pageIndex, setPageIndex] = useState(0);
+
+  useEffect(()=> {
+    console.log(pageIndex, "current page Index is: ");
+  }, [pageIndex])
 
   const handleClose = () => {
     setApprovalMode(false);
@@ -87,12 +93,10 @@ const Drivers = ({
   async function getDrivers() {
     const url = searchInput
       ? `/api/v1/drivers?filters=firstname=${searchInput}`
-      : `/api/v1/drivers`;
+      : `/api/v1/drivers?take=1&page=${pageIndex + 1}`;
     console.log(`Making request to: ${url}`);
     const { data } = await axiosInstance.get(url);
-    console.log(data);
-    console.log(data.data.length, "length");
-    console.log(data.pagination.totalPages, "number of pages");
+    setTotalPage(data.pagination.totalPages);
     handleDriverNum(data.data.length);
     return data.data;
   }
@@ -103,7 +107,7 @@ const Drivers = ({
   }
 
   const { isLoading: isDriverLoading, data: DriverData } = useQuery({
-    queryKey: ["Drivers", searchInput],
+    queryKey: ["Drivers", pageIndex, searchInput],
     queryFn: getDrivers,
   });
 
@@ -389,10 +393,11 @@ const Drivers = ({
       />
       <DataGrid
         columns={columns}
+        setPageIndex={setPageIndex}
         data={data}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
-        pagination={{ size: 3 }}
+        pagination={{ size: 3, page: 0, pageCount: totalPage }}
         sorting={[{ id: "users", desc: false }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}

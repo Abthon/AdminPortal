@@ -44,6 +44,7 @@ export interface TDataGridProps<TData extends object> {
     };
   };
   pagination?: {
+    pageCount?: number,
     page?: number;
     size?: number;
     sizes?: number[];
@@ -60,6 +61,7 @@ export interface TDataGridProps<TData extends object> {
   serverSide?: boolean;
   onFetchData?: (params: TDataGridRequestParams) => Promise<any>;
   children?: ReactNode;
+  setPageIndex?: (pageIndex: number) => void;
 }
 
 export const DataGrid = <TData extends object>(

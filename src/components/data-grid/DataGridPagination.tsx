@@ -47,7 +47,11 @@ const DataGridPagination = () => {
           className={cn(btnBaseClasses, 'text-muted-foreground', {
             'bg-accent text-accent-foreground': pageIndex === i
           })}
-          onClick={() => table.setPageIndex(i)}
+          onClick={() => {
+            table.setPageIndex(i);
+            console.log(i, "the selected index");
+            props.setPageIndex?.(i);
+          }}
         >
           {i + 1}
         </Button>

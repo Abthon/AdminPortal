@@ -62,6 +62,7 @@ export const DataGridProvider = <TData extends object>(
       card: false,
     },
     pagination: {
+      pageCount: props.pagination?.pageCount,
       info: "{from} - {to} of {count}",
       sizes: [5, 10, 25, 50, 100],
       sizesLabel: "Show",
@@ -162,9 +163,10 @@ export const DataGridProvider = <TData extends object>(
   const table = useReactTable({
     data,
     columns: mergedProps.columns,
-    pageCount: mergedProps.serverSide
-      ? Math.ceil(totalRows / pagination.pageSize)
-      : undefined,
+    // pageCount: mergedProps.serverSide
+    //   ? Math.ceil(totalRows / pagination.pageSize)
+    //   : undefined,
+    pageCount: props.pagination?.pageCount,
     state: {
       sorting,
       columnVisibility,
