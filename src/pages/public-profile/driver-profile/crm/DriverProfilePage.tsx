@@ -37,10 +37,13 @@ const DriverProfilePage = () => {
     useState<IDriversData | null>(null);
 
   async function getDriver(id: string) {
-    console.log("hi");
-    const { data } = await axiosInstance.get(`/api/v1/drivers/${id}`);
-    console.log(data);
-    return data.data;
+    try{
+      const { data} = await axiosInstance.get(`/api/v1/drivers/${id}?fields=id,createdAt,firstName,middleName,lastName,phoneNumber,isPhoneNumberAuthenticated,type,drivingLicense,gender,is_online,is_available,isBusy,lat,lng,status,profilePhoto,firebaseToken,averageRating,vehicle.*,bookings.*`);
+      console.log(data, "drivers data");
+      return data.data;
+    }catch(error){
+      console.log(error);
+    }
   }
 
   const {
