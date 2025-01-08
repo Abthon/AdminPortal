@@ -38,18 +38,16 @@ interface IDriversData {
   type: string;
 }
 
-interface IColumnFilterProps<TData, TValue> {
-  column: Column<TData, TValue>;
-}
-
 const Drivers = ({
   isAddOpen,
   _handleAddOpen,
   handleDriverNum,
+  searchInput,
 }: {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
   handleDriverNum: (num: any) => void;
+  searchInput?: string;
 }) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -79,10 +77,22 @@ const Drivers = ({
     setProfileModalOpen(true);
   };
 
+  // async function getDrivers() {
+  //   const { data } = await axiosInstance.get("/api/v1/drivers");
+  //   console.log(data);
+  //   console.log(data.data.length, "length");
+  //   handleDriverNum(data.data.length);
+  //   return data.data;
+  // }
   async function getDrivers() {
-    const { data } = await axiosInstance.get("/api/v1/drivers");
+    const url = searchInput
+      ? `/api/v1/drivers?filters=firstname=${searchInput}`
+      : `/api/v1/drivers`;
+    console.log(`Making request to: ${url}`);
+    const { data } = await axiosInstance.get(url);
     console.log(data);
     console.log(data.data.length, "length");
+    console.log(data.pagination.totalPages, "number of pages");
     handleDriverNum(data.data.length);
     return data.data;
   }
@@ -93,7 +103,7 @@ const Drivers = ({
   }
 
   const { isLoading: isDriverLoading, data: DriverData } = useQuery({
-    queryKey: ["Drivers"],
+    queryKey: ["Drivers", searchInput],
     queryFn: getDrivers,
   });
 
@@ -120,18 +130,18 @@ const Drivers = ({
     },
   });
 
-  const ColumnInputFilter = <TData, TValue>({
-    column,
-  }: IColumnFilterProps<TData, TValue>) => {
-    return (
-      <Input
-        placeholder="Filter..."
-        value={(column.getFilterValue() as string) ?? ""}
-        onChange={(event) => column.setFilterValue(event.target.value)}
-        className="h-9 w-full max-w-40"
-      />
-    );
-  };
+  // const ColumnInputFilter = <TData, TValue>({
+  //   column,
+  // }: IColumnFilterProps<TData, TValue>) => {
+  //   return (
+  //     <Input
+  //       placeholder="Filter..."
+  //       value={(column.getFilterValue() as string) ?? ""}
+  //       onChange={(event) => column.setFilterValue(event.target.value)}
+  //       className="h-9 w-full max-w-40"
+  //     />
+  //   );
+  // };
 
   useEffect(
     function () {
@@ -325,8 +335,6 @@ const Drivers = ({
   };
 
   const Toolbar = () => {
-    const [searchInput, setSearchInput] = useState("");
-
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
@@ -334,18 +342,6 @@ const Drivers = ({
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
-          <div className="flex">
-            <label className="input input-sm">
-              <KeenIcon icon="magnifier" />
-              <input
-                type="text"
-                placeholder="Search users"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
-            </label>
-          </div>
-
           <div className="flex flex-wrap gap-2.5">
             <Select defaultValue="active">
               <SelectTrigger className="w-28" size="sm">
@@ -396,7 +392,7 @@ const Drivers = ({
         data={data}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
-        pagination={{ size: 5 }}
+        pagination={{ size: 3 }}
         sorting={[{ id: "users", desc: false }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}

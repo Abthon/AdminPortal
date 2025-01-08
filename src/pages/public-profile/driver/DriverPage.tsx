@@ -1,6 +1,7 @@
 import { Fragment, useState } from "react";
 
 import { Container } from "@/components/container";
+import { KeenIcon } from "@/components";
 import {
   Toolbar,
   ToolbarActions,
@@ -16,6 +17,7 @@ import { useLayout } from "@/providers";
 const DriverPage = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [driverNum, setDriverNum] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
   const { currentLayout } = useLayout();
 
   return (
@@ -35,9 +37,17 @@ const DriverPage = () => {
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>
-              {/* <a href="#" className="btn btn-sm btn-light">
-                Import CSV
-              </a> */}
+              <div className="flex">
+                <label className="input input-sm">
+                  <KeenIcon icon="magnifier" />
+                  <input
+                    type="text"
+                    placeholder="Search users"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                </label>
+              </div>
               <button
                 onClick={() => {
                   setIsAddOpen((open) => !open);
@@ -55,6 +65,7 @@ const DriverPage = () => {
         <DriverContent
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
+          searchInput={searchInput}
           handleDriverNum={setDriverNum}
         />
       </Container>
