@@ -59,9 +59,9 @@ export interface TDataGridProps<TData extends object> {
   toolbar?: ReactNode;
   filters?: { id: string; value: unknown }[];
   serverSide?: boolean;
-  onFetchData?: (params: TDataGridRequestParams) => Promise<any>;
+  onFetchData?: ({pageIndex, pageSize}: {pageIndex: number, pageSize: number}) => Promise<any>;
   children?: ReactNode;
-  setPageIndex?: (pageIndex: number) => void;
+  // setPageIndex?: (pageIndex: any) => void;
 }
 
 export const DataGrid = <TData extends object>(

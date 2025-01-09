@@ -55,7 +55,7 @@ const Drivers = ({
   const [currentDriverData, setCurrentDriverData] =
     useState<IDriversData | null>(null);
   const [totalPage, setTotalPage] = useState(0);
-  const [pageIndex, setPageIndex] = useState(0);
+  const [pageIndex, setPageIndex] = useState({index: 0});
 
   useEffect(()=> {
     console.log(pageIndex, "current page Index is: ");
@@ -90,15 +90,15 @@ const Drivers = ({
   //   handleDriverNum(data.data.length);
   //   return data.data;
   // }
-  async function getDrivers() {
+  async function getDrivers({pageIndex, pageSize}: {pageIndex: number, pageSize: number}) {
     const url = searchInput
       ? `/api/v1/drivers?filters=firstname=${searchInput}`
-      : `/api/v1/drivers?take=1&page=${pageIndex + 1}`;
+      : `/api/v1/drivers?take=${pageSize}&page=${pageIndex}`;
     console.log(`Making request to: ${url}`);
     const { data } = await axiosInstance.get(url);
-    setTotalPage(data.pagination.totalPages);
+    // setTotalPage(data.pagination.totalPages);
     handleDriverNum(data.data.length);
-    return data.data;
+    return data;
   }
 
   async function deleteDriver(id: string) {
@@ -106,10 +106,10 @@ const Drivers = ({
     return data;
   }
 
-  const { isLoading: isDriverLoading, data: DriverData } = useQuery({
-    queryKey: ["Drivers", pageIndex, searchInput],
-    queryFn: getDrivers,
-  });
+  // const { isLoading: isDriverLoading, data: DriverData } = useQuery({
+  //   queryKey: ["Drivers", pageIndex, searchInput],
+  //   queryFn: getDrivers,
+  // });
 
   interface DeleteResponse {
     // Add your API response structure here
@@ -322,7 +322,7 @@ const Drivers = ({
     [mutate]
   );
 
-  const data: IDriversData[] = useMemo(() => DriverData ?? [], [DriverData]);
+  // const data: IDriversData[] = useMemo(() => DriverData ?? [], [DriverData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -378,9 +378,9 @@ const Drivers = ({
     );
   };
 
-  if (isDriverLoading) {
-    return <DataGridLoader message="Loading" />;
-  }
+  // if (isDriverLoading) {
+  //   return <DataGridLoader message="Loading" />;
+  // }
 
   return (
     <>
@@ -392,12 +392,11 @@ const Drivers = ({
         driverData={currentDriverData}
       />
       <DataGrid
+        onFetchData={getDrivers}
         columns={columns}
-        setPageIndex={setPageIndex}
-        data={data}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
-        pagination={{ size: 3, page: 0, pageCount: totalPage }}
+        pagination={{ size: 1}}
         sorting={[{ id: "users", desc: false }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}

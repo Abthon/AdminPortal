@@ -52,6 +52,7 @@ export const DataGridProvider = <TData extends object>(
   props: TDataGridProps<TData>
 ) => {
   const defaultValues: Partial<TDataGridProps<TData>> = {
+    onFetchData: props.onFetchData,
     messages: {
       empty: "No data available",
       loading: "Loading...",
@@ -62,7 +63,7 @@ export const DataGridProvider = <TData extends object>(
       card: false,
     },
     pagination: {
-      pageCount: props.pagination?.pageCount,
+      // pageCount: props.pagination?.pageCount,
       info: "{from} - {to} of {count}",
       sizes: [5, 10, 25, 50, 100],
       sizesLabel: "Show",
@@ -73,7 +74,7 @@ export const DataGridProvider = <TData extends object>(
       more: false,
     },
     rowSelection: false,
-    serverSide: false,
+    serverSide: true,
   };
 
   const mergedProps = deepMerge(defaultValues, props);
@@ -86,7 +87,7 @@ export const DataGridProvider = <TData extends object>(
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: props.pagination?.page ?? 0,
     pageSize: props.pagination?.size ?? 5,
-  });
+  })
   const [rowSelection, setRowSelection] = useState(mergedProps.rowSelection);
   const [sorting, setSorting] = useState<SortingState>(
     mergedProps.sorting ?? []
@@ -107,10 +108,11 @@ export const DataGridProvider = <TData extends object>(
         columnFilters,
       };
 
-      const { data, totalCount } = await mergedProps.onFetchData(requestParams);
-
-      setData(data || []);
-      setTotalRows(totalCount || 0);
+      // const  data = await mergedProps.onFetchData({});
+      const data = await defaultValues.onFetchData?.({pageIndex: pagination.pageIndex+1, pageSize: pagination.pageSize}); 
+      console.log(pagination.pageIndex, "the page Index");
+      setData(data.data || []);
+      setTotalRows(data.pagination.totalItems || 0);
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {
@@ -163,10 +165,10 @@ export const DataGridProvider = <TData extends object>(
   const table = useReactTable({
     data,
     columns: mergedProps.columns,
-    // pageCount: mergedProps.serverSide
-    //   ? Math.ceil(totalRows / pagination.pageSize)
-    //   : undefined,
-    pageCount: props.pagination?.pageCount,
+    pageCount: mergedProps.serverSide
+      ? Math.ceil(totalRows / pagination.pageSize)
+      : undefined,
+    // pageCount: props.pagination?.pageCount,
     state: {
       sorting,
       columnVisibility,

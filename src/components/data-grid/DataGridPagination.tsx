@@ -50,7 +50,7 @@ const DataGridPagination = () => {
           onClick={() => {
             table.setPageIndex(i);
             console.log(i, "the selected index");
-            props.setPageIndex?.(i);
+            // props.setPageIndex?.({index: i});
           }}
         >
           {i + 1}
