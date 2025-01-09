@@ -94,22 +94,28 @@ const Drivers = ({
     const url = searchInput
       ? `/api/v1/drivers?filters=firstname=${searchInput}`
       : `/api/v1/drivers?take=${pageSize}&page=${pageIndex}`;
-    console.log(`Making request to: ${url}`);
     const { data } = await axiosInstance.get(url);
-    // setTotalPage(data.pagination.totalPages);
     handleDriverNum(data.data.length);
     return data;
   }
+
+  async function searchDrivers() {
+    const url = `/api/v1/drivers?filters=firstname=${searchInput}`
+    const { data } = await axiosInstance.get(url);
+    handleDriverNum(data.data.length);
+    return data;
+  }
+
 
   async function deleteDriver(id: string) {
     const { data } = await axiosInstance.delete(`/api/v1/drivers/${id}`);
     return data;
   }
 
-  // const { isLoading: isDriverLoading, data: DriverData } = useQuery({
-  //   queryKey: ["Drivers", pageIndex, searchInput],
-  //   queryFn: getDrivers,
-  // });
+  const { isLoading: isDriverLoading, data: DriverData } = useQuery({
+    queryKey: [searchInput],
+    queryFn: searchDrivers,
+  });
 
   interface DeleteResponse {
     // Add your API response structure here
@@ -322,7 +328,7 @@ const Drivers = ({
     [mutate]
   );
 
-  // const data: IDriversData[] = useMemo(() => DriverData ?? [], [DriverData]);
+  const data: IDriversData[] = useMemo(() => DriverData ?? [], [DriverData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -393,10 +399,11 @@ const Drivers = ({
       />
       <DataGrid
         onFetchData={getDrivers}
+        data={data}
         columns={columns}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
-        pagination={{ size: 1}}
+        pagination={{ size: 2}}
         sorting={[{ id: "users", desc: false }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
