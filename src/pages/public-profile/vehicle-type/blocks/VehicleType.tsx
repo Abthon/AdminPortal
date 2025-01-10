@@ -54,6 +54,8 @@ const VechileType = ({
   const [editMode, setEditMode] = useState(false);
   const [currentVehicleData, setCurrentVehicleData] =
     useState<IVehicleTypeData | null>(null);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsOnPage, setItemsOnPage] = useState(0);
 
   const handleClose = () => {
     setProfileModalOpen(false);
@@ -70,11 +72,18 @@ const VechileType = ({
     setProfileModalOpen(true);
   };
 
-  async function getVehicleType() {
-    const { data } = await axiosInstance.get("/api/v1/vehicle-types");
-    console.log("data retrieved");
+  async function getVehicleType({pageIndex, pageSize}: {pageIndex: number, pageSize: number}) {
+    const url = `/api/v1/vehicle-types?take=${pageSize}&page=${pageIndex}`;
+    const { data } = await axiosInstance.get(url);
+
+    // calculating how many items are there on the current page
+    const startIndex = (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(data.pagination.currentPage * data.pagination.pageSize, data.pagination.totalItems);
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
     handleVehicleTypeNum(data.data.length);
-    return data.data;
+    return data;
   }
 
   async function deleteVehicleType(id: string) {
@@ -82,10 +91,10 @@ const VechileType = ({
     return data;
   }
 
-  const { isLoading: isVehicleLoading, data: VehicleData } = useQuery({
-    queryKey: ["VehicleType"],
-    queryFn: getVehicleType,
-  });
+  // const { isLoading: isVehicleLoading, data: VehicleData } = useQuery({
+  //   queryKey: ["VehicleType"],
+  //   queryFn: getVehicleType,
+  // });
 
   const queryClient = useQueryClient();
 
@@ -270,10 +279,10 @@ const VechileType = ({
     [mutate]
   );
 
-  const data: IVehicleTypeData[] = useMemo(
-    () => VehicleData ?? [],
-    [VehicleData]
-  );
+  // const data: IVehicleTypeData[] = useMemo(
+  //   () => VehicleData ?? [],
+  //   [VehicleData]
+  // );
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -295,7 +304,7 @@ const VechileType = ({
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
-          Showing 20 of 68 users
+          Showing {itemsOnPage} of {totalItems} vehicleTypes
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
@@ -343,9 +352,9 @@ const VechileType = ({
     );
   };
 
-  if (isVehicleLoading) {
-    return <DataGridLoader message="Loading" />;
-  }
+  // if (isVehicleLoading) {
+  //   return <DataGridLoader message="Loading" />;
+  // }
 
   return (
     <>
@@ -356,8 +365,9 @@ const VechileType = ({
         vehicleData={currentVehicleData}
       />
       <DataGrid
+        onFetchData={getVehicleType}
         columns={columns}
-        data={data}
+        // data={data}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}

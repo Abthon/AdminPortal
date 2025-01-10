@@ -16,9 +16,6 @@ export const MENU_SIDEBAR: TMenuConfig = [
     ],
   },
   {
-    heading: "User",
-  },
-  {
     title: "Driver",
     icon: "profile-circle",
     children: [

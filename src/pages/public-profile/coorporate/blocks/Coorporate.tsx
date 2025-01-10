@@ -59,6 +59,8 @@ const Coorporate = ({
   const [approvalMode, setApprovalMode] = useState(false);
   const [currentCoorporateData, setCurrentCoorporateData] =
     useState<ICoorporateData | null>(null);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsOnPage, setItemsOnPage] = useState(0);
 
   const handleClose = () => {
     setApprovalMode(false);
@@ -85,11 +87,18 @@ const Coorporate = ({
     setProfileModalOpen(true);
   };
 
-  async function getCoorporates() {
-    const { data } = await axiosInstance.get("/api/v1/coorporate");
-    console.log("here", data.data);
+  async function getCoorporates({pageIndex, pageSize}: {pageIndex: number, pageSize: number}) {
+    const url = `/api/v1/coorporate?take=${pageSize}&page=${pageIndex}`;
+    const { data } = await axiosInstance.get(url);
+
+    // calculating how many items are there on the current page
+    const startIndex = (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(data.pagination.currentPage * data.pagination.pageSize, data.pagination.totalItems);
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
     handleCoorporateNum(data.data.length);
-    return data.data;
+    return data;
   }
 
   async function deleteCoorporates(id: string) {
@@ -98,10 +107,10 @@ const Coorporate = ({
     return data;
   }
 
-  const { isLoading: isCoorporateLoading, data: CoorporateData } = useQuery({
-    queryKey: ["Coorporate"],
-    queryFn: getCoorporates,
-  });
+  // const { isLoading: isCoorporateLoading, data: CoorporateData } = useQuery({
+  //   queryKey: ["Coorporate"],
+  //   queryFn: getCoorporates,
+  // });
 
   const queryClient = useQueryClient();
 
@@ -443,10 +452,10 @@ const Coorporate = ({
     [mutate]
   );
 
-  const data: ICoorporateData[] = useMemo(
-    () => CoorporateData ?? [],
-    [CoorporateData]
-  );
+  // const data: ICoorporateData[] = useMemo(
+  //   () => CoorporateData ?? [],
+  //   [CoorporateData]
+  // );
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -468,7 +477,7 @@ const Coorporate = ({
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
-          Showing 20 of 68 users
+          Showing {itemsOnPage} of {totalItems} coorporates
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
@@ -516,35 +525,35 @@ const Coorporate = ({
     );
   };
 
-  if (isCoorporateLoading) {
-    return (
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-        <div className="text-muted-foreground bg-card  flex items-center gap-2 px-4 py-2 font-medium leading-none text-sm border shadow-sm rounded-md">
-          <svg
-            className="animate-spin -ml-1 h-5 w-5 text-muted-foreground"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="3"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          Loading
-        </div>
-      </div>
-    );
-  }
+  // if (isCoorporateLoading) {
+  //   return (
+  //     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+  //       <div className="text-muted-foreground bg-card  flex items-center gap-2 px-4 py-2 font-medium leading-none text-sm border shadow-sm rounded-md">
+  //         <svg
+  //           className="animate-spin -ml-1 h-5 w-5 text-muted-foreground"
+  //           xmlns="http://www.w3.org/2000/svg"
+  //           fill="none"
+  //           viewBox="0 0 24 24"
+  //         >
+  //           <circle
+  //             className="opacity-25"
+  //             cx="12"
+  //             cy="12"
+  //             r="10"
+  //             stroke="currentColor"
+  //             strokeWidth="3"
+  //           ></circle>
+  //           <path
+  //             className="opacity-75"
+  //             fill="currentColor"
+  //             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+  //           ></path>
+  //         </svg>
+  //         Loading
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <>
@@ -556,8 +565,9 @@ const Coorporate = ({
         CoorporateData={currentCoorporateData}
       />
       <DataGrid
+        onFetchData={getCoorporates}
         columns={columns}
-        data={data}
+        // data={data}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}

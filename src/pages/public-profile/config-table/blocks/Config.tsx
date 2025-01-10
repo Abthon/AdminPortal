@@ -50,6 +50,8 @@ const Config = ({
   const [editMode, setEditMode] = useState<boolean>(false);
   const [currentConfigData, setcurrentConfigData] =
     useState<IConfigData | null>(null);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsOnPage, setItemsOnPage] = useState(0);
 
   const handleClose = () => {
     setProfileModalOpen(false);
@@ -63,11 +65,18 @@ const Config = ({
     setProfileModalOpen(true);
   };
 
-  async function getConfig(): Promise<IConfigData[]> {
-    const { data } = await axiosInstance.get("/api/v1/params");
-    console.log(data.data);
+  async function getConfig({pageIndex, pageSize}: {pageIndex: number, pageSize: number}) {
+    const url = `/api/v1/params?take=${pageSize}&page=${pageIndex}`;
+    const { data } = await axiosInstance.get(url);
+
+    // calculating how many items are there on the current page
+    const startIndex = (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(data.pagination.currentPage * data.pagination.pageSize, data.pagination.totalItems);
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
     handleConfigNum(data.data.length);
-    return data.data;
+    return data;
   }
 
   async function deleteConfig(id: string) {
@@ -75,12 +84,12 @@ const Config = ({
     return data;
   }
 
-  const { isLoading: isConfigLoading, data: configData } = useQuery<
-    IConfigData[]
-  >({
-    queryKey: ["Config"],
-    queryFn: getConfig,
-  });
+  // const { isLoading: isConfigLoading, data: configData } = useQuery<
+  //   IConfigData[]
+  // >({
+  //   queryKey: ["Config"],
+  //   queryFn: getConfig,
+  // });
 
   const queryClient = useQueryClient();
 
@@ -224,7 +233,7 @@ const Config = ({
     []
   );
 
-  const data: IConfigData[] = useMemo(() => configData || [], [configData]);
+  // const data: IConfigData[] = useMemo(() => configData || [], [configData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -246,7 +255,7 @@ const Config = ({
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
-          Showing 20 of 68 users
+          Showing {itemsOnPage} of {totalItems} configs
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
@@ -294,9 +303,9 @@ const Config = ({
     );
   };
 
-  if (isConfigLoading) {
-    return <DataGridLoader message="Loading" />;
-  }
+  // if (isConfigLoading) {
+  //   return <DataGridLoader message="Loading" />;
+  // }
 
   return (
     <>
@@ -307,8 +316,9 @@ const Config = ({
         configData={currentConfigData}
       />
       <DataGrid
+        onFetchData={getConfig}
         columns={columns}
-        data={data}
+        // data={data}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}
