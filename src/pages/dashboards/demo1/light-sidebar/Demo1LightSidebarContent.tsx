@@ -1,13 +1,64 @@
+import axiosInstance from "@/auth/_helpers";
 import {
   ChannelStats,
   EarningsChart,
   EntryCallout,
   Highlights,
   TeamMeeting,
-  Teams
-} from './blocks';
+  Teams,
+} from "./blocks";
+import { DriverLocation } from "./blocks/DriverLocation";
+import { useQuery } from "react-query";
+
+const obj = {
+  id: 25,
+  createdAt: "2024-12-30T02:48:28.000Z",
+  firstName: "Jhon",
+  middleName: null,
+  lastName: "Doee",
+  phoneNumber: "911094668",
+  isPhoneNumberAuthenticated: false,
+  type: "payroll",
+  drivingLicense: "abc123",
+  gender: "male",
+  is_online: false,
+  is_available: false,
+  isBusy: false,
+  lat: null,
+  lng: null,
+  averageRating: 0,
+  status: "pending",
+  profilePhoto: "1735526907796-photo_2023-10-28_09-45-14.jpg",
+  firebaseToken: "string",
+  vehicle: null,
+  bookings: [],
+};
+
+interface IDriversData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  gender: string;
+  status: string;
+  profilePhoto: string;
+  type: string;
+}
 
 const Demo1LightSidebarContent = () => {
+  async function getDrivers() {
+    const url = `/api/v1/drivers`;
+    const { data } = await axiosInstance.get(url);
+    return data.data;
+  }
+
+  let { isLoading: isDriverLoading, data: DriverData } = useQuery<
+    IDriversData[]
+  >({
+    queryKey: ["Bookings"],
+    queryFn: getDrivers,
+  });
+
   return (
     <div className="grid gap-5 lg:gap-7.5">
       <div className="grid lg:grid-cols-3 gap-y-5 lg:gap-7.5 items-stretch">
@@ -28,7 +79,7 @@ const Demo1LightSidebarContent = () => {
         </div>
 
         <div className="lg:col-span-2">
-          <EarningsChart />
+          <DriverLocation data={DriverData} />
         </div>
       </div>
 

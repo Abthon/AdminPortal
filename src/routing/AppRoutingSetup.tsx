@@ -92,6 +92,8 @@ import { DriverProfilePage } from "@/pages/public-profile/driver-profile/crm";
 import { BookingProfilePage } from "@/pages/public-profile/booking-profile";
 import { VehicleTypeProfilePage } from "@/pages/public-profile/vehicle-type-profile/crm";
 import { VehicleProfilePage } from "@/pages/public-profile/vehicle-profile";
+import { DepositPage } from "@/pages/public-profile/deposit";
+import { BankPage } from "@/pages/public-profile/bank";
 const AppRoutingSetup = (): ReactElement => {
   return (
     <Routes>
@@ -151,6 +153,8 @@ const AppRoutingSetup = (): ReactElement => {
             path="/public-profile/booking/:id"
             element={<BookingProfilePage />}
           />
+          <Route path="/public-profile/deposits" element={<DepositPage />} />
+          <Route path="/public-profile/banks" element={<BankPage />} />
           <Route
             path="/public-profile/profiles/gamer"
             element={<ProfileGamerPage />}

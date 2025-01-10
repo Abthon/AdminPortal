@@ -60,6 +60,20 @@ export const MENU_SIDEBAR: TMenuConfig = [
     ],
   },
   {
+    title: "Finance",
+    icon: "security-user",
+    children: [
+      {
+        title: "Deposits",
+        path: "/public-profile/deposits",
+      },
+      {
+        title: "Banks",
+        path: "/public-profile/banks",
+      },
+    ],
+  },
+  {
     heading: "Coorporate",
   },
   {

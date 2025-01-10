@@ -25,20 +25,18 @@ import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalDriverTypeForm } from "@/partials/modals/driver";
 import axiosInstance from "@/auth/_helpers";
+import { ModalBankForm } from "@/partials/modals/bank";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
-interface IDriversData {
+interface IBankData {
   id: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  gender: string;
-  status: string;
-  profilePhoto: string;
-  type: string;
+  name: string;
+  accountNumber: string;
+  accountName: string;
+  isApproved: boolean;
 }
 
-const Drivers = ({
+const Bank = ({
   isAddOpen,
   _handleAddOpen,
   handleDriverNum,
@@ -52,13 +50,11 @@ const Drivers = ({
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
-  const [currentDriverData, setCurrentDriverData] =
-    useState<IDriversData | null>(null);
+  const [currentBankData, setCurrentBankData] = useState<IBankData | null>(
+    null
+  );
   const [totalPage, setTotalPage] = useState(0);
   const [pageIndex, setPageIndex] = useState({ index: 0 });
-  const [sort, setSort] = useState<string | null>(null);
-  const [totalItems, setTotalItems] = useState(0);
-  const [itemsOnPage, setItemsOnPage] = useState(0);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -70,73 +66,60 @@ const Drivers = ({
     _handleAddOpen(false);
   };
 
-  const handleOpen = (isEdit: boolean, rowData: IDriversData | null = null) => {
+  const handleOpen = (isEdit: boolean, rowData: IBankData | null = null) => {
     setApprovalMode(false);
     setEditMode(isEdit);
-    setCurrentDriverData(rowData);
+    setCurrentBankData(rowData);
     setProfileModalOpen(true);
   };
 
   const handleApproval = (
     isEdit: boolean,
-    rowData: IDriversData | null = null
+    rowData: IBankData | null = null
   ) => {
     setApprovalMode(isEdit);
-    setCurrentDriverData(rowData);
+    setCurrentBankData(rowData);
     setProfileModalOpen(true);
   };
 
-  // async function getDrivers() {
+  // async function getBanks() {
   //   const { data } = await axiosInstance.get("/api/v1/drivers");
   //   console.log(data);
   //   console.log(data.data.length, "length");
   //   handleDriverNum(data.data.length);
   //   return data.data;
   // }
-  async function getDrivers({
+  async function getBanks({
     pageIndex,
     pageSize,
   }: {
     pageIndex: number;
     pageSize: number;
   }) {
-    const url = `/api/v1/drivers?take=${pageSize}&page=${pageIndex}`;
-    const { data } = await axiosInstance.get(url);
-
-    // calculating how many items are there on the current page
-    const startIndex =
-      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
-    const endIndex = Math.min(
-      data.pagination.currentPage * data.pagination.pageSize,
-      data.pagination.totalItems
-    );
-    const itemsOnPage = endIndex - startIndex + 1;
-    setItemsOnPage(itemsOnPage);
-    setTotalItems(data.pagination.totalItems);
-    handleDriverNum(data.data.length);
-    return data;
-  }
-
-  async function searchDrivers() {
-    const url = `/api/v1/drivers?filters=firstname=${searchInput}`;
+    const url = searchInput
+      ? `/api/v1/banks?filters=firstname=${searchInput}`
+      : `/api/v1/banks?take=${pageSize}&page=${pageIndex}`;
     const { data } = await axiosInstance.get(url);
     handleDriverNum(data.data.length);
     return data;
   }
 
-  async function deleteDriver(id: string) {
+  async function SearchBanks() {
+    const url = `/api/v1/banks?filters=name=${searchInput}`;
+    const { data } = await axiosInstance.get(url);
+    handleDriverNum(data.data.length);
+    return data;
+  }
+
+  async function deleteBank(id: string) {
     const { data } = await axiosInstance.delete(`/api/v1/drivers/${id}`);
     return data;
   }
 
-  const { isLoading: isDriverLoading, data: DriverData } = useQuery({
-    queryKey: ["Drivers"],
-    queryFn: searchDrivers,
+  const { isLoading: isDriverLoading, data: BankData } = useQuery({
+    queryKey: ["Banks"],
+    queryFn: SearchBanks,
   });
-
-  useEffect(() => {
-    console.log(sort, "sort is: ");
-  }, [sort]);
 
   interface DeleteResponse {
     // Add your API response structure here
@@ -149,15 +132,15 @@ const Drivers = ({
     Error,
     string
   >({
-    mutationFn: deleteDriver,
+    mutationFn: deleteBank,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["Drivers"],
+        queryKey: ["Banks"],
       });
-      toast("Driver successfully deleted!");
+      toast("Bank successfully deleted!");
     },
     onError: (error) => {
-      toast("Error Encountered deleting the driver");
+      toast("Error Encountered deleting the bank");
     },
   });
 
@@ -181,7 +164,7 @@ const Drivers = ({
     [isAddOpen]
   );
 
-  const columns = useMemo<ColumnDef<IDriversData>[]>(
+  const columns = useMemo<ColumnDef<IBankData>[]>(
     () => [
       {
         accessorKey: "id",
@@ -194,96 +177,39 @@ const Drivers = ({
         },
       },
       {
-        // accessorFn: (row: IUsersData) => row.user,
-        id: "users_2",
+        id: "name",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Driver" column={column} />
-        ),
-        enableSorting: true,
-        cell: ({ row }) => {
-          // 'row' argumentini cell funksiyasiga qo'shdik
-          return (
-            <div className="flex items-center gap-4">
-              <img
-                src={`${BASE_URL}/profile/${row.original.profilePhoto}`}
-                className="rounded-full size-9 shrink-0"
-                alt={`${row.original.profilePhoto}`}
-              />
-
-              <div className="flex flex-col gap-0.5">
-                <Link
-                  to={`/public-profile/driver/${row.original.id}`}
-                  className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
-                >
-                  {row.original.firstName} {row.original.lastName}
-                </Link>
-
-                <Link
-                  to="#"
-                  className="text-2sm text-gray-700 font-normal hover:text-primary-active"
-                >
-                  {row.original.phoneNumber}
-                </Link>
-              </div>
-            </div>
-          );
-        },
-        meta: {
-          className: "min-w-[300px]",
-          cellClassName: "text-gray-800 font-normal",
-        },
-      },
-
-      {
-        id: "gender",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Gender" column={column} />
+          <DataGridColumnHeader title="name" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.gender;
+          return info.row.original.name;
         },
         meta: {
           headerClassName: "min-w-[180px]",
         },
       },
       {
-        accessorFn: (row) => row.status,
-        id: "status",
+        id: "accountNumber",
         header: ({ column }) => (
-          <DataGridColumnHeader
-            title="status"
-            handleServerSort={setSort}
-            column={column}
-          />
+          <DataGridColumnHeader title="accountNumber" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return (
-            <div className="flex justify-between relative">
-              <span
-                className={`badge ${info.row.original.status === "suspended" && "badge-danger"} ${info.row.original.status === "inactive" && "badge-warning"} ${info.row.original.status === "active" && "badge-success"} ${info.row.original.status === "pending" && "badge-primary"} shrink-0 badge-outline rounded-[30px]`}
-              >
-                <span
-                  className={`size-1.5 rounded-full ${info.row.original.status === "suspended" && "bg-danger"} ${info.row.original.status === "inactive" && "bg-warning"} ${info.row.original.status === "active" && "bg-success"} ${info.row.original.status === "pending" && "bg-primary"} me-1.5`}
-                ></span>
-                {info.row.original.status}
-              </span>
-            </div>
-          );
+          return info.row.original.accountNumber;
         },
         meta: {
           headerClassName: "min-w-[180px]",
         },
       },
       {
-        id: "type",
+        id: "accountName",
         header: ({ column }) => (
-          <DataGridColumnHeader title="type" column={column} />
+          <DataGridColumnHeader title="accountName" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.type;
+          return info.row.original.accountName;
         },
         meta: {
           headerClassName: "min-w-[180px]",
@@ -319,6 +245,7 @@ const Drivers = ({
           return (
             <button
               onClick={() => mutate(info.row.original.id)}
+              disabled={true}
               className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
             >
               <KeenIcon icon="trash" />
@@ -338,6 +265,7 @@ const Drivers = ({
         cell: (info) => {
           return (
             <button
+              disabled={true}
               onClick={() => handleApproval(true, info.row.original)}
               className="btn btn-sm btn-icon btn-clear btn-primary hover:text-white"
             >
@@ -353,7 +281,7 @@ const Drivers = ({
     [mutate]
   );
 
-  const data: IDriversData[] = useMemo(() => DriverData ?? [], [DriverData]);
+  const data: IBankData[] = useMemo(() => BankData ?? [], [BankData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -373,7 +301,7 @@ const Drivers = ({
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
-          Showing {itemsOnPage} of {totalItems} configs
+          Showing 20 of 68 users
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
@@ -409,21 +337,21 @@ const Drivers = ({
     );
   };
 
-  if (isDriverLoading) {
-    return <DataGridLoader message="Loading" />;
-  }
+  // if (isDriverLoading) {
+  //   return <DataGridLoader message="Loading" />;
+  // }
 
   return (
     <>
-      <ModalDriverTypeForm
+      <ModalBankForm
         open={profileModalOpen}
         onOpenChange={handleClose}
         isEdit={editMode}
         isApproved={approvalMode}
-        driverData={currentDriverData}
+        bankData={currentBankData}
       />
       <DataGrid
-        onFetchData={getDrivers}
+        onFetchData={getBanks}
         data={data}
         columns={columns}
         rowSelection={true}
@@ -437,4 +365,4 @@ const Drivers = ({
   );
 };
 
-export { Drivers };
+export { Bank };

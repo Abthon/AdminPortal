@@ -25,20 +25,21 @@ import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalDriverTypeForm } from "@/partials/modals/driver";
 import axiosInstance from "@/auth/_helpers";
+import { timeAgo } from "@/utils/Time";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface IDriversData {
   id: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  gender: string;
-  status: string;
-  profilePhoto: string;
   type: string;
+  bankId: number;
+  amount: number;
+  receipt: string;
+  description: string;
+  createdAt: string;
+  isApproved: boolean;
 }
 
-const Drivers = ({
+const Deposit = ({
   isAddOpen,
   _handleAddOpen,
   handleDriverNum,
@@ -56,19 +57,10 @@ const Drivers = ({
     useState<IDriversData | null>(null);
   const [totalPage, setTotalPage] = useState(0);
   const [pageIndex, setPageIndex] = useState({ index: 0 });
-  const [sort, setSort] = useState<string | null>(null);
-  const [totalItems, setTotalItems] = useState(0);
-  const [itemsOnPage, setItemsOnPage] = useState(0);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
   }, [pageIndex]);
-
-  const handleClose = () => {
-    setApprovalMode(false);
-    setProfileModalOpen(false);
-    _handleAddOpen(false);
-  };
 
   const handleOpen = (isEdit: boolean, rowData: IDriversData | null = null) => {
     setApprovalMode(false);
@@ -77,42 +69,29 @@ const Drivers = ({
     setProfileModalOpen(true);
   };
 
-  const handleApproval = (
-    isEdit: boolean,
-    rowData: IDriversData | null = null
-  ) => {
-    setApprovalMode(isEdit);
-    setCurrentDriverData(rowData);
-    setProfileModalOpen(true);
-  };
+  // async const handleApproval = (id: boolean) => {
+  //   const { data } = await axiosInstance.delete(`/api/v1/drivers/${id}`);
+  //   return data;
+  // };
 
-  // async function getDrivers() {
+  // async function getDeposits() {
   //   const { data } = await axiosInstance.get("/api/v1/drivers");
   //   console.log(data);
   //   console.log(data.data.length, "length");
   //   handleDriverNum(data.data.length);
   //   return data.data;
   // }
-  async function getDrivers({
+  async function getDeposits({
     pageIndex,
     pageSize,
   }: {
     pageIndex: number;
     pageSize: number;
   }) {
-    const url = `/api/v1/drivers?take=${pageSize}&page=${pageIndex}`;
+    const url = searchInput
+      ? `/api/v1/deposit?filters=firstname=${searchInput}`
+      : `/api/v1/deposit?take=${pageSize}&page=${pageIndex}`;
     const { data } = await axiosInstance.get(url);
-
-    // calculating how many items are there on the current page
-    const startIndex =
-      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
-    const endIndex = Math.min(
-      data.pagination.currentPage * data.pagination.pageSize,
-      data.pagination.totalItems
-    );
-    const itemsOnPage = endIndex - startIndex + 1;
-    setItemsOnPage(itemsOnPage);
-    setTotalItems(data.pagination.totalItems);
     handleDriverNum(data.data.length);
     return data;
   }
@@ -124,40 +103,50 @@ const Drivers = ({
     return data;
   }
 
-  async function deleteDriver(id: string) {
-    const { data } = await axiosInstance.delete(`/api/v1/drivers/${id}`);
-    return data;
+  async function handleApprovalDeposit(id: string) {
+    try {
+      const values = { depositId: id, isApproved: true };
+      console.log(values, "values");
+      const { data } = await axiosInstance.post(
+        `/api/v1/payment/deposit/approve`,
+        values
+      );
+      return data;
+    } catch (err) {
+      console.log(err, "The error");
+      const errorMessage =
+        (err as Error).message ||
+        "An error occurred while approving the deposit.";
+      throw new Error(errorMessage);
+    }
   }
 
   const { isLoading: isDriverLoading, data: DriverData } = useQuery({
-    queryKey: ["Drivers"],
+    queryKey: ["Deposits"],
     queryFn: searchDrivers,
   });
 
-  useEffect(() => {
-    console.log(sort, "sort is: ");
-  }, [sort]);
-
-  interface DeleteResponse {
+  interface ApprovalResponse {
     // Add your API response structure here
     data: any;
   }
 
   const queryClient = useQueryClient();
-  const { isLoading: isDeleting, mutate } = useMutation<
-    DeleteResponse,
+  const { isLoading: isApproving, mutate } = useMutation<
+    ApprovalResponse,
     Error,
     string
   >({
-    mutationFn: deleteDriver,
+    mutationFn: handleApprovalDeposit,
     onSuccess: () => {
+      console.log("hi");
+      toast("Deposit successfully Approved!");
       queryClient.invalidateQueries({
-        queryKey: ["Drivers"],
+        queryKey: ["Deposits"],
       });
-      toast("Driver successfully deleted!");
     },
     onError: (error) => {
-      toast("Error Encountered deleting the driver");
+      toast("Error Encountered Approving the Deposit");
     },
   });
 
@@ -194,83 +183,13 @@ const Drivers = ({
         },
       },
       {
-        // accessorFn: (row: IUsersData) => row.user,
-        id: "users_2",
+        id: "createdAt",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Driver" column={column} />
-        ),
-        enableSorting: true,
-        cell: ({ row }) => {
-          // 'row' argumentini cell funksiyasiga qo'shdik
-          return (
-            <div className="flex items-center gap-4">
-              <img
-                src={`${BASE_URL}/profile/${row.original.profilePhoto}`}
-                className="rounded-full size-9 shrink-0"
-                alt={`${row.original.profilePhoto}`}
-              />
-
-              <div className="flex flex-col gap-0.5">
-                <Link
-                  to={`/public-profile/driver/${row.original.id}`}
-                  className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
-                >
-                  {row.original.firstName} {row.original.lastName}
-                </Link>
-
-                <Link
-                  to="#"
-                  className="text-2sm text-gray-700 font-normal hover:text-primary-active"
-                >
-                  {row.original.phoneNumber}
-                </Link>
-              </div>
-            </div>
-          );
-        },
-        meta: {
-          className: "min-w-[300px]",
-          cellClassName: "text-gray-800 font-normal",
-        },
-      },
-
-      {
-        id: "gender",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Gender" column={column} />
+          <DataGridColumnHeader title="createdAt" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.gender;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
-        accessorFn: (row) => row.status,
-        id: "status",
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title="status"
-            handleServerSort={setSort}
-            column={column}
-          />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return (
-            <div className="flex justify-between relative">
-              <span
-                className={`badge ${info.row.original.status === "suspended" && "badge-danger"} ${info.row.original.status === "inactive" && "badge-warning"} ${info.row.original.status === "active" && "badge-success"} ${info.row.original.status === "pending" && "badge-primary"} shrink-0 badge-outline rounded-[30px]`}
-              >
-                <span
-                  className={`size-1.5 rounded-full ${info.row.original.status === "suspended" && "bg-danger"} ${info.row.original.status === "inactive" && "bg-warning"} ${info.row.original.status === "active" && "bg-success"} ${info.row.original.status === "pending" && "bg-primary"} me-1.5`}
-                ></span>
-                {info.row.original.status}
-              </span>
-            </div>
-          );
+          return timeAgo(info.row.original.createdAt);
         },
         meta: {
           headerClassName: "min-w-[180px]",
@@ -290,45 +209,99 @@ const Drivers = ({
         },
       },
       {
-        id: "Edit",
+        id: "amount",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Edit" column={column} />
+          <DataGridColumnHeader title="amount" column={column} />
         ),
-        enableSorting: false,
+        enableSorting: true,
         cell: (info) => {
-          return (
-            <button
-              onClick={() => handleOpen(true, info.row.original)}
-              className="btn btn-sm btn-icon btn-clear btn-primary"
-            >
-              <KeenIcon icon="notepad-edit" />
-            </button>
-          );
+          return info.row.original.amount;
         },
         meta: {
-          headerClassName: "min-w-[80px]",
+          headerClassName: "min-w-[180px]",
         },
       },
       {
-        id: "Delete",
+        id: "receipt",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Delete" column={column} />
+          <DataGridColumnHeader title="receipt" column={column} />
         ),
-        enableSorting: false,
+        enableSorting: true,
         cell: (info) => {
-          return (
-            <button
-              onClick={() => mutate(info.row.original.id)}
-              className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-            >
-              <KeenIcon icon="trash" />
-            </button>
-          );
+          return info.row.original.receipt;
         },
         meta: {
-          headerClassName: "min-w-[80px]",
+          headerClassName: "min-w-[180px]",
         },
       },
+      {
+        id: "description",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="description" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.description;
+        },
+        meta: {
+          headerClassName: "min-w-[250px]",
+        },
+      },
+      {
+        id: "isApproved",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="isApproved" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return `${info.row.original.isApproved}`;
+        },
+        meta: {
+          headerClassName: "min-w-[250px]",
+        },
+      },
+      // {
+      //   id: "Edit",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Edit" column={column} />
+      //   ),
+      //   enableSorting: false,
+      //   cell: (info) => {
+      //     return (
+      //       <button
+      //         disabled={true}
+      //         onClick={() => handleOpen(true, info.row.original)}
+      //         className="btn btn-sm btn-icon btn-clear btn-primary"
+      //       >
+      //         <KeenIcon icon="notepad-edit" />
+      //       </button>
+      //     );
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[80px]",
+      //   },
+      // },
+      // {
+      //   id: "Delete",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Delete" column={column} />
+      //   ),
+      //   enableSorting: false,
+      //   cell: (info) => {
+      //     return (
+      //       <button
+      //         disabled={true}
+      //         onClick={() => mutate(info.row.original.id)}
+      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+      //       >
+      //         <KeenIcon icon="trash" />
+      //       </button>
+      //     );
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[80px]",
+      //   },
+      // },
       {
         id: "Approve",
         header: ({ column }) => (
@@ -338,7 +311,7 @@ const Drivers = ({
         cell: (info) => {
           return (
             <button
-              onClick={() => handleApproval(true, info.row.original)}
+              onClick={() => handleApprovalDeposit(info.row.original.id)}
               className="btn btn-sm btn-icon btn-clear btn-primary hover:text-white"
             >
               <KeenIcon icon="double-check" />
@@ -373,7 +346,7 @@ const Drivers = ({
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
-          Showing {itemsOnPage} of {totalItems} configs
+          Showing 20 of 68 users
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
@@ -409,21 +382,14 @@ const Drivers = ({
     );
   };
 
-  if (isDriverLoading) {
-    return <DataGridLoader message="Loading" />;
-  }
+  // if (isDriverLoading) {
+  //   return <DataGridLoader message="Loading" />;
+  // }
 
   return (
     <>
-      <ModalDriverTypeForm
-        open={profileModalOpen}
-        onOpenChange={handleClose}
-        isEdit={editMode}
-        isApproved={approvalMode}
-        driverData={currentDriverData}
-      />
       <DataGrid
-        onFetchData={getDrivers}
+        onFetchData={getDeposits}
         data={data}
         columns={columns}
         rowSelection={true}
@@ -437,4 +403,4 @@ const Drivers = ({
   );
 };
 
-export { Drivers };
+export { Deposit };
