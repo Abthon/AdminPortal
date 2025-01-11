@@ -20,8 +20,8 @@ const Demo1LightSidebarPage = () => {
     <Fragment>
       <Container>
         <Toolbar>
-          <ToolbarHeading title="Dashboard" description="Central Hub for Personal Customization" />
-          <ToolbarActions>
+          <ToolbarHeading title="Dashboard" description="" />
+          {/* <ToolbarActions>
             <Popover>
               <PopoverTrigger asChild>
                 <button
@@ -56,7 +56,7 @@ const Demo1LightSidebarPage = () => {
                 />
               </PopoverContent>
             </Popover>
-          </ToolbarActions>
+          </ToolbarActions> */}
         </Toolbar>
       </Container>
 

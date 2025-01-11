@@ -7,12 +7,9 @@ import {
   Table,
   TableOptions,
 } from "@tanstack/react-table";
-// import clsx from "clsx";
 
 export type TDataGridLayoutCellSpacing = "xs" | "md" | "sm" | "lg";
-
 export type TDataGridSelectedRowIds = Set<string>;
-
 export type TDataGridRequestParams = {
   pageIndex: number;
   pageSize: number;

@@ -23,9 +23,6 @@ const DriverLocation: React.FC<DriverLocationProps> = ({ data }) => {
   //9.005245, 38.746353
   const lat = 9.005245;
   const lng = 38.7463535;
-
-  console.log(lat, lng);
-
   const validDrivers = data?.filter((driver: any) => driver.lat && driver.lng);
 
   const customIcon = L.divIcon({
@@ -46,7 +43,7 @@ const DriverLocation: React.FC<DriverLocationProps> = ({ data }) => {
   return (
     <div className="card">
       <div className="card-header">
-        <h3 className="card-title">Driver Location</h3>
+        <h3 className="card-title">Drivers</h3>
       </div>
       <div className="card-body">
         <div className="flex flex-wrap items-center gap-5 mb-10">
@@ -54,7 +51,7 @@ const DriverLocation: React.FC<DriverLocationProps> = ({ data }) => {
             center={[lat, lng]}
             zoom={15}
             className="rounded-xl w-full md:w-80 min-h-52"
-            style={{ width: "100%" }}
+            style={{ width: "100%",height:"350px"}}
           >
             <TileLayer
               attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'

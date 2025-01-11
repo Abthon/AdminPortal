@@ -99,7 +99,6 @@ export const DataGridProvider = <TData extends object>(
     if (loading || !mergedProps.onFetchData) return;
 
     setLoading(true);
-
     try {
       const requestParams: TDataGridRequestParams = {
         pageIndex: pagination.pageIndex,
@@ -108,11 +107,11 @@ export const DataGridProvider = <TData extends object>(
         columnFilters,
       };
 
-      // const  data = await mergedProps.onFetchData({});
       const data = await defaultValues.onFetchData?.({pageIndex: pagination.pageIndex+1, pageSize: pagination.pageSize}); 
-      console.log(pagination.pageIndex, "the page Index");
       setData(data.data || []);
       setTotalRows(data.pagination.totalItems || 0);
+
+
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {

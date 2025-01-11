@@ -121,6 +121,7 @@ const Drivers = ({
     const url = `/api/v1/drivers?filters=firstname=${searchInput}`;
     const { data } = await axiosInstance.get(url);
     handleDriverNum(data.data.length);
+    console.log(data.data, "driver data");
     return data;
   }
 
@@ -130,7 +131,7 @@ const Drivers = ({
   }
 
   const { isLoading: isDriverLoading, data: DriverData } = useQuery({
-    queryKey: ["Drivers"],
+    queryKey: ["Drivers", searchInput],
     queryFn: searchDrivers,
   });
 
