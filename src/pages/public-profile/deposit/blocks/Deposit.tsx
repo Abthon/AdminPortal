@@ -139,7 +139,6 @@ const Deposit = ({
   >({
     mutationFn: handleApprovalDeposit,
     onSuccess: () => {
-      console.log("hi");
       toast("Deposit successfully Approved!");
       queryClient.invalidateQueries({
         queryKey: ["Deposits"],
@@ -183,9 +182,9 @@ const Deposit = ({
         },
       },
       {
-        id: "createdAt",
+        id: "Created At",
         header: ({ column }) => (
-          <DataGridColumnHeader title="createdAt" column={column} />
+          <DataGridColumnHeader title="Created At" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -196,9 +195,9 @@ const Deposit = ({
         },
       },
       {
-        id: "type",
+        id: "Type",
         header: ({ column }) => (
-          <DataGridColumnHeader title="type" column={column} />
+          <DataGridColumnHeader title="Type" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -209,22 +208,22 @@ const Deposit = ({
         },
       },
       {
-        id: "amount",
+        id: "Amount",
         header: ({ column }) => (
-          <DataGridColumnHeader title="amount" column={column} />
+          <DataGridColumnHeader title="Amount" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
           return info.row.original.amount;
         },
         meta: {
-          headerClassName: "min-w-[180px]",
+          headerClassName: "min-w-[100px]",
         },
       },
       {
-        id: "receipt",
+        id: "Reciept",
         header: ({ column }) => (
-          <DataGridColumnHeader title="receipt" column={column} />
+          <DataGridColumnHeader title="Receipt" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -235,9 +234,9 @@ const Deposit = ({
         },
       },
       {
-        id: "description",
+        id: "Description",
         header: ({ column }) => (
-          <DataGridColumnHeader title="description" column={column} />
+          <DataGridColumnHeader title="Description" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -250,14 +249,25 @@ const Deposit = ({
       {
         id: "isApproved",
         header: ({ column }) => (
-          <DataGridColumnHeader title="isApproved" column={column} />
+          <DataGridColumnHeader title="status" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return `${info.row.original.isApproved}`;
+          return (
+            <div className="flex justify-between relative">
+              <span
+                className={`badge ${info.row.original.isApproved === false && "badge-warning"} ${info.row.original.isApproved === true && "badge-success"} shrink-0 badge-outline rounded-[30px]`}
+              >
+                <span
+                  className={`size-1.5 rounded-full ${info.row.original.isApproved === false && "bg-danger"} ${info.row.original.isApproved === true && "bg-success"} me-1.5`}
+                ></span>
+                {info.row.original.isApproved ? "Active" : "Inactive" }
+              </span>
+            </div>
+          );
         },
         meta: {
-          headerClassName: "min-w-[250px]",
+          headerClassName: "min-w-[100px]",
         },
       },
       // {
