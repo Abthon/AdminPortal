@@ -235,48 +235,47 @@ const Bank = ({
           headerClassName: "min-w-[80px]",
         },
       },
-      {
-        id: "Delete",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Delete" column={column} />
-        ),
-        enableSorting: false,
-        cell: (info) => {
-          return (
-            <button
-              onClick={() => mutate(info.row.original.id)}
-              disabled={true}
-              className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-            >
-              <KeenIcon icon="trash" />
-            </button>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[80px]",
-        },
-      },
-      {
-        id: "Approve",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Approve" column={column} />
-        ),
-        enableSorting: false,
-        cell: (info) => {
-          return (
-            <button
-              disabled={true}
-              onClick={() => handleApproval(true, info.row.original)}
-              className="btn btn-sm btn-icon btn-clear btn-primary hover:text-white"
-            >
-              <KeenIcon icon="double-check" />
-            </button>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[80px]",
-        },
-      },
+      // {
+      //   id: "Delete",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Delete" column={column} />
+      //   ),      //   enableSorting: false,
+      //   cell: (info) => {
+      //     return (
+      //       <button
+      //         onClick={() => mutate(info.row.original.id)}
+      //         disabled={true}
+      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+      //       >
+      //         <KeenIcon icon="trash" />
+      //       </button>
+      //     );
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[80px]",
+      //   },
+      // },
+      // {
+      //   id: "Approve",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Approve" column={column} />
+      //   ),
+      //   enableSorting: false,
+      //   cell: (info) => {
+      //     return (
+      //       <button
+      //         disabled={true}
+      //         onClick={() => handleApproval(true, info.row.original)}
+      //         className="btn btn-sm btn-icon btn-clear btn-primary hover:text-white"
+      //       >
+      //         <KeenIcon icon="double-check" />
+      //       </button>
+      //     );
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[80px]",
+      //   },
+      // },
     ],
     [mutate]
   );
