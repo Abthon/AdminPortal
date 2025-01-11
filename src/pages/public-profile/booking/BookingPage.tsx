@@ -12,10 +12,12 @@ import {
 //NetworkUserTableTeamCrewContent
 import { BookingContent } from ".";
 import { useLayout } from "@/providers";
+import { KeenIcon } from "@/components";
 
 const BookingPage = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [bookingNum, setBookingNum] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
   const { currentLayout } = useLayout();
 
   return (
@@ -35,9 +37,17 @@ const BookingPage = () => {
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>
-              {/* <a href="#" className="btn btn-sm btn-light">
-                Import CSV
-              </a> */}
+              <div className="flex">
+                <label className="input input-sm">
+                  <KeenIcon icon="magnifier" />
+                  <input
+                    type="text"
+                    placeholder="Search By Pick up name"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                </label>
+              </div>
               <button
                 onClick={() => {
                   setIsAddOpen((open) => !open);
@@ -56,6 +66,7 @@ const BookingPage = () => {
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
           handleBookingNum={setBookingNum}
+          searchInput={searchInput}
         />
       </Container>
     </Fragment>

@@ -43,12 +43,14 @@ interface VehicleTypeProps {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
   handleVehicleTypeNum: (num: any) => void;
+  searchInput?: string;
 }
 
 const VechileType = ({
   isAddOpen,
   _handleAddOpen,
   handleVehicleTypeNum,
+  searchInput,
 }: VehicleTypeProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -72,17 +74,59 @@ const VechileType = ({
     setProfileModalOpen(true);
   };
 
-  async function getVehicleType({pageIndex, pageSize}: {pageIndex: number, pageSize: number}) {
+  async function getVehicleType({
+    pageIndex,
+    pageSize,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+  }) {
     const url = `/api/v1/vehicle-types?take=${pageSize}&page=${pageIndex}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
-    const startIndex = (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
-    const endIndex = Math.min(data.pagination.currentPage * data.pagination.pageSize, data.pagination.totalItems);
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
     handleVehicleTypeNum(data.data.length);
+    return data;
+  }
+
+  async function searchVehicleType({
+    pageIndex,
+    pageSize,
+    search,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    search: any;
+  }) {
+    const url = `/api/v1/vehicle-types?filters=name=${search}&take=${pageSize}&page=${pageIndex}`;
+    const { data } = await axiosInstance.get(url);
+
+    // calculating how many items are there on the current page
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
+    handleVehicleTypeNum(data.data.length);
+    return data;
+  }
+
+  async function revalidateVehicleType() {
+    const url = `/api/v1/vehicle-types`;
+    const { data } = await axiosInstance.get(url);
     return data;
   }
 
@@ -91,10 +135,10 @@ const VechileType = ({
     return data;
   }
 
-  // const { isLoading: isVehicleLoading, data: VehicleData } = useQuery({
-  //   queryKey: ["VehicleType"],
-  //   queryFn: getVehicleType,
-  // });
+  const { isLoading: isVehicleLoading, data: VehicleData } = useQuery({
+    queryKey: ["VehicleType", searchInput],
+    queryFn: revalidateVehicleType,
+  });
 
   const queryClient = useQueryClient();
 
@@ -279,10 +323,10 @@ const VechileType = ({
     [mutate]
   );
 
-  // const data: IVehicleTypeData[] = useMemo(
-  //   () => VehicleData ?? [],
-  //   [VehicleData]
-  // );
+  const data: IVehicleTypeData[] = useMemo(
+    () => VehicleData ?? [],
+    [VehicleData]
+  );
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -366,8 +410,10 @@ const VechileType = ({
       />
       <DataGrid
         onFetchData={getVehicleType}
+        onSearchData={searchVehicleType}
+        searchInput={searchInput}
         columns={columns}
-        // data={data}
+        data={data}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}

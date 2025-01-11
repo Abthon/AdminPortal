@@ -16,7 +16,7 @@ import { useLayout } from "@/providers";
 
 const BankPage = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [driverNum, setDriverNum] = useState(null);
+  const [bankNum, setBankNum] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const { currentLayout } = useLayout();
 
@@ -31,7 +31,7 @@ const BankPage = () => {
                 <div className="flex items-center flex-wrap gap-1.5 font-medium">
                   <span className="text-md text-gray-700">All Banks:</span>
                   <span className="text-md text-gray-800 font-medium me-2">
-                    {driverNum}
+                    {bankNum}
                   </span>
                 </div>
               </ToolbarDescription>
@@ -42,7 +42,7 @@ const BankPage = () => {
                   <KeenIcon icon="magnifier" />
                   <input
                     type="text"
-                    placeholder="Search users"
+                    placeholder="Search Bank"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                   />
@@ -66,7 +66,7 @@ const BankPage = () => {
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
           searchInput={searchInput}
-          handleDriverNum={setDriverNum}
+          handleBankNum={setBankNum}
         />
       </Container>
     </Fragment>

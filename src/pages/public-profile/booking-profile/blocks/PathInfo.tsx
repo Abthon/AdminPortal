@@ -10,6 +10,7 @@ interface PathInfoProps {
 }
 
 const PathInfo: React.FC<PathInfoProps> = ({ data }) => {
+  console.log(data, "from page info");
   return (
     <div className="card pb-2.5">
       <div className="card-header" id="path-info">

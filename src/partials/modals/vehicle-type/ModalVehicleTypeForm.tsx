@@ -55,7 +55,10 @@ const ModalVehicleTypeForm = ({
 
   async function addVehicleType(values: { [key: string]: any }) {
     try {
-      const { file, ...updatedFields } = values as { file: File; [key: string]: any };
+      const { file, ...updatedFields } = values as {
+        file: File;
+        [key: string]: any;
+      };
       const formData = new FormData();
 
       // Append form fields to FormData
@@ -67,7 +70,10 @@ const ModalVehicleTypeForm = ({
         formData.append("file", file);
       }
 
-      const res = await axiosInstance.post(`api/v1/file-upload/image/vehicle-type`, formData);
+      const res = await axiosInstance.post(
+        `api/v1/file-upload/image/vehicle-type`,
+        formData
+      );
 
       const data = res.data;
 
@@ -76,14 +82,19 @@ const ModalVehicleTypeForm = ({
       await axiosInstance.post(`api/v1/vehicle-types`, finalData);
     } catch (err) {
       throw new Error(
-        (err as Error).message || "An error occurred while creating the vehicle type."
+        (err as Error).message ||
+          "An error occurred while creating the vehicle type."
       );
     }
   }
 
   async function editVehicleType(values: { [key: string]: any }) {
     try {
-      const { file, id, ...updatedFields } = values as { file: File; id: string; [key: string]: any };
+      const { file, id, ...updatedFields } = values as {
+        file: File;
+        id: string;
+        [key: string]: any;
+      };
       const formData = new FormData();
       Object.keys(updatedFields).forEach((key) => {
         formData.append(key, updatedFields[key]);
@@ -91,13 +102,18 @@ const ModalVehicleTypeForm = ({
       if (file) {
         formData.append("file", file);
       }
-      const res = await axiosInstance.post(`api/v1/file-upload/image/vehicle-type`, formData);
+      const res = await axiosInstance.post(
+        `api/v1/file-upload/image/vehicle-type`,
+        formData
+      );
       const data = res.data;
-      let finalData = { ...updatedFields, image: data.data.filename };
+      const { createdAt, ...filteredFields } = updatedFields;
+      const finalData = { ...filteredFields, image: data.data.filename };
       await axiosInstance.patch(`api/v1/vehicle-types/${id}`, finalData);
     } catch (err) {
       throw new Error(
-        (err as Error).message || "An error occurred while editing the vehicle type."
+        (err as Error).message ||
+          "An error occurred while editing the vehicle type."
       );
     }
   }

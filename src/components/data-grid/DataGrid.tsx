@@ -18,6 +18,7 @@ export type TDataGridRequestParams = {
 };
 
 export interface TDataGridProps<TData extends object> {
+  searchInput?: string;
   columns: any[];
   data?: TData[];
   rowSelection?: boolean;
@@ -41,7 +42,7 @@ export interface TDataGridProps<TData extends object> {
     };
   };
   pagination?: {
-    pageCount?: number,
+    pageCount?: number;
     page?: number;
     size?: number;
     sizes?: number[];
@@ -56,7 +57,22 @@ export interface TDataGridProps<TData extends object> {
   toolbar?: ReactNode;
   filters?: { id: string; value: unknown }[];
   serverSide?: boolean;
-  onFetchData?: ({pageIndex, pageSize}: {pageIndex: number, pageSize: number}) => Promise<any>;
+  onFetchData?: ({
+    pageIndex,
+    pageSize,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+  }) => Promise<any>;
+  onSearchData?: ({
+    pageIndex,
+    pageSize,
+    search,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    search: any;
+  }) => Promise<any>;
   children?: ReactNode;
   // setPageIndex?: (pageIndex: any) => void;
 }

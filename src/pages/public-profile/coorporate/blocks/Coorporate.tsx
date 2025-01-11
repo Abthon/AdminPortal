@@ -47,12 +47,14 @@ interface CoorporateProps {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
   handleCoorporateNum: (num: any) => void;
+  searchInput?: string;
 }
 
 const Coorporate = ({
   isAddOpen,
   _handleAddOpen,
   handleCoorporateNum,
+  searchInput,
 }: CoorporateProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -87,17 +89,61 @@ const Coorporate = ({
     setProfileModalOpen(true);
   };
 
-  async function getCoorporates({pageIndex, pageSize}: {pageIndex: number, pageSize: number}) {
+  async function getCoorporates({
+    pageIndex,
+    pageSize,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+  }) {
     const url = `/api/v1/coorporate?take=${pageSize}&page=${pageIndex}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
-    const startIndex = (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
-    const endIndex = Math.min(data.pagination.currentPage * data.pagination.pageSize, data.pagination.totalItems);
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
     handleCoorporateNum(data.data.length);
+    return data;
+  }
+
+  async function searchCoorporate({
+    pageIndex,
+    pageSize,
+    search,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    search: any;
+  }) {
+    const url = `/api/v1/coorporate?filters=name=${search}&take=${pageSize}&page=${pageIndex}`;
+    const { data } = await axiosInstance.get(url);
+
+    // calculating how many items are there on the current page
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
+    handleCoorporateNum(data.data.length);
+    return data;
+  }
+
+  async function revalidateCoorporate() {
+    const url = `/api/v1/coorporate?`;
+    const { data } = await axiosInstance.get(url);
+    handleCoorporateNum(data.data.length);
+    console.log(data.data, "driver data");
     return data;
   }
 
@@ -107,10 +153,10 @@ const Coorporate = ({
     return data;
   }
 
-  // const { isLoading: isCoorporateLoading, data: CoorporateData } = useQuery({
-  //   queryKey: ["Coorporate"],
-  //   queryFn: getCoorporates,
-  // });
+  const { isLoading: isCoorporateLoading, data: CoorporateData } = useQuery({
+    queryKey: ["Coorporate", searchInput],
+    queryFn: revalidateCoorporate,
+  });
 
   const queryClient = useQueryClient();
 
@@ -452,10 +498,10 @@ const Coorporate = ({
     [mutate]
   );
 
-  // const data: ICoorporateData[] = useMemo(
-  //   () => CoorporateData ?? [],
-  //   [CoorporateData]
-  // );
+  const data: ICoorporateData[] = useMemo(
+    () => CoorporateData ?? [],
+    [CoorporateData]
+  );
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -566,8 +612,10 @@ const Coorporate = ({
       />
       <DataGrid
         onFetchData={getCoorporates}
+        onSearchData={searchCoorporate}
+        searchInput={searchInput}
         columns={columns}
-        // data={data}
+        data={data}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}

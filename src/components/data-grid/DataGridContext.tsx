@@ -52,7 +52,9 @@ export const DataGridProvider = <TData extends object>(
   props: TDataGridProps<TData>
 ) => {
   const defaultValues: Partial<TDataGridProps<TData>> = {
+    searchInput: props.searchInput || "",
     onFetchData: props.onFetchData,
+    onSearchData: props.onSearchData,
     messages: {
       empty: "No data available",
       loading: "Loading...",
@@ -87,7 +89,7 @@ export const DataGridProvider = <TData extends object>(
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: props.pagination?.page ?? 0,
     pageSize: props.pagination?.size ?? 5,
-  })
+  });
   const [rowSelection, setRowSelection] = useState(mergedProps.rowSelection);
   const [sorting, setSorting] = useState<SortingState>(
     mergedProps.sorting ?? []
@@ -107,11 +109,26 @@ export const DataGridProvider = <TData extends object>(
         columnFilters,
       };
 
-      const data = await defaultValues.onFetchData?.({pageIndex: pagination.pageIndex+1, pageSize: pagination.pageSize}); 
-      setData(data.data || []);
-      setTotalRows(data.pagination.totalItems || 0);
+      console.log("here", props.searchInput);
 
-
+      if ((defaultValues.searchInput?.length ?? 0) <= 0) {
+        const data = await defaultValues.onFetchData?.({
+          pageIndex: pagination.pageIndex + 1,
+          pageSize: pagination.pageSize,
+        });
+        console.log(data.data, "imnot");
+        setData(data.data || []);
+        setTotalRows(data.pagination.totalItems || 0);
+      } else {
+        const data = await defaultValues.onSearchData?.({
+          search: props.searchInput,
+          pageIndex: pagination.pageIndex + 1,
+          pageSize: pagination.pageSize,
+        });
+        console.log(data.data, "imnot");
+        setData(data.data || []);
+        setTotalRows(data.pagination.totalItems || 0);
+      }
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {

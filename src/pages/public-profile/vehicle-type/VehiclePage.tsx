@@ -12,10 +12,12 @@ import {
 //NetworkUserTableTeamCrewContent
 import { VehicleContent } from ".";
 import { useLayout } from "@/providers";
+import { KeenIcon } from "@/components";
 
 const VehiclePage = () => {
   const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
   const [vehicletypeNum, setVehicleTypeNum] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
   const { currentLayout } = useLayout();
 
   return (
@@ -37,9 +39,17 @@ const VehiclePage = () => {
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>
-              {/* <a href="#" className="btn btn-sm btn-light">
-                Import CSV
-              </a> */}
+              <div className="flex">
+                <label className="input input-sm">
+                  <KeenIcon icon="magnifier" />
+                  <input
+                    type="text"
+                    placeholder="Search By Name"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                </label>
+              </div>
               <button
                 onClick={() => {
                   setIsAddOpen((open) => !open);
@@ -58,6 +68,7 @@ const VehiclePage = () => {
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
           handleVehicleTypeNum={setVehicleTypeNum}
+          searchInput={searchInput}
         />
       </Container>
     </Fragment>

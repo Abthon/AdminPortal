@@ -41,17 +41,14 @@ const DriverLocation: React.FC<DriverLocationProps> = ({ data }) => {
   console.log(mapCenter, "here");
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <h3 className="card-title">Drivers</h3>
-      </div>
-      <div className="card-body">
+    <div>
+      <div>
         <div className="flex flex-wrap items-center gap-5 mb-10">
           <MapContainer
             center={[lat, lng]}
             zoom={15}
             className="rounded-xl w-full md:w-80 min-h-52"
-            style={{ width: "100%",height:"350px"}}
+            style={{ width: "100%", height: "550px" }}
           >
             <TileLayer
               attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'

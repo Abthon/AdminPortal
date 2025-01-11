@@ -12,10 +12,12 @@ import {
 //NetworkUserTableTeamCrewContent
 import { ConfigContent } from ".";
 import { useLayout } from "@/providers";
+import { KeenIcon } from "@/components";
 
 const ConfigPage = () => {
   const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
   const [configNum, setConfigNum] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
   const { currentLayout } = useLayout();
 
   return (
@@ -37,11 +39,17 @@ const ConfigPage = () => {
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>
-              {
-                <a href="#" className="btn btn-sm btn-light">
-                  Import CSV
-                </a>
-              }
+              <div className="flex">
+                <label className="input input-sm">
+                  <KeenIcon icon="magnifier" />
+                  <input
+                    type="text"
+                    placeholder="Search By Name"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                </label>
+              </div>
               <button
                 onClick={() => {
                   setIsAddOpen((open) => !open);
@@ -59,6 +67,7 @@ const ConfigPage = () => {
         <ConfigContent
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
+          searchInput={searchInput}
           handleConfigNum={setConfigNum}
         />
       </Container>

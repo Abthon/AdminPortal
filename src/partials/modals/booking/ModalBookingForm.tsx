@@ -615,7 +615,6 @@ const ModalBookingForm = ({
         updatedFields
       );
 
-
       if (res.status !== 200) {
         throw new Error(res.data.message || "Failed to create the booking.");
       }
@@ -635,7 +634,7 @@ const ModalBookingForm = ({
         driverId,
         estimatedPrice: price,
         estimatedTraveledDistance: distance,
-        vehicleType: vehicleTypeId
+        vehicleType: vehicleTypeId,
       };
 
       console.log(finalReq, "the final request");
@@ -666,7 +665,7 @@ const ModalBookingForm = ({
       };
 
       console.log(updatedFields, "the updated fields");
-      try{
+      try {
         const res = await axiosInstance.patch(
           `api/v1/bookings/${id}`,
           updatedFields
@@ -677,10 +676,9 @@ const ModalBookingForm = ({
         }
 
         return res.data;
-      }catch(error){
+      } catch (error) {
         console.log(error, "The error");
       }
-
     } catch (err) {
       throw new Error("An error occurred while editing the booking.");
     }
@@ -760,23 +758,56 @@ const ModalBookingForm = ({
                   <GooglePlacesAutocomplete
                     apiKey={import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY || ""}
                     selectProps={{
-                      value: formik.values.pickupName ? { label: formik.values.pickupName, value: { description: formik.values.pickupName, geometry: { location: { lat: formik.values.pickupLat, lng: formik.values.pickupLng } } } } : null,
+                      value: formik.values.pickupName
+                        ? {
+                            label: formik.values.pickupName,
+                            value: {
+                              description: formik.values.pickupName,
+                              geometry: {
+                                location: {
+                                  lat: formik.values.pickupLat,
+                                  lng: formik.values.pickupLng,
+                                },
+                              },
+                            },
+                          }
+                        : null,
                       onChange: async (value) => {
                         if (value && value.value && value.value.place_id) {
                           const placeId = value.value.place_id;
-                      
+
                           // Initialize Google Maps Places Service
-                          const service = new google.maps.places.PlacesService(document.createElement("div"));
+                          const service = new google.maps.places.PlacesService(
+                            document.createElement("div")
+                          );
                           service.getDetails({ placeId }, (place, status) => {
-                            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                            if (
+                              status ===
+                              google.maps.places.PlacesServiceStatus.OK
+                            ) {
                               formik.setFieldValue("pickupName", value.label);
-                              formik.setFieldValue("pickupLat", place?.geometry?.location?.lat());
-                              formik.setFieldValue("pickupLng", place?.geometry?.location?.lng());
+                              formik.setFieldValue(
+                                "pickupLat",
+                                place?.geometry?.location?.lat()
+                              );
+                              formik.setFieldValue(
+                                "pickupLng",
+                                place?.geometry?.location?.lng()
+                              );
                               console.log("Place:", value.label);
-                              console.log("Lat: ", place?.geometry?.location?.lat());
-                              console.log("Lang: ", place?.geometry?.location?.lng());
+                              console.log(
+                                "Lat: ",
+                                place?.geometry?.location?.lat()
+                              );
+                              console.log(
+                                "Lang: ",
+                                place?.geometry?.location?.lng()
+                              );
                             } else {
-                              console.error("Failed to fetch place details:", status);
+                              console.error(
+                                "Failed to fetch place details:",
+                                status
+                              );
                             }
                           });
                         } else {
@@ -785,29 +816,29 @@ const ModalBookingForm = ({
                       },
                       styles: {
                         control: (provided, state) => ({
-                            ...provided,
-                            backgroundColor: "transparent", 
-                            borderColor: '#3d3e46 !important', 
-                            boxShadow: "none !important",
-                            outline: "none !important", 
-                            fontSize: '.85em',
-                            paddingLeft: '5px',
-                            maxWidth: "390px",
+                          ...provided,
+                          backgroundColor: "transparent",
+                          borderColor: "#3d3e46 !important",
+                          boxShadow: "none !important",
+                          outline: "none !important",
+                          fontSize: ".85em",
+                          paddingLeft: "5px",
+                          maxWidth: "390px",
                           overflow: "hidden",
-                          }),
-                          input: (provided) => ({
-                            ...provided,
-                            color: "gray", // [ text color ]
-                          }),
-                          placeholder: (provided) => ({
-                            ...provided,
-                            color: "#9ca3af", // Optional: Customize placeholder text color
-                          }),
-                          singleValue: (provided) => ({
-                            ...provided,
-                            color: "#808290", // Optional: Customize selected value text color
-                          })
-                        }
+                        }),
+                        input: (provided) => ({
+                          ...provided,
+                          color: "gray", // [ text color ]
+                        }),
+                        placeholder: (provided) => ({
+                          ...provided,
+                          color: "#9ca3af", // Optional: Customize placeholder text color
+                        }),
+                        singleValue: (provided) => ({
+                          ...provided,
+                          color: "#808290", // Optional: Customize selected value text color
+                        }),
+                      },
                     }}
                   />
                 </div>
@@ -819,23 +850,56 @@ const ModalBookingForm = ({
                   <GooglePlacesAutocomplete
                     apiKey={import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY || ""}
                     selectProps={{
-                      value: formik.values.dropOffName ? { label: formik.values.dropOffName, value: { description: formik.values.dropOffName, geometry: { location: { lat: formik.values.dropOffLat, lng: formik.values.dropOffLng } } } } : null,
+                      value: formik.values.dropOffName
+                        ? {
+                            label: formik.values.dropOffName,
+                            value: {
+                              description: formik.values.dropOffName,
+                              geometry: {
+                                location: {
+                                  lat: formik.values.dropOffLat,
+                                  lng: formik.values.dropOffLng,
+                                },
+                              },
+                            },
+                          }
+                        : null,
                       onChange: async (value) => {
                         if (value && value.value && value.value.place_id) {
                           const placeId = value.value.place_id;
-                      
+
                           // Initialize Google Maps Places Service
-                          const service = new google.maps.places.PlacesService(document.createElement("div"));
+                          const service = new google.maps.places.PlacesService(
+                            document.createElement("div")
+                          );
                           service.getDetails({ placeId }, (place, status) => {
-                            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                            if (
+                              status ===
+                              google.maps.places.PlacesServiceStatus.OK
+                            ) {
                               formik.setFieldValue("dropOffName", value.label);
-                              formik.setFieldValue("dropOffLat", place?.geometry?.location?.lat());
-                              formik.setFieldValue("dropOffLng", place?.geometry?.location?.lng());
+                              formik.setFieldValue(
+                                "dropOffLat",
+                                place?.geometry?.location?.lat()
+                              );
+                              formik.setFieldValue(
+                                "dropOffLng",
+                                place?.geometry?.location?.lng()
+                              );
                               console.log("Place:", value.label);
-                              console.log("Lat: ", place?.geometry?.location?.lat());
-                              console.log("Lang: ", place?.geometry?.location?.lng());
+                              console.log(
+                                "Lat: ",
+                                place?.geometry?.location?.lat()
+                              );
+                              console.log(
+                                "Lang: ",
+                                place?.geometry?.location?.lng()
+                              );
                             } else {
-                              console.error("Failed to fetch place details:", status);
+                              console.error(
+                                "Failed to fetch place details:",
+                                status
+                              );
                             }
                           });
                         } else {
@@ -844,42 +908,42 @@ const ModalBookingForm = ({
                       },
                       styles: {
                         control: (provided, state) => ({
-                            ...provided,
-                            backgroundColor: "transparent", 
-                            borderColor: '#3d3e46 !important', 
-                            boxShadow: "none !important",
-                            outline: "none !important", 
-                            fontSize: '.85em',
-                            paddingLeft: '5px',
-                            maxWidth: "390px",
+                          ...provided,
+                          backgroundColor: "transparent",
+                          borderColor: "#3d3e46 !important",
+                          boxShadow: "none !important",
+                          outline: "none !important",
+                          fontSize: ".85em",
+                          paddingLeft: "5px",
+                          maxWidth: "390px",
                           overflow: "hidden",
-                          }),
-                          // menu: (provided) => ({
-                          //   ...provided,
-                          //   backgroundColor: '#3d3e46',
-                          //   border: '1px solid #3d3e46',
-                          //   borderRadius: '4px',
-                          //   boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                          //   zIndex: 1000,
-                          // }),
-                          // menuList: (provided) => ({
-                          //   ...provided,
-                          //   padding: "0", // Remove additional padding
-                          //   backgroundColor: '#3d3e46',
-                          // }),
-                          input: (provided) => ({
-                            ...provided,
-                            color: "gray", // [ text color ]
-                          }),
-                          placeholder: (provided) => ({
-                            ...provided,
-                            color: "#9ca3af", // Optional: Customize placeholder text color
-                          }),
-                          singleValue: (provided) => ({
-                            ...provided,
-                            color: "#808290", // Optional: Customize selected value text color
-                          })
-                        }
+                        }),
+                        // menu: (provided) => ({
+                        //   ...provided,
+                        //   backgroundColor: '#3d3e46',
+                        //   border: '1px solid #3d3e46',
+                        //   borderRadius: '4px',
+                        //   boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                        //   zIndex: 1000,
+                        // }),
+                        // menuList: (provided) => ({
+                        //   ...provided,
+                        //   padding: "0", // Remove additional padding
+                        //   backgroundColor: '#3d3e46',
+                        // }),
+                        input: (provided) => ({
+                          ...provided,
+                          color: "gray", // [ text color ]
+                        }),
+                        placeholder: (provided) => ({
+                          ...provided,
+                          color: "#9ca3af", // Optional: Customize placeholder text color
+                        }),
+                        singleValue: (provided) => ({
+                          ...provided,
+                          color: "#808290", // Optional: Customize selected value text color
+                        }),
+                      },
                     }}
                   />
                 </div>
@@ -941,13 +1005,14 @@ const ModalBookingForm = ({
                         <option value="" disabled>
                           Select a vehicle type
                         </option>
-                        {vehicleType?.map(
-                          (vehicle: { id: number; name: string }) => (
-                            <option key={vehicle.id} value={vehicle.id}>
-                              {`${vehicle.name}`}
-                            </option>
-                          )
-                        )}
+                        {Array.isArray(vehicleType) &&
+                          vehicleType.map(
+                            (vehicle: { id: number; name: string }) => (
+                              <option key={vehicle.id} value={vehicle.id}>
+                                {vehicle.name}
+                              </option>
+                            )
+                          )}
                       </select>
                     </label>
                   )}
@@ -963,42 +1028,26 @@ const ModalBookingForm = ({
             ) : (
               <>
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                  Status
+                  <label className="form-label text-gray-900">Status</label>
+                  <label className="input">
+                    <select
+                      {...formik.getFieldProps("status")}
+                      className="form-control form-select w-full"
+                      style={{
+                        backgroundColor: "transparent",
+                        outline: "none",
+                        borderColor: "blue",
+                      }}
+                    >
+                      <option value="requested">Requested</option>
+                      <option value="assigned">Assigned</option>
+                      <option value="canceled">Canceled</option>
+                      <option value="timeout">timeout</option>
+                      <option value="driver_not_found">driver_not_found</option>
+                      <option value="completed">completed</option>
+                      <option value="started">started</option>
+                    </select>
                   </label>
-                    <label className="input">
-                      <select
-                        {...formik.getFieldProps("status")}
-                        className="form-control form-select w-full"
-                        style={{
-                          backgroundColor: "transparent",
-                          outline: "none",
-                          borderColor: "blue",
-                        }}
-                      >
-                        <option value="requested">
-                          Requested
-                        </option>
-                        <option value="assigned">
-                          Assigned
-                        </option>
-                        <option value="canceled">
-                          Canceled
-                        </option>
-                        <option value="timeout">
-                          timeout
-                        </option>
-                        <option value="driver_not_found">
-                          driver_not_found
-                        </option>
-                        <option value="completed">
-                          completed
-                        </option>
-                        <option value="started">
-                          started
-                        </option>
-                      </select>
-                    </label>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">remark</label>
@@ -1050,6 +1099,3 @@ const ModalBookingForm = ({
 };
 
 export { ModalBookingForm };
-
-
-

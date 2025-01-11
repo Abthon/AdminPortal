@@ -4,14 +4,14 @@ import { MiscFaq, MiscHelp2 } from "@/partials/misc";
 interface VehicleContentProps {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
-  handleDriverNum: (num: any) => void;
+  handleBankNum: (num: any) => void;
   searchInput?: string;
 }
 
 const BankContent = ({
   isAddOpen,
   _handleAddOpen,
-  handleDriverNum,
+  handleBankNum,
   searchInput,
 }: VehicleContentProps) => {
   return (
@@ -20,7 +20,7 @@ const BankContent = ({
         _handleAddOpen={_handleAddOpen}
         isAddOpen={isAddOpen}
         searchInput={searchInput}
-        handleDriverNum={handleDriverNum}
+        handleBankNum={handleBankNum}
       />
 
       {/* <MiscFaq /> */}

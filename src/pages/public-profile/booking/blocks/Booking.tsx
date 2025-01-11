@@ -49,12 +49,14 @@ interface BookingProps {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
   handleBookingNum: (num: any) => void;
+  searchInput?: string;
 }
 
 const Booking: React.FC<BookingProps> = ({
   isAddOpen,
   _handleAddOpen,
   handleBookingNum,
+  searchInput,
 }) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -68,14 +70,49 @@ const Booking: React.FC<BookingProps> = ({
     _handleAddOpen(false);
   };
 
-
-  async function getBookings({pageIndex, pageSize}: {pageIndex: number, pageSize: number}) {
+  async function getBookings({
+    pageIndex,
+    pageSize,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+  }) {
     const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
-    const startIndex = (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
-    const endIndex = Math.min(data.pagination.currentPage * data.pagination.pageSize, data.pagination.totalItems);
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
+    handleBookingNum(data.data.length);
+    return data;
+  }
+
+  async function searchBooking({
+    pageIndex,
+    pageSize,
+    search,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    search: any;
+  }) {
+    const url = `/api/v1/bookings?filters=pickupname=${search}&take=${pageSize}&page=${pageIndex}`;
+    const { data } = await axiosInstance.get(url);
+
+    // calculating how many items are there on the current page
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
@@ -90,6 +127,12 @@ const Booking: React.FC<BookingProps> = ({
     setProfileModalOpen(true);
   };
 
+  async function revalidateBooking() {
+    const url = `/api/v1/bookings`;
+    const { data } = await axiosInstance.get(url);
+    return data;
+  }
+
   // async function getBookings(): Promise<IBookingData[]> {
   //   const { data } = await axiosInstance.get("/api/v1/bookings");
   //   console.log(data.data);
@@ -101,10 +144,10 @@ const Booking: React.FC<BookingProps> = ({
     await axiosInstance.delete(`/api/v1/bookings/${id}`);
   }
 
-  // let { isLoading: isBookingLoading, data: BookingData } = useQuery({
-  //   queryKey: ["Bookings"],
-  //   queryFn: getBookings,
-  // });
+  let { isLoading: isBookingLoading, data: BookingData } = useQuery({
+    queryKey: ["Bookings", searchInput],
+    queryFn: revalidateBooking,
+  });
 
   const queryClient = useQueryClient();
 
@@ -316,7 +359,7 @@ const Booking: React.FC<BookingProps> = ({
     [mutate]
   );
 
-  // const data: IBookingData[] = useMemo(() => BookingData ?? [], [BookingData]);
+  const data: IBookingData[] = useMemo(() => BookingData ?? [], [BookingData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -400,8 +443,10 @@ const Booking: React.FC<BookingProps> = ({
       />
       <DataGrid
         onFetchData={getBookings}
+        onSearchData={searchBooking}
+        searchInput={searchInput}
         columns={columns}
-        // data={data}
+        data={data}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 20 }}

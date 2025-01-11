@@ -32,6 +32,7 @@ interface ConfigProps {
   isAddOpen: boolean;
   _handleAddOpen: (open: boolean) => void;
   handleConfigNum: (num: any) => void;
+  searchInput?: string;
 }
 
 interface IConfigData {
@@ -45,6 +46,7 @@ const Config = ({
   isAddOpen,
   _handleAddOpen,
   handleConfigNum,
+  searchInput,
 }: ConfigProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
@@ -65,17 +67,59 @@ const Config = ({
     setProfileModalOpen(true);
   };
 
-  async function getConfig({pageIndex, pageSize}: {pageIndex: number, pageSize: number}) {
+  async function getConfig({
+    pageIndex,
+    pageSize,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+  }) {
     const url = `/api/v1/params?take=${pageSize}&page=${pageIndex}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
-    const startIndex = (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
-    const endIndex = Math.min(data.pagination.currentPage * data.pagination.pageSize, data.pagination.totalItems);
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
     handleConfigNum(data.data.length);
+    return data;
+  }
+
+  async function searchConfig({
+    pageIndex,
+    pageSize,
+    search,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    search: any;
+  }) {
+    const url = `/api/v1/params?filters=name=${search}&take=${pageSize}&page=${pageIndex}`;
+    const { data } = await axiosInstance.get(url);
+
+    // calculating how many items are there on the current page
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
+    handleConfigNum(data.data.length);
+    return data;
+  }
+
+  async function revalidateConfig() {
+    const url = `/api/v1/params`;
+    const { data } = await axiosInstance.get(url);
     return data;
   }
 
@@ -84,12 +128,12 @@ const Config = ({
     return data;
   }
 
-  // const { isLoading: isConfigLoading, data: configData } = useQuery<
-  //   IConfigData[]
-  // >({
-  //   queryKey: ["Config"],
-  //   queryFn: getConfig,
-  // });
+  const { isLoading: isConfigLoading, data: configData } = useQuery<
+    IConfigData[]
+  >({
+    queryKey: ["Config", searchInput],
+    queryFn: revalidateConfig,
+  });
 
   const queryClient = useQueryClient();
 
@@ -233,7 +277,7 @@ const Config = ({
     []
   );
 
-  // const data: IConfigData[] = useMemo(() => configData || [], [configData]);
+  const data: IConfigData[] = useMemo(() => configData || [], [configData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -317,8 +361,10 @@ const Config = ({
       />
       <DataGrid
         onFetchData={getConfig}
+        onSearchData={searchConfig}
+        searchInput={searchInput}
         columns={columns}
-        // data={data}
+        data={data}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}

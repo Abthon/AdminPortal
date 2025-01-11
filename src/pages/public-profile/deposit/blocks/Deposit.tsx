@@ -53,7 +53,7 @@ const Deposit = ({
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
-  const [currentDriverData, setCurrentDriverData] =
+  const [currentDepositData, setCurrentDepositData] =
     useState<IDriversData | null>(null);
   const [totalPage, setTotalPage] = useState(0);
   const [pageIndex, setPageIndex] = useState({ index: 0 });
@@ -65,7 +65,7 @@ const Deposit = ({
   const handleOpen = (isEdit: boolean, rowData: IDriversData | null = null) => {
     setApprovalMode(false);
     setEditMode(isEdit);
-    setCurrentDriverData(rowData);
+    setCurrentDepositData(rowData);
     setProfileModalOpen(true);
   };
 
@@ -96,21 +96,28 @@ const Deposit = ({
     return data;
   }
 
-  async function searchDrivers() {
+  async function revalidateDeposit() {
     const url = `/api/v1/drivers?filters=firstname=${searchInput}`;
     const { data } = await axiosInstance.get(url);
     handleDriverNum(data.data.length);
     return data;
   }
 
-  async function handleApprovalDeposit(id: string) {
+  async function handleApprovalDeposit({
+    id,
+    value,
+  }: {
+    id: string;
+    value: boolean;
+  }) {
     try {
-      const values = { depositId: id, isApproved: true };
-      console.log(values, "values");
+      const values = { depositId: id, isApproved: !value }; // Flip the approval status
+      console.log("hi", values);
       const { data } = await axiosInstance.post(
-        `/api/v1/payment/deposit/approve`,
+        "/api/v1/payment/deposit/approve",
         values
       );
+      console.log(data, "data");
       return data;
     } catch (err) {
       console.log(err, "The error");
@@ -121,9 +128,9 @@ const Deposit = ({
     }
   }
 
-  const { isLoading: isDriverLoading, data: DriverData } = useQuery({
+  const { isLoading: isDriverLoading, data: DepositData } = useQuery({
     queryKey: ["Deposits"],
-    queryFn: searchDrivers,
+    queryFn: revalidateDeposit,
   });
 
   interface ApprovalResponse {
@@ -132,42 +139,26 @@ const Deposit = ({
   }
 
   const queryClient = useQueryClient();
+
   const { isLoading: isApproving, mutate } = useMutation<
-    ApprovalResponse,
+    string,
     Error,
-    string
-  >({
-    mutationFn: handleApprovalDeposit,
+    { id: string; value: boolean }
+  >(handleApprovalDeposit, {
     onSuccess: () => {
-      toast("Deposit successfully Approved!");
       queryClient.invalidateQueries({
         queryKey: ["Deposits"],
       });
+      toast("Deposit successfully Approved!");
     },
-    onError: (error) => {
+    onError: () => {
       toast("Error Encountered Approving the Deposit");
     },
   });
 
-  // const ColumnInputFilter = <TData, TValue>({
-  //   column,
-  // }: IColumnFilterProps<TData, TValue>) => {
-  //   return (
-  //     <Input
-  //       placeholder="Filter..."
-  //       value={(column.getFilterValue() as string) ?? ""}
-  //       onChange={(event) => column.setFilterValue(event.target.value)}
-  //       className="h-9 w-full max-w-40"
-  //     />
-  //   );
-  // };
-
-  useEffect(
-    function () {
-      isAddOpen && handleOpen(false);
-    },
-    [isAddOpen]
-  );
+  const approveDeposit = (obj: { id: string; value: boolean }) => {
+    mutate(obj); // Pass the object directly to `mutate`
+  };
 
   const columns = useMemo<ColumnDef<IDriversData>[]>(
     () => [
@@ -261,7 +252,7 @@ const Deposit = ({
                 <span
                   className={`size-1.5 rounded-full ${info.row.original.isApproved === false && "bg-danger"} ${info.row.original.isApproved === true && "bg-success"} me-1.5`}
                 ></span>
-                {info.row.original.isApproved ? "Active" : "Inactive" }
+                {info.row.original.isApproved ? "Active" : "Inactive"}
               </span>
             </div>
           );
@@ -319,13 +310,30 @@ const Deposit = ({
         ),
         enableSorting: false,
         cell: (info) => {
+          const obj = {
+            id: info.row.original.id,
+            value: info.row.original.isApproved,
+          };
+          //console.log(info.row.original.isApproved);
           return (
-            <button
-              onClick={() => handleApprovalDeposit(info.row.original.id)}
-              className="btn btn-sm btn-icon btn-clear btn-primary hover:text-white"
-            >
-              <KeenIcon icon="double-check" />
-            </button>
+            // <button
+            //   onClick={() => mutate(info.row.original.id)}
+            //   className="btn btn-sm btn-icon btn-clear btn-primary hover:text-white"
+            // >
+            //   <KeenIcon icon="double-check" />
+            // </button>
+
+            <div className="flex items-center gap-2">
+              <label className="switch switch-sm">
+                <input
+                  onClick={() => mutate(obj)}
+                  type="checkbox"
+                  checked={info.row.original.isApproved}
+                  name="check"
+                  disabled={isApproving}
+                />
+              </label>
+            </div>
           );
         },
         meta: {
@@ -336,7 +344,7 @@ const Deposit = ({
     [mutate]
   );
 
-  const data: IDriversData[] = useMemo(() => DriverData ?? [], [DriverData]);
+  const data: IDriversData[] = useMemo(() => DepositData ?? [], [DepositData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);

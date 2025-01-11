@@ -117,7 +117,33 @@ const Drivers = ({
     return data;
   }
 
-  async function searchDrivers() {
+  async function searchDriver({
+    pageIndex,
+    pageSize,
+    search,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    search: any;
+  }) {
+    const url = `/api/v1/drivers?filters=firstname=${search}&take=${pageSize}&page=${pageIndex}`;
+    const { data } = await axiosInstance.get(url);
+
+    // calculating how many items are there on the current page
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
+    handleDriverNum(data.data.length);
+    return data;
+  }
+
+  async function revalidateDriver() {
     const url = `/api/v1/drivers?filters=firstname=${searchInput}`;
     const { data } = await axiosInstance.get(url);
     handleDriverNum(data.data.length);
@@ -132,7 +158,7 @@ const Drivers = ({
 
   const { isLoading: isDriverLoading, data: DriverData } = useQuery({
     queryKey: ["Drivers", searchInput],
-    queryFn: searchDrivers,
+    queryFn: revalidateDriver,
   });
 
   useEffect(() => {
@@ -425,10 +451,12 @@ const Drivers = ({
       />
       <DataGrid
         onFetchData={getDrivers}
+        onSearchData={searchDriver}
         data={data}
         columns={columns}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
+        searchInput={searchInput}
         pagination={{ size: 2 }}
         sorting={[{ id: "users", desc: false }]}
         toolbar={<Toolbar />}

@@ -39,12 +39,12 @@ interface IBankData {
 const Bank = ({
   isAddOpen,
   _handleAddOpen,
-  handleDriverNum,
+  handleBankNum,
   searchInput,
 }: {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
-  handleDriverNum: (num: any) => void;
+  handleBankNum: (num: any) => void;
   searchInput?: string;
 }) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
@@ -55,6 +55,8 @@ const Bank = ({
   );
   const [totalPage, setTotalPage] = useState(0);
   const [pageIndex, setPageIndex] = useState({ index: 0 });
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsOnPage, setItemsOnPage] = useState(0);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -86,7 +88,7 @@ const Bank = ({
   //   const { data } = await axiosInstance.get("/api/v1/drivers");
   //   console.log(data);
   //   console.log(data.data.length, "length");
-  //   handleDriverNum(data.data.length);
+  //   handleBankNum(data.data.length);
   //   return data.data;
   // }
   async function getBanks({
@@ -100,14 +102,41 @@ const Bank = ({
       ? `/api/v1/banks?filters=firstname=${searchInput}`
       : `/api/v1/banks?take=${pageSize}&page=${pageIndex}`;
     const { data } = await axiosInstance.get(url);
-    handleDriverNum(data.data.length);
+    handleBankNum(data.data.length);
     return data;
   }
 
-  async function SearchBanks() {
-    const url = `/api/v1/banks?filters=name=${searchInput}`;
+  async function searchBank({
+    pageIndex,
+    pageSize,
+    search,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    search: any;
+  }) {
+    const url = `/api/v1/banks?filters=name=${search}&take=${pageSize}&page=${pageIndex}`;
     const { data } = await axiosInstance.get(url);
-    handleDriverNum(data.data.length);
+
+    // calculating how many items are there on the current page
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
+    handleBankNum(data.data.length);
+    return data;
+  }
+
+  async function revalidateBank() {
+    const url = `/api/v1/banks?`;
+    const { data } = await axiosInstance.get(url);
+    handleBankNum(data.data.length);
+    console.log(data.data, "driver data");
     return data;
   }
 
@@ -117,8 +146,8 @@ const Bank = ({
   }
 
   const { isLoading: isDriverLoading, data: BankData } = useQuery({
-    queryKey: ["Banks"],
-    queryFn: SearchBanks,
+    queryKey: ["Banks", searchInput],
+    queryFn: revalidateBank,
   });
 
   interface DeleteResponse {
@@ -351,6 +380,8 @@ const Bank = ({
       />
       <DataGrid
         onFetchData={getBanks}
+        onSearchData={searchBank}
+        searchInput={searchInput}
         data={data}
         columns={columns}
         rowSelection={true}
