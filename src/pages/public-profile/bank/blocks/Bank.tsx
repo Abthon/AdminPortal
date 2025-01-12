@@ -270,7 +270,7 @@ const Bank = ({
                 <span
                   className={`size-1.5 rounded-full ${info.row.original.isApproved === false && "bg-danger"} ${info.row.original.isApproved === true && "bg-success"} me-1.5`}
                 ></span>
-                {info.row.original.isApproved ? "Approved" : "Not Approved"}
+                {info.row.original.isApproved ? "Approved" : "Rejected"}
               </span>
             </div>
           );
