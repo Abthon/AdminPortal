@@ -26,6 +26,7 @@
     "@firebase/firestore": "^4.7.4",
     "@formatjs/intl-pluralrules": "^5.3.4",
     "@formatjs/intl-relativetimeformat": "^11.4.4",
+    "@googlemaps/polyline-codec": "^1.0.28",
     "@mui/base": "5.0.0-beta.40",
     "@mui/material": "^6.1.6",
     "@mui/utils": "^6.1.6",
