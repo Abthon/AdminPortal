@@ -101,26 +101,26 @@ const AppRoutingSetup = (): ReactElement => {
         <Route element={<Demo1Layout />}>
           <Route path="/" element={<DefaultPage />} />
           <Route path="/dark-sidebar" element={<Demo1DarkSidebarPage />} />
-          <Route path="/public-profile/table" element={<DriverPage />} />
-          <Route path="/public-profile/v-table" element={<VehiclePage />} />
+          <Route path="/drivers" element={<DriverPage />} />
+          <Route path="/vehicle-types" element={<VehiclePage />} />
           <Route
-            path="/public-profile/v-table/:id"
+            path="/vehicle-type/:id"
             element={<VehicleTypeProfilePage />}
           />
           <Route
-            path="/public-profile/vehicle-registration"
+            path="/vehicles"
             element={<VechileRegistrationPage />}
           />
           <Route
-            path="/public-profile/vehicle-registration/:id"
+            path="vehicle/:id"
             element={<VehicleProfilePage />}
           />
           <Route
-            path="/public-profile/coorporate"
+            path="/coorporates"
             element={<CoorporatePage />}
           />
-          <Route path="/public-profile/bookings" element={<BookingPage />} />
-          <Route path="/public-profile/config" element={<ConfigPage />} />
+          <Route path="/bookings" element={<BookingPage />} />
+          <Route path="/configs" element={<ConfigPage />} />
           <Route
             path="/public-profile/profiles/default"
             element={<ProfileDefaultPage />}
@@ -146,15 +146,15 @@ const AppRoutingSetup = (): ReactElement => {
             element={<ProfileCRMPage />}
           />
           <Route
-            path="/public-profile/driver/:id"
+            path="/driver/:id"
             element={<DriverProfilePage />}
           />
           <Route
-            path="/public-profile/booking/:id"
+            path="/booking/:id"
             element={<BookingProfilePage />}
           />
-          <Route path="/public-profile/deposits" element={<DepositPage />} />
-          <Route path="/public-profile/banks" element={<BankPage />} />
+          <Route path="/deposits" element={<DepositPage />} />
+          <Route path="/banks" element={<BankPage />} />
           <Route
             path="/public-profile/profiles/gamer"
             element={<ProfileGamerPage />}

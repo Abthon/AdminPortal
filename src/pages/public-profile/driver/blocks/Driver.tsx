@@ -238,7 +238,7 @@ const Drivers = ({
 
               <div className="flex flex-col gap-0.5">
                 <Link
-                  to={`/public-profile/driver/${row.original.id}`}
+                  to={`/driver/${row.original.id}`}
                   className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
                 >
                   {row.original.firstName} {row.original.lastName}

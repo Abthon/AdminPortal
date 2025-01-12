@@ -17,23 +17,23 @@ const AccountSettingsSidebarPage = () => {
 
   return (
     <Fragment>
-      <PageNavbar />
+      {/* <PageNavbar /> */}
 
       {currentLayout?.name === 'demo1-layout' && (
         <Container>
           <Toolbar>
             <ToolbarHeading>
               <ToolbarPageTitle />
-              <ToolbarDescription>Intuitive Access to In-Depth Customization</ToolbarDescription>
+              {/* <ToolbarDescription>Intuitive Access to In-Depth Customization</ToolbarDescription> */}
             </ToolbarHeading>
-            <ToolbarActions>
+            {/* <ToolbarActions>
               <a href="#" className="btn btn-sm btn-light">
                 Public Profile
               </a>
               <a href="#" className="btn btn-sm btn-primary">
                 Get Started
               </a>
-            </ToolbarActions>
+            </ToolbarActions> */}
           </Toolbar>
         </Container>
       )}

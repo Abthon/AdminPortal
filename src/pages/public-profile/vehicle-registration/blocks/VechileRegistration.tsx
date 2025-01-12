@@ -200,7 +200,7 @@ const VehicleRegistration = ({
         cell: (info) => {
           return (
             <Link
-              to={`/public-profile/vehicle-registration/${info.row.original.id}`}
+              to={`/vehicle/${info.row.original.id}`}
               className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
             >
               {info.row.original.make}

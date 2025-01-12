@@ -212,7 +212,7 @@ const Booking: React.FC<BookingProps> = ({
             <div className="flex items-center">
               <div className="flex flex-col gap-0.5">
                 <Link
-                  to={`/public-profile/booking/${row.original.id}`}
+                  to={`/booking/${row.original.id}`}
                   className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
                 >
                   {row.original.id}

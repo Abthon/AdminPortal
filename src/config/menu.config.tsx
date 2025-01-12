@@ -21,7 +21,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
     children: [
       {
         title: "Drivers",
-        path: "/public-profile/table",
+        path: "/drivers",
       },
     ],
   },
@@ -31,11 +31,11 @@ export const MENU_SIDEBAR: TMenuConfig = [
     children: [
       {
         title: "Vehicles",
-        path: "/public-profile/vehicle-registration",
+        path: "/vehicles",
       },
       {
         title: "VehicleTypes",
-        path: "/public-profile/v-table",
+        path: "/vehicle-types",
       },
     ],
   },
@@ -45,7 +45,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
     children: [
       {
         title: "Bookings",
-        path: "/public-profile/bookings",
+        path: "/bookings",
       },
     ],
   },
@@ -55,7 +55,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
     children: [
       {
         title: "Configs",
-        path: "/public-profile/config",
+        path: "/configs",
       },
     ],
   },
@@ -65,11 +65,11 @@ export const MENU_SIDEBAR: TMenuConfig = [
     children: [
       {
         title: "Deposits",
-        path: "/public-profile/deposits",
+        path: "/deposits",
       },
       {
         title: "Banks",
-        path: "/public-profile/banks",
+        path: "/banks",
       },
     ],
   },
@@ -82,7 +82,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
     children: [
       {
         title: "Coorporates",
-        path: "/public-profile/coorporate",
+        path: "/coorporates",
       },
     ],
   },
