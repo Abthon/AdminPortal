@@ -102,6 +102,17 @@ const Bank = ({
       ? `/api/v1/banks?filters=firstname=${searchInput}`
       : `/api/v1/banks?take=${pageSize}&page=${pageIndex}`;
     const { data } = await axiosInstance.get(url);
+
+    // calculating how many items are there on the current page
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
     handleBankNum(data.data.length);
     return data;
   }
@@ -208,7 +219,7 @@ const Bank = ({
       {
         id: "name",
         header: ({ column }) => (
-          <DataGridColumnHeader title="name" column={column} />
+          <DataGridColumnHeader title="Name" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -221,7 +232,7 @@ const Bank = ({
       {
         id: "accountNumber",
         header: ({ column }) => (
-          <DataGridColumnHeader title="accountNumber" column={column} />
+          <DataGridColumnHeader title="Account Number" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -234,14 +245,38 @@ const Bank = ({
       {
         id: "accountName",
         header: ({ column }) => (
-          <DataGridColumnHeader title="accountName" column={column} />
+          <DataGridColumnHeader title="Account Name" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
           return info.row.original.accountName;
         },
         meta: {
-          headerClassName: "min-w-[180px]",
+          headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        id: "isApproved",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Bank Status" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return (
+            <div className="flex justify-between relative">
+              <span
+                className={`badge ${info.row.original.isApproved === false && "badge-warning"} ${info.row.original.isApproved === true && "badge-success"} shrink-0 badge-outline rounded-[30px]`}
+              >
+                <span
+                  className={`size-1.5 rounded-full ${info.row.original.isApproved === false && "bg-danger"} ${info.row.original.isApproved === true && "bg-success"} me-1.5`}
+                ></span>
+                {info.row.original.isApproved ? "Active" : "Inactive"}
+              </span>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
         },
       },
       {
@@ -329,7 +364,7 @@ const Bank = ({
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
-          Showing 20 of 68 users
+          Showing {itemsOnPage} of {totalItems} banks
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">

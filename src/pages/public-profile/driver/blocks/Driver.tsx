@@ -8,7 +8,6 @@ import {
   DataGrid,
   DataGridColumnHeader,
   KeenIcon,
-  useDataGrid,
   DataGridRowSelectAll,
   DataGridRowSelect,
 } from "@/components";

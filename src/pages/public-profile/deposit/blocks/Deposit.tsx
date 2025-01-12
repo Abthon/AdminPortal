@@ -57,6 +57,8 @@ const Deposit = ({
     useState<IDriversData | null>(null);
   const [totalPage, setTotalPage] = useState(0);
   const [pageIndex, setPageIndex] = useState({ index: 0 });
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsOnPage, setItemsOnPage] = useState(0);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -92,6 +94,17 @@ const Deposit = ({
       ? `/api/v1/deposit?filters=firstname=${searchInput}`
       : `/api/v1/deposit?take=${pageSize}&page=${pageIndex}`;
     const { data } = await axiosInstance.get(url);
+
+    // calculating how many items are there on the current page
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
     handleDriverNum(data.data.length);
     return data;
   }
@@ -195,7 +208,7 @@ const Deposit = ({
           return info.row.original.type;
         },
         meta: {
-          headerClassName: "min-w-[180px]",
+          headerClassName: "min-w-[130px]",
         },
       },
       {
@@ -240,7 +253,7 @@ const Deposit = ({
       {
         id: "isApproved",
         header: ({ column }) => (
-          <DataGridColumnHeader title="status" column={column} />
+          <DataGridColumnHeader title="Status" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -364,7 +377,7 @@ const Deposit = ({
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
-          Showing 20 of 68 users
+          Showing {itemsOnPage} of {totalItems} deposits
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">

@@ -17,7 +17,9 @@ const bankSchema = Yup.object().shape({
   name: Yup.string().required("name is required."),
   accountNumber: Yup.string().required("accountNumber is required."),
   accountName: Yup.string().required("accountName is required."),
-  isApproved: Yup.string().required("isApproved is required."),
+  isApproved: Yup.string()
+    .oneOf(["true", "false"], "Invalid status")
+    .required("Status is required"),
 });
 
 interface IModalBankFormProps {
@@ -107,7 +109,6 @@ const ModalBankForm = ({
     initialValues,
     validationSchema: bankSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
-      console.log(values, "initial values ");
       try {
         mutate(values);
       } catch {
@@ -144,7 +145,7 @@ const ModalBankForm = ({
               noValidate
             >
               <div className="flex flex-col gap-1">
-                <label className="form-label text-gray-900">name</label>
+                <label className="form-label text-gray-900">Name</label>
                 {formik.touched.name && formik.errors.name ? (
                   <div className="text-red-500 text-sm">
                     {typeof formik.errors.name === "string"
@@ -163,7 +164,7 @@ const ModalBankForm = ({
 
               <div className="flex flex-col gap-1">
                 <label className="form-label text-gray-900">
-                  accountNumber
+                  Account Number
                 </label>
                 {formik.touched.accountNumber && formik.errors.accountNumber ? (
                   <div className="text-red-500 text-sm">
@@ -182,7 +183,7 @@ const ModalBankForm = ({
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="form-label text-gray-900">accountName</label>
+                <label className="form-label text-gray-900">Account Name</label>
                 {formik.touched.accountName && formik.errors.accountName ? (
                   <div className="text-red-500 text-sm">
                     {typeof formik.errors.accountName === "string"
@@ -199,7 +200,7 @@ const ModalBankForm = ({
                 </label>
               </div>
               <div className="flex flex-col gap-1">
-                <label className="form-label text-gray-900">isApproved</label>
+                <label className="form-label text-gray-900">Status</label>
                 {formik.touched.isApproved && formik.errors.isApproved ? (
                   <div className="text-red-500 text-sm">
                     {typeof formik.errors.isApproved === "string"
@@ -207,13 +208,13 @@ const ModalBankForm = ({
                       : null}
                   </div>
                 ) : null}
-                <label className="input">
-                  <input
-                    placeholder="Enter isApproved"
-                    autoComplete="off"
+                  <select
                     {...formik.getFieldProps("isApproved")}
-                  />
-                </label>
+                    className="block w-full p-2 border border-gray-300 rounded"
+                  >
+                    <option value="true" label="True" />
+                    <option value="false" label="False" />
+                  </select>
               </div>
 
               {/* <div className="flex flex-col gap-1">
