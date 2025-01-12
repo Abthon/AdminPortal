@@ -373,7 +373,7 @@ const ModalCoorporateForm = ({
                 noValidate
               >
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">name</label>
+                  <label className="form-label text-gray-900">Name</label>
                   <label className="input">
                     <input
                       placeholder="Enter name"
@@ -405,7 +405,7 @@ const ModalCoorporateForm = ({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">email</label>
+                  <label className="form-label text-gray-900">Email</label>
                   <label className="input">
                     <input
                       placeholder="Enter email"
@@ -433,7 +433,7 @@ const ModalCoorporateForm = ({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">password</label>
+                  <label className="form-label text-gray-900">Password</label>
                   <label className="input">
                     <input
                       placeholder="Enter password"
@@ -463,7 +463,7 @@ const ModalCoorporateForm = ({
 
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
-                    creditLimit
+                    Credit Limit
                   </label>
                   <label className="input">
                     <input
@@ -496,7 +496,7 @@ const ModalCoorporateForm = ({
 
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
-                    contractLength
+                    Contract Length
                   </label>
                   <label className="input">
                     <input
@@ -530,7 +530,7 @@ const ModalCoorporateForm = ({
 
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
-                    paymentPlan
+                    Payment Plan
                   </label>
                   <label className="input">
                     <input
@@ -561,10 +561,10 @@ const ModalCoorporateForm = ({
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">license</label>
+                  <label className="form-label text-gray-900">License</label>
                   <label className="input">
                     <input
-                      placeholder="Enter license"
+                      placeholder="Enter License"
                       autoComplete="off"
                       {...formik.getFieldProps("license")}
                       className={clsx(
@@ -589,7 +589,7 @@ const ModalCoorporateForm = ({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">tinNo</label>
+                  <label className="form-label text-gray-900">Tin No</label>
                   <label className="input">
                     <input
                       placeholder="Enter tinNo"
@@ -617,7 +617,7 @@ const ModalCoorporateForm = ({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">address</label>
+                  <label className="form-label text-gray-900">Address</label>
                   <label className="input">
                     <input
                       placeholder="Enter address"
@@ -646,11 +646,11 @@ const ModalCoorporateForm = ({
 
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
-                    contactPhoneNumber
+                    Contact Phone Number
                   </label>
                   <label className="input">
                     <input
-                      placeholder="Enter contactPhoneNumber"
+                      placeholder="Enter contact phoneNumber"
                       autoComplete="off"
                       {...formik.getFieldProps("contactPhoneNumber")}
                       className={clsx(
@@ -679,11 +679,11 @@ const ModalCoorporateForm = ({
 
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
-                    backupContactPhoneNumber
+                    Backup Contact Phone Number
                   </label>
                   <label className="input">
                     <input
-                      placeholder="Enter backupContactPhoneNumber"
+                      placeholder="Enter backup contact phoneNumber"
                       autoComplete="off"
                       {...formik.getFieldProps("backupContactPhoneNumber")}
                       className={clsx(
@@ -711,7 +711,7 @@ const ModalCoorporateForm = ({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">nationalId</label>
+                  <label className="form-label text-gray-900">National Id</label>
                   <label className="input">
                     <input
                       placeholder="Enter nationalId"

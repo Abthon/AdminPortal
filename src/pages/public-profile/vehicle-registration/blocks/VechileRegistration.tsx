@@ -191,10 +191,10 @@ const VehicleRegistration = ({
         },
       },
       {
-        accessorFn: (row) => row.make,
+        // accessorFn: (row) => row.make,
         id: "make",
         header: ({ column }) => (
-          <DataGridColumnHeader title="make" column={column} />
+          <DataGridColumnHeader title="Make" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -213,10 +213,10 @@ const VehicleRegistration = ({
         },
       },
       {
-        accessorFn: (row) => row.model,
+        // accessorFn: (row) => row.model,
         id: "model",
         header: ({ column }) => (
-          <DataGridColumnHeader title="model" column={column} />
+          <DataGridColumnHeader title="Model" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -227,10 +227,10 @@ const VehicleRegistration = ({
         },
       },
       {
-        accessorFn: (row) => row.owner,
+        // accessorFn: (row) => row.owner,
         id: "owner",
         header: ({ column }) => (
-          <DataGridColumnHeader title="owner" column={column} />
+          <DataGridColumnHeader title="Owner" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -241,10 +241,10 @@ const VehicleRegistration = ({
         },
       },
       {
-        accessorFn: (row) => row.plate_number,
+        // accessorFn: (row) => row.plate_number,
         id: "plate_number",
         header: ({ column }) => (
-          <DataGridColumnHeader title="plate_number" column={column} />
+          <DataGridColumnHeader title="Plate Number" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -255,10 +255,10 @@ const VehicleRegistration = ({
         },
       },
       {
-        accessorFn: (row) => row.year,
+        // accessorFn: (row) => row.year,
         id: "year",
         header: ({ column }) => (
-          <DataGridColumnHeader title="year" column={column} />
+          <DataGridColumnHeader title="Year" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -341,18 +341,6 @@ const VehicleRegistration = ({
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
-          <div className="flex">
-            <label className="input input-sm">
-              <KeenIcon icon="magnifier" />
-              <input
-                type="text"
-                placeholder="Search users"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
-            </label>
-          </div>
-
           <div className="flex flex-wrap gap-2.5">
             <Select defaultValue="active">
               <SelectTrigger className="w-28" size="sm">

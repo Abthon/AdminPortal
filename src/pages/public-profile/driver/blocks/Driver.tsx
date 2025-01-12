@@ -274,11 +274,11 @@ const Drivers = ({
         },
       },
       {
-        accessorFn: (row) => row.status,
+        // accessorFn: (row) => row.status,
         id: "status",
         header: ({ column }) => (
           <DataGridColumnHeader
-            title="status"
+            title="Status"
             handleServerSort={setSort}
             column={column}
           />
@@ -305,7 +305,7 @@ const Drivers = ({
       {
         id: "type",
         header: ({ column }) => (
-          <DataGridColumnHeader title="type" column={column} />
+          <DataGridColumnHeader title="Type" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -399,7 +399,7 @@ const Drivers = ({
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
-          Showing {itemsOnPage} of {totalItems} configs
+          Showing {itemsOnPage} of {totalItems} drivers
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">

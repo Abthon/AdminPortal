@@ -253,10 +253,10 @@ const Coorporate = ({
       //   },
       // },
       {
-        accessorFn: (row) => row.name,
+        // accessorFn: (row) => row.name,
         id: "name",
         header: ({ column }) => (
-          <DataGridColumnHeader title="name" column={column} />
+          <DataGridColumnHeader title="Name" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -267,10 +267,10 @@ const Coorporate = ({
         },
       },
       {
-        accessorFn: (row) => row.email,
+        // accessorFn: (row) => row.email,
         id: "email",
         header: ({ column }) => (
-          <DataGridColumnHeader title="email" column={column} />
+          <DataGridColumnHeader title="Email" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -281,10 +281,10 @@ const Coorporate = ({
         },
       },
       {
-        accessorFn: (row) => row.address,
+        // accessorFn: (row) => row.address,
         id: "address",
         header: ({ column }) => (
-          <DataGridColumnHeader title="address" column={column} />
+          <DataGridColumnHeader title="Address" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -295,10 +295,10 @@ const Coorporate = ({
         },
       },
       {
-        accessorFn: (row) => row.status,
+        // accessorFn: (row) => row.status,
         id: "status",
         header: ({ column }) => (
-          <DataGridColumnHeader title="status" column={column} />
+          <DataGridColumnHeader title="Status" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -320,10 +320,10 @@ const Coorporate = ({
         },
       },
       {
-        accessorFn: (row) => row.email,
+        // accessorFn: (row) => row.email,
         id: "creditLimit",
         header: ({ column }) => (
-          <DataGridColumnHeader title="creditLimit" column={column} />
+          <DataGridColumnHeader title="Credit Limit" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -334,10 +334,10 @@ const Coorporate = ({
         },
       },
       {
-        accessorFn: (row) => row.email,
+        // accessorFn: (row) => row.email,
         id: "paymentPlan",
         header: ({ column }) => (
-          <DataGridColumnHeader title="paymentPlan" column={column} />
+          <DataGridColumnHeader title="Payment Plan" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -348,10 +348,10 @@ const Coorporate = ({
         },
       },
       {
-        accessorFn: (row) => row.email,
+        // accessorFn: (row) => row.email,
         id: "license",
         header: ({ column }) => (
-          <DataGridColumnHeader title="license" column={column} />
+          <DataGridColumnHeader title="License" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -362,10 +362,10 @@ const Coorporate = ({
         },
       },
       {
-        accessorFn: (row) => row.email,
+        // accessorFn: (row) => row.email,
         id: "tinNo",
         header: ({ column }) => (
-          <DataGridColumnHeader title="tinNo" column={column} />
+          <DataGridColumnHeader title="Tin No" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -376,10 +376,10 @@ const Coorporate = ({
         },
       },
       {
-        accessorFn: (row) => row.email,
+        // accessorFn: (row) => row.email,
         id: "nationalId",
         header: ({ column }) => (
-          <DataGridColumnHeader title="nationalId" column={column} />
+          <DataGridColumnHeader title="National Id" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -390,10 +390,10 @@ const Coorporate = ({
         },
       },
       {
-        accessorFn: (row) => row.email,
+        // accessorFn: (row) => row.email,
         id: "contactPhoneNumber",
         header: ({ column }) => (
-          <DataGridColumnHeader title="contactPhoneNumber" column={column} />
+          <DataGridColumnHeader title="Contact Phone Number" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -404,11 +404,11 @@ const Coorporate = ({
         },
       },
       {
-        accessorFn: (row) => row.email,
+        // accessorFn: (row) => row.email,
         id: "backupContactPhoneNumber",
         header: ({ column }) => (
           <DataGridColumnHeader
-            title="backupContactPhoneNumber"
+            title="Backup Contact Phone Number"
             column={column}
           />
         ),
@@ -527,18 +527,6 @@ const Coorporate = ({
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
-          <div className="flex">
-            <label className="input input-sm">
-              <KeenIcon icon="magnifier" />
-              <input
-                type="text"
-                placeholder="Search users"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
-            </label>
-          </div>
-
           <div className="flex flex-wrap gap-2.5">
             <Select defaultValue="active">
               <SelectTrigger className="w-28" size="sm">

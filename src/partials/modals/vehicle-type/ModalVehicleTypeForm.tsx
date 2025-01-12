@@ -171,7 +171,7 @@ const ModalVehicleTypeForm = ({
               <label className="form-label text-gray-900">Base Fare</label>
               <label className="input">
                 <input
-                  placeholder="Enter Base fare"
+                  placeholder="Enter base fare"
                   autoComplete="off"
                   {...formik.getFieldProps("baseFare")}
                   type="number"
@@ -185,7 +185,7 @@ const ModalVehicleTypeForm = ({
               </label>
               <label className="input">
                 <input
-                  placeholder="Enter Additional Fare Per Km"
+                  placeholder="Enter additional fare per km"
                   autoComplete="off"
                   {...formik.getFieldProps("additionalFarePerKm")}
                   type="number"
@@ -198,7 +198,7 @@ const ModalVehicleTypeForm = ({
               </label>
               <label className="input">
                 <input
-                  placeholder="Enter Min Weight Capacity"
+                  placeholder="Enter min weight capacity"
                   autoComplete="off"
                   {...formik.getFieldProps("minWeightCapacity")}
                   type="number"
@@ -211,7 +211,7 @@ const ModalVehicleTypeForm = ({
               </label>
               <label className="input">
                 <input
-                  placeholder="Enter Max Weight Capacity"
+                  placeholder="Enter max weight capacity"
                   autoComplete="off"
                   {...formik.getFieldProps("maxWeightCapacity")}
                   type="number"

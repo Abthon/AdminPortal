@@ -271,7 +271,7 @@ const ModalDriverTypeForm = ({
                   ) : null}
                   <label className="input">
                     <input
-                      placeholder="Enter First name"
+                      placeholder="Enter first name"
                       autoComplete="off"
                       {...formik.getFieldProps("firstName")}
                     />
@@ -291,7 +291,7 @@ const ModalDriverTypeForm = ({
                   ) : null}
                   <label className="input">
                     <input
-                      placeholder="Enter Middle name"
+                      placeholder="Enter middle name"
                       autoComplete="off"
                       {...formik.getFieldProps("middleName")}
                     />
@@ -309,7 +309,7 @@ const ModalDriverTypeForm = ({
                   ) : null}
                   <label className="input">
                     <input
-                      placeholder="Enter Last name"
+                      placeholder="Enter last name"
                       autoComplete="off"
                       {...formik.getFieldProps("lastName")}
                     />
@@ -331,7 +331,7 @@ const ModalDriverTypeForm = ({
                       {...formik.getFieldProps("gender")}
                       className="form-control form-select w-full outline-none bg-transparent"
                     >
-                      <option value="">Select Gender</option>
+                      <option value="">Select gender</option>
                       <option value="male">Male</option>
                       <option value="female">Female</option>
                     </select>
@@ -351,7 +351,7 @@ const ModalDriverTypeForm = ({
                   ) : null}
                   <label className="input">
                     <input
-                      placeholder="Enter Phone Number"
+                      placeholder="Enter phone number"
                       autoComplete="off"
                       disabled={isEdit}
                       {...formik.getFieldProps("phoneNumber")}
@@ -393,7 +393,7 @@ const ModalDriverTypeForm = ({
                   ) : null}
                   <label className="input">
                     <input
-                      placeholder="Enter Driving License"
+                      placeholder="Enter driving license"
                       autoComplete="off"
                       {...formik.getFieldProps("drivingLicense")}
                     />

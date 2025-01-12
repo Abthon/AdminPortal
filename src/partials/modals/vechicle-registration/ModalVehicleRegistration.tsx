@@ -274,7 +274,7 @@ const ModalVehicleRegistrationForm = ({
             noValidate
           >
             <div className="flex flex-col gap-1">
-              <label className="form-label text-gray-900">make</label>
+              <label className="form-label text-gray-900">Make</label>
               <label className="input">
                 <input
                   placeholder="Enter make"
@@ -303,7 +303,7 @@ const ModalVehicleRegistrationForm = ({
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="form-label text-gray-900">model</label>
+              <label className="form-label text-gray-900">Model</label>
               <label className="input">
                 <input
                   placeholder="Enter model"
@@ -329,7 +329,7 @@ const ModalVehicleRegistrationForm = ({
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="form-label text-gray-900">year</label>
+              <label className="form-label text-gray-900">Year</label>
               <label className="input">
                 <input
                   placeholder="Enter year"
@@ -387,10 +387,10 @@ const ModalVehicleRegistrationForm = ({
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="form-label text-gray-900">Plate number</label>
+              <label className="form-label text-gray-900">Plate Number</label>
               <label className="input">
                 <input
-                  placeholder="Enter Plate number"
+                  placeholder="Enter plate number"
                   autoComplete="off"
                   {...formik.getFieldProps("plate_number")}
                   className={clsx(
@@ -419,7 +419,7 @@ const ModalVehicleRegistrationForm = ({
               <label className="form-label text-gray-900">Color</label>
               <label className="input">
                 <input
-                  placeholder="Enter Color"
+                  placeholder="Enter color"
                   autoComplete="off"
                   {...formik.getFieldProps("color")}
 

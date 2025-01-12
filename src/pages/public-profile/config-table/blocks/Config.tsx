@@ -188,7 +188,7 @@ const Config = ({
         },
       },
       {
-        accessorFn: (row) => row.name,
+        // accessorFn: (row) => row.name,
         id: "users",
         header: ({ column }) => (
           <DataGridColumnHeader title="Name" column={column} />
@@ -202,10 +202,10 @@ const Config = ({
         },
       },
       {
-        accessorFn: (row) => row.name,
+        // accessorFn: (row) => row.name,
         id: "value",
         header: ({ column }) => (
-          <DataGridColumnHeader title="value" column={column} />
+          <DataGridColumnHeader title="Value" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -303,18 +303,6 @@ const Config = ({
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
-          <div className="flex">
-            <label className="input input-sm">
-              <KeenIcon icon="magnifier" />
-              <input
-                type="text"
-                placeholder="Search users"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
-            </label>
-          </div>
-
           <div className="flex flex-wrap gap-2.5">
             <Select defaultValue="active">
               <SelectTrigger className="w-28" size="sm">

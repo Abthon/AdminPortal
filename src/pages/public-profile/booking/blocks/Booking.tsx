@@ -197,13 +197,13 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        accessorFn: (row) => row.id,
+        // accessorFn: (row) => row.id,
         id: "booking_ID",
         header: ({ column }) => (
           <DataGridColumnHeader
             title="ID"
-            filter={<ColumnInputFilter column={column} />}
             column={column}
+            // filter={<ColumnInputFilter column={column} />}
           />
         ),
         enableSorting: true,
@@ -228,7 +228,7 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        accessorFn: (row) => row.pickupName,
+        // accessorFn: (row) => row.pickupName,
         id: "pickupName",
         header: ({ column }) => (
           <DataGridColumnHeader title="Pickup Name" column={column} />
@@ -242,7 +242,7 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        accessorFn: (row) => row.dropOffName,
+        // accessorFn: (row) => row.dropOffName,
         id: "dropOffName",
         header: ({ column }) => (
           <DataGridColumnHeader title="Drop Off Name" column={column} />
@@ -256,7 +256,7 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        accessorFn: (row) => row.estimatedTraveledDistance,
+        // accessorFn: (row) => row.estimatedTraveledDistance,
         id: "estimatedTraveledDistance",
         header: ({ column }) => (
           <DataGridColumnHeader
@@ -273,7 +273,7 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        accessorFn: (row) => row.estimatedPrice,
+        // accessorFn: (row) => row.estimatedPrice,
         id: "estimatedPrice",
         header: ({ column }) => (
           <DataGridColumnHeader title="Estimated Price" column={column} />
@@ -287,7 +287,7 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        accessorFn: (row) => row.status,
+        // accessorFn: (row) => row.status,
         id: "status",
         header: ({ column }) => (
           <DataGridColumnHeader title="Status" column={column} />
@@ -385,18 +385,6 @@ const Booking: React.FC<BookingProps> = ({
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
-          <div className="flex">
-            <label className="input input-sm">
-              <KeenIcon icon="magnifier" />
-              <input
-                type="text"
-                placeholder="Search users"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
-            </label>
-          </div>
-
           <div className="flex flex-wrap gap-2.5">
             <Select defaultValue="active">
               <SelectTrigger className="w-28" size="sm">

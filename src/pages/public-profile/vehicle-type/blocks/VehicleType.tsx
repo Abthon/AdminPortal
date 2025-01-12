@@ -189,13 +189,13 @@ const VechileType = ({
         },
       },
       {
-        accessorFn: (row: IVehicleTypeData) => row.user,
+        // accessorFn: (row: IVehicleTypeData) => row.user,
         id: "users",
         header: ({ column }) => (
           <DataGridColumnHeader
             title="Member"
-            filter={<ColumnInputFilter column={column} />}
             column={column}
+            // filter={<ColumnInputFilter column={column} />}
           />
         ),
         enableSorting: true,
@@ -224,7 +224,7 @@ const VechileType = ({
         },
       },
       {
-        accessorFn: (row) => row.baseFare,
+        // accessorFn: (row) => row.baseFare,
         id: "baseFare",
         header: ({ column }) => (
           <DataGridColumnHeader title="Base Fare" column={column} />
@@ -238,10 +238,10 @@ const VechileType = ({
         },
       },
       {
-        accessorFn: (row) => row.additionalFarePerKm,
+        // accessorFn: (row) => row.additionalFarePerKm,
         id: "additionalFarePerKm",
         header: ({ column }) => (
-          <DataGridColumnHeader title="additionalFarePerKm" column={column} />
+          <DataGridColumnHeader title="Additional Fare Per Km" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -252,10 +252,10 @@ const VechileType = ({
         },
       },
       {
-        accessorFn: (row) => row.minWeightCapacity,
+        // accessorFn: (row) => row.minWeightCapacity,
         id: "minWeightCapacity",
         header: ({ column }) => (
-          <DataGridColumnHeader title="minWeightCapacity" column={column} />
+          <DataGridColumnHeader title="Min Weight Capacity" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -266,10 +266,10 @@ const VechileType = ({
         },
       },
       {
-        accessorFn: (row) => row.maxWeightCapacity,
+        // accessorFn: (row) => row.maxWeightCapacity,
         id: "maxWeightCapacity",
         header: ({ column }) => (
-          <DataGridColumnHeader title="maxWeightCapacity" column={column} />
+          <DataGridColumnHeader title="Max Weight Capacity" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -348,22 +348,10 @@ const VechileType = ({
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
-          Showing {itemsOnPage} of {totalItems} vehicleTypes
+          Showing {itemsOnPage} of {totalItems} vehicle types
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
-          <div className="flex">
-            <label className="input input-sm">
-              <KeenIcon icon="magnifier" />
-              <input
-                type="text"
-                placeholder="Search users"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
-            </label>
-          </div>
-
           <div className="flex flex-wrap gap-2.5">
             <Select defaultValue="active">
               <SelectTrigger className="w-28" size="sm">
