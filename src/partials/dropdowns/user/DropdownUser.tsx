@@ -1,4 +1,4 @@
-import { ChangeEvent, Fragment } from 'react';
+import { ChangeEvent, Fragment, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 import { useAuthContext } from '@/auth';
@@ -7,6 +7,8 @@ import { toAbsoluteUrl } from '@/utils';
 import { DropdownUserLanguages } from './DropdownUserLanguages';
 import { useSettings } from '@/providers/SettingsProvider';
 import { DefaultTooltip, KeenIcon } from '@/components';
+import axiosInstance from "@/auth/_helpers";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import {
   MenuItem,
   MenuLink,
@@ -16,6 +18,7 @@ import {
   MenuArrow,
   MenuIcon
 } from '@/components/menu';
+import {useState} from "react";
 
 interface IDropdownUserProps {
   menuItemRef: any;
@@ -25,6 +28,19 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
   const { settings, storeSettings } = useSettings();
   const { logout } = useAuthContext();
   const { isRTL } = useLanguage();
+  const [userData, setUserData] = useState<any>("");
+
+  async function me() {
+    const url = `/api/v1/admin/me`;
+    const { data } = await axiosInstance.get(url);
+    setUserData(data.data);
+    return data;
+  }
+
+  const { isLoading, data } = useQuery({
+    queryKey: ["me"],
+    queryFn: me,
+  });
 
   const handleThemeMode = (event: ChangeEvent<HTMLInputElement>) => {
     const newThemeMode = event.target.checked ? 'dark' : 'light';
@@ -33,6 +49,10 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
       themeMode: newThemeMode
     });
   };
+
+  useEffect(()=> { 
+    me();
+  }, [])
 
   const buildHeader = () => {
     return (
@@ -45,16 +65,16 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
           />
           <div className="flex flex-col gap-1.5">
             <Link
-              to="/account/hoteme/get-stard"
+              to="#"
               className="text-sm text-gray-800 hover:text-primary font-semibold leading-none"
             >
-              Abenezer Fisher
+              {userData.firstName} {userData.lastName}
             </Link>
             <a
               href="mailto:c.fisher@gmail.com"
               className="text-xs text-gray-600 hover:text-primary font-medium leading-none"
             >
-              c.fisher@gmail.com
+             {userData.email}
             </a>
           </div>
         </div>
