@@ -10,6 +10,7 @@ import {
 import { DriverLocation } from "./blocks/DriverLocation";
 import { useQuery } from "react-query";
 import { KeenIcon } from "@/components";
+import { DriversLocationMap } from "./blocks/DriverLocation2";
 
 // const obj = {
 //   id: 25,
@@ -61,23 +62,10 @@ const Demo1LightSidebarContent = () => {
   });
 
   return (
-    <div className="">
-      {/* <span className="menu-icon">
-        <KeenIcon icon="bus" />
-      </span> */}
+    <div>
+      {/* <DriverLocation data={DriverData} /> */}
 
-      <DriverLocation data={DriverData} />
-      {/* <div className="grid lg:grid-cols-3 gap-y-5 lg:gap-7.5 items-stretch">
-        <div className="lg:col-span-1">
-          <div className="grid grid-cols-1 gap-5 lg:gap-7.5 h-full items-stretch">
-            <ChannelStats />
-          </div>
-        </div>
-
-        <div className="lg:col-span-2">
-          <EntryCallout className="h-full" />
-        </div>
-      </div> */}
+      <DriversLocationMap data={DriverData} />
 
       {/* <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
         <div className="lg:col-span-1">

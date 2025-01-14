@@ -9,9 +9,73 @@
 // }
 // interface IProfileRows extends Array<IProfileRow> {}
 
-// interface DriverLocationProps {
-//   data: any;
-// }
+import { toAbsoluteUrl } from "@/utils";
+import { Overlay } from "@radix-ui/react-dialog";
+import {
+  GoogleMap,
+  LoadScript,
+  MarkerF,
+  OverlayView,
+} from "@react-google-maps/api";
+import { Marker } from "react-leaflet";
+import { CustomMarker } from "./Markers";
+
+interface DriverLocationProps {
+  data: any;
+}
+
+// const apiKey = process.env.VITE_APP_GOOGLE_MAPS_API_KEY;
+
+const DriversLocationMap: React.FC<DriverLocationProps> = ({ data }) => {
+  const mapContainerStyle = {
+    width: "100%",
+    height: "70vh",
+  };
+  const center = { lat: 9.005245, lng: 38.7463535 };
+  const validDrivers = data?.filter((driver: any) => driver.lat && driver.lng);
+  const successImg = toAbsoluteUrl(
+    "/media/illustrations/motorcycle-success.png"
+  );
+  const failureImg = toAbsoluteUrl(
+    "/media/illustrations/motorcycle-failure.png"
+  );
+  // console.log(validDrivers);
+  return (
+    <div>
+      <LoadScript
+        googleMapsApiKey={"AIzaSyDBbmSw9fX9vAjkgPpJ3ahoYsmzagGr4LI"}
+        //mapIds={["67cc09e59ff6e78f"]}
+      >
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          center={center}
+          zoom={15}
+          //options={{ mapId: "67cc09e59ff6e78f" }}
+        >
+          {validDrivers?.map((driver: any) => (
+            <CustomMarker driver={driver} />
+            // <MarkerF
+            //   position={{ lat: driver?.lat, lng: driver?.lng }}
+            //   icon={{
+            //     url: driver?.is_online ? successImg : failureImg,
+            //     scaledSize: new google.maps.Size(50, 50), // Use google.maps.Size constructor if you're using Google Maps
+            //   }}
+            // >
+            //   <OverlayView
+            //     position={{ lat: driver?.lat, lng: driver?.lng }}
+            //     mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+            //   >
+            //     {driver.firstName}
+            //   </OverlayView>
+            // </MarkerF>
+          ))}
+        </GoogleMap>
+      </LoadScript>
+    </div>
+  );
+};
+
+export { DriversLocationMap };
 
 // interface IProfileProduct {
 //   label: string;
