@@ -86,13 +86,13 @@ const Deposit = ({
   async function getDeposits({
     pageIndex,
     pageSize,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
+    sort: any;
   }) {
-    const url = searchInput
-      ? `/api/v1/deposit?filters=firstname=${searchInput}`
-      : `/api/v1/deposit?take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/deposit?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -186,7 +186,8 @@ const Deposit = ({
         },
       },
       {
-        id: "Created At",
+        accessorFn: (row) => row.createdAt,
+        id: "createdAt",
         header: ({ column }) => (
           <DataGridColumnHeader title="Created At" column={column} />
         ),
@@ -426,7 +427,7 @@ const Deposit = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 2 }}
-        sorting={[{ id: "users", desc: false }]}
+        sorting={[{ id: "createdAt", desc: false }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />

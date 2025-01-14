@@ -70,13 +70,15 @@ const Config = ({
   async function getConfig({
     pageIndex,
     pageSize,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
+    sort: any;
   }) {
-    const url = `/api/v1/params?take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/params?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
-
+    //console.log(url, "url");
     // calculating how many items are there on the current page
     const startIndex =
       (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
@@ -95,12 +97,14 @@ const Config = ({
     pageIndex,
     pageSize,
     search,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
     search: any;
+    sort: any;
   }) {
-    const url = `/api/v1/params?filters=name=${search}&take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/params?filters=name=${search}&take=${pageSize}&page=${pageIndex}$sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -188,8 +192,8 @@ const Config = ({
         },
       },
       {
-        // accessorFn: (row) => row.name,
-        id: "users",
+        accessorFn: (row) => row.name,
+        id: "name",
         header: ({ column }) => (
           <DataGridColumnHeader title="Name" column={column} />
         ),
@@ -356,7 +360,7 @@ const Config = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}
-        sorting={[{ id: "users", desc: false }]}
+        sorting={[{ id: "name", desc: false }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />

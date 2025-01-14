@@ -76,12 +76,16 @@ const VehicleRegistration = ({
   async function getVehicle({
     pageIndex,
     pageSize,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
+    sort: any;
   }) {
-    const url = `/api/v1/vehicles?take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/vehicles?take=${pageSize}&page=${pageIndex}&sort=make=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
+
+    console.log(data, "data");
 
     // calculating how many items are there on the current page
     const startIndex =
@@ -101,12 +105,14 @@ const VehicleRegistration = ({
     pageIndex,
     pageSize,
     search,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
     search: any;
+    sort: any;
   }) {
-    const url = `/api/v1/vehicles?filters=model=${search}&take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/vehicles?filters=model=${search}&take=${pageSize}&page=${pageIndex}&sort=make=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -191,7 +197,7 @@ const VehicleRegistration = ({
         },
       },
       {
-        // accessorFn: (row) => row.make,
+        accessorFn: (row) => row.make,
         id: "make",
         header: ({ column }) => (
           <DataGridColumnHeader title="Make" column={column} />
@@ -420,7 +426,7 @@ const VehicleRegistration = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}
-        sorting={[{ id: "users", desc: false }]}
+        sorting={[{ id: "make", desc: false }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />

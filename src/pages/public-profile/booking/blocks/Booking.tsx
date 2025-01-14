@@ -25,6 +25,7 @@ import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
 import { Link } from "react-router-dom";
 import { set } from "date-fns";
+import { timeAgo } from "@/utils/Time";
 
 interface IBookingData {
   id: string;
@@ -37,6 +38,7 @@ interface IBookingData {
   estimatedTraveledDistance: number;
   estimatedPrice: number;
   status: string;
+  createdAt: string;
 }
 
 const BaseURL = `http://195.201.134.129/test/static/vehicle-type/`;
@@ -73,11 +75,13 @@ const Booking: React.FC<BookingProps> = ({
   async function getBookings({
     pageIndex,
     pageSize,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
+    sort: any;
   }) {
-    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -98,12 +102,14 @@ const Booking: React.FC<BookingProps> = ({
     pageIndex,
     pageSize,
     search,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
     search: any;
+    sort: any;
   }) {
-    const url = `/api/v1/bookings?filters=pickupname=${search}&take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/bookings?filters=pickupname=${search}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -225,6 +231,20 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "w-0",
           className: "w-0",
           cellClassName: "w-0",
+        },
+      },
+      {
+        accessorFn: (row) => row.createdAt,
+        id: "createdAt",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Created At" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return timeAgo(info.row.original.createdAt);
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
         },
       },
       {
@@ -438,7 +458,7 @@ const Booking: React.FC<BookingProps> = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 20 }}
-        sorting={[{ id: "users", desc: false }]}
+        sorting={[{ id: "createdAt", desc: false }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />

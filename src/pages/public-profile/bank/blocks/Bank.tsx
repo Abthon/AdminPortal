@@ -94,13 +94,13 @@ const Bank = ({
   async function getBanks({
     pageIndex,
     pageSize,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
+    sort: any;
   }) {
-    const url = searchInput
-      ? `/api/v1/banks?filters=firstname=${searchInput}`
-      : `/api/v1/banks?take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/banks?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -121,12 +121,14 @@ const Bank = ({
     pageIndex,
     pageSize,
     search,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
     search: any;
+    sort: any;
   }) {
-    const url = `/api/v1/banks?filters=name=${search}&take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/banks?filters=name=${search}&take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -217,6 +219,7 @@ const Bank = ({
         },
       },
       {
+        accessorFn: (row) => row.name,
         id: "name",
         header: ({ column }) => (
           <DataGridColumnHeader title="Name" column={column} />
@@ -422,7 +425,7 @@ const Bank = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 2 }}
-        sorting={[{ id: "users", desc: false }]}
+        sorting={[{ id: "name", desc: false }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />

@@ -9,30 +9,31 @@ import {
 } from "./blocks";
 import { DriverLocation } from "./blocks/DriverLocation";
 import { useQuery } from "react-query";
+import { KeenIcon } from "@/components";
 
-const obj = {
-  id: 25,
-  createdAt: "2024-12-30T02:48:28.000Z",
-  firstName: "Jhon",
-  middleName: null,
-  lastName: "Doee",
-  phoneNumber: "911094668",
-  isPhoneNumberAuthenticated: false,
-  type: "payroll",
-  drivingLicense: "abc123",
-  gender: "male",
-  is_online: false,
-  is_available: false,
-  isBusy: false,
-  lat: null,
-  lng: null,
-  averageRating: 0,
-  status: "pending",
-  profilePhoto: "1735526907796-photo_2023-10-28_09-45-14.jpg",
-  firebaseToken: "string",
-  vehicle: null,
-  bookings: [],
-};
+// const obj = {
+//   id: 25,
+//   createdAt: "2024-12-30T02:48:28.000Z",
+//   firstName: "Jhon",
+//   middleName: null,
+//   lastName: "Doee",
+//   phoneNumber: "911094668",
+//   isPhoneNumberAuthenticated: false,
+//   type: "payroll",
+//   drivingLicense: "abc123",
+//   gender: "male",
+//   is_online: false,
+//   is_available: false,
+//   isBusy: false,
+//   lat: null,
+//   lng: null,
+//   averageRating: 0,
+//   status: "pending",
+//   profilePhoto: "1735526907796-photo_2023-10-28_09-45-14.jpg",
+//   firebaseToken: "string",
+//   vehicle: null,
+//   bookings: [],
+// };
 
 interface IDriversData {
   id: string;
@@ -61,6 +62,10 @@ const Demo1LightSidebarContent = () => {
 
   return (
     <div className="">
+      {/* <span className="menu-icon">
+        <KeenIcon icon="bus" />
+      </span> */}
+
       <DriverLocation data={DriverData} />
       {/* <div className="grid lg:grid-cols-3 gap-y-5 lg:gap-7.5 items-stretch">
         <div className="lg:col-span-1">

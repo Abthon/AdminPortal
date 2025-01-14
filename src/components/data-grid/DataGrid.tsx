@@ -60,18 +60,22 @@ export interface TDataGridProps<TData extends object> {
   onFetchData?: ({
     pageIndex,
     pageSize,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
+    sort: any;
   }) => Promise<any>;
   onSearchData?: ({
     pageIndex,
     pageSize,
     search,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
     search: any;
+    sort: any;
   }) => Promise<any>;
   children?: ReactNode;
   // setPageIndex?: (pageIndex: any) => void;

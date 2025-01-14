@@ -77,11 +77,13 @@ const VechileType = ({
   async function getVehicleType({
     pageIndex,
     pageSize,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
+    sort: any;
   }) {
-    const url = `/api/v1/vehicle-types?take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/vehicle-types?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -102,12 +104,14 @@ const VechileType = ({
     pageIndex,
     pageSize,
     search,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
     search: any;
+    sort: any;
   }) {
-    const url = `/api/v1/vehicle-types?filters=name=${search}&take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/vehicle-types?filters=name=${search}&take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -189,11 +193,11 @@ const VechileType = ({
         },
       },
       {
-        // accessorFn: (row: IVehicleTypeData) => row.user,
-        id: "users",
+        accessorFn: (row: IVehicleTypeData) => row.name,
+        id: "name",
         header: ({ column }) => (
           <DataGridColumnHeader
-            title="Member"
+            title="Vehicle Type"
             column={column}
             // filter={<ColumnInputFilter column={column} />}
           />
@@ -242,7 +246,10 @@ const VechileType = ({
         // accessorFn: (row) => row.additionalFarePerKm,
         id: "additionalFarePerKm",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Additional Fare Per Km" column={column} />
+          <DataGridColumnHeader
+            title="Additional Fare Per Km"
+            column={column}
+          />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -406,7 +413,7 @@ const VechileType = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}
-        sorting={[{ id: "users", desc: false }]}
+        sorting={[{ id: "name", desc: false }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />

@@ -24,7 +24,6 @@ interface IDataGridColumnHeader<TData, TValue>
   column: Column<TData, TValue>;
   title?: string;
   filter?: ReactNode;
-  handleServerSort?: (sort: string) => void;
 }
 
 export function DataGridColumnHeader<TData, TValue>({
@@ -32,7 +31,6 @@ export function DataGridColumnHeader<TData, TValue>({
   title = "",
   className,
   filter,
-  handleServerSort,
 }: IDataGridColumnHeader<TData, TValue>) {
   if (!filter && !column.getCanSort() && !column.getCanHide()) {
     return <div className={cn(className)}>{title}</div>;
@@ -105,10 +103,7 @@ export function DataGridColumnHeader<TData, TValue>({
             <>
               <DropdownMenuItem
                 onClick={() => {
-                  if (handleServerSort) {
-                    handleServerSort(`${title}=ASC`);
-                  }
-                  // column.toggleSorting(false)
+                  column.toggleSorting(false);
                 }}
               >
                 <ArrowUp className="!size-[0.825rem] text-muted-foreground/90" />
@@ -119,10 +114,7 @@ export function DataGridColumnHeader<TData, TValue>({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  if (handleServerSort) {
-                    handleServerSort(`${title}=DESC`);
-                  }
-                  // column.toggleSorting(false)
+                  column.toggleSorting(true);
                 }}
               >
                 <ArrowDown className="!size-[0.825rem] text-muted-foreground/90" />

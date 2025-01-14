@@ -55,7 +55,7 @@ const Drivers = ({
     useState<IDriversData | null>(null);
   const [totalPage, setTotalPage] = useState(0);
   const [pageIndex, setPageIndex] = useState({ index: 0 });
-  const [sort, setSort] = useState<string | null>(null);
+  // const [sort, setSort] = useState<string | null>(null);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
 
@@ -95,11 +95,17 @@ const Drivers = ({
   async function getDrivers({
     pageIndex,
     pageSize,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
+    sort: any;
   }) {
-    const url = `/api/v1/drivers?take=${pageSize}&page=${pageIndex}`;
+    // if (sort.length === 1) {
+    //   console.log(sort[0].id, "here");
+    //   console.log(sort, "sorting is finally here");
+    // }
+    const url = `/api/v1/drivers?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -110,6 +116,7 @@ const Drivers = ({
       data.pagination.totalItems
     );
     const itemsOnPage = endIndex - startIndex + 1;
+
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
     handleDriverNum(data.data.length);
@@ -120,12 +127,14 @@ const Drivers = ({
     pageIndex,
     pageSize,
     search,
+    sort,
   }: {
     pageIndex: number;
     pageSize: number;
     search: any;
+    sort: any;
   }) {
-    const url = `/api/v1/drivers?filters=firstname=${search}&take=${pageSize}&page=${pageIndex}`;
+    const url = `/api/v1/drivers?filters=firstname=${search}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -160,10 +169,6 @@ const Drivers = ({
     queryFn: revalidateDriver,
   });
 
-  useEffect(() => {
-    console.log(sort, "sort is: ");
-  }, [sort]);
-
   interface DeleteResponse {
     // Add your API response structure here
     data: any;
@@ -187,19 +192,6 @@ const Drivers = ({
     },
   });
 
-  // const ColumnInputFilter = <TData, TValue>({
-  //   column,
-  // }: IColumnFilterProps<TData, TValue>) => {
-  //   return (
-  //     <Input
-  //       placeholder="Filter..."
-  //       value={(column.getFilterValue() as string) ?? ""}
-  //       onChange={(event) => column.setFilterValue(event.target.value)}
-  //       className="h-9 w-full max-w-40"
-  //     />
-  //   );
-  // };
-
   useEffect(
     function () {
       isAddOpen && handleOpen(false);
@@ -220,18 +212,22 @@ const Drivers = ({
         },
       },
       {
-        // accessorFn: (row: IUsersData) => row.user,
-        id: "users_2",
+        accessorFn: (row) => row.firstName,
+        id: "firstName",
         header: ({ column }) => (
           <DataGridColumnHeader title="Driver" column={column} />
         ),
         enableSorting: true,
         cell: ({ row }) => {
+          console.log(row.original.profilePhoto);
+          let img = !row.original.profilePhoto.startsWith("http")
+            ? `${BASE_URL}/profile/${row.original.profilePhoto}`
+            : row.original.profilePhoto;
           // 'row' argumentini cell funksiyasiga qo'shdik
           return (
             <div className="flex items-center gap-4">
               <img
-                src={`${BASE_URL}/profile/${row.original.profilePhoto}`}
+                src={img}
                 className="rounded-full size-9 shrink-0"
                 alt={`${row.original.profilePhoto}`}
               />
@@ -265,7 +261,7 @@ const Drivers = ({
         header: ({ column }) => (
           <DataGridColumnHeader title="Gender" column={column} />
         ),
-        enableSorting: true,
+        enableSorting: false,
         cell: (info) => {
           return info.row.original.gender;
         },
@@ -277,11 +273,7 @@ const Drivers = ({
         // accessorFn: (row) => row.status,
         id: "status",
         header: ({ column }) => (
-          <DataGridColumnHeader
-            title="Status"
-            handleServerSort={setSort}
-            column={column}
-          />
+          <DataGridColumnHeader title="Status" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -457,7 +449,7 @@ const Drivers = ({
         onRowSelectionChange={handleRowSelection}
         searchInput={searchInput}
         pagination={{ size: 2 }}
-        sorting={[{ id: "users", desc: false }]}
+        sorting={[{ id: "firstName", desc: false }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />
