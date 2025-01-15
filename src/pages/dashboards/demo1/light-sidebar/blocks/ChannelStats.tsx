@@ -1,64 +1,58 @@
-import { Fragment } from 'react';
-
+import { Fragment, useEffect } from 'react';
+import axiosInstance from "@/auth/_helpers";
+import { useQuery } from 'react-query';
 import { toAbsoluteUrl } from '@/utils/Assets';
 
 interface IChannelStatsItem {
-  logo: string;
-  logoDark?: string;
   info: string;
   desc: string;
   path: string;
 }
 interface IChannelStatsItems extends Array<IChannelStatsItem> {}
 
+async function fetchCorporateStats() {
+  const response = await axiosInstance.get(`/api/v1/admin/sys/stats`);
+  return response.data;
+}
+
+const useStats = () => {
+  return useQuery(
+    'stats',
+    fetchCorporateStats,
+  );
+}
+
 const ChannelStats = () => {
-  const items: IChannelStatsItems = [
-    { logo: 'linkedin-2.svg', info: '9.3k', desc: 'Amazing mates', path: '' },
-    { logo: 'youtube-2.svg', info: '24k', desc: 'Lessons Views', path: '' },
-    { logo: 'instagram-03.svg', info: '608', desc: 'New subscribers', path: '' },
-    {
-      logo: 'tiktok.svg',
-      logoDark: 'tiktok-dark.svg',
-      info: '2.5k',
-      desc: 'Stream audience',
-      path: ''
-    }
-  ];
+  const { data, isLoading, error } = useStats();
+
+  const stats = data?.data
+    ? Object.entries(data.data).map(([key, value]) => ({
+        info: String(value),
+        desc: key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+        path: '',
+      }))
+    : [];
+
+  useEffect(() => {
+    console.log(data, "corporate status");
+  }, [data]);
 
   const renderItem = (item: IChannelStatsItem, index: number) => {
     return (
       <div
         key={index}
-        className="card flex-col justify-between gap-6 h-full bg-cover rtl:bg-[left_top_-1.7rem] bg-[right_top_-1.7rem] bg-no-repeat channel-stats-bg"
+        className="card flex flex-col justify-between gap-6 h-full bg-cover rtl:bg-[left_top_-1.7rem] bg-[right_top_-1.7rem] bg-no-repeat channel-stats-bg w-full"
       >
-        {item.logoDark ? (
-          <>
-            <img
-              src={toAbsoluteUrl(`/media/brand-logos/${item.logo}`)}
-              className="dark:hidden w-7 mt-4 ms-5"
-              alt=""
-            />
-            <img
-              src={toAbsoluteUrl(`/media/brand-logos/${item.logoDark}`)}
-              className="light:hidden w-7 mt-4 ms-5"
-              alt=""
-            />
-          </>
-        ) : (
-          <img
-            src={toAbsoluteUrl(`/media/brand-logos/${item.logo}`)}
-            className="w-7 mt-4 ms-5"
-            alt=""
-          />
-        )}
-
         <div className="flex flex-col gap-1 pb-4 px-5">
-          <span className="text-3xl font-semibold text-gray-900">{item.info}</span>
-          <span className="text-2sm font-normal text-gray-700">{item.desc}</span>
+          <span className="text-3xl font-semibold text-gray-900 dark:text-white">{item.info}</span>
+          <span className="text-2sm font-normal text-gray-700 dark:text-gray-300">{item.desc}</span>
         </div>
       </div>
     );
   };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading stats</div>;
 
   return (
     <Fragment>
@@ -73,9 +67,11 @@ const ChannelStats = () => {
         `}
       </style>
 
-      {items.map((item, index) => {
-        return renderItem(item, index);
-      })}
+      <div className="grid grid-cols-4 gap-4 w-full">
+        {stats.map((item, index) => {
+          return renderItem(item, index);
+        })}
+      </div>
     </Fragment>
   );
 };

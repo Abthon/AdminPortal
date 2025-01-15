@@ -63,19 +63,12 @@ const Demo1LightSidebarContent = () => {
 
   return (
     <div>
-      {/* <DriverLocation data={DriverData} /> */}
-
-      <DriversLocationMap data={DriverData} />
-
-      {/* <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
+      <div className="grid lg:grid-cols-1 gap-5 lg:gap-7.5 items-stretch">
+        <DriversLocationMap data={DriverData} />
         <div className="lg:col-span-1">
-          <Highlights limit={3} />
+          <ChannelStats/>          
         </div>
-
-        <div className="lg:col-span-2">
-          <DriverLocation data={DriverData} />
-        </div>
-      </div> */}
+      </div>
 
       {/* <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
         <div className="lg:col-span-1">
