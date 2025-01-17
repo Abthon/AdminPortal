@@ -18,21 +18,21 @@ const ChannelStats2 = ({ data }: { data: any }) => {
   const items: IChannelStatsItems = [
     {
       logo: "profile-circle",
-      info: data.totalDrivers,
+      info: data?.totalDrivers,
       desc: "Total Drivers",
       path: "",
       color: "red",
     },
     {
       logo: "note-2",
-      info: data.totalBooking,
+      info: data?.totalBooking,
       desc: "Total Bookings",
       path: "",
       color: "primary",
     },
     {
       logo: "car",
-      info: data.totalVehicles,
+      info: data?.totalVehicles,
       desc: "Total Vehicles",
       path: "",
       color: "red",
@@ -40,7 +40,7 @@ const ChannelStats2 = ({ data }: { data: any }) => {
     {
       logo: "user",
       logoDark: "tiktok-dark.svg",
-      info: data.totalUsers,
+      info: data?.totalUsers,
       desc: "Total Users",
       path: "",
       color: "red",
