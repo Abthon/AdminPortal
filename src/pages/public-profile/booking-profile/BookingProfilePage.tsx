@@ -21,7 +21,6 @@ const BookingProfilePage = () => {
   const navigate = useNavigate();
 
   async function getBooking(id: string) {
-    console.log("hi");
     const { data } = await axiosInstance.get(`/api/v1/bookings/${id}`);
     console.log(data);
     return data.data;
@@ -45,7 +44,6 @@ const BookingProfilePage = () => {
   }
 
   const { currentLayout } = useLayout();
-
   return (
     <Fragment>
       {/* <PageNavbar /> */}
