@@ -1,8 +1,5 @@
 import { toAbsoluteUrl } from "@/utils";
-import {
-  GoogleMap,
-  LoadScript,
-} from "@react-google-maps/api";
+import { GoogleMap, LoadScript } from "@react-google-maps/api";
 import { CustomMarker } from "./Markers";
 
 interface DriverLocationProps {
@@ -25,17 +22,13 @@ const DriversLocationMap: React.FC<DriverLocationProps> = ({ data }) => {
   );
   return (
     <div>
-      <LoadScript
-        googleMapsApiKey={"AIzaSyDBbmSw9fX9vAjkgPpJ3ahoYsmzagGr4LI"}
-      >
+      <LoadScript googleMapsApiKey={"AIzaSyDBbmSw9fX9vAjkgPpJ3ahoYsmzagGr4LI"}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={center}
           zoom={15}
         >
-          {validDrivers?.map((driver: any) => (
-            <CustomMarker driver={driver} />
-          ))}
+          {validDrivers?.map((driver: any) => <CustomMarker driver={driver} />)}
         </GoogleMap>
       </LoadScript>
     </div>

@@ -11,30 +11,8 @@ import { DriverLocation } from "./blocks/DriverLocation";
 import { useQuery } from "react-query";
 import { KeenIcon } from "@/components";
 import { DriversLocationMap } from "./blocks/DriverLocation2";
-
-// const obj = {
-//   id: 25,
-//   createdAt: "2024-12-30T02:48:28.000Z",
-//   firstName: "Jhon",
-//   middleName: null,
-//   lastName: "Doee",
-//   phoneNumber: "911094668",
-//   isPhoneNumberAuthenticated: false,
-//   type: "payroll",
-//   drivingLicense: "abc123",
-//   gender: "male",
-//   is_online: false,
-//   is_available: false,
-//   isBusy: false,
-//   lat: null,
-//   lng: null,
-//   averageRating: 0,
-//   status: "pending",
-//   profilePhoto: "1735526907796-photo_2023-10-28_09-45-14.jpg",
-//   firebaseToken: "string",
-//   vehicle: null,
-//   bookings: [],
-// };
+import { ChannelStats2 } from "./blocks/ChannelStats2";
+import { Contributions } from "./blocks/Contributions";
 
 interface IDriversData {
   id: string;
@@ -61,14 +39,79 @@ const Demo1LightSidebarContent = () => {
     queryFn: getDrivers,
   });
 
+  async function fetchCorporateStats() {
+    const response = await axiosInstance.get(`/api/v1/admin/sys/stats`);
+    return response.data;
+  }
+
+  const useStats = () => {
+    return useQuery("stats", fetchCorporateStats);
+  };
+
+  const { data } = useStats();
+  console.log("data", data.data);
+
   return (
-    <div>
-      <div className="grid lg:grid-cols-1 gap-5 lg:gap-7.5 items-stretch">
-        <DriversLocationMap data={DriverData} />
-        <div className="lg:col-span-1">
-          <ChannelStats/>          
-        </div>
+    // <div className="grid gap-5 lg:gap-7.5">
+    //   <div className="grid lg:grid-cols-1 gap-5 lg:gap-7.5 items-stretch">
+    //     <DriversLocationMap data={DriverData} />
+    //     <div className="lg:col-span-1">
+    //       <ChannelStats />
+    //     </div>
+    //   </div>
+
+    //   <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
+    //     <div className="lg:col-span-1">
+    //       <Highlights limit={3} />
+    //     </div>
+
+    //     <div className="lg:col-span-2">
+    //       <EarningsChart />
+    //     </div>
+    //   </div>
+    // </div>
+    <div className="grid gap-5 lg:gap-7.5 pb-12">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7.5 h-full items-stretch">
+        <ChannelStats2 data={data.data} />
       </div>
+
+      <DriversLocationMap data={DriverData} />
+      {/* <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
+        <div className="lg:col-span-1">
+          <Highlights limit={4} />
+        </div>
+
+        <div className="lg:col-span-2">
+          <Contributions title="booking" />
+        </div>
+      </div> */}
+
+      {/* <div className="grid gap-2">
+        <div className="grid grid-cols-2 h-full items-stretch">
+          <div>
+          </div>
+
+          <div>
+            <Highlights limit={3} />
+            <Contributions title="booking" />
+          </div>
+        </div>
+      </div> */}
+
+      {/* <div className="grid lg:grid-cols-3 gap-y-5 lg:gap-7.5 items-stretch">
+        <div className="lg:col-span-1">
+          <div className="grid grid-cols-2 gap-5 lg:gap-7.5 h-full items-stretch">
+            <ChannelStats2 />
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+         
+          <DriversLocationMap data={DriverData} />
+        </div>
+      </div> */}
+
+      {/* <ChannelStats2 /> */}
 
       {/* <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
         <div className="lg:col-span-1">
@@ -84,3 +127,52 @@ const Demo1LightSidebarContent = () => {
 };
 
 export { Demo1LightSidebarContent };
+
+// import {
+//   ChannelStats,
+//   EarningsChart,
+//   EntryCallout,
+//   Highlights,
+//   TeamMeeting,
+//   Teams
+// } from './blocks';
+
+// const Demo1LightSidebarContent = () => {
+//   return (
+//     <div className="grid gap-5 lg:gap-7.5">
+//       <div className="grid lg:grid-cols-3 gap-y-5 lg:gap-7.5 items-stretch">
+//         <div className="lg:col-span-1">
+//           <div className="grid grid-cols-2 gap-5 lg:gap-7.5 h-full items-stretch">
+//             <ChannelStats />
+//           </div>
+//         </div>
+
+//         <div className="lg:col-span-2">
+//           <EntryCallout className="h-full" />
+//         </div>
+//       </div>
+
+//       <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
+//         <div className="lg:col-span-1">
+//           <Highlights limit={3} />
+//         </div>
+
+//         <div className="lg:col-span-2">
+//           <EarningsChart />
+//         </div>
+//       </div>
+
+//       <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
+//         <div className="lg:col-span-1">
+//           <TeamMeeting />
+//         </div>
+
+//         <div className="lg:col-span-2">
+//           <Teams />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export { Demo1LightSidebarContent };

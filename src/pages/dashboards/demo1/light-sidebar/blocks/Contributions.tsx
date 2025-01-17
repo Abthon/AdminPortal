@@ -11,7 +11,7 @@ interface IContributionsProps {
 
 const Contributions = ({ title }: IContributionsProps) => {
   const { isRTL } = useLanguage();
-  const data: number[] = [44, 55, 41, 17, 15];
+  const data: number[] = [544, 55, 41, 17, 15];
   const labels: string[] = ["ERP", "HRM", "DMS", "CRM", "DAM"];
   const colors: string[] = [
     "var(--tw-primary)",

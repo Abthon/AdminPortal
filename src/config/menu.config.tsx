@@ -27,7 +27,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
   },
   {
     title: "Vehicle",
-    icon: "setting-2",
+    icon: "car",
     children: [
       {
         title: "Vehicles",
@@ -41,7 +41,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
   },
   {
     title: "Booking",
-    icon: "users",
+    icon: "calendar",
     children: [
       {
         title: "Bookings",
@@ -51,7 +51,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
   },
   {
     title: "Config",
-    icon: "security-user",
+    icon: "setting-2",
     children: [
       {
         title: "Configs",
@@ -61,7 +61,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
   },
   {
     title: "Finance",
-    icon: "security-user",
+    icon: "dollar",
     children: [
       {
         title: "Deposits",
@@ -78,7 +78,7 @@ export const MENU_SIDEBAR: TMenuConfig = [
   },
   {
     title: "Coorporate",
-    icon: "profile-circle",
+    icon: "cheque",
     children: [
       {
         title: "Coorporates",
