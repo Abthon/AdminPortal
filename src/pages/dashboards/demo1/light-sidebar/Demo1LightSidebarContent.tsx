@@ -49,8 +49,6 @@ const Demo1LightSidebarContent = () => {
   };
 
   const { data } = useStats();
-  console.log("data", data.data);
-
   return (
     // <div className="grid gap-5 lg:gap-7.5">
     //   <div className="grid lg:grid-cols-1 gap-5 lg:gap-7.5 items-stretch">
@@ -72,7 +70,7 @@ const Demo1LightSidebarContent = () => {
     // </div>
     <div className="grid gap-5 lg:gap-7.5 pb-12">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7.5 h-full items-stretch">
-        <ChannelStats2 data={data.data} />
+        <ChannelStats2 data={data?.data} />
       </div>
 
       <DriversLocationMap data={DriverData} />
@@ -127,52 +125,3 @@ const Demo1LightSidebarContent = () => {
 };
 
 export { Demo1LightSidebarContent };
-
-// import {
-//   ChannelStats,
-//   EarningsChart,
-//   EntryCallout,
-//   Highlights,
-//   TeamMeeting,
-//   Teams
-// } from './blocks';
-
-// const Demo1LightSidebarContent = () => {
-//   return (
-//     <div className="grid gap-5 lg:gap-7.5">
-//       <div className="grid lg:grid-cols-3 gap-y-5 lg:gap-7.5 items-stretch">
-//         <div className="lg:col-span-1">
-//           <div className="grid grid-cols-2 gap-5 lg:gap-7.5 h-full items-stretch">
-//             <ChannelStats />
-//           </div>
-//         </div>
-
-//         <div className="lg:col-span-2">
-//           <EntryCallout className="h-full" />
-//         </div>
-//       </div>
-
-//       <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
-//         <div className="lg:col-span-1">
-//           <Highlights limit={3} />
-//         </div>
-
-//         <div className="lg:col-span-2">
-//           <EarningsChart />
-//         </div>
-//       </div>
-
-//       <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
-//         <div className="lg:col-span-1">
-//           <TeamMeeting />
-//         </div>
-
-//         <div className="lg:col-span-2">
-//           <Teams />
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export { Demo1LightSidebarContent };

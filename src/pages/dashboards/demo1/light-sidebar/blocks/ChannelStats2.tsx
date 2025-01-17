@@ -15,7 +15,6 @@ interface IChannelStatsItem {
 interface IChannelStatsItems extends Array<IChannelStatsItem> {}
 
 const ChannelStats2 = ({ data }: { data: any }) => {
-  console.log("data from cs", data);
   const items: IChannelStatsItems = [
     {
       logo: "profile-circle",
