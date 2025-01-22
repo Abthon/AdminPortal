@@ -100,7 +100,7 @@ const ModalBookingForm = ({
         driverId,
         estimatedPrice: price,
         estimatedTraveledDistance: distance,
-        vehicleType: vehicleTypeId,
+        vehicleType: Number(vehicleTypeId),
       };
 
       console.log(finalReq, "the final request");
