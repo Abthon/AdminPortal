@@ -106,8 +106,9 @@ const ModalVehicleRegistrationForm = ({
 
       const librae_res = res_2.data.data.filename;
 
-      const lastData = {
+      let lastData = {
         ...updatedFields,
+        vehicleTypeId: Number(updatedFields.vehicleTypeId),
         photo: photo_res,
         librae: librae_res,
       };
@@ -115,7 +116,7 @@ const ModalVehicleRegistrationForm = ({
       try{
           const res_3 = await axiosInstance.post("api/v1/vehicles", lastData);
           if (res_3.status !== 201) {
-            throw new Error(res_3.data.message || "Failed to create the booking.");
+            throw new Error(res_3.data.message || "Failed to create the vehicles.");
           }
 
           const data_3 = res_3.data;
@@ -134,6 +135,7 @@ const ModalVehicleRegistrationForm = ({
   }
 
   async function editVehicleType(values: any) {
+    console.log("eyyo")
     try {
       const { photo, librae, id, ...updatedFields } = values;
       const formData = new FormData();
@@ -176,7 +178,7 @@ const ModalVehicleRegistrationForm = ({
 
       try{
         let { owner, createdAt, driver, vehicleType, vehicleTypeId, ...rest } = lastData;
-        rest = { ...rest, vehicleType: "comission", vehicleTypeId: parseInt(vehicleTypeId, 10) };
+        rest = { ...rest, vehicleType: "comission", vehicleTypeId: Number(vehicleTypeId) };
         console.log(rest, "data without owner.");
         const res_3 = await axiosInstance.patch(`api/v1/vehicles/${id}`, rest);
         if (res_3.status !== 200) {
