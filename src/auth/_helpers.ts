@@ -59,9 +59,11 @@ export function setupAxios(axiosInstance: any) {
         const auth = getAuth();
         if (auth?.refreshToken) {
           try {
-            const { data } = await axios.post('/api/v1/auth/refresh-token', {
+            const { data } = await axios.post('https://static.129.134.201.195.clients.your-server.de/test/api/v1/auth/refresh', {
               refreshToken: auth.refreshToken,
             });
+
+            console.log(data, "the new token");
             const newAuth = { ...auth, accessToken: data.accessToken };
             setAuth(newAuth);
             axiosInstance.defaults.headers.Authorization = `Bearer ${data.accessToken}`;
