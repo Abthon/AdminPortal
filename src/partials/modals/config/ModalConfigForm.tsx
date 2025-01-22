@@ -91,10 +91,11 @@ const ModalConfigForm = ({
       updatedvalues = { ...updatedvalues, permissions };
 
       console.log(updatedvalues);
-
-      const res = await axiosInstance.patch(`/api/v1/params/${id}`, updatedvalues);
-
-      console.log("success", res.data);
+      try{
+        const res = await axiosInstance.patch(`/api/v1/params/${id}`, updatedvalues);
+      }catch(err){
+        console.log(err, "config error");
+      }
     } catch (err) {
       throw new Error(
         (err as Error).message || "An error occurred while editing the config."

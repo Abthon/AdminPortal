@@ -1,254 +1,111 @@
-// import { formatDistanceToNow } from "date-fns";
-// import { decode, encode } from "@googlemaps/polyline-codec";
-// import { useEffect,useState } from "react";
-// import { MapContainer, TileLayer, Marker, Polyline, Popup } from 'react-leaflet';
+import React, { useState, useEffect, memo } from 'react';
+import axios from 'axios';
+import { decode } from '@googlemaps/polyline-codec';
+import { MapContainer, Marker, Popup, Polyline as LeafletPolyline, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet.gridlayer.googlemutant';
 
-// export function timeAgo(dateISO: string): string {
-//   const date = new Date(dateISO);
-//   return formatDistanceToNow(date, { addSuffix: true });
-// }
-
-// export function decodePolyline(encodedStr: string) {
-//   if(encodedStr){
-//     let decodedPolyline = decode(encodedStr);
-//     console.log(decodedPolyline, "decoded polylines");
-//     return decodedPolyline;
-//   }
-// }
-
-// interface PathInfoProps {
-//   data: any;
-// }
-
-// const PathInfo: React.FC<PathInfoProps> = ({ data }) => {
-//   const [cordinates, setCordinates] = useState([])
-//   useEffect(() => {
-//     decodePolyline(data.estimatedTraveledPath);
-//   }, []);
-
-
-//   return (
-//     <div className="card pb-2.5">
-//       <div className="card-header" id="path-info">
-//         <h3 className="card-title">Path Information</h3>
-//       </div>
-//       <div className="card-body grid gap-5">
-//         <div className="w-full">
-//           {/* <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-//             <label className="form-label flex items-center gap-1 max-w-56">
-//               polyline
-//             </label>
-//             <label className="form-label flex items-center gap-1 max-w-56">
-//               {data.polyline}
-//             </label>
-//           </div> */}
-//         </div>
-
-//         <div className="w-full">
-//           <MapContainer zoom={13} style={{ height: '500px', width: '100%' }}>
-//             {/* OpenStreetMap Tile Layer */}
-//             <TileLayer
-//               attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
-//               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-//             />
-
-//             {/* Plot Markers */}
-//             {cordinates.map((position, idx) => (
-//               <Marker key={idx} position={position}>
-//                 <Popup>
-//                   <span>
-//                     Point {idx + 1}: [{position[0]}, {position[1]}]
-//                   </span>
-//                 </Popup>
-//               </Marker>
-//             ))}
-
-//             {/* Draw Polyline */}
-//             <Polyline positions={cordinates} color="blue" />
-//           </MapContainer>
-//           {/* <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-//             <label className="form-label flex items-center gap-1 max-w-56">
-//               estimatedTraveledPath
-//             </label>
-//             <label className="form-label flex items-center gap-1 max-w-56">
-//               {data.estimatedTraveledPath}
-//             </label>
-//           </div> */}
-//         </div>
-//         <div className="w-full">
-//           {/* <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-//             <label className="form-label flex items-center gap-1 max-w-56">
-//               actualTraveledPath
-//             </label>
-//             <label className="form-label flex items-center gap-1 max-w-56">
-//               {data.actualTraveledPath}
-//             </label>
-//           </div> */}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export { PathInfo };
-
-// src/pages/public-profile/booking-profile/blocks/PathInfo.tsx
-
-import React, { useEffect, useState } from "react";
-import { formatDistanceToNow } from "date-fns";
-import { decode, encode } from "@googlemaps/polyline-codec";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Polyline,
-  Popup,
-  useMap,
-} from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
-// Fix Leaflet's default icon paths
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-
+// Configure Leaflet icons
+delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
-  iconUrl: require("leaflet/dist/images/marker-icon.png"),
-  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Type definitions for coordinates
-type Coordinates = [number, number][];
-
-// Type definitions for PathInfo props
-interface PathInfoProps {
-  data: {
-    estimatedTraveledPath: string;
-    // Add other relevant fields if necessary
-  };
-}
-
-// Utility function to format time ago
-export function timeAgo(dateISO: string): string {
-  const date = new Date(dateISO);
-  return formatDistanceToNow(date, { addSuffix: true });
-}
-
-// Utility function to decode polyline
-export function decodePolyline(encodedStr: string): Coordinates | undefined {
-  if (encodedStr) {
-    const decodedPolyline = decode(encodedStr);
-    console.log(decodedPolyline, "decoded polylines");
-    return decodedPolyline;
-  }
-  return undefined;
-}
-
-// Custom component to fit map bounds to polyline
-const FitBounds: React.FC<{ coordinates: Coordinates }> = ({ coordinates }) => {
+// Memoized Google Layer to prevent multiple re-renders
+const GoogleLayer = memo(() => {
   const map = useMap();
 
   useEffect(() => {
-    if (coordinates.length > 0) {
-      const bounds = L.latLngBounds(coordinates);
-      map.fitBounds(bounds, { padding: [50, 50] });
+    const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY;
+    const scriptId = 'google-maps-api-script';
+
+    // Load Google Maps API script only once
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
     }
-  }, [coordinates, map]);
+
+    const googleLayer = L.gridLayer.googleMutant({
+      type: 'roadmap', // Options: 'roadmap', 'satellite', 'terrain', 'hybrid'
+    });
+
+    googleLayer.addTo(map);
+
+    return () => {
+      map.removeLayer(googleLayer);
+    };
+  }, [map]);
 
   return null;
-};
+});
 
-const PathInfo: React.FC<PathInfoProps> = ({ data }) => {
-  const [coordinates, setCoordinates] = useState<Coordinates>([]);
+export const PathInfo = ({ data }) => {
+  const [routeCoordinates, setRouteCoordinates] = useState([]);
+
+  const pickup = { lat: data.pickupLat || 9.0308644, lng: data.pickupLng || 38.7626244 }; // Example pickup point
+  const dropoff = { lat: data.dropOffLat || 9.0053468, lng: data.dropOffLng || 38.7673327 }; // Example dropoff point
 
   useEffect(() => {
-    try {
-      const decoded = decodePolyline(data.estimatedTraveledPath);
-      if (decoded) {
-        setCoordinates(decoded);
-      } else {
-        console.error("Failed to decode polyline.");
+    const fetchDirections = async () => {
+      try {
+        const origin = `${pickup.lat},${pickup.lng}`;
+        const destination = `${dropoff.lat},${dropoff.lng}`;
+
+        const response = await axios.get('/api/directions', {
+          params: {
+            origin: origin,
+            destination: destination,
+          },
+        });
+
+        if (response.data.status !== 'OK') {
+          throw new Error(`Directions API error: ${response.data.status}`);
+        }
+
+        const encodedPolyline = response.data.routes[0].overview_polyline.points;
+        const decodedPath = decode(encodedPolyline).map(([lat, lng]) => ({ lat, lng }));
+        setRouteCoordinates(decodedPath);
+      } catch (error) {
+        console.error('Error fetching directions:', error);
       }
-    } catch (error) {
-      console.error("Error decoding polyline:", error);
-    }
-  }, [data.estimatedTraveledPath]);
+    };
+
+    fetchDirections();
+  }, [pickup, dropoff, data]);
+
+  const mapCenter = { lat: 9.0300, lng: 38.7400 }; // Addis Ababa coordinates
 
   return (
-    <div className="card pb-2.5">
-      <div className="card-header" id="path-info">
-        <h3 className="card-title">Path Information</h3>
-      </div>
-      <div className="card-body grid gap-5">
-        {/* Optional: Display raw polyline strings */}
-        {/* <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <label className="form-label flex items-center gap-1 max-w-56">
-              Polyline
-            </label>
-            <label className="form-label flex items-center gap-1 max-w-56">
-              {data.polyline}
-            </label>
-          </div>
-        </div> */}
+    <MapContainer center={mapCenter} zoom={13} style={{ height: '800px', width: '100%' }}>
+      {/* Google Layer for the map */}
+      <GoogleLayer />
 
-        <div className="w-full">
-          <MapContainer
-            center={coordinates[0] || [0, 0]}
-            zoom={13}
-            style={{ height: "500px", width: "100%" }}
-          >
-            {/* Automatically fit map bounds */}
-            <FitBounds coordinates={coordinates} />
+      {/* Pickup Marker */}
+      <Marker position={pickup}>
+        <Popup>Pickup Location</Popup>
+      </Marker>
 
-            {/* OpenStreetMap Tile Layer */}
-            <TileLayer
-              attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+      {/* Dropoff Marker */}
+      <Marker position={dropoff}>
+        <Popup>Dropoff Location</Popup>
+      </Marker>
 
-            {/* Plot Markers */}
-            {coordinates.map((position, idx) => (
-              <Marker key={idx} position={position}>
-                <Popup>
-                  <span>
-                    Point {idx + 1}: [{position[0]}, {position[1]}]
-                  </span>
-                </Popup>
-              </Marker>
-            ))}
-
-            {/* Draw Polyline */}
-            {coordinates.length > 1 && (
-              <Polyline positions={coordinates} color="blue" weight={4} />
-            )}
-          </MapContainer>
-
-          {/* Optional: Display raw polyline strings */}
-          {/* <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <label className="form-label flex items-center gap-1 max-w-56">
-              Estimated Traveled Path
-            </label>
-            <label className="form-label flex items-center gap-1 max-w-56">
-              {data.estimatedTraveledPath}
-            </label>
-          </div> */}
-        </div>
-
-        {/* Optional: Display actualTraveledPath */}
-        {/* <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <label className="form-label flex items-center gap-1 max-w-56">
-              Actual Traveled Path
-            </label>
-            <label className="form-label flex items-center gap-1 max-w-56">
-              {data.actualTraveledPath}
-            </label>
-          </div>
-        </div> */}
-      </div>
-    </div>
+      {/* Route Polyline */}
+      {routeCoordinates.length > 0 && (
+        <LeafletPolyline
+          positions={routeCoordinates.map(coord => [coord.lat, coord.lng])}
+          color="blue"
+          weight={4}
+          opacity={0.7}
+        />
+      )}
+    </MapContainer>
   );
 };
-
-export { PathInfo };
