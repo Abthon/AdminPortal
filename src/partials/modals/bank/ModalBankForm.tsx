@@ -17,9 +17,9 @@ const bankSchema = Yup.object().shape({
   name: Yup.string().required("name is required."),
   accountNumber: Yup.string().required("accountNumber is required."),
   accountName: Yup.string().required("accountName is required."),
-  isApproved: Yup.string()
-    .oneOf(["true", "false"], "Invalid status")
-    .required("Status is required"),
+  // isApproved: Yup.string()
+  //   .oneOf(["true", "false"], "Invalid status")
+  //   .required("Status is required"),
 });
 
 interface IModalBankFormProps {
@@ -44,8 +44,8 @@ const ModalBankForm = ({
       queryClient.invalidateQueries({ queryKey: ["Banks"] });
       onOpenChange();
     },
-    onError: () => {
-      toast.error("Err encountered");
+    onError: (err) => {
+      toast.error((err as Error).message);
     },
   });
 
@@ -68,11 +68,12 @@ const ModalBankForm = ({
 
       const res = await axiosInstance.post(`/api/v1/banks`, values);
       return res.data;
-    } catch (err) {
+    } catch (err: any) {
       console.log(err, "The error");
-      const errorMessage =
-        (err as Error).message || "An error occurred while creating the Bank.";
-      throw new Error(errorMessage);
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message || "An error occurred while adding the bank.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
@@ -94,14 +95,19 @@ const ModalBankForm = ({
           updatedValues
         );
         return res.data;
-      } catch (error) {
-        console.log(error, "The error");
-        throw error;
+      } catch (err: any) {
+        console.log(err, "The error");
+        const errorMessage = err?.response?.data?.message;
+        const errorMessageAlt =
+          (err as Error).message || "An error occurred while editing the bank.";
+        throw new Error(errorMessage || errorMessageAlt);
       }
-    } catch (err) {
-      const errorMessage =
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
         (err as Error).message || "An error occurred while editing the bank.";
-      throw new Error(errorMessage);
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
@@ -201,20 +207,20 @@ const ModalBankForm = ({
               </div>
               <div className="flex flex-col gap-1">
                 <label className="form-label text-gray-900">Status</label>
-                {formik.touched.isApproved && formik.errors.isApproved ? (
+                {/* {formik.touched.isApproved && formik.errors.isApproved ? (
                   <div className="text-red-500 text-sm">
                     {typeof formik.errors.isApproved === "string"
                       ? formik.errors.isApproved
                       : null}
                   </div>
-                ) : null}
-                  <select
-                    {...formik.getFieldProps("isApproved")}
-                    className="block w-full p-2 border border-gray-300 rounded"
-                  >
-                    <option value="true" label="True" />
-                    <option value="false" label="False" />
-                  </select>
+                ) : null} */}
+                <select
+                  {...formik.getFieldProps("isApproved")}
+                  className="block w-full p-2 border border-gray-300 rounded"
+                >
+                  <option value="true" label="True" />
+                  <option selected value="false" label="False" />
+                </select>
               </div>
 
               {/* <div className="flex flex-col gap-1">

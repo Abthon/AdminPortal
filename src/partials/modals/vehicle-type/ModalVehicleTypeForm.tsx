@@ -8,11 +8,29 @@ import {
 } from "@/components/ui/dialog";
 // import clsx from "clsx";
 // import { Link } from "react-router-dom";
+import * as Yup from "yup";
 import { useFormik } from "formik";
 import { useEffect } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { toast } from "sonner";
 import axiosInstance from "@/auth/_helpers";
+
+const vehicleSchema = Yup.object().shape({
+  name: Yup.string().required("name is required."),
+  baseFare: Yup.number().required(
+    "Base Fare is required and should be a number"
+  ),
+  additionalFarePerKm: Yup.number().required(
+    "Additional Fare Per Km is required and should be a number"
+  ),
+  minWeightCapacity: Yup.number().required(
+    "Min Weight Capacity is required and should be a number"
+  ),
+  maxWeightCapacity: Yup.number().required(
+    "Max Weight Capacity is required and should be a number"
+  ),
+  file: Yup.mixed().required("Picture is required."),
+});
 
 interface IModalVehicleTypeFormProps {
   open: boolean;
@@ -80,11 +98,12 @@ const ModalVehicleTypeForm = ({
       let finalData = { ...updatedFields, image: data.data.filename };
 
       await axiosInstance.post(`api/v1/vehicle-types`, finalData);
-    } catch (err) {
-      throw new Error(
-        (err as Error).message ||
-          "An error occurred while creating the vehicle type."
-      );
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message || "An error occurred while adding the vehicle.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
@@ -99,27 +118,33 @@ const ModalVehicleTypeForm = ({
       Object.keys(updatedFields).forEach((key) => {
         formData.append(key, updatedFields[key]);
       });
-      if (file) {
+      if (file instanceof File) {
         formData.append("file", file);
+        const res = await axiosInstance.post(
+          `api/v1/file-upload/image/vehicle-type`,
+          formData
+        );
+        const data = res.data;
+        const { createdAt, ...filteredFields } = updatedFields;
+        const finalData = { ...filteredFields, image: data.data.filename };
+        await axiosInstance.patch(`api/v1/vehicle-types/${id}`, finalData);
+      } else {
+        const { createdAt, ...filteredFields } = updatedFields;
+        await axiosInstance.patch(`api/v1/vehicle-types/${id}`, filteredFields);
       }
-      const res = await axiosInstance.post(
-        `api/v1/file-upload/image/vehicle-type`,
-        formData
-      );
-      const data = res.data;
-      const { createdAt, ...filteredFields } = updatedFields;
-      const finalData = { ...filteredFields, image: data.data.filename };
-      await axiosInstance.patch(`api/v1/vehicle-types/${id}`, finalData);
-    } catch (err) {
-      throw new Error(
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
         (err as Error).message ||
-          "An error occurred while editing the vehicle type."
-      );
+        "An error occurred while editing the vehicle.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
   const formik = useFormik({
     initialValues,
+    validationSchema: vehicleSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
       try {
         mutate(values);
@@ -158,6 +183,13 @@ const ModalVehicleTypeForm = ({
           >
             <div className="flex flex-col gap-1">
               <label className="form-label text-gray-900">Name</label>
+              {formik.touched.name && formik.errors.name ? (
+                <div className="text-red-500 text-sm">
+                  {typeof formik.errors.name === "string"
+                    ? formik.errors.name
+                    : null}
+                </div>
+              ) : null}
               <label className="input">
                 <input
                   placeholder="Enter name"
@@ -169,6 +201,13 @@ const ModalVehicleTypeForm = ({
 
             <div className="flex flex-col gap-1">
               <label className="form-label text-gray-900">Base Fare</label>
+              {formik.touched.baseFare && formik.errors.baseFare ? (
+                <div className="text-red-500 text-sm">
+                  {typeof formik.errors.baseFare === "string"
+                    ? formik.errors.baseFare
+                    : null}
+                </div>
+              ) : null}
               <label className="input">
                 <input
                   placeholder="Enter base fare"
@@ -183,6 +222,14 @@ const ModalVehicleTypeForm = ({
               <label className="form-label text-gray-900">
                 Additional Fare Per Km
               </label>
+              {formik.touched.additionalFarePerKm &&
+              formik.errors.additionalFarePerKm ? (
+                <div className="text-red-500 text-sm">
+                  {typeof formik.errors.additionalFarePerKm === "string"
+                    ? formik.errors.additionalFarePerKm
+                    : null}
+                </div>
+              ) : null}
               <label className="input">
                 <input
                   placeholder="Enter additional fare per km"
@@ -196,6 +243,14 @@ const ModalVehicleTypeForm = ({
               <label className="form-label text-gray-900">
                 Min Weight Capacity
               </label>
+              {formik.touched.minWeightCapacity &&
+              formik.errors.minWeightCapacity ? (
+                <div className="text-red-500 text-sm">
+                  {typeof formik.errors.minWeightCapacity === "string"
+                    ? formik.errors.minWeightCapacity
+                    : null}
+                </div>
+              ) : null}
               <label className="input">
                 <input
                   placeholder="Enter min weight capacity"
@@ -209,6 +264,14 @@ const ModalVehicleTypeForm = ({
               <label className="form-label text-gray-900">
                 Max Weight Capacity
               </label>
+              {formik.touched.maxWeightCapacity &&
+              formik.errors.maxWeightCapacity ? (
+                <div className="text-red-500 text-sm">
+                  {typeof formik.errors.maxWeightCapacity === "string"
+                    ? formik.errors.maxWeightCapacity
+                    : null}
+                </div>
+              ) : null}
               <label className="input">
                 <input
                   placeholder="Enter max weight capacity"
@@ -221,6 +284,13 @@ const ModalVehicleTypeForm = ({
 
             <div className="flex flex-col gap-1">
               <label className="form-label text-gray-900">Picture</label>
+              {formik.touched.file && formik.errors.file ? (
+                <div className="text-red-500 text-sm">
+                  {typeof formik.errors.file === "string"
+                    ? formik.errors.file
+                    : null}
+                </div>
+              ) : null}
               <label className="input">
                 <input
                   type="file"

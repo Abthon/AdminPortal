@@ -92,12 +92,13 @@ const ModalCoorporateForm = ({
         updatedFields
       );
       return res.data;
-    } catch (err) {
-      console.log(err, "the error");
-      const errorMessage =
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
         (err as Error).message ||
         "An error occurred while approving the coorporate.";
-      throw new Error(errorMessage);
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
   // const initialValues = isEdit ? CoorporateData : {};
@@ -141,7 +142,7 @@ const ModalCoorporateForm = ({
       const officialStampedLetter_res = res.data.data.filename;
 
       if (res.status !== 201) {
-        throw new Error(res.data.message || "Failed to edit the booking.");
+        throw new Error(res.data.message || "Failed to add coorporate.");
       }
 
       console.log(officialStampedLetter_res, "officialStampedLetter_res");
@@ -166,35 +167,19 @@ const ModalCoorporateForm = ({
       const data_3 = res_3.data;
       console.log(data_3, "data_3");
       return data_3;
-    } catch (err) {
-      console.log(err);
-      throw new Error(
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
         (err as Error).message ||
-          "An error occurred while create the coorporate."
-      );
+        "An error occurred while adding the coorporate.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
 
     // //data.data.filename
 
     // console.log(data);
   }
-
-  // async function approveCoorporate(values: Object) {
-  //   try {
-  //      const { id, approvalStatus } = values as { id: string; approvalStatus: string };
-  //      const updatedFields = {
-  //        status: approvalStatus,
-  //      };
-
-  //      const res = await axiosInstance.patch(`/api/v1/drivers/toggleStatus/${driverData.id}`, updatedFields);
-  //      return res.data;
-  //    } catch (err) {
-  //      console.log(err, "the error");
-  //      const errorMessage =
-  //        (err as Error).message || "An error occurred while approving the driver.";
-  //      throw new Error(errorMessage);
-  //    }
-  //  }
 
   async function editCoorporate(values: { [key: string]: any }) {
     try {
@@ -203,54 +188,27 @@ const ModalCoorporateForm = ({
         id: string;
         [key: string]: any;
       };
+      let officialStampedLetter_res;
       const formData = new FormData();
 
-      if (officialStampedLetter) {
+      if (officialStampedLetter instanceof File) {
         formData.append("file", officialStampedLetter);
-      }
-      const res = await axiosInstance.post(
-        `api/v1/file-upload/image/license`,
-        formData
-      );
+        const res = await axiosInstance.post(
+          `api/v1/file-upload/image/license`,
+          formData
+        );
 
-      console.log(res, "res");
+        console.log(res, "res");
 
-      //res.data.data.filename
-      const officialStampedLetter_res = res.data.data.filename;
+        //res.data.data.filename
+        officialStampedLetter_res = res.data.data.filename;
 
-      if (res.status !== 201) {
-        throw new Error(res.data.message || "Failed to edit the booking.");
+        if (res.status !== 201) {
+          throw new Error(res.data.message || "Failed to edit the coorporate.");
+        }
       }
 
       console.log(officialStampedLetter_res, "officialStampedLetter_res");
-
-      // const res = await axiosInstance.post(
-      //   `api/v1/file-upload/image/vehicle`,
-      //   formData
-      // );
-
-      // if (res.status !== 201) {
-      //   throw new Error(
-      //     res.data.message || "Failed to upload the officialStampedLetter."
-      //   );
-      // }
-
-      // const officialStampedLetter_res = res.data.data.filename;
-
-      // const newFormData = new FormData();
-      // "name": "John",
-      // "password": "Password123",
-      // "email": "john.doe@example.com",
-      // "creditLimit": 50000,
-      // "contractLength": "2024-12-31T00:00:00.000Z",
-      // "paymentPlan": 30,
-      // "license": "A123456789",
-      // "tinNo": "TIN-987654321",
-      // "officialStampedLetter": "OfficialLetter-123.pdf",
-      // "address": "123 Main Street, Cityville, Countryland",
-      // "contactPhoneNumber": "+1234567890",
-      // "backupContactPhoneNumber": "+0987654321",
-      // "nationalId": 123456789012
 
       const lastData = {
         name: updatedFields.name,
@@ -264,7 +222,9 @@ const ModalCoorporateForm = ({
         contactPhoneNumber: updatedFields.contactPhoneNumber,
         backupContactPhoneNumber: updatedFields.backupContactPhoneNumber,
         nationalId: +updatedFields.nationalId,
-        officialStampedLetter: officialStampedLetter_res,
+        ...(officialStampedLetter_res !== undefined && {
+          officialStampedLetter: officialStampedLetter_res,
+        }),
       };
 
       console.log(lastData);
@@ -284,12 +244,13 @@ const ModalCoorporateForm = ({
 
       const data_3 = res_3.data;
       return data_3;
-    } catch (err) {
-      console.log(err);
-      throw new Error(
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
         (err as Error).message ||
-          "An error occurred while editing the coorporate."
-      );
+        "An error occurred while editing the coorporate.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
@@ -711,7 +672,9 @@ const ModalCoorporateForm = ({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">National Id</label>
+                  <label className="form-label text-gray-900">
+                    National Id
+                  </label>
                   <label className="input">
                     <input
                       placeholder="Enter nationalId"

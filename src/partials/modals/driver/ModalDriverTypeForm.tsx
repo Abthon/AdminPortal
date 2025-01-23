@@ -53,8 +53,8 @@ const ModalDriverTypeForm = ({
       queryClient.invalidateQueries({ queryKey: ["Drivers"] });
       onOpenChange();
     },
-    onError: () => {
-      toast.error("Err encountered");
+    onError: (err) => {
+      toast.error((err as Error).message);
     },
   });
 
@@ -73,12 +73,13 @@ const ModalDriverTypeForm = ({
         updatedFields
       );
       return res.data;
-    } catch (err) {
-      console.log(err, "the error");
-      const errorMessage =
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
         (err as Error).message ||
         "An error occurred while approving the driver.";
-      throw new Error(errorMessage);
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
@@ -113,12 +114,12 @@ const ModalDriverTypeForm = ({
         const res = await axiosInstance.post(`/api/v1/drivers`, rest);
         return res.data;
       }
-    } catch (err) {
+    } catch (err: any) {
       console.log(err, "The error");
-      const errorMessage =
-        (err as Error).message ||
-        "An error occurred while creating the driver.";
-      throw new Error(errorMessage);
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message || "An error occurred while adding the driving.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
@@ -145,33 +146,41 @@ const ModalDriverTypeForm = ({
       };
 
       const formData = new FormData();
-      if (profilePhoto) {
+      if (profilePhoto instanceof File) {
+        console.log("hi");
         formData.append("file", profilePhoto);
-      }
 
-      const res_1 = await axiosInstance.post(
-        `/api/v1/file-upload/image/profile`,
-        formData
-      );
-      console.log("Profile edited!");
-      if (res_1.status === 201) {
-        const profile = res_1.data.data.filename;
-        updatedValues = { ...updatedValues, profilePhoto: profile };
-        console.log(updatedValues, "result to be sent");
-        try {
-          const res = await axiosInstance.patch(
-            `/api/v1/drivers/${id}`,
-            updatedValues
-          );
-          return res.data;
-        } catch (error) {
-          console.log(error, "The error");
+        const res_1 = await axiosInstance.post(
+          `/api/v1/file-upload/image/profile`,
+          formData
+        );
+        console.log("Profile edited!");
+        if (res_1.status === 201) {
+          const profile = res_1.data.data.filename;
+          updatedValues = { ...updatedValues, profilePhoto: profile };
+          // console.log(updatedValues, "result to be sent");
         }
       }
-    } catch (err) {
-      const errorMessage =
+      try {
+        const res = await axiosInstance.patch(
+          `/api/v1/drivers/${id}`,
+          updatedValues
+        );
+        return res.data;
+      } catch (err: any) {
+        console.log(err, "The error");
+        const errorMessage = err?.response?.data?.message;
+        const errorMessageAlt =
+          (err as Error).message ||
+          "An error occurred while editing the driver.";
+        throw new Error(errorMessage || errorMessageAlt);
+      }
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
         (err as Error).message || "An error occurred while editing the driver.";
-      throw new Error(errorMessage);
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 

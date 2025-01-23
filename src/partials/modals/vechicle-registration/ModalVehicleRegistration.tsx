@@ -113,88 +113,112 @@ const ModalVehicleRegistrationForm = ({
         librae: librae_res,
       };
 
-      try{
-          const res_3 = await axiosInstance.post("api/v1/vehicles", lastData);
-          if (res_3.status !== 201) {
-            throw new Error(res_3.data.message || "Failed to create the vehicles.");
-          }
+      try {
+        const res_3 = await axiosInstance.post("api/v1/vehicles", lastData);
+        if (res_3.status !== 201) {
+          throw new Error(
+            res_3.data.message || "Failed to create the vehicles."
+          );
+        }
 
-          const data_3 = res_3.data;
-          console.log(data_3, "data_3");
-          return data_3;
-      }catch(error){ 
-        console.log(error, "The error.");
+        const data_3 = res_3.data;
+        console.log(data_3, "data_3");
+        return data_3;
+      } catch (err: any) {
+        console.log(err, "The error");
+        const errorMessage = err?.response?.data?.message;
+        const errorMessageAlt =
+          (err as Error).message ||
+          "An error occurred while adding the vehicle.";
+        throw new Error(errorMessage || errorMessageAlt);
       }
-    } catch (err) {
-      throw new Error(
-        (err as Error).message ||
-          "An error occurred while create the vehicle type."
-      );
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message || "An error occurred while adding the vehicle.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
-
   }
 
   async function editVehicleType(values: any) {
     try {
       const { photo, librae, id, ...updatedFields } = values;
       const formData = new FormData();
-
-      if (photo) {
-        formData.append("file", photo);
-      }
-
-      const res = await axiosInstance.post(
-        `api/v1/file-upload/image/vehicle`,
-        formData
-      );
-
-      if (res.status !== 201) {
-        throw new Error(res.data.message || "Failed to upload the photo.");
-      }
-
-      const photo_res = res.data.data.filename;
       const newFormData = new FormData();
+      let photo_res;
+      let librae_res;
 
-      if (librae) {
+      console.log("photo", values);
+      if (photo instanceof File) {
+        console.log("here", photo);
+        formData.append("file", photo);
+        const res = await axiosInstance.post(
+          `api/v1/file-upload/image/vehicle`,
+          formData
+        );
+
+        if (res.status !== 201) {
+          throw new Error(res.data.message || "Failed to upload the photo.");
+        }
+
+        photo_res = res.data.data.filename;
+      }
+
+      if (librae instanceof File) {
         newFormData.append("file", librae);
+
+        const res_2 = await axiosInstance.post(
+          `api/v1/file-upload/image/librae`,
+          newFormData
+        );
+
+        if (res_2.status !== 201) {
+          throw new Error(res_2.data.message || "Failed to upload the librae.");
+        }
+
+        librae_res = res_2.data.data.filename;
       }
 
-      const res_2 = await axiosInstance.post(
-        `api/v1/file-upload/image/librae`,
-        newFormData
-      );
-
-      if (res_2.status !== 201) {
-        throw new Error(res_2.data.message || "Failed to upload the librae.");
-      }
-
-      const librae_res = res_2.data.data.filename;
       const lastData = {
         ...updatedFields,
-        photo: photo_res,
-        librae: librae_res,
+        ...(photo_res !== undefined && { photo: photo_res }),
+        ...(librae_res !== undefined && { librae: librae_res }),
       };
 
-      try{
-        let { owner, createdAt, driver, vehicleType, vehicleTypeId, ...rest } = lastData;
-        rest = { ...rest, vehicleType: "comission", vehicleTypeId: Number(vehicleTypeId) };
+      try {
+        let { owner, createdAt, driver, vehicleType, vehicleTypeId, ...rest } =
+          lastData;
+        rest = {
+          ...rest,
+          vehicleType: "comission",
+          vehicleTypeId: Number(vehicleTypeId),
+        };
         console.log(rest, "data without owner.");
         const res_3 = await axiosInstance.patch(`api/v1/vehicles/${id}`, rest);
         if (res_3.status !== 200) {
-          throw new Error(res_3.data.message || "Failed to update the vehicle.");
+          throw new Error(
+            res_3.data.message || "Failed to update the vehicle."
+          );
         }
 
         const data_3 = res_3.data;
         return data_3;
-
-      }catch(error){ 
-        console.log(error, "The error!");
+      } catch (err: any) {
+        console.log(err, "The error");
+        const errorMessage = err?.response?.data?.message;
+        const errorMessageAlt =
+          (err as Error).message ||
+          "An error occurred while editing the vehicle.";
+        throw new Error(errorMessage || errorMessageAlt);
       }
-    } catch (err) {
-      throw new Error(
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
         (err as Error).message ||
-          "An error occurred while editing the vehicle type."
-      );
+        "An error occurred while editing the vehicle.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 

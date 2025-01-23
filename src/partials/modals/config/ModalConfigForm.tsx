@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import * as Yup from "yup";
 // import clsx from "clsx";
 // import { Link } from "react-router-dom";
 import { useFormik } from "formik";
@@ -13,6 +14,11 @@ import { useEffect } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { toast } from "sonner";
 import axiosInstance from "@/auth/_helpers";
+
+const configSchema = Yup.object().shape({
+  name: Yup.string().required("Name is required."),
+  value: Yup.string().required("Value is required."),
+});
 
 interface IModalConfigFormProps {
   open: boolean;
@@ -51,7 +57,11 @@ const ModalConfigForm = ({
     try {
       const { name, value } = values;
       let permissions: string[] = [];
-      let updatedvalues: { name: string; value: string; permissions?: string[] } = { name, value };
+      let updatedvalues: {
+        name: string;
+        value: string;
+        permissions?: string[];
+      } = { name, value };
 
       if (values.isAdmin) {
         permissions.push("admin");
@@ -66,10 +76,12 @@ const ModalConfigForm = ({
       const res = await axiosInstance.post(`/api/v1/params`, updatedvalues);
 
       console.log("success", res.data);
-    } catch (err) {
-      throw new Error(
-        (err as Error).message || "An error occurred while creating the config."
-      );
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message || "An error occurred while adding the config.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
@@ -91,20 +103,31 @@ const ModalConfigForm = ({
       updatedvalues = { ...updatedvalues, permissions };
 
       console.log(updatedvalues);
-      try{
-        const res = await axiosInstance.patch(`/api/v1/params/${id}`, updatedvalues);
-      }catch(err){
-        console.log(err, "config error");
+      try {
+        const res = await axiosInstance.patch(
+          `/api/v1/params/${id}`,
+          updatedvalues
+        );
+      } catch (err: any) {
+        console.log(err, "The error");
+        const errorMessage = err?.response?.data?.message;
+        const errorMessageAlt =
+          (err as Error).message ||
+          "An error occurred while editing the config.";
+        throw new Error(errorMessage || errorMessageAlt);
       }
-    } catch (err) {
-      throw new Error(
-        (err as Error).message || "An error occurred while editing the config."
-      );
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message || "An error occurred while adding the config.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
   const formik = useFormik({
     initialValues,
+    validationSchema: configSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
       try {
         mutate(values);
@@ -140,6 +163,13 @@ const ModalConfigForm = ({
           >
             <div className="flex flex-col gap-1">
               <label className="form-label text-gray-900">Name</label>
+              {formik.touched.name && formik.errors.name ? (
+                <div className="text-red-500 text-sm">
+                  {typeof formik.errors.name === "string"
+                    ? formik.errors.name
+                    : null}
+                </div>
+              ) : null}
               <label className="input">
                 <input
                   placeholder="Enter name"
@@ -156,6 +186,13 @@ const ModalConfigForm = ({
 
             <div className="flex flex-col gap-1">
               <label className="form-label text-gray-900">value</label>
+              {formik.touched.value && formik.errors.value ? (
+                <div className="text-red-500 text-sm">
+                  {typeof formik.errors.value === "string"
+                    ? formik.errors.value
+                    : null}
+                </div>
+              ) : null}
               <label className="input">
                 <input
                   placeholder="Enter value"

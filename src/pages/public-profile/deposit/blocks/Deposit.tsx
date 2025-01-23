@@ -132,12 +132,13 @@ const Deposit = ({
       );
       console.log(data, "data");
       return data;
-    } catch (err) {
+    } catch (err: any) {
       console.log(err, "The error");
-      const errorMessage =
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
         (err as Error).message ||
         "An error occurred while approving the deposit.";
-      throw new Error(errorMessage);
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
@@ -164,8 +165,9 @@ const Deposit = ({
       });
       toast("Deposit successfully Approved!");
     },
-    onError: () => {
-      toast("Error Encountered Approving the Deposit");
+    onError: (err) => {
+      //toast("Error Encountered Approving the Deposit");
+      toast.error((err as Error).message);
     },
   });
 

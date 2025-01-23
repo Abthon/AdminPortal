@@ -6,12 +6,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import * as Yup from "yup";
 import { useFormik } from "formik";
 import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import axiosInstance from "@/auth/_helpers";
+
+const bookingSchema = Yup.object().shape({
+  pickupName: Yup.string().required("Pick up is required."),
+  dropOffName: Yup.string().required("Drop off is required."),
+  vehicleTypeId: Yup.number().required("Vehicle type is required."),
+  driverId: Yup.number().required("Driver is required."),
+});
 
 interface IModalBookingFormProps {
   open: boolean;
@@ -111,11 +119,12 @@ const ModalBookingForm = ({
       }
 
       return res_3.data;
-    } catch (err) {
-      console.log(err, "the error occured!");
-      throw new Error(
-        (err as Error).message || "An error occurred while creating the book."
-      );
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message || "An error occurred while adding the booking.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
@@ -142,11 +151,21 @@ const ModalBookingForm = ({
         }
 
         return res.data;
-      } catch (error) {
-        console.log(error, "The error");
+      } catch (err: any) {
+        console.log(err, "The error");
+        const errorMessage = err?.response?.data?.message;
+        const errorMessageAlt =
+          (err as Error).message ||
+          "An error occurred while editing the booking.";
+        throw new Error(errorMessage || errorMessageAlt);
       }
-    } catch (err) {
-      throw new Error("An error occurred while editing the booking.");
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message ||
+        "An error occurred while editing the booking.";
+      throw new Error(errorMessage || errorMessageAlt);
     }
   }
 
@@ -179,6 +198,7 @@ const ModalBookingForm = ({
 
   const formik = useFormik({
     initialValues,
+    validationSchema: bookingSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
       try {
         mutate(values);
@@ -221,6 +241,13 @@ const ModalBookingForm = ({
                   <label className="form-label text-gray-900">
                     Pickup Location
                   </label>
+                  {formik.touched.pickupName && formik.errors.pickupName ? (
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.pickupName === "string"
+                        ? formik.errors.pickupName
+                        : null}
+                    </div>
+                  ) : null}
                   <GooglePlacesAutocomplete
                     apiKey={import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY || ""}
                     selectProps={{
@@ -313,6 +340,13 @@ const ModalBookingForm = ({
                   <label className="form-label text-gray-900">
                     DropOff Location
                   </label>
+                  {formik.touched.dropOffName && formik.errors.dropOffName ? (
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.dropOffName === "string"
+                        ? formik.errors.dropOffName
+                        : null}
+                    </div>
+                  ) : null}
                   <GooglePlacesAutocomplete
                     apiKey={import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY || ""}
                     selectProps={{
@@ -416,6 +450,13 @@ const ModalBookingForm = ({
 
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Driver</label>
+                  {formik.touched.driverId && formik.errors.driverId ? (
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.driverId === "string"
+                        ? formik.errors.driverId
+                        : null}
+                    </div>
+                  ) : null}
                   {isDriversLoading ? (
                     <span>Loading drivers...</span>
                   ) : driversError ? (
@@ -453,6 +494,14 @@ const ModalBookingForm = ({
                   <label className="form-label text-gray-900">
                     Vehicle Type
                   </label>
+                  {formik.touched.vehicleTypeId &&
+                  formik.errors.vehicleTypeId ? (
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.vehicleTypeId === "string"
+                        ? formik.errors.vehicleTypeId
+                        : null}
+                    </div>
+                  ) : null}
                   {isVehicleTypeLoading ? (
                     <span>Loading Vehicle type...</span>
                   ) : vehicleTypeError ? (
