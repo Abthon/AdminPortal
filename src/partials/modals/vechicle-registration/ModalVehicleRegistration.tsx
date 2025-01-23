@@ -44,7 +44,7 @@ const ModalVehicleRegistrationForm = ({
     mutationFn: isEdit ? editVehicleType : addVehicle,
     onSuccess: () => {
       toast.success(`Vehicle ${isEdit ? "Edited" : "Created"}`);
-      queryClient.invalidateQueries({ queryKey: ["VehicleType"] });
+      queryClient.invalidateQueries({ queryKey: ["Vehicle"] });
       onOpenChange();
     },
     onError: (err) => {
@@ -135,7 +135,6 @@ const ModalVehicleRegistrationForm = ({
   }
 
   async function editVehicleType(values: any) {
-    console.log("eyyo")
     try {
       const { photo, librae, id, ...updatedFields } = values;
       const formData = new FormData();
