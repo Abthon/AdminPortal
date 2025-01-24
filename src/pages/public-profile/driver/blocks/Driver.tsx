@@ -229,7 +229,7 @@ const Drivers = ({
               <img
                 src={img}
                 className="rounded-full size-9 shrink-0"
-                alt={`${row.original.profilePhoto}`}
+                // alt={`${row.original.profilePhoto}`}
               />
 
               <div className="flex flex-col gap-0.5">

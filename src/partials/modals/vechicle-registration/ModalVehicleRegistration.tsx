@@ -11,7 +11,7 @@ import * as Yup from "yup";
 import clsx from "clsx";
 // import { Link } from "react-router-dom";
 import { useFormik } from "formik";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 
@@ -22,6 +22,7 @@ const vehicleSchema = Yup.object().shape({
   plate_number: Yup.string().required("License plate is required."),
   color: Yup.string().required("Color is required."),
   vehicleTypeId: Yup.number().required("Vehicle type is required."),
+  photo: Yup.mixed().required("Picture is required."),
 });
 
 interface IModalVehicleFormProps {
@@ -61,6 +62,7 @@ const ModalVehicleRegistrationForm = ({
         vehicleTypeId: "",
         plate_number: "",
         color: "",
+        photo: null,
       };
 
   async function addVehicle(values: { [key: string]: any }) {
@@ -240,15 +242,12 @@ const ModalVehicleRegistrationForm = ({
     initialValues,
     validationSchema: vehicleSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
+      console.log(formik.errors, "err");
+      console.log("here");
       try {
-        // console.log(values);
-        // const { file, ...updatedFields } = values;
-        // const data = await addVehicle(values);
         mutate(values);
-        // console.log(values, file);
-      } catch {
-        // setStatus("The login details are incorrect");
-        // setSubmitting(false);
+      } catch (err) {
+        console.log(err, "error");
       }
     },
   });
@@ -271,17 +270,6 @@ const ModalVehicleRegistrationForm = ({
     }
   }, [isEdit, open, vehicleData]);
 
-  // useEffect(() => {
-  //   // Reset form when the modal is closed
-  //   if (!isEdit) {
-  //     formik.resetForm();
-  //   }
-  // }, [open]);
-
-  // function onFormSubmit(data) {
-  //   mutate(data);
-  // }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[450px] w-full">
@@ -291,7 +279,7 @@ const ModalVehicleRegistrationForm = ({
         </DialogHeader>
         <DialogBody>
           <h3 className="text-lg font-medium text-gray-900 text-center mb-3">
-            Create a vehicle
+            {isEdit ? "Edit" : "Create"} a vehicle
           </h3>
           <form
             className="flex flex-col gap-5 pt-10 pb-10 pr-2 pl-2"
@@ -447,12 +435,23 @@ const ModalVehicleRegistrationForm = ({
                   placeholder="Enter color"
                   autoComplete="off"
                   {...formik.getFieldProps("color")}
-
-                  // className={clsx("form-control", {
-                  //   "is-invalid": formik.touched.email && formik.errors.email,
-                  // })}
+                  className={clsx(
+                    "form-control bg-transparent",
+                    {
+                      "is-invalid": formik.touched.color && formik.errors.color,
+                    },
+                    {
+                      "is-valid": formik.touched.color && !formik.errors.color,
+                    }
+                  )}
                 />
               </label>
+              {formik.touched.color && formik.errors.color && (
+                <span role="alert" className="text-danger text-xs mt-1">
+                  {typeof formik.errors.color === "string" &&
+                    formik.errors.color}
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -460,15 +459,30 @@ const ModalVehicleRegistrationForm = ({
               <label className="input  max-w-[390px] overflow-hidden">
                 <input
                   type="file"
-                  name="file"
+                  name="photo"
                   onChange={(event) => {
                     const file = event.target.files
                       ? event.target.files[0]
                       : null;
                     formik.setFieldValue("photo", file);
                   }}
+                  // className={clsx(
+                  //   "form-control bg-transparent",
+                  //   {
+                  //     "is-invalid": formik.touched.photo && formik.errors.photo,
+                  //   },
+                  //   {
+                  //     "is-valid": formik.touched.photo && !formik.errors.photo,
+                  //   }
+                  // )}
                 />
               </label>
+              {formik.errors.photo && (
+                <span role="alert" className="text-danger text-xs mt-1">
+                  {typeof formik.errors.photo === "string" &&
+                    formik.errors.photo}
+                </span>
+              )}
             </div>
             <div className="flex flex-col gap-1">
               <label className="form-label text-gray-900">Librae</label>

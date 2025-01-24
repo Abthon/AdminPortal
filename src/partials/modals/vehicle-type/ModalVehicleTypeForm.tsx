@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import axiosInstance from "@/auth/_helpers";
 
 const vehicleSchema = Yup.object().shape({
-  name: Yup.string().required("name is required."),
+  // name: Yup.string().required("name is required."),
   baseFare: Yup.number().required(
     "Base Fare is required and should be a number"
   ),
@@ -29,7 +29,7 @@ const vehicleSchema = Yup.object().shape({
   maxWeightCapacity: Yup.number().required(
     "Max Weight Capacity is required and should be a number"
   ),
-  file: Yup.mixed().required("Picture is required."),
+  //file: Yup.mixed().required("Picture is required."),
 });
 
 interface IModalVehicleTypeFormProps {
@@ -78,6 +78,7 @@ const ModalVehicleTypeForm = ({
         [key: string]: any;
       };
       const formData = new FormData();
+      let data = undefined;
 
       // Append form fields to FormData
       Object.keys(updatedFields).forEach((key) => {
@@ -86,16 +87,19 @@ const ModalVehicleTypeForm = ({
 
       if (file) {
         formData.append("file", file);
+
+        const res = await axiosInstance.post(
+          `api/v1/file-upload/image/vehicle-type`,
+          formData
+        );
+        data = res.data;
       }
 
-      const res = await axiosInstance.post(
-        `api/v1/file-upload/image/vehicle-type`,
-        formData
-      );
-
-      const data = res.data;
-
-      let finalData = { ...updatedFields, image: data.data.filename };
+      let finalData = {
+        ...updatedFields,
+        ...(data !== undefined && { image: data.data.filename }),
+        // image: data.data.filename,
+      };
 
       await axiosInstance.post(`api/v1/vehicle-types`, finalData);
     } catch (err: any) {
@@ -174,7 +178,7 @@ const ModalVehicleTypeForm = ({
         </DialogHeader>
         <DialogBody>
           <h3 className="text-lg font-medium text-gray-900 text-center mb-3">
-            Create a vehicle type
+            {isEdit ? "Edit" : "Create"} a vehicle type
           </h3>
           <form
             className="flex flex-col gap-5 pt-10 pb-10 pr-2 pl-2"

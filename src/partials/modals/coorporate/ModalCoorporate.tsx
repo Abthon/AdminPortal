@@ -18,9 +18,11 @@ import { toast } from "sonner";
 const coorporateSchema = Yup.object().shape({
   name: Yup.string().required("name is required."),
   email: Yup.string().required("email is required."),
+  password: Yup.string().required("password is required."),
   creditLimit: Yup.number().required("creditLimit is required"),
   contractLength: Yup.string().required("contractLength is required."),
   paymentPlan: Yup.number().required("payment Plan is required."),
+  license: Yup.string().required("license is required."),
   tinNo: Yup.string().required("tin number is required."),
   address: Yup.string().required("address is required."),
   contactPhoneNumber: Yup.string().required(
@@ -30,6 +32,7 @@ const coorporateSchema = Yup.object().shape({
     "Backup Phone number is required."
   ),
   nationalId: Yup.number().required("nationalId is required."),
+  officialStampedLetter: Yup.mixed().required("Stamped Letter is required."),
 });
 
 const approvalSchema = Yup.object().shape({
@@ -108,15 +111,15 @@ const ModalCoorporateForm = ({
         name: "",
         email: "",
         creditLimit: "",
-        contractLength: "2024-12-31T00:00:00.000Z",
-        // contractlength: "",
+        //contractLength: "2024-12-31T00:00:00.000Z",
+        contractlength: "",
         paymentPlan: "",
         license: "",
         tinNo: "",
-        address: "123 Main Street, Cityville, Countryland",
+        address: "",
         contactPhoneNumber: "",
         backupContactPhoneNumber: "",
-        nationalId: 123456789012,
+        nationalId: "",
       };
 
   async function addCoorporate(values: { [key: string]: any }) {
@@ -708,6 +711,7 @@ const ModalCoorporateForm = ({
                   <label className="form-label text-gray-900">
                     officialStampedLetter
                   </label>
+
                   <label className="input  max-w-[390px] overflow-hidden">
                     <input
                       type="file"
@@ -720,6 +724,12 @@ const ModalCoorporateForm = ({
                       }}
                     />
                   </label>
+                  {formik.errors.officialStampedLetter && (
+                    <span role="alert" className="text-danger text-xs mt-1">
+                      {typeof formik.errors.officialStampedLetter ===
+                        "string" && formik.errors.officialStampedLetter}
+                    </span>
+                  )}
                 </div>
 
                 <button
