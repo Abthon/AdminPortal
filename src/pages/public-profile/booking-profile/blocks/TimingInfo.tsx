@@ -33,7 +33,7 @@ const TimingInfo: React.FC<TimingInfoProps> = ({ data }) => {
               Start Time:
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {data.createdAt ? formatDate(data.createdAt) : "-"}
+              {data?.createdAt ? formatDate(data?.createdAt) : "-"}
             </label>
           </div>
         </div>
@@ -43,7 +43,7 @@ const TimingInfo: React.FC<TimingInfoProps> = ({ data }) => {
               End Time:
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {data.endTime ? formatDate(data.endTime) : "-"}
+              {data?.endTime ? formatDate(data?.endTime) : "-"}
             </label>
           </div>
         </div>
