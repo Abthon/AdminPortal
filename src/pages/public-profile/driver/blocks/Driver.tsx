@@ -244,7 +244,7 @@ const Drivers = ({
                   to="#"
                   className="text-2sm text-gray-700 font-normal hover:text-primary-active"
                 >
-                  {row.original.phoneNumber}
+                  +251{row.original.phoneNumber}
                 </Link>
               </div>
             </div>
