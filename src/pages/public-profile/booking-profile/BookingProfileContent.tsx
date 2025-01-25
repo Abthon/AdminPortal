@@ -104,9 +104,8 @@
 
 //         <PathInfo data={data} />
 
-//         {/* 
+//         {/*
 //         <AuthEmail />
-
 
 //         <AuthPassword />
 
@@ -135,7 +134,6 @@
 // };
 
 // export { BookingProfileContent };
-
 
 import { useResponsive, useScrollPosition } from "@/hooks";
 import {
@@ -241,7 +239,7 @@ const BookingProfileContent: React.FC<BookingProfileContentProps> = ({
 
         <TimingInfo data={data} />
 
-        <PathInfo data={data}/>
+        <PathInfo data={data} />
 
         {/* 
         <AuthEmail />
