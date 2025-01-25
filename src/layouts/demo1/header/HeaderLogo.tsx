@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { KeenIcon } from '@/components/keenicons';
 import { toAbsoluteUrl } from '@/utils';
-
 import { useDemo1Layout } from '../';
 
 const HeaderLogo = () => {
@@ -20,7 +19,7 @@ const HeaderLogo = () => {
       <Link to="/" className="shrink-0">
         <img
           src={toAbsoluteUrl('/media/app/mini-logo.jpg')}
-          className="max-h-[25px] w-full"
+          className="max-h-[25px] w-full" 
           alt="mini-logo"
         />
       </Link>
