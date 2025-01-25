@@ -112,12 +112,22 @@ export const PathInfo = ({ data }) => {
   }, [isGoogleLayerLoaded]);
 
   useEffect(() => {
-    if (endcodedPolyline) {
-      const decodedPath = decode(endcodedPolyline).map(([lat, lng]) => ({
-        lat,
-        lng,
+    if(data.actualtraveledPath) {
+      const decodedPath = decode(data.actualtraveledPath).map((arr) => ({
+        lat: arr[0], 
+        lng: arr[1]
       }));
+
       setRouteCoordinates(decodedPath);
+    }
+    else{
+      if(endcodedPolyline) {
+        const decodedPath = decode(endcodedPolyline).map(([lat, lng]) => ({
+          lat,
+          lng,
+        }));
+        setRouteCoordinates(decodedPath);
+      }
     }
   }, [endcodedPolyline]);
 
@@ -141,23 +151,45 @@ export const PathInfo = ({ data }) => {
         <GoogleLayer onLayerLoaded={handleGoogleLayerLoaded} />
 
         {/* Pickup Marker */}
-        <Marker position={pickup}>
-          <Popup>Pickup Location</Popup>
-        </Marker>
+        {(data.actualtraveledPath || endcodedPolyline) && (
+          <Marker position={pickup}>
+            <Popup>Pickup Location</Popup>
+          </Marker>
+        )}
 
         {/* Dropoff Marker */}
-        <Marker position={dropoff}>
-          <Popup>Dropoff Location</Popup>
-        </Marker>
+        {(data.actualtraveledPath || endcodedPolyline) && (
+          <Marker position={dropoff}>
+            <Popup>Pickup Location</Popup>
+          </Marker>
+        )}
 
         {/* Route Polyline */}
-        {routeCoordinates.length > 0 && (
-          <LeafletPolyline
-            positions={routeCoordinates.map((coord) => [coord.lat, coord.lng])}
-            color="blue"
-            weight={4}
-            opacity={0.7}
-          />
+        {/* {console.log(routeCoordinates[0], "route cordinates")} */}
+        {data.actualtraveledPath ? (
+          routeCoordinates.length > 0 && (
+            <LeafletPolyline
+              positions={routeCoordinates.map((coord) => {
+                // console.log(coord.lat, coord.lng)
+                return [coord.lat, coord.lng]
+              })}
+              color="red"
+              weight={4}
+              opacity={0.7}
+            />
+          )
+        ) : (
+          routeCoordinates.length > 0 && (
+            <LeafletPolyline
+              positions={routeCoordinates.map((coord) => {
+                // console.log(coord.lat, coord.lng)
+                return [coord.lat, coord.lng]
+              })}
+              color="blue"
+              weight={4}
+              opacity={0.7}
+            />
+          )
         )}
       </MapContainer>
     </div>

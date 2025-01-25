@@ -125,9 +125,11 @@ const ModalCoorporateForm = ({
   async function addCoorporate(values: { [key: string]: any }) {
     try {
       const { officialStampedLetter, ...updatedFields } = values as {
+        contractlength: string;
         officialStampedLetter: File;
         [key: string]: any;
       };
+
       const formData = new FormData();
       if (officialStampedLetter) {
         formData.append("file", officialStampedLetter);
@@ -148,15 +150,14 @@ const ModalCoorporateForm = ({
         throw new Error(res.data.message || "Failed to add coorporate.");
       }
 
-      console.log(officialStampedLetter_res, "officialStampedLetter_res");
-
+      // [Note]
+      const { contractlength, ...filteredFields } = updatedFields;
       const lastData = {
-        ...updatedFields,
+        ...filteredFields,
         officialStampedLetter: officialStampedLetter_res,
       };
 
       console.log(lastData, "last data");
-
       const res_3 = await axiosInstance.post("api/v1/coorporate", lastData);
 
       console.log(res_3.status, "res_3"); //here
@@ -211,8 +212,6 @@ const ModalCoorporateForm = ({
         }
       }
 
-      console.log(officialStampedLetter_res, "officialStampedLetter_res");
-
       const lastData = {
         name: updatedFields.name,
         email: updatedFields.email,
@@ -230,8 +229,6 @@ const ModalCoorporateForm = ({
         }),
       };
 
-      console.log(lastData);
-
       const res_3 = await axiosInstance.patch(
         `api/v1/coorporate/${id}`,
         lastData
@@ -248,7 +245,6 @@ const ModalCoorporateForm = ({
       const data_3 = res_3.data;
       return data_3;
     } catch (err: any) {
-      console.log(err, "The error");
       const errorMessage = err?.response?.data?.message;
       const errorMessageAlt =
         (err as Error).message ||
