@@ -7,12 +7,8 @@ interface MarkerProps {
 
 const CustomMarker: React.FC<MarkerProps> = ({ driver }) => {
   console.log(driver, "driver");
-  const successImg = toAbsoluteUrl(
-    "/media/illustrations/motorcycle-success.png"
-  );
-  const failureImg = toAbsoluteUrl(
-    "/media/illustrations/motorcycle-failure.png"
-  );
+  const successImg = toAbsoluteUrl("/media/illustrations/success-loc.png");
+  const failureImg = toAbsoluteUrl("/media/illustrations/fail-loc.png");
 
   return (
     <MarkerF

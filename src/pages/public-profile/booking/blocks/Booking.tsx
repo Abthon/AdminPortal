@@ -62,6 +62,7 @@ const Booking: React.FC<BookingProps> = ({
 }) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [isEndBooking, setIsEndBooking] = useState(false);
   const [currentBookingData, setCurrentBookingData] =
     useState<IBookingData | null>(null);
   const [totalItems, setTotalItems] = useState(0);
@@ -126,9 +127,14 @@ const Booking: React.FC<BookingProps> = ({
     return data;
   }
 
-  const handleOpen = (isEdit: boolean, rowData: IBookingData | null = null) => {
+  const handleOpen = (
+    isEdit: boolean,
+    rowData: IBookingData | null = null,
+    isEndBooking: boolean | null = null
+  ) => {
     setEditMode(isEdit);
     setCurrentBookingData(rowData);
+    setIsEndBooking(isEndBooking || false);
     console.log(rowData, "rowdata");
     setProfileModalOpen(true);
   };
@@ -136,6 +142,19 @@ const Booking: React.FC<BookingProps> = ({
   async function revalidateBooking() {
     const url = `/api/v1/bookings`;
     const { data } = await axiosInstance.get(url);
+    return data;
+  }
+
+  async function startBooking(id: string) {
+    const res = await axiosInstance.get(
+      `/api/v1/bookings/${id}?fields=driver.id`
+    );
+    console.log(res, "driver Id");
+    console.log(res.data.data.driver.id, "driver Id");
+    const { data } = await axiosInstance.post(`/api/v1/bookings/start/${id}`, {
+      driverId: res.data.data.driver.id,
+    });
+    console.log(data, "starting");
     return data;
   }
 
@@ -167,6 +186,18 @@ const Booking: React.FC<BookingProps> = ({
     },
     onError: (error: unknown) => {
       toast("Error Encountered deleting the booking");
+    },
+  });
+  const { isLoading: isStarting, mutate: mutateStart } = useMutation({
+    mutationFn: startBooking,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["Bookings"],
+      });
+      toast("Booking successfully Started!");
+    },
+    onError: (error: unknown) => {
+      toast("Error Encountered while starting the booking");
     },
   });
 
@@ -279,10 +310,7 @@ const Booking: React.FC<BookingProps> = ({
         // accessorFn: (row) => row.estimatedTraveledDistance,
         id: "estimatedTraveledDistance",
         header: ({ column }) => (
-          <DataGridColumnHeader
-            title="Estimated Traveled Distance"
-            column={column}
-          />
+          <DataGridColumnHeader title="Est. Distance" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -336,9 +364,9 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        id: "Edit",
+        id: "Assign",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Edit" column={column} />
+          <DataGridColumnHeader title="Assign" column={column} />
         ),
         enableSorting: false,
         cell: (info) => {
@@ -347,7 +375,48 @@ const Booking: React.FC<BookingProps> = ({
               onClick={() => handleOpen(true, info.row.original)}
               className="btn btn-sm btn-icon btn-clear btn-primary"
             >
-              <KeenIcon icon="notepad-edit" />
+              <KeenIcon icon="user-tick" />
+            </button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[80px]",
+        },
+      },
+      {
+        id: "Start",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Start" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <button
+              onClick={() => mutateStart(info.row.original.id)}
+              // onClick={() => handleOpen(true, info.row.original)}
+              className="btn btn-sm btn-icon btn-clear btn-success"
+            >
+              <KeenIcon icon="to-right" />
+            </button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[80px]",
+        },
+      },
+      {
+        id: "End",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="End" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <button
+              onClick={() => handleOpen(false, info.row.original, true)}
+              className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+            >
+              <KeenIcon icon="minus-circle" />
             </button>
           );
         },
@@ -443,6 +512,7 @@ const Booking: React.FC<BookingProps> = ({
         open={profileModalOpen}
         onOpenChange={handleClose}
         isEdit={editMode}
+        isEndBooking={isEndBooking}
         bookingData={currentBookingData}
       />
       <DataGrid
