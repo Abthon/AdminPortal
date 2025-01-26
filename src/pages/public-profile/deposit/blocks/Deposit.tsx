@@ -429,7 +429,7 @@ const Deposit = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}
-        sorting={[{ id: "createdAt", desc: false }]}
+        sorting={[{ id: "createdAt", desc: true }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />

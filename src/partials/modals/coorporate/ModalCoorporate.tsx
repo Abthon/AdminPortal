@@ -180,9 +180,6 @@ const ModalCoorporateForm = ({
       throw new Error(errorMessage || errorMessageAlt);
     }
 
-    // //data.data.filename
-
-    // console.log(data);
   }
 
   async function editCoorporate(values: { [key: string]: any }) {

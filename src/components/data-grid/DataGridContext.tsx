@@ -109,16 +109,12 @@ export const DataGridProvider = <TData extends object>(
         columnFilters,
       };
 
-      console.log(sorting, "sorting params");
-      // console.log("here", props.searchInput);
-
       if ((defaultValues.searchInput?.length ?? 0) <= 0) {
         const data = await defaultValues.onFetchData?.({
           pageIndex: pagination.pageIndex + 1,
           pageSize: pagination.pageSize,
           sort: sorting,
         });
-        //console.log(data.data, "imnot");
         setData(data.data || []);
         setTotalRows(data.pagination.totalItems || 0);
       } else {
@@ -128,7 +124,6 @@ export const DataGridProvider = <TData extends object>(
           pageSize: pagination.pageSize,
           sort: sorting,
         });
-        //console.log(data.data, "imnot");
         setData(data.data || []);
         setTotalRows(data.pagination.totalItems || 0);
       }

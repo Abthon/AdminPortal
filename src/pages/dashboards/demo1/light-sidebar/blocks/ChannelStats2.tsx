@@ -15,6 +15,9 @@ interface IChannelStatsItem {
 interface IChannelStatsItems extends Array<IChannelStatsItem> {}
 
 const ChannelStats2 = ({ data }: { data: any }) => {
+  useEffect(()=> {
+    console.log(data, "the data");
+  })
   const items: IChannelStatsItems = [
     {
       logo: "profile-circle",
@@ -31,6 +34,13 @@ const ChannelStats2 = ({ data }: { data: any }) => {
       color: "primary",
     },
     {
+      logo: "note-2",
+      info: data?.totalRequestedBookings,
+      desc: "Total Pending Bookings",
+      path: "",
+      color: "primary",
+    },
+    {
       logo: "car",
       info: data?.totalVehicles,
       desc: "Total Vehicles",
@@ -40,8 +50,8 @@ const ChannelStats2 = ({ data }: { data: any }) => {
     {
       logo: "user",
       logoDark: "tiktok-dark.svg",
-      info: data?.totalUsers,
-      desc: "Total Users",
+      info: data?.totalCorporates,
+      desc: "Total Corporates",
       path: "",
       color: "red",
     },

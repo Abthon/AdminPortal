@@ -323,107 +323,107 @@ const Coorporate = ({
           headerClassName: "min-w-[180px]",
         },
       },
-      {
-        // accessorFn: (row) => row.email,
-        id: "creditLimit",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Credit Limit" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.creditLimit;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
-        // accessorFn: (row) => row.email,
-        id: "paymentPlan",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Payment Plan" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.paymentPlan;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
-        // accessorFn: (row) => row.email,
-        id: "license",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="License" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.license;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
-        // accessorFn: (row) => row.email,
-        id: "tinNo",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Tin No" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.tinNo;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
-        // accessorFn: (row) => row.email,
-        id: "nationalId",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="National Id" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.nationalId;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
-        // accessorFn: (row) => row.email,
-        id: "contactPhoneNumber",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Contact Phone Number" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.contactPhoneNumber;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
-        // accessorFn: (row) => row.email,
-        id: "backupContactPhoneNumber",
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title="Backup Contact Phone Number"
-            column={column}
-          />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.backupContactPhoneNumber;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
+      // {
+      //   // accessorFn: (row) => row.email,
+      //   id: "creditLimit",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Credit Limit" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.creditLimit;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[180px]",
+      //   },
+      // },
+      // {
+      //   // accessorFn: (row) => row.email,
+      //   id: "paymentPlan",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Payment Plan" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.paymentPlan;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[180px]",
+      //   },
+      // },
+      // {
+      //   // accessorFn: (row) => row.email,
+      //   id: "license",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="License" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.license;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[180px]",
+      //   },
+      // },
+      // {
+      //   // accessorFn: (row) => row.email,
+      //   id: "tinNo",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Tin No" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.tinNo;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[180px]",
+      //   },
+      // },
+      // {
+      //   // accessorFn: (row) => row.email,
+      //   id: "nationalId",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="National Id" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.nationalId;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[180px]",
+      //   },
+      // },
+      // {
+      //   // accessorFn: (row) => row.email,
+      //   id: "contactPhoneNumber",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Contact Phone Number" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.contactPhoneNumber;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[180px]",
+      //   },
+      // },
+      // {
+      //   // accessorFn: (row) => row.email,
+      //   id: "backupContactPhoneNumber",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader
+      //       title="Backup Contact Phone Number"
+      //       column={column}
+      //     />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.backupContactPhoneNumber;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[180px]",
+      //   },
+      // },
       // {
       //   accessorFn: (row) => row.booking,
       //   id: "booking",
@@ -611,7 +611,7 @@ const Coorporate = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}
-        sorting={[{ id: "name", desc: false }]}
+        sorting={[{ id: "name", desc: true }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />

@@ -35,6 +35,7 @@ interface IDriversData {
   status: string;
   profilePhoto: string;
   type: string;
+  is_online: boolean;
 }
 
 const Drivers = ({
@@ -266,14 +267,14 @@ const Drivers = ({
           return info.row.original.gender;
         },
         meta: {
-          headerClassName: "min-w-[180px]",
+          headerClassName: "min-w-[120px]",
         },
       },
       {
         // accessorFn: (row) => row.status,
         id: "status",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Status" column={column} />
+          <DataGridColumnHeader title="Approval Status" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -291,7 +292,33 @@ const Drivers = ({
           );
         },
         meta: {
-          headerClassName: "min-w-[180px]",
+          headerClassName: "min-w-[150px]",
+        },
+      },
+      {
+        // accessorFn: (row) => row.status,
+        id: "isOnline",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Availability" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          console.log(info.row.original, "original");
+          return (
+            <div className="flex justify-between relative">
+              <span
+                className={`badge ${info.row.original.is_online ? "badge-success" : "badge-danger"} shrink-0 badge-outline rounded-[30px]`}
+              >
+                <span
+                  className={`size-1.5 rounded-full ${info.row.original.is_online ? "bg-success" : "bg-danger"}  me-1.5`}
+                ></span>
+                {info.row.original.is_online ? "Online" : "Offline"}
+              </span>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[150px]",
         },
       },
       {
@@ -304,7 +331,7 @@ const Drivers = ({
           return info.row.original.type;
         },
         meta: {
-          headerClassName: "min-w-[180px]",
+          headerClassName: "min-w-[140px]",
         },
       },
       {

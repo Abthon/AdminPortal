@@ -437,10 +437,6 @@ const Booking: React.FC<BookingProps> = ({
     );
   };
 
-  // if (isBookingLoading) {
-  //   return <DataGridLoader message="Loading" />;
-  // }
-
   return (
     <>
       <ModalBookingForm
@@ -458,7 +454,7 @@ const Booking: React.FC<BookingProps> = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 20 }}
-        sorting={[{ id: "createdAt", desc: false }]}
+        sorting={[{ id: "createdAt", desc: true }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />

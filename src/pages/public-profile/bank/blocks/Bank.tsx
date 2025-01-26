@@ -425,7 +425,7 @@ const Bank = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}
-        sorting={[{ id: "name", desc: false }]}
+        sorting={[{ id: "name", desc: true }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />
