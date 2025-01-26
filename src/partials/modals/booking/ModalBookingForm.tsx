@@ -94,7 +94,6 @@ const ModalBookingForm = ({
       }
 
       const data = res.data;
-      console.log(data, "estimation response");
       const distance = Math.floor(data.data.estimatedDistance);
       const price = Math.floor(data.data.estimatedPrice);
 
