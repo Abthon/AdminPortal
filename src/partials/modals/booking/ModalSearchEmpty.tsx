@@ -2,7 +2,7 @@ import { toAbsoluteUrl } from "@/utils";
 import React from "react";
 import { Link } from "react-router-dom";
 
-const ModalSearchNoResults = () => {
+const ModalSearchEmpty = () => {
   return (
     <div className="flex flex-col text-center py-9 gap-5">
       <div className="flex justify-center">
@@ -19,14 +19,20 @@ const ModalSearchNoResults = () => {
       </div>
       <div className="flex flex-col gap-1.5">
         <h3 className="text-base font-semibold text-gray-900 text-center">
-          No Results Found
+          Looking for something..
         </h3>
         <span className="text-2sm font-medium text-center text-gray-600">
-          Refine your query to discover relevant items
+          Start typing to search for drivers and easily assign them to <br />{" "}
+          bookings using our intuitive admin dashboard.
         </span>
+      </div>
+      <div className="flex justify-center">
+        <Link to="#" className="btn btn-sm btn-light flex justify-center">
+          View Projects
+        </Link>
       </div>
     </div>
   );
 };
 
-export { ModalSearchNoResults };
+export { ModalSearchEmpty };

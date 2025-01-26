@@ -8,11 +8,13 @@ import {
 } from "@/components/ui/dialog";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import axiosInstance from "@/auth/_helpers";
+import { DataGridLoader, KeenIcon } from "@/components";
+import { ModalSearchEmpty, ModalSearchNoResults } from "../search";
 
 const bookingSchema = Yup.object().shape({
   pickupName: Yup.string().required("Pick up is required."),
@@ -24,6 +26,7 @@ const bookingSchema = Yup.object().shape({
 interface IModalBookingFormProps {
   open: boolean;
   isEdit: boolean;
+  isEndBooking: boolean;
   bookingData: any;
   onOpenChange: () => void;
 }
@@ -32,14 +35,16 @@ const ModalBookingForm = ({
   open,
   onOpenChange,
   isEdit,
+  isEndBooking,
   bookingData,
 }: IModalBookingFormProps) => {
   /* importing booking */
+  const [searchInput, setSearchInput] = useState("");
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
-    mutationFn: isEdit ? editBooking : addBooking,
+    mutationFn: isEndBooking ? editBooking : addBooking,
     onSuccess: () => {
-      toast.success(`Booking ${isEdit ? "Edited" : "Created"}`);
+      toast.success(`Booking ${isEndBooking ? "Completed" : "Created"}`);
       queryClient.invalidateQueries({ queryKey: ["Bookings"] });
       onOpenChange();
     },
@@ -57,10 +62,12 @@ const ModalBookingForm = ({
     dropOffLng: "",
     driverId: "",
     vehicleTypeId: "",
-    status: "",
-    remark: "",
-    traveledPath: "",
-    polyline: "",
+    distance: "",
+    duration: "",
+    // status: "",
+    // remark: "",
+    // traveledPath: "",
+    // polyline: "",
   };
 
   async function addBooking(values: { [key: string]: any }) {
@@ -130,26 +137,32 @@ const ModalBookingForm = ({
 
   async function editBooking(values: { [key: string]: any }) {
     try {
-      const { id, status, remark, traveledPath, polyline } = values;
-
-      const updatedFields = {
-        status,
-        remark,
-        traveledPath,
-        polyline,
-      };
-
-      console.log(updatedFields, "the updated fields");
+      const { id, distance, duration } = values;
+      console.log(distance, duration, "distance duration");
+      // const updatedFields = {
+      //   status,
+      //   remark,
+      //   traveledPath,
+      //   polyline,
+      // };
+      // console.log(updatedFields, "the updated fields");
       try {
-        const res = await axiosInstance.patch(
-          `api/v1/bookings/${id}`,
-          updatedFields
+        const res_primary = await axiosInstance.get(
+          `/api/v1/bookings/${bookingData.id}?fields=driver.id`
         );
-
-        if (res.status !== 200) {
+        console.log(res_primary, "driver Id");
+        const res = await axiosInstance.post(
+          `api/v1/bookings/end/${bookingData.id}`,
+          {
+            actualtraveledPath: "_p~iF~ps|U_ulLnnqC_mqNrxq1oK5bM",
+            distance: distance,
+            duration: duration,
+            driverId: `${res_primary.data.data.driver.id}`,
+          }
+        );
+        if (res.status !== 201) {
           throw new Error(res.data.message || "Failed to edit the booking.");
         }
-
         return res.data;
       } catch (err: any) {
         console.log(err, "The error");
@@ -196,9 +209,57 @@ const ModalBookingForm = ({
     return data.data;
   });
 
+  const { data: searchResults, isLoading: isSearching } = useQuery(
+    ["searchDrivers", searchInput], // Query key includes searchInput
+    () => searchDriver(searchInput), // Fetch function
+    {
+      enabled: !!searchInput.trim(), // Only run query if input is not empty
+      staleTime: 0, // No caching for fresh searches
+      //keepPreviousData: true, // Keep previous results while fetching new data
+    }
+  );
+
+  async function searchDriver(search: { search: any }) {
+    // console.log(search, "search Input");
+    const url = `/api/v1/drivers?filters=firstname=${search}`;
+    const { data } = await axiosInstance.get(url);
+    // setItemsOnPage(itemsOnPage);
+    // setTotalItems(data.pagination.totalItems);
+    // handleDriverNum(data.data.length);
+    console.log(data.data, "data");
+    return data.data;
+  }
+
+  async function handleAssignBookingSubmit(driverId: any) {
+    try {
+      // console.log("booking id", bookingData.id);
+      // console.log("driver id", driverId);
+
+      const res_3 = await axiosInstance.post(
+        `api/v1/bookings/accept/${bookingData.id}`,
+        {
+          driverId: driverId,
+        }
+      );
+      console.log(res_3, "result");
+      if (res_3.status !== 200) {
+        throw new Error(res_3.data.message || "Failed to assign the booking.");
+      }
+      toast.success(`Booking Assigned!`);
+      queryClient.invalidateQueries({ queryKey: ["Bookings"] });
+      onOpenChange();
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message || "An error occurred while adding the booking.";
+      toast.error(errorMessage || errorMessage);
+    }
+  }
+
   const formik = useFormik({
     initialValues,
-    validationSchema: bookingSchema,
+    validationSchema: !isEndBooking && bookingSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
       try {
         mutate(values);
@@ -219,6 +280,115 @@ const ModalBookingForm = ({
     }
   }, [isEdit, open, bookingData]);
 
+  if (isEdit) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[600px] top-[5%] lg:top-[15%] translate-y-0 [&>button]:top-8 [&>button]:end-7">
+          <DialogHeader className="py-4">
+            <DialogTitle></DialogTitle>
+            <DialogDescription></DialogDescription>
+            <KeenIcon icon="magnifier" className="text-gray-700 text-xl" />
+            <input
+              type="text"
+              name="query"
+              className="input px-0 border-none bg-transparent shadow-none ms-2.5"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search Drivers"
+            />
+          </DialogHeader>
+          <DialogBody className="p-0 pb-5">
+            {/* <ModalSearchEmpty /> */}
+            {isSearching && (
+              <div className="menu menu-default p-0 flex-col">
+                <div className="grid gap-1">
+                  {[...Array(4)].map((_, index) => (
+                    <div key={index} className="menu-item animate-pulse">
+                      <div className="menu-link flex justify-between gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className="rounded-full size-9 shrink-0 bg-gray-300"></div>
+                          <div className="flex flex-col gap-1">
+                            <div className="h-4 bg-gray-300 rounded-md w-32"></div>
+                            <div className="h-3 bg-gray-300 rounded-md w-20"></div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2.5">
+                          <div className="badge badge-pill badge-outline gap-1.5 bg-gray-300 w-24 h-6"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!isSearching && searchResults?.length === 0 && (
+              <ModalSearchNoResults />
+            )}
+            {searchResults?.length > 0 && (
+              <div className="menu menu-default p-0 flex-col">
+                <div className="grid gap-1">
+                  {searchResults.map((driver: any, index: any) => (
+                    <div
+                      className="menu-item"
+                      key={index}
+                      onClick={() => {
+                        handleAssignBookingSubmit(driver.id);
+                      }}
+                    >
+                      <div className="menu-link flex justify-between gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <img
+                            src={`${driver.profilePhoto}`}
+                            className="rounded-full size-9 shrink-0"
+                            alt={driver.name}
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-gray-900 hover:text-primary-active mb-px">
+                              {driver.firstName} {driver.lastName}
+                            </span>
+                            <span className="text-2sm font-normal text-gray-500">
+                              {driver.phoneNumber}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className={`badge badge-pill badge-outline ${driver.is_online ? "badge-success" : "badge-danger"} gap-1.5`}
+                          >
+                            <span
+                              className={`badge badge-dot ${driver.is_online ? "badge-success" : "badge-danger"} size-1.5`}
+                            ></span>
+                            {driver.is_online ? "Online" : "Offline"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              // <ul className="list-none p-2">
+              //   {searchResults.map((driver: any) => (
+              //     <li
+              //       key={driver.id}
+              //       className="py-2 px-4 hover:bg-gray-100 cursor-pointer text-black"
+              //       onClick={() =>
+              //         console.log(`Driver selected: ${driver.firstName}`)
+              //       }
+              //     >
+              //       {driver.firstName} {driver.lastName}
+              //     </li>
+              //   ))}
+              // </ul>
+            )}
+            {!isSearching && !searchInput && !searchResults && (
+              <ModalSearchEmpty />
+            )}
+          </DialogBody>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[450px] w-full">
@@ -228,14 +398,14 @@ const ModalBookingForm = ({
         </DialogHeader>
         <DialogBody>
           <h3 className="text-lg font-medium text-gray-900 text-center mb-3">
-            {isEdit ? "Edit" : "Create"} a Booking
+            {isEndBooking ? "Edit" : "Create"} a Booking
           </h3>
           <form
             className="flex flex-col gap-5 pt-10 pb-10 pr-2 pl-2"
             onSubmit={formik.handleSubmit}
             noValidate
           >
-            {!isEdit ? (
+            {!isEndBooking ? (
               <>
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
@@ -543,60 +713,25 @@ const ModalBookingForm = ({
             ) : (
               <>
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">Status</label>
-                  <label className="input">
-                    <select
-                      {...formik.getFieldProps("status")}
-                      className="form-control form-select w-full"
-                      style={{
-                        backgroundColor: "transparent",
-                        outline: "none",
-                        borderColor: "blue",
-                      }}
-                    >
-                      <option value="requested">Requested</option>
-                      <option value="assigned">Assigned</option>
-                      <option value="canceled">Canceled</option>
-                      <option value="timeout">timeout</option>
-                      <option value="driver_not_found">driver_not_found</option>
-                      <option value="completed">completed</option>
-                      <option value="started">started</option>
-                    </select>
-                  </label>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">remark</label>
+                  <label className="form-label text-gray-900">duration</label>
                   <label className="input">
                     <input
-                      placeholder="Enter remark"
+                      placeholder="Enter duration"
                       autoComplete="off"
-                      {...formik.getFieldProps("remark")}
+                      {...formik.getFieldProps("duration")}
                     />
                   </label>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                    traveledPath
-                  </label>
+                  <label className="form-label text-gray-900">distance</label>
                   <label className="input">
                     <input
-                      placeholder="Enter traveledPath"
+                      placeholder="Enter distance"
                       autoComplete="off"
-                      {...formik.getFieldProps("traveledPath")}
+                      {...formik.getFieldProps("distance")}
                     />
                   </label>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">polyline</label>
-                  <label className="input">
-                    <input
-                      placeholder="Enter polyline"
-                      autoComplete="off"
-                      {...formik.getFieldProps("polyline")}
-                    />
-                  </label>
-                </div>
-
                 <button
                   type="submit"
                   className="btn btn-primary flex justify-center grow"

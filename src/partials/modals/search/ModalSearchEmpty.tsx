@@ -1,18 +1,18 @@
-import { toAbsoluteUrl } from '@/utils';
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { toAbsoluteUrl } from "@/utils";
+import React from "react";
+import { Link } from "react-router-dom";
 
 const ModalSearchEmpty = () => {
   return (
     <div className="flex flex-col text-center py-9 gap-5">
       <div className="flex justify-center">
         <img
-          src={toAbsoluteUrl('/media/illustrations/33.svg')}
+          src={toAbsoluteUrl("/media/illustrations/33.svg")}
           className="dark:hidden max-h-[113px]"
           alt="image"
         />
         <img
-          src={toAbsoluteUrl('/media/illustrations/33-dark.svg')}
+          src={toAbsoluteUrl("/media/illustrations/33-dark.svg")}
           className="light:hidden max-h-[113px]"
           alt="image"
         />
@@ -22,14 +22,9 @@ const ModalSearchEmpty = () => {
           Looking for something..
         </h3>
         <span className="text-2sm font-medium text-center text-gray-600">
-          Initiate your digital experience with <br />
-          our intuitive dashboard
+          Start typing to search for drivers and easily assign them to <br />{" "}
+          bookings using our intuitive admin dashboard.
         </span>
-      </div>
-      <div className="flex justify-center">
-        <Link to="#" className="btn btn-sm btn-light flex justify-center">
-          View Projects
-        </Link>
       </div>
     </div>
   );

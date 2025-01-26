@@ -14,12 +14,8 @@ const DriversLocationMap: React.FC<DriverLocationProps> = ({ data }) => {
   };
   const center = { lat: 9.005245, lng: 38.7463535 };
   const validDrivers = data?.filter((driver: any) => driver.lat && driver.lng);
-  const successImg = toAbsoluteUrl(
-    "/media/illustrations/motorcycle-success.png"
-  );
-  const failureImg = toAbsoluteUrl(
-    "/media/illustrations/motorcycle-failure.png"
-  );
+  const successImg = toAbsoluteUrl("/media/illustrations/success-loc.png");
+  const failureImg = toAbsoluteUrl("/media/illustrations/fail-loc.png");
   return (
     <div>
       <LoadScript googleMapsApiKey={"AIzaSyDBbmSw9fX9vAjkgPpJ3ahoYsmzagGr4LI"}>
