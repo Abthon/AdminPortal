@@ -429,22 +429,21 @@ const Drivers = ({
               </SelectTrigger>
               <SelectContent className="w-32">
                 <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="disabled">Disabled</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select defaultValue="latest">
+            <Select defaultValue="active">
               <SelectTrigger className="w-28" size="sm">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="w-32">
-                <SelectItem value="latest">Latest</SelectItem>
-                <SelectItem value="older">Older</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
+                <SelectItem value="active">Online</SelectItem>
+                <SelectItem value="inactive">Offline</SelectItem>
               </SelectContent>
             </Select>
-
             <button className="btn btn-sm btn-outline btn-primary">
               <KeenIcon icon="setting-4" /> Filters
             </button>

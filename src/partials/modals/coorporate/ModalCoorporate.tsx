@@ -23,7 +23,7 @@ const coorporateSchema = Yup.object().shape({
   creditLimit: Yup.number().required("creditLimit is required"),
   contractLength: Yup.string().required("contractLength is required."),
   paymentPlan: Yup.number().required("payment Plan is required."),
-  license: Yup.string().required("license is required."),
+  license: Yup.mixed().required("license is required."),
   tinNo: Yup.string().required("tin number is required."),
   address: Yup.string().required("address is required."),
   contactPhoneNumber: Yup.string().required(
@@ -111,7 +111,6 @@ const ModalCoorporateForm = ({
         //contractLength: "2024-12-31T00:00:00.000Z",
         contractlength: "",
         paymentPlan: "",
-        license: "",
         tinNo: "",
         address: "",
         contactPhoneNumber: "",
@@ -121,8 +120,8 @@ const ModalCoorporateForm = ({
 
   async function addCoorporate(values: { [key: string]: any }) {
     try {
-      const { officialStampedLetter, ...updatedFields } = values as {
-        contractlength: string;
+      const { officialStampedLetter, license, ...updatedFields } = values as {
+        license: File;
         officialStampedLetter: File;
         [key: string]: any;
       };
@@ -131,16 +130,28 @@ const ModalCoorporateForm = ({
       if (officialStampedLetter) {
         formData.append("file", officialStampedLetter);
       }
-      console.log(formData, "formdata");
 
       const res = await axiosInstance.post(
-        `api/v1/file-upload/image/license`,
+        `api/v1/file-upload/image/letter`,
         formData
       );
 
-      console.log(res, "res");
-
       const officialStampedLetter_res = res.data.data.filename;
+      if (res.status !== 201) {
+        throw new Error(res.data.message || "Failed to add coorporate.");
+      }
+
+      const licenseFormData = new FormData();
+      if(license){
+        licenseFormData.append("file", officialStampedLetter);
+      }
+
+      const licenseResponse = await axiosInstance.post(
+        `api/v1/file-upload/image/license`,
+        licenseFormData
+      );
+
+      const licenseFileName = licenseResponse.data.data.filename;
       if (res.status !== 201) {
         throw new Error(res.data.message || "Failed to add coorporate.");
       }
@@ -150,12 +161,11 @@ const ModalCoorporateForm = ({
       const lastData = {
         ...filteredFields,
         officialStampedLetter: officialStampedLetter_res,
+        license: licenseFileName,
       };
 
-      console.log(lastData, "last data");
+      console.log(lastData, "last data new abisha");
       const res_3 = await axiosInstance.post("api/v1/coorporate", lastData);
-
-      console.log(res_3.status, "res_3"); //here
 
       if (res_3.status !== 201) {
         throw new Error(
@@ -164,11 +174,10 @@ const ModalCoorporateForm = ({
       }
 
       const data_3 = res_3.data;
-      console.log(data_3, "data_3");
       return data_3;
     } catch (err: any) {
-      console.log(err, "The error");
       const errorMessage = err?.response?.data?.message;
+      console.log(err, "The error");
       const errorMessageAlt =
         (err as Error).message ||
         "An error occurred while adding the coorporate.";
@@ -190,7 +199,7 @@ const ModalCoorporateForm = ({
       if (officialStampedLetter instanceof File) {
         formData.append("file", officialStampedLetter);
         const res = await axiosInstance.post(
-          `api/v1/file-upload/image/license`,
+          `api/v1/file-upload/image/letter`,
           formData
         );
 
@@ -509,33 +518,29 @@ const ModalCoorporateForm = ({
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">License</label>
-                  <label className="input">
+                  <label className="form-label text-gray-900">
+                    license
+                  </label>
+
+                  <label className="input  max-w-[390px] overflow-hidden">
                     <input
-                      placeholder="Enter License"
-                      autoComplete="off"
-                      {...formik.getFieldProps("license")}
-                      className={clsx(
-                        "form-control bg-transparent",
-                        {
-                          "is-invalid":
-                            formik.touched.license && formik.errors.license,
-                        },
-                        {
-                          "is-valid":
-                            formik.touched.license && !formik.errors.license,
-                        }
-                      )}
+                      type="file"
+                      name="file"
+                      onChange={(event) => {
+                        const file = event.target.files
+                          ? event.target.files[0]
+                          : null;
+                        formik.setFieldValue("license", file);
+                      }}
                     />
                   </label>
-                  {formik.touched.license && formik.errors.license && (
+                  {formik.errors.license && (
                     <span role="alert" className="text-danger text-xs mt-1">
-                      {typeof formik.errors.license === "string" &&
-                        formik.errors.license}
+                      {typeof formik.errors.license ===
+                        "string" && formik.errors.license}
                     </span>
                   )}
                 </div>
-
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Tin No</label>
                   <label className="input">

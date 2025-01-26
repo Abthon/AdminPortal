@@ -377,20 +377,8 @@ const Bank = ({
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="w-32">
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="disabled">Disabled</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select defaultValue="latest">
-              <SelectTrigger className="w-28" size="sm">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent className="w-32">
-                <SelectItem value="latest">Latest</SelectItem>
-                <SelectItem value="older">Older</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
+                <SelectItem value="active">Approved</SelectItem>
+                <SelectItem value="disabled">Rejected</SelectItem>
               </SelectContent>
             </Select>
 

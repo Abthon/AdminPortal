@@ -480,23 +480,13 @@ const Booking: React.FC<BookingProps> = ({
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="w-32">
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="disabled">Disabled</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="active">Requested</SelectItem>
+                <SelectItem value="assigned">Assigned</SelectItem>
+                <SelectItem value="started">Started</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="notfound">NotFound</SelectItem>
               </SelectContent>
             </Select>
-
-            <Select defaultValue="latest">
-              <SelectTrigger className="w-28" size="sm">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent className="w-32">
-                <SelectItem value="latest">Latest</SelectItem>
-                <SelectItem value="older">Older</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
-              </SelectContent>
-            </Select>
-
             <button className="btn btn-sm btn-outline btn-primary">
               <KeenIcon icon="setting-4" /> Filters
             </button>

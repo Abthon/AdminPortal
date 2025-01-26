@@ -224,8 +224,8 @@ const VechileType = ({
           );
         },
         meta: {
-          className: "min-w-[300px]",
-          cellClassName: "min-w-[250px] text-gray-800 font-normal",
+          className: "min-w-[200px]",
+          cellClassName: "min-w-[200px] text-gray-800 font-normal",
         },
       },
       {
@@ -239,7 +239,7 @@ const VechileType = ({
           return info.row.original.baseFare;
         },
         meta: {
-          headerClassName: "min-w-[180px]",
+          headerClassName: "min-w-[130px]",
         },
       },
       {
@@ -358,36 +358,6 @@ const VechileType = ({
         <h3 className="card-title font-medium text-sm">
           Showing {itemsOnPage} of {totalItems} vehicle types
         </h3>
-
-        <div className="flex flex-wrap gap-2 lg:gap-5">
-          <div className="flex flex-wrap gap-2.5">
-            <Select defaultValue="active">
-              <SelectTrigger className="w-28" size="sm">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent className="w-32">
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="disabled">Disabled</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select defaultValue="latest">
-              <SelectTrigger className="w-28" size="sm">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent className="w-32">
-                <SelectItem value="latest">Latest</SelectItem>
-                <SelectItem value="older">Older</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <button className="btn btn-sm btn-outline btn-primary">
-              <KeenIcon icon="setting-4" /> Filters
-            </button>
-          </div>
-        </div>
       </div>
     );
   };

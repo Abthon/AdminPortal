@@ -305,36 +305,6 @@ const Config = ({
         <h3 className="card-title font-medium text-sm">
           Showing {itemsOnPage} of {totalItems} configs
         </h3>
-
-        <div className="flex flex-wrap gap-2 lg:gap-5">
-          <div className="flex flex-wrap gap-2.5">
-            <Select defaultValue="active">
-              <SelectTrigger className="w-28" size="sm">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent className="w-32">
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="disabled">Disabled</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select defaultValue="latest">
-              <SelectTrigger className="w-28" size="sm">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent className="w-32">
-                <SelectItem value="latest">Latest</SelectItem>
-                <SelectItem value="older">Older</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <button className="btn btn-sm btn-outline btn-primary">
-              <KeenIcon icon="setting-4" /> Filters
-            </button>
-          </div>
-        </div>
       </div>
     );
   };
