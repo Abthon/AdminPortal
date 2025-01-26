@@ -17,8 +17,9 @@ import { toast } from "sonner";
 
 const coorporateSchema = Yup.object().shape({
   name: Yup.string().required("name is required."),
-  email: Yup.string().required("email is required."),
-  password: Yup.string().required("password is required."),
+  email: Yup.string().email("Invalid email address").required("Email is required."),
+  password: Yup.string().required("Password is required").matches(/^(?=.*\d)[A-Za-z\d]{8,}$/, 'Your password must contain both letters and numbers and the Minimum length should be 8 characters.',
+  ),
   creditLimit: Yup.number().required("creditLimit is required"),
   contractLength: Yup.string().required("contractLength is required."),
   paymentPlan: Yup.number().required("payment Plan is required."),
@@ -54,10 +55,6 @@ const ModalCoorporateForm = ({
   isApproved,
   CoorporateData,
 }: IModalCoorporateFormProps) => {
-  // console.log(isEdit);
-  // console.log(CoorporateData, isEdit)
-  // ;
-  // console.log(isApproved);
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
     mutationFn: isApproved
@@ -143,9 +140,7 @@ const ModalCoorporateForm = ({
 
       console.log(res, "res");
 
-      //res.data.data.filename
       const officialStampedLetter_res = res.data.data.filename;
-
       if (res.status !== 201) {
         throw new Error(res.data.message || "Failed to add coorporate.");
       }
@@ -199,11 +194,7 @@ const ModalCoorporateForm = ({
           formData
         );
 
-        console.log(res, "res");
-
-        //res.data.data.filename
         officialStampedLetter_res = res.data.data.filename;
-
         if (res.status !== 201) {
           throw new Error(res.data.message || "Failed to edit the coorporate.");
         }
