@@ -23,7 +23,7 @@ const ModalSearchEmpty = () => {
         </h3>
         <span className="text-2sm font-medium text-center text-gray-600">
           Start typing to search for drivers and easily assign them to <br />{" "}
-          bookings using our intuitive admin dashboard.
+          bookings.
         </span>
       </div>
     </div>

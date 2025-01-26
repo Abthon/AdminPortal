@@ -275,14 +275,14 @@ const Booking: React.FC<BookingProps> = ({
           return timeAgo(info.row.original.createdAt);
         },
         meta: {
-          headerClassName: "min-w-[100px]",
+          headerClassName: "min-w-[90px]",
         },
       },
       {
         // accessorFn: (row) => row.pickupName,
         id: "pickupName",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Pickup Name" column={column} />
+          <DataGridColumnHeader title="Pickup" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -296,7 +296,7 @@ const Booking: React.FC<BookingProps> = ({
         // accessorFn: (row) => row.dropOffName,
         id: "dropOffName",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Drop Off Name" column={column} />
+          <DataGridColumnHeader title="Drop Off" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -310,21 +310,21 @@ const Booking: React.FC<BookingProps> = ({
         // accessorFn: (row) => row.estimatedTraveledDistance,
         id: "estimatedTraveledDistance",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Est. Distance" column={column} />
+          <DataGridColumnHeader title="Distance" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
           return info.row.original.estimatedTraveledDistance;
         },
         meta: {
-          headerClassName: "min-w-[100px]",
+          headerClassName: "min-w-[80px]",
         },
       },
       {
         // accessorFn: (row) => row.estimatedPrice,
         id: "estimatedPrice",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Actual Price" column={column} />
+          <DataGridColumnHeader title="Price" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -380,7 +380,7 @@ const Booking: React.FC<BookingProps> = ({
           );
         },
         meta: {
-          headerClassName: "min-w-[80px]",
+          headerClassName: "min-w-[75px]",
         },
       },
       {
