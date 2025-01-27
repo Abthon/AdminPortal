@@ -76,8 +76,6 @@ const ModalCoorporateForm = ({
   });
 
   async function approveCoorporate(values: Object) {
-    // console.log("hi");
-    // console.log(values);
     try {
       const { id, status } = values as {
         id: string;
@@ -164,7 +162,6 @@ const ModalCoorporateForm = ({
         license: licenseFileName,
       };
 
-      console.log(lastData, "last data new abisha");
       const res_3 = await axiosInstance.post("api/v1/coorporate", lastData);
 
       if (res_3.status !== 201) {
@@ -231,8 +228,6 @@ const ModalCoorporateForm = ({
         lastData
       );
 
-      console.log(res_3);
-
       if (res_3.status !== 200) {
         throw new Error(
           res_3.data.message || "Failed to update the coorporate."
@@ -264,7 +259,6 @@ const ModalCoorporateForm = ({
   });
 
   useEffect(() => {
-    //console.log("there rh", isEdit);
     if (open) {
       if (isEdit) {
         formik.setValues(CoorporateData || {}); // Populate form with edit data
