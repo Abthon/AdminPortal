@@ -1,15 +1,15 @@
-import { type MouseEvent, useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import clsx from 'clsx';
-import * as Yup from 'yup';
-import { useFormik } from 'formik';
-import { KeenIcon } from '@/components';
-import { toAbsoluteUrl } from '@/utils';
-import { useAuthContext } from '@/auth';
-import { useLayout } from '@/providers';
-import { Alert } from '@/components';
-import { toast } from 'sonner';
-import { setAuth } from '@/auth/_helpers'; // Import setAuth function
+import { type MouseEvent, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import clsx from "clsx";
+import * as Yup from "yup";
+import { useFormik } from "formik";
+import { KeenIcon } from "@/components";
+import { toAbsoluteUrl } from "@/utils";
+import { useAuthContext } from "@/auth";
+import { useLayout } from "@/providers";
+import { Alert } from "@/components";
+import { toast } from "sonner";
+import { setAuth } from "@/auth/_helpers"; // Import setAuth function
 
 const loginSchema = Yup.object().shape({
   email: Yup.string()
@@ -25,9 +25,9 @@ const loginSchema = Yup.object().shape({
 });
 
 const initialValues = {
-  email: '',
-  password: '', //testpass123
-  remember: false
+  email: "",
+  password: "",
+  remember: false,
 };
 
 const Login = () => {

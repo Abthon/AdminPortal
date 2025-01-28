@@ -1,45 +1,45 @@
-import clsx from 'clsx';
-import { useFormik } from 'formik';
-import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import * as Yup from 'yup';
+import clsx from "clsx";
+import { useFormik } from "formik";
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import * as Yup from "yup";
 
-import { useAuthContext } from '../../useAuthContext';
-import { toAbsoluteUrl } from '@/utils';
-import { Alert, KeenIcon } from '@/components';
-import { useLayout } from '@/providers';
+import { useAuthContext } from "../../useAuthContext";
+import { toAbsoluteUrl } from "@/utils";
+import { Alert, KeenIcon } from "@/components";
+import { useLayout } from "@/providers";
 
 const initialValues = {
-  email: 'abenezerwalelign9@gmail.com',
-  firstname: 'Abeni',
-  lastname: 'Wal',
-  password: 'testpass',
-  changepassword: 'testpass',
+  email: "",
+  firstname: "",
+  lastname: "",
+  password: "",
+  changepassword: "",
 };
 
 const signupSchema = Yup.object().shape({
   email: Yup.string()
-    .email('Wrong email format')
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('Email is required'),
+    .email("Wrong email format")
+    .min(3, "Minimum 3 symbols")
+    .max(50, "Maximum 50 symbols")
+    .required("Email is required"),
   firstname: Yup.string()
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('FirstName is required'),
+    .min(3, "Minimum 3 symbols")
+    .max(50, "Maximum 50 symbols")
+    .required("FirstName is required"),
   lastname: Yup.string()
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('LastName is required'),
+    .min(3, "Minimum 3 symbols")
+    .max(50, "Maximum 50 symbols")
+    .required("LastName is required"),
   password: Yup.string()
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('Password is required'),
+    .min(3, "Minimum 3 symbols")
+    .max(50, "Maximum 50 symbols")
+    .required("Password is required"),
   changepassword: Yup.string()
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('Password confirmation is required')
-    .oneOf([Yup.ref('password')], "Password and Confirm Password didn't match"),
+    .min(3, "Minimum 3 symbols")
+    .max(50, "Maximum 50 symbols")
+    .required("Password confirmation is required")
+    .oneOf([Yup.ref("password")], "Password and Confirm Password didn't match"),
 });
 
 const Signup = () => {
@@ -47,7 +47,7 @@ const Signup = () => {
   const { register } = useAuthContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/auth/2fa';
+  const from = location.state?.from?.pathname || "/auth/2fa";
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { currentLayout } = useLayout();
@@ -59,23 +59,29 @@ const Signup = () => {
       setLoading(true);
       try {
         if (!register) {
-          throw new Error('JWTProvider is required for this form.');
+          throw new Error("JWTProvider is required for this form.");
         }
         console.log("request lilak");
-        await register(values.firstname, values.lastname, values.email, values.password);
-        navigate(from, { replace: true, state: {
-          message: "Type the otp we sent to you via email here!",
-          email: values.email,
-        }
-      }
-    );
+        await register(
+          values.firstname,
+          values.lastname,
+          values.email,
+          values.password
+        );
+        navigate(from, {
+          replace: true,
+          state: {
+            message: "Type the otp we sent to you via email here!",
+            email: values.email,
+          },
+        });
       } catch (error) {
         console.error(error, "the error message");
-        setStatus('The sign up details are incorrect');
+        setStatus("The sign up details are incorrect");
         setSubmitting(false);
         setLoading(false);
       }
-    }
+    },
   });
 
   const togglePassword = (event: { preventDefault: () => void }) => {
@@ -96,22 +102,24 @@ const Signup = () => {
         onSubmit={formik.handleSubmit}
       >
         <div className="text-center mb-2.5">
-          <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">Sign up</h3>
+          <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">
+            Sign up
+          </h3>
 
           <div className="flex items-center justify-center font-medium">
-            <span className="text-2sm text-gray-600 me-1.5">Want to verify your account ?</span>
-            <Link
-              to={'/auth/2fa'}
-              className="text-2sm link"
-            >Verify</Link>
+            <span className="text-2sm text-gray-600 me-1.5">
+              Want to verify your account ?
+            </span>
+            <Link to={"/auth/2fa"} className="text-2sm link">
+              Verify
+            </Link>
           </div>
-          
+
           <div className="flex items-center justify-center font-medium">
-            <span className="text-2sm text-gray-600 me-1.5">Already have an Account ?</span>
-            <Link
-              to={'/auth/login'}
-              className="text-2sm link"
-            >
+            <span className="text-2sm text-gray-600 me-1.5">
+              Already have an Account ?
+            </span>
+            <Link to={"/auth/login"} className="text-2sm link">
               Sign In
             </Link>
           </div>
@@ -154,12 +162,12 @@ const Signup = () => {
               placeholder="email@email.com"
               type="email"
               autoComplete="off"
-              {...formik.getFieldProps('email')}
+              {...formik.getFieldProps("email")}
               className={clsx(
-                'form-control bg-transparent',
-                { 'is-invalid': formik.touched.email && formik.errors.email },
+                "form-control bg-transparent",
+                { "is-invalid": formik.touched.email && formik.errors.email },
                 {
-                  'is-valid': formik.touched.email && !formik.errors.email
+                  "is-valid": formik.touched.email && !formik.errors.email,
                 }
               )}
             />
@@ -179,12 +187,16 @@ const Signup = () => {
               placeholder="firstname"
               type="text"
               autoComplete="off"
-              {...formik.getFieldProps('firstname')}
+              {...formik.getFieldProps("firstname")}
               className={clsx(
-                'form-control bg-transparent',
-                { 'is-invalid': formik.touched.firstname && formik.errors.firstname },
+                "form-control bg-transparent",
                 {
-                  'is-valid': formik.touched.firstname && !formik.errors.firstname
+                  "is-invalid":
+                    formik.touched.firstname && formik.errors.firstname,
+                },
+                {
+                  "is-valid":
+                    formik.touched.firstname && !formik.errors.firstname,
                 }
               )}
             />
@@ -205,12 +217,16 @@ const Signup = () => {
               placeholder="lastname"
               type="text"
               autoComplete="off"
-              {...formik.getFieldProps('lastname')}
+              {...formik.getFieldProps("lastname")}
               className={clsx(
-                'form-control bg-transparent',
-                { 'is-invalid': formik.touched.lastname && formik.errors.lastname },
+                "form-control bg-transparent",
                 {
-                  'is-valid': formik.touched.lastname && !formik.errors.lastname
+                  "is-invalid":
+                    formik.touched.lastname && formik.errors.lastname,
+                },
+                {
+                  "is-valid":
+                    formik.touched.lastname && !formik.errors.lastname,
                 }
               )}
             />
@@ -227,25 +243,30 @@ const Signup = () => {
           <label className="form-label text-gray-900">Password</label>
           <label className="input">
             <input
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               placeholder="Enter Password"
               autoComplete="off"
-              {...formik.getFieldProps('password')}
+              {...formik.getFieldProps("password")}
               className={clsx(
-                'form-control bg-transparent',
+                "form-control bg-transparent",
                 {
-                  'is-invalid': formik.touched.password && formik.errors.password
+                  "is-invalid":
+                    formik.touched.password && formik.errors.password,
                 },
                 {
-                  'is-valid': formik.touched.password && !formik.errors.password
+                  "is-valid":
+                    formik.touched.password && !formik.errors.password,
                 }
               )}
             />
             <button className="btn btn-icon" onClick={togglePassword}>
-              <KeenIcon icon="eye" className={clsx('text-gray-500', { hidden: showPassword })} />
+              <KeenIcon
+                icon="eye"
+                className={clsx("text-gray-500", { hidden: showPassword })}
+              />
               <KeenIcon
                 icon="eye-slash"
-                className={clsx('text-gray-500', { hidden: !showPassword })}
+                className={clsx("text-gray-500", { hidden: !showPassword })}
               />
             </button>
           </label>
@@ -260,28 +281,36 @@ const Signup = () => {
           <label className="form-label text-gray-900">Confirm Password</label>
           <label className="input">
             <input
-              type={showConfirmPassword ? 'text' : 'password'}
+              type={showConfirmPassword ? "text" : "password"}
               placeholder="Re-enter Password"
               autoComplete="off"
-              {...formik.getFieldProps('changepassword')}
+              {...formik.getFieldProps("changepassword")}
               className={clsx(
-                'form-control bg-transparent',
+                "form-control bg-transparent",
                 {
-                  'is-invalid': formik.touched.changepassword && formik.errors.changepassword
+                  "is-invalid":
+                    formik.touched.changepassword &&
+                    formik.errors.changepassword,
                 },
                 {
-                  'is-valid': formik.touched.changepassword && !formik.errors.changepassword
+                  "is-valid":
+                    formik.touched.changepassword &&
+                    !formik.errors.changepassword,
                 }
               )}
             />
             <button className="btn btn-icon" onClick={toggleConfirmPassword}>
               <KeenIcon
                 icon="eye"
-                className={clsx('text-gray-500', { hidden: showConfirmPassword })}
+                className={clsx("text-gray-500", {
+                  hidden: showConfirmPassword,
+                })}
               />
               <KeenIcon
                 icon="eye-slash"
-                className={clsx('text-gray-500', { hidden: !showConfirmPassword })}
+                className={clsx("text-gray-500", {
+                  hidden: !showConfirmPassword,
+                })}
               />
             </button>
           </label>
@@ -317,7 +346,7 @@ const Signup = () => {
           className="btn btn-primary flex justify-center grow"
           disabled={loading || formik.isSubmitting}
         >
-          {loading ? 'Please wait...' : 'Sign UP'}
+          {loading ? "Please wait..." : "Sign UP"}
         </button>
       </form>
     </div>
