@@ -346,8 +346,7 @@ const VehicleRegistration = ({
           Showing {itemsOnPage} of {totalItems} vehicles
         </h3>
 
-        <div className="flex flex-wrap gap-2 lg:gap-5">
-        </div>
+        <div className="flex flex-wrap gap-2 lg:gap-5"></div>
       </div>
     );
   };
@@ -395,6 +394,7 @@ const VehicleRegistration = ({
         columns={columns}
         onSearchData={searchVehicle}
         data={data}
+        link={"vehicle"}
         searchInput={searchInput}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}

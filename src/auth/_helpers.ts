@@ -1,8 +1,8 @@
-import { User as Auth0UserModel } from '@auth0/auth0-spa-js';
-import axios from 'axios';
+import { User as Auth0UserModel } from "@auth0/auth0-spa-js";
+import axios from "axios";
 
-import { getData, setData } from '@/utils';
-import { type AuthModel } from './_models';
+import { getData, setData } from "@/utils";
+import { type AuthModel } from "./_models";
 
 const AUTH_LOCAL_STORAGE_KEY = `${import.meta.env.VITE_APP_NAME}_auth`;
 
@@ -15,7 +15,7 @@ const getAuth = (): AuthModel | undefined => {
       return undefined;
     }
   } catch (error) {
-    console.error('AUTH LOCAL STORAGE PARSE ERROR', error);
+    console.error("AUTH LOCAL STORAGE PARSE ERROR", error);
   }
 };
 
@@ -31,12 +31,12 @@ const removeAuth = () => {
   try {
     localStorage.removeItem(AUTH_LOCAL_STORAGE_KEY);
   } catch (error) {
-    console.error('AUTH LOCAL STORAGE REMOVE ERROR', error);
+    console.error("AUTH LOCAL STORAGE REMOVE ERROR", error);
   }
 };
 
 export function setupAxios(axiosInstance: any) {
-  axiosInstance.defaults.headers.Accept = 'application/json';
+  axiosInstance.defaults.headers.Accept = "application/json";
   axiosInstance.interceptors.request.use(
     (config: { headers: { Authorization: string } }) => {
       const auth = getAuth();
@@ -54,14 +54,21 @@ export function setupAxios(axiosInstance: any) {
     (response: any) => response,
     async (error: any) => {
       const originalRequest = error.config;
-      if (error.response && error.response.status === 401 && !originalRequest._retry) {
+      if (
+        error.response &&
+        error.response.status === 401 &&
+        !originalRequest._retry
+      ) {
         originalRequest._retry = true;
         const auth = getAuth();
         if (auth?.refreshToken) {
           try {
-            const { data } = await axios.post('https://static.129.134.201.195.clients.your-server.de/prod/api/v1/auth/refresh', {
-              refreshToken: auth.refreshToken,
-            });
+            const { data } = await axios.post(
+              "https://static.129.134.201.195.clients.your-server.de/prod/api/v1/auth/refresh",
+              {
+                refreshToken: auth.refreshToken,
+              }
+            );
 
             console.log(data, "the new token");
             const newAuth = { ...auth, accessToken: data.accessToken };
@@ -71,11 +78,11 @@ export function setupAxios(axiosInstance: any) {
             return axiosInstance(originalRequest);
           } catch (refreshError) {
             removeAuth();
-            window.location.href = '/auth/login'; // Redirect to login page
+            window.location.href = "/auth/login"; // Redirect to login page
           }
         } else {
           removeAuth();
-          window.location.href = '/auth/login'; // Redirect to login page
+          window.location.href = "/auth/login"; // Redirect to login page
         }
       }
       return Promise.reject(error);
@@ -84,9 +91,9 @@ export function setupAxios(axiosInstance: any) {
 }
 
 const axiosInstance = axios.create({
-  baseURL: 'https://static.129.134.201.195.clients.your-server.de/prod'
+  baseURL: "https://static.129.134.201.195.clients.your-server.de/prod",
   // baseURL: 'https://static.129.134.201.195.clients.your-server.de/dev'
-  // baseURL: 'http://195.201.134.129/test', // This is the base URL
+  // baseURL: 'http://195.201.134.129/prod', // This is the base URL
 });
 
 setupAxios(axiosInstance);
