@@ -57,6 +57,7 @@ const Bank = ({
   const [pageIndex, setPageIndex] = useState({ index: 0 });
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
+  const [filterInput, setFilterInput] = useState("all");
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -100,7 +101,9 @@ const Bank = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/banks?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
+    console.log(filterInput, "right");
+    const url = `/api/v1/banks?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=isApproved=${filterInput == "approved" ? "1" : "0"}` : ""}`;
+    console.log("url", url);
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -128,7 +131,8 @@ const Bank = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/banks?filters=name=${search}&take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/banks?filters=name=${search}${filterInput && filterInput !== "all" ? `,isApproved=${filterInput == "approved" ? "1" : "0"}` : ""}&take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
+
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -159,7 +163,7 @@ const Bank = ({
   }
 
   const { isLoading: isDriverLoading, data: BankData } = useQuery({
-    queryKey: ["Banks", searchInput],
+    queryKey: ["Banks", searchInput, filterInput],
     queryFn: revalidateBank,
   });
 
@@ -268,7 +272,7 @@ const Bank = ({
           return (
             <div className="flex justify-between relative">
               <span
-                className={`badge ${info.row.original.isApproved === false && "badge-warning"} ${info.row.original.isApproved === true && "badge-success"} shrink-0 badge-outline rounded-[30px]`}
+                className={`badge ${info.row.original.isApproved === false && "badge-danger"} ${info.row.original.isApproved === true && "badge-success"} shrink-0 badge-outline rounded-[30px]`}
               >
                 <span
                   className={`size-1.5 rounded-full ${info.row.original.isApproved === false && "bg-danger"} ${info.row.original.isApproved === true && "bg-success"} me-1.5`}
@@ -302,47 +306,6 @@ const Bank = ({
           headerClassName: "min-w-[80px]",
         },
       },
-      // {
-      //   id: "Delete",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Delete" column={column} />
-      //   ),      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <button
-      //         onClick={() => mutate(info.row.original.id)}
-      //         disabled={true}
-      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-      //       >
-      //         <KeenIcon icon="trash" />
-      //       </button>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[80px]",
-      //   },
-      // },
-      // {
-      //   id: "Approve",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Approve" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <button
-      //         disabled={true}
-      //         onClick={() => handleApproval(true, info.row.original)}
-      //         className="btn btn-sm btn-icon btn-clear btn-primary hover:text-white"
-      //       >
-      //         <KeenIcon icon="double-check" />
-      //       </button>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[80px]",
-      //   },
-      // },
     ],
     [mutate]
   );
@@ -364,6 +327,11 @@ const Bank = ({
   };
 
   const Toolbar = () => {
+    const handleFilterChange = (value: any) => {
+      setFilterInput(value); // Update the state when the user selects an item
+      console.log("Filter value changed to:", value); // Optional: log for debugging
+    };
+
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
@@ -372,13 +340,18 @@ const Bank = ({
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex flex-wrap gap-2.5">
-            <Select defaultValue="active">
+            <Select
+              value={filterInput}
+              onValueChange={handleFilterChange}
+              defaultValue="all"
+            >
               <SelectTrigger className="w-28" size="sm">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="w-32">
-                <SelectItem value="active">Approved</SelectItem>
-                <SelectItem value="disabled">Rejected</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
 
@@ -409,6 +382,7 @@ const Bank = ({
         onSearchData={searchBank}
         searchInput={searchInput}
         data={data}
+        filterInput={filterInput}
         columns={columns}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}

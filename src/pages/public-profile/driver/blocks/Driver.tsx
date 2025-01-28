@@ -59,6 +59,8 @@ const Drivers = ({
   // const [sort, setSort] = useState<string | null>(null);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
+  const [filterInput, setFilterInput] = useState("all");
+  const [filterInputAvaliable, setFilterInputAvaliable] = useState("all");
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -106,7 +108,9 @@ const Drivers = ({
     //   console.log(sort[0].id, "here");
     //   console.log(sort, "sorting is finally here");
     // }
-    const url = `/api/v1/drivers?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    // [Todo: refactor url]
+    const url = `/api/v1/drivers?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}${filterInputAvaliable && filterInputAvaliable !== "all" ? `${filterInput && filterInput !== "all" ? `,is_online=${filterInputAvaliable == "online" ? "1" : "0"}` : `&filters=is_online=${filterInputAvaliable == "online" ? "1" : "0"}`}` : ""}`;
+    console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -135,7 +139,7 @@ const Drivers = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/drivers?filters=firstname=${search}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/drivers?filters=firstname=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}${filterInputAvaliable && filterInputAvaliable !== "all" ? `,is_online=${filterInputAvaliable == "online" ? "1" : "0"}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -166,7 +170,7 @@ const Drivers = ({
   }
 
   const { isLoading: isDriverLoading, data: DriverData } = useQuery({
-    queryKey: ["Drivers", searchInput],
+    queryKey: ["Drivers", searchInput, filterInput, filterInputAvaliable],
     queryFn: revalidateDriver,
   });
 
@@ -227,11 +231,17 @@ const Drivers = ({
           // 'row' argumentini cell funksiyasiga qo'shdik
           return (
             <div className="flex items-center gap-4">
-              <img
+              {/* <img
                 src={img}
                 className="rounded-full size-9 shrink-0"
                 // alt={`${row.original.profilePhoto}`}
-              />
+              /> */}
+              <div className="relative">
+                <img src={img} className="rounded-full size-9 shrink-0" />
+                <div
+                  className={`flex size-2 bg-${row.original.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform`}
+                ></div>
+              </div>
 
               <div className="flex flex-col gap-0.5">
                 <Link
@@ -295,32 +305,32 @@ const Drivers = ({
           headerClassName: "min-w-[150px]",
         },
       },
-      {
-        // accessorFn: (row) => row.status,
-        id: "isOnline",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Availability" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          console.log(info.row.original, "original");
-          return (
-            <div className="flex justify-between relative">
-              <span
-                className={`badge ${info.row.original.is_online ? "badge-success" : "badge-danger"} shrink-0 badge-outline rounded-[30px]`}
-              >
-                <span
-                  className={`size-1.5 rounded-full ${info.row.original.is_online ? "bg-success" : "bg-danger"}  me-1.5`}
-                ></span>
-                {info.row.original.is_online ? "Online" : "Offline"}
-              </span>
-            </div>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[150px]",
-        },
-      },
+      // {
+      //   // accessorFn: (row) => row.status,
+      //   id: "isOnline",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Availability" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     console.log(info.row.original, "original");
+      //     return (
+      //       <div className="flex justify-between relative">
+      //         <span
+      //           className={`badge ${info.row.original.is_online ? "badge-success" : "badge-danger"} shrink-0 badge-outline rounded-[30px]`}
+      //         >
+      //           <span
+      //             className={`size-1.5 rounded-full ${info.row.original.is_online ? "bg-success" : "bg-danger"}  me-1.5`}
+      //           ></span>
+      //           {info.row.original.is_online ? "Online" : "Offline"}
+      //         </span>
+      //       </div>
+      //     );
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[150px]",
+      //   },
+      // },
       {
         id: "type",
         header: ({ column }) => (
@@ -415,6 +425,16 @@ const Drivers = ({
   };
 
   const Toolbar = () => {
+    const handleFilterChange = (value: any) => {
+      setFilterInput(value); // Update the state when the user selects an item
+      console.log("Filter value changed to:", value); // Optional: log for debugging
+    };
+
+    const handleFilterChangeAvaliable = (value: any) => {
+      setFilterInputAvaliable(value); // Update the state when the user selects an item
+      console.log("Filter value changed to:", value); // Optional: log for debugging
+    };
+
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
@@ -423,11 +443,16 @@ const Drivers = ({
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex flex-wrap gap-2.5">
-            <Select defaultValue="active">
+            <Select
+              value={filterInput}
+              onValueChange={handleFilterChange}
+              defaultValue="all"
+            >
               <SelectTrigger className="w-28" size="sm">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="w-32">
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
@@ -435,13 +460,18 @@ const Drivers = ({
               </SelectContent>
             </Select>
 
-            <Select defaultValue="active">
+            <Select
+              value={filterInputAvaliable}
+              onValueChange={handleFilterChangeAvaliable}
+              defaultValue="all"
+            >
               <SelectTrigger className="w-28" size="sm">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="w-32">
-                <SelectItem value="active">Online</SelectItem>
-                <SelectItem value="inactive">Offline</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="online">Online</SelectItem>
+                <SelectItem value="offline">Offline</SelectItem>
               </SelectContent>
             </Select>
             <button className="btn btn-sm btn-outline btn-primary">
@@ -453,9 +483,9 @@ const Drivers = ({
     );
   };
 
-  if (isDriverLoading) {
-    return <DataGridLoader message="Loading" />;
-  }
+  // if (isDriverLoading) {
+  //   return <DataGridLoader message="Loading" />;
+  // }
 
   return (
     <>
@@ -470,7 +500,10 @@ const Drivers = ({
         onFetchData={getDrivers}
         onSearchData={searchDriver}
         data={data}
+        link={"driver"}
         columns={columns}
+        filterInput={filterInput}
+        filterInput_2={filterInputAvaliable}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         searchInput={searchInput}

@@ -34,6 +34,7 @@ export interface IDataGridContextProps<TData extends object> {
   loading: boolean;
   setLoading: (state: boolean) => void;
   reload: () => void;
+  link: any;
 }
 
 const DataGridContext = createContext<IDataGridContextProps<any> | undefined>(
@@ -55,6 +56,9 @@ export const DataGridProvider = <TData extends object>(
     searchInput: props.searchInput || "",
     onFetchData: props.onFetchData,
     onSearchData: props.onSearchData,
+    filterInput: props.filterInput,
+    filterInput_2: props.filterInput_2,
+    link: props.link,
     messages: {
       empty: "No data available",
       loading: "Loading...",
@@ -77,6 +81,8 @@ export const DataGridProvider = <TData extends object>(
     },
     rowSelection: false,
     serverSide: true,
+    //[Todo: change filterInput to filter]
+    //filters: [{ id: "status", value: "started" }],
   };
 
   const mergedProps = deepMerge(defaultValues, props);
@@ -96,6 +102,16 @@ export const DataGridProvider = <TData extends object>(
   );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+
+  useEffect(() => {
+    console.log("page", pagination.pageIndex);
+    setPagination({ pageSize: props.pagination?.size ?? 5, pageIndex: 0 });
+  }, [defaultValues.filterInput]);
+
+  useEffect(() => {
+    console.log("page", pagination.pageIndex);
+    setPagination({ pageSize: props.pagination?.size ?? 5, pageIndex: 0 });
+  }, [defaultValues.filterInput_2]);
 
   const fetchServerSideData = useCallback(async () => {
     if (loading || !mergedProps.onFetchData) return;
@@ -219,6 +235,7 @@ export const DataGridProvider = <TData extends object>(
         loading,
         setLoading,
         reload: loadData,
+        link: props.link,
       }}
     >
       <DataGridInner />

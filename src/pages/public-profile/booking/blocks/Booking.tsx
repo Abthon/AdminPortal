@@ -40,9 +40,6 @@ interface IBookingData {
   status: string;
   createdAt: string;
 }
-
-const BaseURL = `http://195.201.134.129/test/static/vehicle-type/`;
-
 interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
 }
@@ -67,6 +64,13 @@ const Booking: React.FC<BookingProps> = ({
     useState<IBookingData | null>(null);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
+  const [filterInput, setFilterInput] = useState("all");
+  const [pageIndex, setPageIndex] = useState(0);
+
+  useEffect(() => {
+    setPageIndex(0);
+    console.log("page Index", pageIndex);
+  }, [filterInput]);
 
   const handleClose = () => {
     setProfileModalOpen(false);
@@ -82,8 +86,11 @@ const Booking: React.FC<BookingProps> = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    pageIndex = filterInput ? 1 : pageIndex;
+    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
     const { data } = await axiosInstance.get(url);
+
+    console.log(data, "data");
 
     // calculating how many items are there on the current page
     const startIndex =
@@ -110,9 +117,9 @@ const Booking: React.FC<BookingProps> = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/bookings?filters=pickupname=${search}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/bookings?filters=pickupname=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    console.log("url", url);
     const { data } = await axiosInstance.get(url);
-
     // calculating how many items are there on the current page
     const startIndex =
       (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
@@ -170,7 +177,7 @@ const Booking: React.FC<BookingProps> = ({
   }
 
   let { isLoading: isBookingLoading, data: BookingData } = useQuery({
-    queryKey: ["Bookings", searchInput],
+    queryKey: ["Bookings", searchInput, filterInput],
     queryFn: revalidateBooking,
   });
 
@@ -465,7 +472,10 @@ const Booking: React.FC<BookingProps> = ({
   };
 
   const Toolbar = () => {
-    const [searchInput, setSearchInput] = useState("");
+    const handleFilterChange = (value: any) => {
+      setFilterInput(value); // Update the state when the user selects an item
+      console.log("Filter value changed to:", value); // Optional: log for debugging
+    };
 
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
@@ -475,16 +485,21 @@ const Booking: React.FC<BookingProps> = ({
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex flex-wrap gap-2.5">
-            <Select defaultValue="active">
+            <Select
+              value={filterInput}
+              onValueChange={handleFilterChange}
+              defaultValue="all"
+            >
               <SelectTrigger className="w-28" size="sm">
-                <SelectValue placeholder="Select" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent className="w-32">
-                <SelectItem value="active">Requested</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="requested">Requested</SelectItem>
                 <SelectItem value="assigned">Assigned</SelectItem>
                 <SelectItem value="started">Started</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="notfound">NotFound</SelectItem>
+                <SelectItem value="driver_not_found">NotFound</SelectItem>
               </SelectContent>
             </Select>
             <button className="btn btn-sm btn-outline btn-primary">
@@ -511,6 +526,8 @@ const Booking: React.FC<BookingProps> = ({
         searchInput={searchInput}
         columns={columns}
         data={data}
+        link={"booking"}
+        filterInput={filterInput}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 20 }}

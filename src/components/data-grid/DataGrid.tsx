@@ -23,6 +23,7 @@ export interface TDataGridProps<TData extends object> {
   data?: TData[];
   rowSelection?: boolean;
   getRowId?: TableOptions<TData>["getRowId"];
+  link?: string;
   onRowSelectionChange?: (
     state: RowSelectionState,
     table?: Table<TData>
@@ -56,6 +57,8 @@ export interface TDataGridProps<TData extends object> {
   sorting?: { id: string; desc?: boolean }[];
   toolbar?: ReactNode;
   filters?: { id: string; value: unknown }[];
+  filterInput?: any;
+  filterInput_2?: any;
   serverSide?: boolean;
   onFetchData?: ({
     pageIndex,
