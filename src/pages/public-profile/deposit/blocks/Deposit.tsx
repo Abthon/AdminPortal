@@ -59,6 +59,7 @@ const Deposit = ({
   const [pageIndex, setPageIndex] = useState({ index: 0 });
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
+  const [filterInput, setFilterInput] = useState("all");
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -92,7 +93,7 @@ const Deposit = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/deposit?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/deposit?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=isApproved=${filterInput == "accepted" ? "1" : "0"}` : ""}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -143,7 +144,7 @@ const Deposit = ({
   }
 
   const { isLoading: isDriverLoading, data: DepositData } = useQuery({
-    queryKey: ["Deposits"],
+    queryKey: ["Deposits", filterInput],
     queryFn: revalidateDeposit,
   });
 
@@ -263,7 +264,7 @@ const Deposit = ({
           return (
             <div className="flex justify-between relative">
               <span
-                className={`badge ${info.row.original.isApproved === false && "badge-warning"} ${info.row.original.isApproved === true && "badge-success"} shrink-0 badge-outline rounded-[30px]`}
+                className={`badge ${info.row.original.isApproved === false && "badge-danger"} ${info.row.original.isApproved === true && "badge-success"} shrink-0 badge-outline rounded-[30px]`}
               >
                 <span
                   className={`size-1.5 rounded-full ${info.row.original.isApproved === false && "bg-danger"} ${info.row.original.isApproved === true && "bg-success"} me-1.5`}
@@ -377,6 +378,10 @@ const Deposit = ({
   };
 
   const Toolbar = () => {
+    const handleFilterChange = (value: any) => {
+      setFilterInput(value); // Update the state when the user selects an item
+      console.log("Filter value changed to:", value); // Optional: log for debugging
+    };
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
@@ -385,13 +390,18 @@ const Deposit = ({
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex flex-wrap gap-2.5">
-            <Select defaultValue="active">
+            <Select
+              value={filterInput}
+              onValueChange={handleFilterChange}
+              defaultValue="all"
+            >
               <SelectTrigger className="w-28" size="sm">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="w-32">
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="disabled">Inactive</SelectItem>
+                <SelectItem value="all">all</SelectItem>
+                <SelectItem value="accepted">Active</SelectItem>
+                <SelectItem value="rejected">InActive</SelectItem>
               </SelectContent>
             </Select>
 
@@ -413,6 +423,7 @@ const Deposit = ({
       <DataGrid
         onFetchData={getDeposits}
         data={data}
+        filterInput={filterInput}
         columns={columns}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}

@@ -22,7 +22,6 @@ import {
 import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
 
-const BaseURL = `http://195.201.134.129/test/static/vehicle-type/`;
 
 interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
