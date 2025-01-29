@@ -65,12 +65,6 @@ const Booking: React.FC<BookingProps> = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
-  const [pageIndex, setPageIndex] = useState(0);
-
-  useEffect(() => {
-    setPageIndex(0);
-    console.log("page Index", pageIndex);
-  }, [filterInput]);
 
   const handleClose = () => {
     setProfileModalOpen(false);
@@ -86,7 +80,6 @@ const Booking: React.FC<BookingProps> = ({
     pageSize: number;
     sort: any;
   }) {
-    pageIndex = filterInput ? 1 : pageIndex;
     const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
     const { data } = await axiosInstance.get(url);
 

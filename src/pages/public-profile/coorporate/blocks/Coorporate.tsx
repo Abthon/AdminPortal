@@ -63,6 +63,7 @@ const Coorporate = ({
     useState<ICoorporateData | null>(null);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
+  const [filterInput, setFilterInput] = useState("all");
 
   const handleClose = () => {
     setApprovalMode(false);
@@ -98,7 +99,8 @@ const Coorporate = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/coorporate?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/coorporate?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
+    console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -126,7 +128,7 @@ const Coorporate = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/coorporate?filters=name=${search}&take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/coorporate?filters=name=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -158,7 +160,7 @@ const Coorporate = ({
   }
 
   const { isLoading: isCoorporateLoading, data: CoorporateData } = useQuery({
-    queryKey: ["Coorporate", searchInput],
+    queryKey: ["Coorporate", searchInput, filterInput],
     queryFn: revalidateCoorporate,
   });
 
@@ -522,7 +524,10 @@ const Coorporate = ({
   };
 
   const Toolbar = () => {
-    const [searchInput, setSearchInput] = useState("");
+    const handleFilterChange = (value: any) => {
+      setFilterInput(value); // Update the state when the user selects an item
+      console.log("Filter value changed to:", value); // Optional: log for debugging
+    };
 
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
@@ -532,15 +537,20 @@ const Coorporate = ({
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex flex-wrap gap-2.5">
-            <Select defaultValue="active">
+            <Select
+              value={filterInput}
+              onValueChange={handleFilterChange}
+              defaultValue="all"
+            >
               <SelectTrigger className="w-28" size="sm">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="w-32">
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="disabled">Inactive</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="pending">Suspended</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
               </SelectContent>
             </Select>
             <button className="btn btn-sm btn-outline btn-primary">
@@ -597,6 +607,7 @@ const Coorporate = ({
         searchInput={searchInput}
         columns={columns}
         data={data}
+        filterInput={filterInput}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}

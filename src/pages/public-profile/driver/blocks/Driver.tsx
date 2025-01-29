@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { toAbsoluteUrl } from "@/utils";
 import { DataGridLoader } from "@/components/data-grid";
 
@@ -244,19 +243,13 @@ const Drivers = ({
               </div>
 
               <div className="flex flex-col gap-0.5">
-                <Link
-                  to={`/driver/${row.original.id}`}
-                  className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
-                >
+                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
                   {row.original.firstName} {row.original.lastName}
-                </Link>
+                </span>
 
-                <Link
-                  to="#"
-                  className="text-2sm text-gray-700 font-normal hover:text-primary-active"
-                >
+                <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
                   +251{row.original.phoneNumber}
-                </Link>
+                </span>
               </div>
             </div>
           );

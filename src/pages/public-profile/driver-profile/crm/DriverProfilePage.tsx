@@ -37,11 +37,13 @@ const DriverProfilePage = () => {
     useState<IDriversData | null>(null);
 
   async function getDriver(id: string) {
-    try{
-      const { data} = await axiosInstance.get(`/api/v1/drivers/${id}?fields=id,createdAt,firstName,middleName,lastName,phoneNumber,isPhoneNumberAuthenticated,type,drivingLicense,gender,is_online,is_available,isBusy,lat,lng,status,profilePhoto,firebaseToken,averageRating,vehicle.*,bookings.*`);
+    try {
+      const { data } = await axiosInstance.get(
+        `/api/v1/drivers/${id}?fields=id,createdAt,firstName,middleName,lastName,phoneNumber,isPhoneNumberAuthenticated,type,drivingLicense,gender,is_online,is_available,isBusy,lat,lng,status,profilePhoto,firebaseToken,averageRating,vehicle.*,bookings.*`
+      );
       console.log(data, "drivers data");
       return data.data;
-    }catch(error){
+    } catch (error) {
       console.log(error);
     }
   }
@@ -106,7 +108,7 @@ const DriverProfilePage = () => {
           image={image}
           info={[
             // { stat: DriverData.status },
-            { label: "SF, Bay Area", icon: "geolocation" },
+            { label: "Addis Ababa", icon: "geolocation" },
             { label: `+251${DriverData?.phoneNumber}`, icon: "sms" },
           ]}
         />
