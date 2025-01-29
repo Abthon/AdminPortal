@@ -346,8 +346,39 @@ const ModalDriverTypeForm = ({
                     </select>
                   </label>
                 </div>
-
                 <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">
+                    Phone Number
+                  </label>
+                  {formik.touched.phoneNumber && formik.errors.phoneNumber ? (
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.phoneNumber === "string" ? formik.errors.phoneNumber : null}
+                    </div>
+                  ) : null}
+
+                  {/* A row containing the dropdown (left) and input (right) */}
+                  <div className="flex items-center gap-2">
+                    {/* Country code dropdown */}
+                    <select
+                      className="border border-gray-300 rounded px-2 py-2 text-gray-900"
+                      disabled={isEdit}
+                      defaultValue="+251" // If you want to default to +251
+                    >
+                      <option value="+251">+251</option>
+                    </select>
+
+                    <label className="input flex-1">
+                      <input
+                        placeholder="Enter phone number"
+                        autoComplete="off"
+                        disabled={isEdit}
+                        {...formik.getFieldProps("phoneNumber")}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
                     Phone Number
                   </label>
@@ -366,7 +397,7 @@ const ModalDriverTypeForm = ({
                       {...formik.getFieldProps("phoneNumber")}
                     />
                   </label>
-                </div>
+                </div> */}
 
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Type</label>
