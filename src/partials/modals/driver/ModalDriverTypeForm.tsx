@@ -22,7 +22,7 @@ const driverSchema = Yup.object().shape({
     message: 'Invalid phone number.',
   }),
   type: Yup.string().required("Type is required."),
-  drivingLicense: Yup.string().required("Driving license is required."),
+  drivingLicense: Yup.mixed().required("Driving license is required."),
   profilePhoto: Yup.mixed().required("Profile photo is required."),
 });
 
@@ -108,10 +108,19 @@ const ModalDriverTypeForm = ({
         formData
       );
 
-      if (res_1.status === 201) {
+      
+      const driverLicenseData = new FormData();
+      driverLicenseData.append("file", values.drivingLicense);
+      const res_2 = await axiosInstance.post(
+        `/api/v1/file-upload/image/license`,
+        driverLicenseData
+      );
+
+      if (res_1.status === 201 && res_2.status === 201) {
         const profile = res_1.data.data.filename;
-        let { profilePhoto, ...rest } = values;
-        rest = { ...rest, profilePhoto: profile };
+        const license = res_2.data.data.filename;
+        let { profilePhoto,drivingLicense, ...rest } = values;
+        rest = { ...rest, profilePhoto: profile, drivingLicense: license};
         console.log(rest, "result to be sent");
         const res = await axiosInstance.post(`/api/v1/drivers`, rest);
         return res.data;
@@ -433,11 +442,21 @@ const ModalDriverTypeForm = ({
                         : null}
                     </div>
                   ) : null}
-                  <label className="input">
+                  <label className="input max-w-[390px] overflow-hidden">
                     <input
-                      placeholder="Enter driving license"
-                      autoComplete="off"
-                      {...formik.getFieldProps("drivingLicense")}
+                      type="file"
+                      name="drivingLicense"
+                      onChange={(event) => {
+                        if (
+                          event.currentTarget.files &&
+                          event.currentTarget.files[0]
+                        ) {
+                          formik.setFieldValue(
+                            "drivingLicense",
+                            event.currentTarget.files[0]
+                          )
+                        }
+                      }}
                     />
                   </label>
                 </div>
