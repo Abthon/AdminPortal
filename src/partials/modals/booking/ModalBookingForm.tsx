@@ -72,14 +72,13 @@ const ModalBookingForm = ({
   };
 
   const calculateEstimatedPrice = async (pickupLat: string, pickupLng: string, dropOffLat: string, dropOffLng: string, vehicleTypeId: string) => {
-    console.log({pickupLat, pickupLng, dropOffLat, dropOffLng, vehicleTypeId}, "the data to send");
     if (pickupLat && pickupLng && dropOffLat && dropOffLng && vehicleTypeId) {
       try {
         const updatedFields = {
-          lat1: pickupLat,
-          lng1: pickupLng,
-          lat2: dropOffLat,
-          lng2: dropOffLng,
+          lat1: Number(pickupLat),
+          lng1: Number(pickupLng),
+          lat2: Number(dropOffLat),
+          lng2: Number(dropOffLng),
           vehicleTypeId: Number(vehicleTypeId),
         };
 
@@ -480,7 +479,13 @@ const ModalBookingForm = ({
                                 "pickupLng",
                                 place?.geometry?.location?.lng()
                               );
-
+                              calculateEstimatedPrice(
+                                place?.geometry?.location?.lat().toString() || "",
+                                place?.geometry?.location?.lng().toString() || "",
+                                formik.values.dropOffLat,
+                                formik.values.dropOffLng,
+                                formik.values.vehicleTypeId
+                              );
                             } else {
                               console.error(
                                 "Failed to fetch place details:",
@@ -552,7 +557,6 @@ const ModalBookingForm = ({
                       onChange: async (value) => {
                         if (value && value.value && value.value.place_id) {
                           const placeId = value.value.place_id;
-
                           // Initialize Google Maps Places Service
                           const service = new google.maps.places.PlacesService(
                             document.createElement("div")
@@ -570,6 +574,13 @@ const ModalBookingForm = ({
                               formik.setFieldValue(
                                 "dropOffLng",
                                 place?.geometry?.location?.lng()
+                              );
+                              calculateEstimatedPrice(
+                                formik.values.pickupLat,
+                                formik.values.pickupLng,
+                                place?.geometry?.location?.lat().toString() || "",
+                                place?.geometry?.location?.lng().toString() || "",
+                                formik.values.vehicleTypeId
                               );
                             } else {
                               console.error(
@@ -703,7 +714,6 @@ const ModalBookingForm = ({
                           );
                         }}
                       >
-                        
                         <option value="" disabled>
                           Select a vehicle type
                         </option>
