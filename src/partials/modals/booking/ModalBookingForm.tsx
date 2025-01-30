@@ -725,7 +725,7 @@ const ModalBookingForm = ({
                 <button
                   type="submit"
                   className="btn btn-primary flex justify-center grow"
-                  disabled={isLoading}
+                  disabled={isLoading || estimatedPrice === 0}
                 >
                   {isEdit ? "Edit" : "Create"}
                 </button>
