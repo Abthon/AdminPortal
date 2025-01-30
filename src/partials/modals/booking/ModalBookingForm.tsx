@@ -20,7 +20,7 @@ const bookingSchema = Yup.object().shape({
   pickupName: Yup.string().required("Pick up is required."),
   dropOffName: Yup.string().required("Drop off is required."),
   vehicleTypeId: Yup.number().required("Vehicle type is required."),
-  driverId: Yup.number().required("Driver is required."),
+  driverId: Yup.number(),
 });
 
 interface IModalBookingFormProps {
@@ -40,6 +40,7 @@ const ModalBookingForm = ({
 }: IModalBookingFormProps) => {
   /* importing booking */
   const [searchInput, setSearchInput] = useState("");
+  const [estimatedPrice, setEstimatedPrice] = useState(0);
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
     mutationFn: isEndBooking ? editBooking : addBooking,
@@ -69,6 +70,30 @@ const ModalBookingForm = ({
     // traveledPath: "",
     // polyline: "",
   };
+
+  const calculateEstimatedPrice = async (pickupLat: string, pickupLng: string, dropOffLat: string, dropOffLng: string, vehicleTypeId: string) => {
+    console.log({pickupLat, pickupLng, dropOffLat, dropOffLng, vehicleTypeId}, "the data to send");
+    if (pickupLat && pickupLng && dropOffLat && dropOffLng && vehicleTypeId) {
+      try {
+        const updatedFields = {
+          lat1: pickupLat,
+          lng1: pickupLng,
+          lat2: dropOffLat,
+          lng2: dropOffLng,
+          vehicleTypeId: Number(vehicleTypeId),
+        };
+
+        const res = await axiosInstance.post("api/v1/bookings/estimate/", updatedFields);
+        if (res.status === 200) {
+          const price = Math.floor(res.data.data.estimatedPrice);
+          setEstimatedPrice(price);
+        }
+      } catch (err) {
+        console.log("Error calculating estimate:", err);
+      }
+    }
+  };
+
 
   async function addBooking(values: { [key: string]: any }) {
     try {
@@ -111,13 +136,11 @@ const ModalBookingForm = ({
         dropOffLng: dropOffLng.toString(),
         pickupName,
         dropOffName,
-        driverId,
+        ...(driverId ? { driverId } : {}),        
         estimatedPrice: price,
         estimatedTraveledDistance: distance,
         vehicleType: Number(vehicleTypeId),
       };
-
-      console.log(finalReq, "the final request");
 
       const res_3 = await axiosInstance.post("api/v1/bookings/admin", finalReq);
       if (res_3.status !== 201) {
@@ -270,6 +293,7 @@ const ModalBookingForm = ({
   });
 
   useEffect(() => {
+    setEstimatedPrice(0);
     if (open) {
       if (isEdit) {
         formik.setValues(bookingData || {}); // Populate form with edit data
@@ -456,22 +480,14 @@ const ModalBookingForm = ({
                                 "pickupLng",
                                 place?.geometry?.location?.lng()
                               );
-                              console.log("Place:", value.label);
-                              console.log(
-                                "Lat: ",
-                                place?.geometry?.location?.lat()
-                              );
-                              console.log(
-                                "Lang: ",
-                                place?.geometry?.location?.lng()
-                              );
+
                             } else {
                               console.error(
                                 "Failed to fetch place details:",
                                 status
                               );
                             }
-                          });
+                          });                        
                         } else {
                           console.error("Invalid value:", value);
                         }
@@ -553,15 +569,6 @@ const ModalBookingForm = ({
                               );
                               formik.setFieldValue(
                                 "dropOffLng",
-                                place?.geometry?.location?.lng()
-                              );
-                              console.log("Place:", value.label);
-                              console.log(
-                                "Lat: ",
-                                place?.geometry?.location?.lat()
-                              );
-                              console.log(
-                                "Lang: ",
                                 place?.geometry?.location?.lng()
                               );
                             } else {
@@ -685,7 +692,18 @@ const ModalBookingForm = ({
                           outline: "none",
                           borderColor: "blue",
                         }}
+                        onChange={(e)=> {
+                          formik.handleChange(e);
+                          calculateEstimatedPrice(
+                            formik.values.pickupLat,
+                            formik.values.pickupLng,
+                            formik.values.dropOffLat,
+                            formik.values.dropOffLng,
+                            e.target.value
+                          );
+                        }}
                       >
+                        
                         <option value="" disabled>
                           Select a vehicle type
                         </option>
@@ -700,6 +718,9 @@ const ModalBookingForm = ({
                       </select>
                     </label>
                   )}
+                </div>
+                <div>
+                  <label className="form-label text-gray-900">Estimated Price: {estimatedPrice} Birr</label>
                 </div>
                 <button
                   type="submit"

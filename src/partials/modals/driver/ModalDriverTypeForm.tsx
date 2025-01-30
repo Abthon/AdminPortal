@@ -18,7 +18,9 @@ const driverSchema = Yup.object().shape({
   lastName: Yup.string().required("Last name is required."),
   middleName: Yup.string().required("Middle name is required."),
   gender: Yup.string().required("Gender is required."),
-  phoneNumber: Yup.string().required("Phone number is required."),
+  phoneNumber: Yup.string().required("Phone number is required.").matches(/^\d{9}$/, {
+    message: 'Invalid phone number.',
+  }),
   type: Yup.string().required("Type is required."),
   drivingLicense: Yup.string().required("Driving license is required."),
   profilePhoto: Yup.mixed().required("Profile photo is required."),
