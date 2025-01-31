@@ -125,7 +125,6 @@ const Booking: React.FC<BookingProps> = ({
     search: any;
     sort: any;
   }) {
-
     const url = `/api/v1/bookings?filters=pickupname=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
     // calculating how many items are there on the current page
@@ -248,37 +247,37 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "w-0",
         },
       },
-      {
-        // accessorFn: (row) => row.id,
-        id: "booking_ID",
-        header: ({ column }) => (
-          <DataGridColumnHeader
-            title="ID"
-            column={column}
-            // filter={<ColumnInputFilter column={column} />}
-          />
-        ),
-        enableSorting: true,
-        cell: ({ row }) => {
-          return (
-            <div className="flex items-center">
-              <div className="flex flex-col gap-0.5">
-                <Link
-                  to={`/booking/${row.original.id}`}
-                  className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
-                >
-                  {row.original.id}
-                </Link>
-              </div>
-            </div>
-          );
-        },
-        meta: {
-          headerClassName: "w-0",
-          className: "w-0",
-          cellClassName: "w-0",
-        },
-      },
+      // {
+      //   // accessorFn: (row) => row.id,
+      //   id: "booking_ID",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader
+      //       title="ID"
+      //       column={column}
+      //       // filter={<ColumnInputFilter column={column} />}
+      //     />
+      //   ),
+      //   enableSorting: true,
+      //   cell: ({ row }) => {
+      //     return (
+      //       <div className="flex items-center">
+      //         <div className="flex flex-col gap-0.5">
+      //           <Link
+      //             to={`/booking/${row.original.id}`}
+      //             className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
+      //           >
+      //             {row.original.id}
+      //           </Link>
+      //         </div>
+      //       </div>
+      //     );
+      //   },
+      //   meta: {
+      //     headerClassName: "w-0",
+      //     className: "w-0",
+      //     cellClassName: "w-0",
+      //   },
+      // },
       {
         accessorFn: (row) => row.createdAt,
         id: "createdAt",
@@ -404,64 +403,92 @@ const Booking: React.FC<BookingProps> = ({
       {
         id: "Assign",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Assign" column={column} />
+          <DataGridColumnHeader title="Actions" column={column} />
         ),
         enableSorting: false,
         cell: (info) => {
-          return (
-            <button
-              onClick={() => handleOpen(true, info.row.original)}
-              className="btn btn-sm btn-icon btn-clear btn-primary"
-            >
-              <KeenIcon icon="user-tick" />
-            </button>
-          );
+          if (
+            info.row.original.status === "requested" ||
+            info.row.original.status === "driver_not_found"
+          ) {
+            return (
+              <button
+                onClick={() => handleOpen(true, info.row.original)}
+                className="btn btn-sm btn-icon btn-clear btn-primary"
+              >
+                <KeenIcon icon="user-tick" />
+              </button>
+            );
+          }
+
+          if (info.row.original.status === "assigned") {
+            return (
+              <button
+                onClick={() => mutateStart(info.row.original.id)}
+                // onClick={() => handleOpen(true, info.row.original)}
+                className="btn btn-sm btn-icon btn-clear btn-success"
+              >
+                <KeenIcon icon="to-right" />
+              </button>
+            );
+          }
+
+          if (info.row.original.status === "started") {
+            return (
+              <button
+                onClick={() => handleOpen(false, info.row.original, true)}
+                className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+              >
+                <KeenIcon icon="minus-circle" />
+              </button>
+            );
+          }
         },
         meta: {
           headerClassName: "min-w-[75px]",
         },
       },
-      {
-        id: "Start",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Start" column={column} />
-        ),
-        enableSorting: false,
-        cell: (info) => {
-          return (
-            <button
-              onClick={() => mutateStart(info.row.original.id)}
-              // onClick={() => handleOpen(true, info.row.original)}
-              className="btn btn-sm btn-icon btn-clear btn-success"
-            >
-              <KeenIcon icon="to-right" />
-            </button>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[80px]",
-        },
-      },
-      {
-        id: "End",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="End" column={column} />
-        ),
-        enableSorting: false,
-        cell: (info) => {
-          return (
-            <button
-              onClick={() => handleOpen(false, info.row.original, true)}
-              className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-            >
-              <KeenIcon icon="minus-circle" />
-            </button>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[80px]",
-        },
-      },
+      // {
+      //   id: "Start",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Start" column={column} />
+      //   ),
+      //   enableSorting: false,
+      //   cell: (info) => {
+      //     return (
+      //       <button
+      //         onClick={() => mutateStart(info.row.original.id)}
+      //         // onClick={() => handleOpen(true, info.row.original)}
+      //         className="btn btn-sm btn-icon btn-clear btn-success"
+      //       >
+      //         <KeenIcon icon="to-right" />
+      //       </button>
+      //     );
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[80px]",
+      //   },
+      // },
+      // {
+      //   id: "End",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="End" column={column} />
+      //   ),
+      //   enableSorting: false,
+      //   cell: (info) => {
+      //     return (
+      //       <button
+      //         onClick={() => handleOpen(false, info.row.original, true)}
+      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+      //       >
+      //         <KeenIcon icon="minus-circle" />
+      //       </button>
+      //     );
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[80px]",
+      //   },
+      // },
     ],
     [mutate]
   );
