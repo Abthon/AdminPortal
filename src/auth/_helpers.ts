@@ -63,9 +63,12 @@ export function setupAxios(axiosInstance: any) {
         const auth = getAuth();
         if (auth?.refreshToken) {
           try {
-            const { data } = await axios.post('https://static.129.134.201.195.clients.your-server.de/prod/api/v1/auth/refresh', {
-              refreshToken: auth.refreshToken,
-            });
+            const { data } = await axios.post(
+              "https://static.129.134.201.195.clients.your-server.de/prod/api/v1/auth/refresh",
+              {
+                refreshToken: auth.refreshToken,
+              }
+            );
 
             console.log(data, "the new token");
             const newAuth = { ...auth, accessToken: data.accessToken };
@@ -88,7 +91,7 @@ export function setupAxios(axiosInstance: any) {
 }
 
 const axiosInstance = axios.create({
-  baseURL: 'https://static.129.134.201.195.clients.your-server.de/prod'
+  baseURL: "https://static.129.134.201.195.clients.your-server.de/prod",
   // baseURL: 'https://static.129.134.201.195.clients.your-server.de/dev'
   // baseURL: 'http://195.201.134.129/prod', // This is the base URL
 });

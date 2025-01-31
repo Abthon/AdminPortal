@@ -15,6 +15,7 @@ import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import axiosInstance from "@/auth/_helpers";
 import { DataGridLoader, KeenIcon } from "@/components";
 import { ModalSearchEmpty, ModalSearchNoResults } from "../search";
+const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 const bookingSchema = Yup.object().shape({
   pickupName: Yup.string().required("Pick up is required."),
@@ -78,7 +79,13 @@ const ModalBookingForm = ({
     // polyline: "",
   };
 
-  const calculateEstimatedPrice = async (pickupLat: string, pickupLng: string, dropOffLat: string, dropOffLng: string, vehicleTypeId: string) => {
+  const calculateEstimatedPrice = async (
+    pickupLat: string,
+    pickupLng: string,
+    dropOffLat: string,
+    dropOffLng: string,
+    vehicleTypeId: string
+  ) => {
     if (pickupLat && pickupLng && dropOffLat && dropOffLng && vehicleTypeId) {
       try {
         const updatedFields = {
@@ -89,7 +96,10 @@ const ModalBookingForm = ({
           vehicleTypeId: Number(vehicleTypeId),
         };
 
-        const res = await axiosInstance.post("api/v1/bookings/estimate/", updatedFields);
+        const res = await axiosInstance.post(
+          "api/v1/bookings/estimate/",
+          updatedFields
+        );
         if (res.status === 200) {
           const price = Math.floor(res.data.data.estimatedPrice);
           setEstimatedPrice(price);
@@ -99,7 +109,6 @@ const ModalBookingForm = ({
       }
     }
   };
-
 
   async function addBooking(values: { [key: string]: any }) {
     console.log(values, "the values baby");
@@ -386,8 +395,8 @@ const ModalBookingForm = ({
                       <div className="menu-link flex justify-between gap-2">
                         <div className="flex items-center gap-2.5">
                           <img
-                            src={`${driver.profilePhoto}`}
-                            className="rounded-full size-9 shrink-0"
+                            src={`${BASE_URL}/profile/${driver.profilePhoto}`}
+                            className="rounded-full size-9 shrink-0 object-cover"
                             alt={driver.name}
                           />
                           <div className="flex flex-col">
@@ -493,8 +502,10 @@ const ModalBookingForm = ({
                                 place?.geometry?.location?.lng()
                               );
                               calculateEstimatedPrice(
-                                place?.geometry?.location?.lat().toString() || "",
-                                place?.geometry?.location?.lng().toString() || "",
+                                place?.geometry?.location?.lat().toString() ||
+                                  "",
+                                place?.geometry?.location?.lng().toString() ||
+                                  "",
                                 formik.values.dropOffLat,
                                 formik.values.dropOffLng,
                                 formik.values.vehicleTypeId
@@ -505,7 +516,7 @@ const ModalBookingForm = ({
                                 status
                               );
                             }
-                          });                        
+                          });
                         } else {
                           console.error("Invalid value:", value);
                         }
@@ -591,8 +602,10 @@ const ModalBookingForm = ({
                               calculateEstimatedPrice(
                                 formik.values.pickupLat,
                                 formik.values.pickupLng,
-                                place?.geometry?.location?.lat().toString() || "",
-                                place?.geometry?.location?.lng().toString() || "",
+                                place?.geometry?.location?.lat().toString() ||
+                                  "",
+                                place?.geometry?.location?.lng().toString() ||
+                                  "",
                                 formik.values.vehicleTypeId
                               );
                             } else {
@@ -787,7 +800,7 @@ const ModalBookingForm = ({
                           outline: "none",
                           borderColor: "blue",
                         }}
-                        onChange={(e)=> {
+                        onChange={(e) => {
                           formik.handleChange(e);
                           calculateEstimatedPrice(
                             formik.values.pickupLat,
@@ -814,7 +827,9 @@ const ModalBookingForm = ({
                   )}
                 </div>
                 <div>
-                  <label className="form-label text-gray-900">Estimated Price: {estimatedPrice} Birr</label>
+                  <label className="form-label text-gray-900">
+                    Estimated Price: {estimatedPrice} Birr
+                  </label>
                 </div>
                 <button
                   type="submit"

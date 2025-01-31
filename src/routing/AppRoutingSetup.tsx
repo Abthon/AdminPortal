@@ -94,6 +94,7 @@ import { VehicleTypeProfilePage } from "@/pages/public-profile/vehicle-type-prof
 import { VehicleProfilePage } from "@/pages/public-profile/vehicle-profile";
 import { DepositPage } from "@/pages/public-profile/deposit";
 import { BankPage } from "@/pages/public-profile/bank";
+import { FuelPage } from "@/pages/public-profile/fuel";
 const AppRoutingSetup = (): ReactElement => {
   return (
     <Routes>
@@ -107,20 +108,12 @@ const AppRoutingSetup = (): ReactElement => {
             path="/vehicle-type/:id"
             element={<VehicleTypeProfilePage />}
           />
-          <Route
-            path="/vehicles"
-            element={<VechileRegistrationPage />}
-          />
-          <Route
-            path="vehicle/:id"
-            element={<VehicleProfilePage />}
-          />
-          <Route
-            path="/coorporates"
-            element={<CoorporatePage />}
-          />
+          <Route path="/vehicles" element={<VechileRegistrationPage />} />
+          <Route path="vehicle/:id" element={<VehicleProfilePage />} />
+          <Route path="/coorporates" element={<CoorporatePage />} />
           <Route path="/bookings" element={<BookingPage />} />
           <Route path="/configs" element={<ConfigPage />} />
+          <Route path="/fuels" element={<FuelPage />} />
           <Route
             path="/public-profile/profiles/default"
             element={<ProfileDefaultPage />}
@@ -145,14 +138,8 @@ const AppRoutingSetup = (): ReactElement => {
             path="/public-profile/profiles/crm"
             element={<ProfileCRMPage />}
           />
-          <Route
-            path="/driver/:id"
-            element={<DriverProfilePage />}
-          />
-          <Route
-            path="/booking/:id"
-            element={<BookingProfilePage />}
-          />
+          <Route path="/driver/:id" element={<DriverProfilePage />} />
+          <Route path="/booking/:id" element={<BookingProfilePage />} />
           <Route path="/deposits" element={<DepositPage />} />
           <Route path="/banks" element={<BankPage />} />
           <Route
