@@ -39,6 +39,8 @@ interface IBookingData {
   estimatedPrice: number;
   status: string;
   createdAt: string;
+  coor: any;
+  contactPhoneNumber: string;
 }
 interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
@@ -80,10 +82,11 @@ const Booking: React.FC<BookingProps> = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
+    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}&fields=coor.*,id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber`;
+    // const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
     const { data } = await axiosInstance.get(url);
 
-    console.log(data, "data");
+    console.log(data, "data ke get booking");
 
     // calculating how many items are there on the current page
     const startIndex =
@@ -110,8 +113,8 @@ const Booking: React.FC<BookingProps> = ({
     search: any;
     sort: any;
   }) {
+
     const url = `/api/v1/bookings?filters=pickupname=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
-    console.log("url", url);
     const { data } = await axiosInstance.get(url);
     // calculating how many items are there on the current page
     const startIndex =
@@ -329,6 +332,34 @@ const Booking: React.FC<BookingProps> = ({
         enableSorting: true,
         cell: (info) => {
           return info.row.original.estimatedPrice;
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        // accessorFn: (row) => row.estimatedPrice,
+        id: "corporatename",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="CorporateName" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.coor?.name;
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        // accessorFn: (row) => row.estimatedPrice,
+        id: "contactPhoneNumber",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="UserPhone" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return `${info.row.original.coor?.contactPhoneNumber ? `+251${info.row.original.coor?.contactPhoneNumber}` : ""}`;
         },
         meta: {
           headerClassName: "min-w-[100px]",

@@ -107,7 +107,6 @@ const ModalDriverTypeForm = ({
         `/api/v1/file-upload/image/profile`,
         formData
       );
-
       
       const driverLicenseData = new FormData();
       driverLicenseData.append("file", values.drivingLicense);
@@ -126,7 +125,6 @@ const ModalDriverTypeForm = ({
         return res.data;
       }
     } catch (err: any) {
-      console.log(err, "The error");
       const errorMessage = err?.response?.data?.message;
       const errorMessageAlt =
         (err as Error).message || "An error occurred while adding the driving.";
