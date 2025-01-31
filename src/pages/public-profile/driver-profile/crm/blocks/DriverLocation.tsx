@@ -74,7 +74,6 @@ const GoogleLayer = memo(({ onLayerLoaded }: any) => {
 });
 
 const DriverLocation: React.FC<DriverLocationProps> = ({ data }) => {
-  console.log(data, "DriverLocation data");
   const [isGoogleLayerLoaded, setGoogleLayerLoaded] = useState(false);
   const lat = data?.lat || 9.03;
   const lng = data?.lng || 38.74;

@@ -32,6 +32,7 @@ const DriverProfilePage = () => {
   const navigate = useNavigate();
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
+  const [assignMode, setAssignMode] = useState(false);
   const [isAddOpen, _handleAddOpen] = useState(false);
   const [currentDriverData, setCurrentDriverData] =
     useState<IDriversData | null>(null);
@@ -41,7 +42,6 @@ const DriverProfilePage = () => {
       const { data } = await axiosInstance.get(
         `/api/v1/drivers/${id}?fields=id,createdAt,firstName,middleName,lastName,phoneNumber,isPhoneNumberAuthenticated,type,drivingLicense,gender,is_online,is_available,isBusy,lat,lng,status,profilePhoto,firebaseToken,averageRating,vehicle.*,bookings.*`
       );
-      console.log(data, "drivers data");
       return data.data;
     } catch (error) {
       console.log(error);
@@ -68,6 +68,13 @@ const DriverProfilePage = () => {
 
   const handleApproval = (isEdit: boolean) => {
     setApprovalMode(isEdit);
+    setCurrentDriverData(DriverData);
+    setProfileModalOpen(true);
+  };
+
+  const handleAssign = (isEdit: boolean) => {
+    setAssignMode(isEdit);
+    setApprovalMode(false);
     setCurrentDriverData(DriverData);
     setProfileModalOpen(true);
   };
@@ -100,6 +107,7 @@ const DriverProfilePage = () => {
         onOpenChange={handleClose}
         isEdit={false}
         isApproved={approvalMode}
+        isAssigned={assignMode}
         driverData={currentDriverData}
       />
       <Fragment>
@@ -118,6 +126,13 @@ const DriverProfilePage = () => {
             <PageMenu />
 
             <NavbarActions>
+              <button
+                onClick={() => handleAssign(true)}
+                type="button"
+                className="btn btn-sm btn-primary"
+              >
+                <KeenIcon icon="car" /> Assign Vehicle
+              </button>
               <button
                 onClick={() => handleApproval(true)}
                 type="button"

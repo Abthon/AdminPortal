@@ -9,7 +9,7 @@ import {
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { useEffect } from "react";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQueryClient, useQuery } from "react-query";
 import { toast } from "sonner";
 import axiosInstance from "@/auth/_helpers";
 
@@ -18,12 +18,18 @@ const driverSchema = Yup.object().shape({
   lastName: Yup.string().required("Last name is required."),
   middleName: Yup.string().required("Middle name is required."),
   gender: Yup.string().required("Gender is required."),
-  phoneNumber: Yup.string().required("Phone number is required.").matches(/^\d{9}$/, {
-    message: 'Invalid phone number.',
-  }),
+  phoneNumber: Yup.string()
+    .required("Phone number is required.")
+    .matches(/^\d{9}$/, {
+      message: "Invalid phone number.",
+    }),
   type: Yup.string().required("Type is required."),
   drivingLicense: Yup.mixed().required("Driving license is required."),
   profilePhoto: Yup.mixed().required("Profile photo is required."),
+});
+
+const VehicleAssignSchema = Yup.object().shape({
+  vehicleId: Yup.number().required("Vehicle is required."),
 });
 
 const approvalSchema = Yup.object().shape({
@@ -34,6 +40,7 @@ interface IModalDriverTypeFormProps {
   open: boolean;
   isEdit: boolean;
   isApproved: boolean;
+  isAssigned?: boolean;
   driverData: any;
   onOpenChange: () => void;
 }
@@ -43,14 +50,22 @@ const ModalDriverTypeForm = ({
   onOpenChange,
   isEdit,
   isApproved,
+  isAssigned,
   driverData,
 }: IModalDriverTypeFormProps) => {
   const queryClient = useQueryClient();
   const { mutate } = useMutation({
-    mutationFn: isApproved ? approveDriver : isEdit ? editDriver : addDriver,
+    mutationFn: isApproved
+      ? approveDriver
+      : isEdit
+        ? editDriver
+        : isAssigned
+          ? assignVehicleDriver
+          : addDriver,
     onSuccess: () => {
+      console.log(isApproved, isEdit, isAssigned, "hahahah");
       toast.success(
-        `Driver ${isApproved ? "Approved" : isEdit ? "Edited" : "Created"}`
+        `Driver ${isApproved ? "Approved" : isEdit ? "Edited" : isAssigned ? "Assigned" : "Created"}`
       );
       queryClient.invalidateQueries({ queryKey: ["Drivers"] });
       onOpenChange();
@@ -59,6 +74,43 @@ const ModalDriverTypeForm = ({
       toast.error((err as Error).message);
     },
   });
+
+  const {
+    data: Vehicle,
+    isLoading: isVehicleLoading,
+    error: VehicleError,
+  } = useQuery("Vehicle", async () => {
+    const res = await axiosInstance.get("api/v1/vehicles");
+    if (res.status !== 200) {
+      throw new Error("Failed to fetch vehicle");
+    }
+    const data = res.data;
+    return data.data;
+  });
+
+  async function assignVehicleDriver(values: any) {
+    try {
+      const updatedFields = {
+        driverId: +driverData.id,
+        vehicleId: +values.vehicleId,
+      };
+      console.log(updatedFields, "updated fields")
+      const res = await axiosInstance.patch(
+        `/api/v1/drivers/assign-vehicle/`,
+        updatedFields
+      );
+
+      console.log(res, "returned");
+      return res.data;
+    } catch (err: any) {
+      console.log(err, "The error");
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message ||
+        "An error occurred while assigning the driver.";
+      throw new Error(errorMessage || errorMessageAlt);
+    }
+  }
 
   async function approveDriver(values: Object) {
     try {
@@ -97,6 +149,7 @@ const ModalDriverTypeForm = ({
         drivingLicense: "",
         profilePhoto: null,
         approvalStatus: "inactive",
+        vehicleId: "",
       };
 
   async function addDriver(values: any) {
@@ -107,7 +160,7 @@ const ModalDriverTypeForm = ({
         `/api/v1/file-upload/image/profile`,
         formData
       );
-      
+
       const driverLicenseData = new FormData();
       driverLicenseData.append("file", values.drivingLicense);
       const res_2 = await axiosInstance.post(
@@ -118,8 +171,8 @@ const ModalDriverTypeForm = ({
       if (res_1.status === 201 && res_2.status === 201) {
         const profile = res_1.data.data.filename;
         const license = res_2.data.data.filename;
-        let { profilePhoto,drivingLicense, ...rest } = values;
-        rest = { ...rest, profilePhoto: profile, drivingLicense: license};
+        let { profilePhoto, drivingLicense, ...rest } = values;
+        rest = { ...rest, profilePhoto: profile, drivingLicense: license };
         console.log(rest, "result to be sent");
         const res = await axiosInstance.post(`/api/v1/drivers`, rest);
         return res.data;
@@ -156,7 +209,6 @@ const ModalDriverTypeForm = ({
 
       const formData = new FormData();
       if (profilePhoto instanceof File) {
-        console.log("hi");
         formData.append("file", profilePhoto);
 
         const res_1 = await axiosInstance.post(
@@ -195,9 +247,9 @@ const ModalDriverTypeForm = ({
 
   const formik = useFormik({
     initialValues,
-    validationSchema: isApproved ? approvalSchema : driverSchema,
+    validationSchema: isApproved ? approvalSchema : isAssigned ? VehicleAssignSchema: driverSchema,
+    // [Todo ] : The try catch logic must be moved out of this.
     onSubmit: async (values, { setStatus, setSubmitting }) => {
-      console.log(values, "initial values ");
       try {
         if (!isApproved) {
           const formData = new FormData();
@@ -208,7 +260,6 @@ const ModalDriverTypeForm = ({
           updatedValues = { ...updatedValues, firebaseToken: "testToken" };
           mutate(updatedValues);
         } else {
-          console.log(values, "the values status");
           mutate(values);
         }
       } catch {
@@ -260,6 +311,56 @@ const ModalDriverTypeForm = ({
                       <option value="suspended">suspended</option>
                     </select>
                   </label>
+                </div>
+                <div className="flex justify-center mt-4">
+                  <button type="submit" className="btn btn-primary">
+                    Approve
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : isAssigned ? (
+            // New assigned form content - initially same as approval
+            <>
+              <h3 className="text-lg font-medium text-gray-900 text-center mb-3">
+                Assign Vehicle
+              </h3>
+              <form
+                onSubmit={formik.handleSubmit}
+                className="flex flex-col gap-5"
+              >
+                <div className={`flex flex-col gap-1 ${isEdit && "hidden"}`}>
+                  <label className="form-label text-gray-900">Vehicle</label>
+                  {isVehicleLoading ? (
+                    <span>Loading Vehicle ...</span>
+                  ) : VehicleError ? (
+                    <span>Error loading vehicle </span>
+                  ) : (
+                    <label className="input">
+                      <select
+                        {...formik.getFieldProps("vehicleId")}
+                        disabled={isEdit}
+                        className="form-control form-select w-full outline-none"
+                      >
+                        <option value="Select a vehicle">
+                          Select a vehicle
+                        </option>
+                        {Vehicle?.map(
+                          (vehicle: { id: number; make: string }) => (
+                            <option key={vehicle.id} value={vehicle.id}>
+                              {`${vehicle?.make}`}
+                            </option>
+                          )
+                        )}
+                      </select>
+                    </label>
+                  )}
+                  {formik.touched.vehicleId && formik.errors.vehicleId && (
+                    <span role="alert" className="text-danger text-xs mt-1">
+                      {typeof formik.errors.vehicleId === "string" &&
+                        formik.errors.vehicleId}
+                    </span>
+                  )}
                 </div>
                 <div className="flex justify-center mt-4">
                   <button type="submit" className="btn btn-primary">
@@ -361,7 +462,9 @@ const ModalDriverTypeForm = ({
                   </label>
                   {formik.touched.phoneNumber && formik.errors.phoneNumber ? (
                     <div className="text-red-500 text-sm">
-                      {typeof formik.errors.phoneNumber === "string" ? formik.errors.phoneNumber : null}
+                      {typeof formik.errors.phoneNumber === "string"
+                        ? formik.errors.phoneNumber
+                        : null}
                     </div>
                   ) : null}
 
@@ -452,7 +555,7 @@ const ModalDriverTypeForm = ({
                           formik.setFieldValue(
                             "drivingLicense",
                             event.currentTarget.files[0]
-                          )
+                          );
                         }
                       }}
                     />

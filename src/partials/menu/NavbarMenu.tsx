@@ -11,7 +11,6 @@ import {
 import { useLanguage } from "@/i18n";
 
 const NavbarMenu = ({ items }: { items: TMenuConfig }) => {
-  console.log(items, "here");
   const { isRTL } = useLanguage();
 
   const buildMenu = (items: TMenuConfig) => {

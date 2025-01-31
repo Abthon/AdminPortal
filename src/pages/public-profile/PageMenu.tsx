@@ -5,7 +5,6 @@ const PageMenu = () => {
   const { getMenuConfig } = useMenus();
   const menuConfig = getMenuConfig("primary");
   const accountMenuConfig = menuConfig?.["2"]?.children;
-  console.log(accountMenuConfig, "byebye");
 
   if (accountMenuConfig) {
     return <NavbarMenu items={accountMenuConfig} />;
