@@ -15,6 +15,7 @@ import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import axiosInstance from "@/auth/_helpers";
 import { DataGridLoader, KeenIcon } from "@/components";
 import { ModalSearchEmpty, ModalSearchNoResults } from "../search";
+const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 const bookingSchema = Yup.object().shape({
   pickupName: Yup.string().required("Pick up is required."),
@@ -71,8 +72,17 @@ const ModalBookingForm = ({
     // polyline: "",
   };
 
-  const calculateEstimatedPrice = async (pickupLat: string, pickupLng: string, dropOffLat: string, dropOffLng: string, vehicleTypeId: string) => {
-    console.log({pickupLat, pickupLng, dropOffLat, dropOffLng, vehicleTypeId}, "the data to send");
+  const calculateEstimatedPrice = async (
+    pickupLat: string,
+    pickupLng: string,
+    dropOffLat: string,
+    dropOffLng: string,
+    vehicleTypeId: string
+  ) => {
+    console.log(
+      { pickupLat, pickupLng, dropOffLat, dropOffLng, vehicleTypeId },
+      "the data to send"
+    );
     if (pickupLat && pickupLng && dropOffLat && dropOffLng && vehicleTypeId) {
       try {
         const updatedFields = {
@@ -83,7 +93,10 @@ const ModalBookingForm = ({
           vehicleTypeId: Number(vehicleTypeId),
         };
 
-        const res = await axiosInstance.post("api/v1/bookings/estimate/", updatedFields);
+        const res = await axiosInstance.post(
+          "api/v1/bookings/estimate/",
+          updatedFields
+        );
         if (res.status === 200) {
           const price = Math.floor(res.data.data.estimatedPrice);
           setEstimatedPrice(price);
@@ -93,7 +106,6 @@ const ModalBookingForm = ({
       }
     }
   };
-
 
   async function addBooking(values: { [key: string]: any }) {
     try {
@@ -136,7 +148,7 @@ const ModalBookingForm = ({
         dropOffLng: dropOffLng.toString(),
         pickupName,
         dropOffName,
-        ...(driverId ? { driverId } : {}),        
+        ...(driverId ? { driverId } : {}),
         estimatedPrice: price,
         estimatedTraveledDistance: distance,
         vehicleType: Number(vehicleTypeId),
@@ -361,8 +373,8 @@ const ModalBookingForm = ({
                       <div className="menu-link flex justify-between gap-2">
                         <div className="flex items-center gap-2.5">
                           <img
-                            src={`${driver.profilePhoto}`}
-                            className="rounded-full size-9 shrink-0"
+                            src={`${BASE_URL}/profile/${driver.profilePhoto}`}
+                            className="rounded-full size-9 shrink-0 object-cover"
                             alt={driver.name}
                           />
                           <div className="flex flex-col">
@@ -480,14 +492,13 @@ const ModalBookingForm = ({
                                 "pickupLng",
                                 place?.geometry?.location?.lng()
                               );
-
                             } else {
                               console.error(
                                 "Failed to fetch place details:",
                                 status
                               );
                             }
-                          });                        
+                          });
                         } else {
                           console.error("Invalid value:", value);
                         }
@@ -692,7 +703,7 @@ const ModalBookingForm = ({
                           outline: "none",
                           borderColor: "blue",
                         }}
-                        onChange={(e)=> {
+                        onChange={(e) => {
                           formik.handleChange(e);
                           calculateEstimatedPrice(
                             formik.values.pickupLat,
@@ -703,7 +714,6 @@ const ModalBookingForm = ({
                           );
                         }}
                       >
-                        
                         <option value="" disabled>
                           Select a vehicle type
                         </option>
@@ -720,7 +730,9 @@ const ModalBookingForm = ({
                   )}
                 </div>
                 <div>
-                  <label className="form-label text-gray-900">Estimated Price: {estimatedPrice} Birr</label>
+                  <label className="form-label text-gray-900">
+                    Estimated Price: {estimatedPrice} Birr
+                  </label>
                 </div>
                 <button
                   type="submit"

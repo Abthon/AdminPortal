@@ -51,6 +51,18 @@ interface BookingProps {
   searchInput?: string;
 }
 
+function getStatusColor(status: string): string {
+  const statusMap: Record<string, string> = {
+    driver_not_found: "danger",
+    requested: "warning",
+    assigned: "info",
+    started: "primary",
+    completed: "success",
+  };
+
+  return statusMap[status] || "default"; // Return "default" if the status is not found
+}
+
 const Booking: React.FC<BookingProps> = ({
   isAddOpen,
   _handleAddOpen,
@@ -342,18 +354,13 @@ const Booking: React.FC<BookingProps> = ({
         ),
         enableSorting: true,
         cell: (info) => {
+          console.log("info", info.row.original.status);
           return (
             <span
-              className={`badge badge-${
-                info.row.original.status === "requested" ? "primary" : "default"
-              } shrink-0 badge-outline rounded-[30px]`}
+              className={`badge badge-${getStatusColor(info.row.original.status)} shrink-0 badge-outline rounded-[30px]`}
             >
               <span
-                className={`size-1.5 rounded-full bg-${
-                  info.row.original.status === "requested"
-                    ? "primary"
-                    : "default"
-                } me-1.5`}
+                className={`size-1.5 rounded-full bg-${getStatusColor(info.row.original.status)} me-1.5`}
               ></span>
               {info.row.original.status}
             </span>
@@ -424,26 +431,6 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[80px]",
         },
       },
-      // {
-      //   id: "Delete",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Delete" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <button
-      //         onClick={() => mutate(info.row.original.id)}
-      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-      //       >
-      //         <KeenIcon icon="trash" />
-      //       </button>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "w-[80px]",
-      //   },
-      // },
     ],
     [mutate]
   );

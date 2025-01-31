@@ -236,7 +236,10 @@ const Drivers = ({
                 // alt={`${row.original.profilePhoto}`}
               /> */}
               <div className="relative">
-                <img src={img} className="rounded-full size-9 shrink-0" />
+                <img
+                  src={img}
+                  className="rounded-full size-9 shrink-0 object-cover"
+                />
                 <div
                   className={`flex size-2 bg-${row.original.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform`}
                 ></div>

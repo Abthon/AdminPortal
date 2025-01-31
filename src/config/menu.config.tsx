@@ -23,8 +23,12 @@ export const MENU_SIDEBAR: TMenuConfig = [
         path: "/vehicles",
       },
       {
-        title: "VehicleTypes",
+        title: "Vehicle Types",
         path: "/vehicle-types",
+      },
+      {
+        title: "Fuels",
+        path: "/fuels",
       },
     ],
   },

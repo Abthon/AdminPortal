@@ -75,7 +75,7 @@ const DriverProfilePage = () => {
   const image = (
     <img
       src={`${BASE_URL}/profile/${DriverData?.profilePhoto}`}
-      className="rounded-full border-3 border-success size-[100px] shrink-0"
+      className={`rounded-full border-3 ${DriverData?.is_online ? "border-success" : "border-danger"} object-cover  size-[100px] shrink-0`}
     />
   );
 
