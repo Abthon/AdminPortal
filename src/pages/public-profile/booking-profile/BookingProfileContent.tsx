@@ -162,6 +162,7 @@ import { DropOffInfo } from "./blocks/DropOffInfo";
 import { DistancePriceInfo } from "./blocks/DistancePriceInfo";
 import { TimingInfo } from "./blocks/TimingInfo";
 import { PathInfo } from "./blocks/PathInfo";
+import { CoorDetail } from "./blocks/CoorDetail";
 
 const stickySidebarClasses: Record<string, string> = {
   "demo1-layout": "top-[calc(var(--tw-header-height)+1rem)]",
@@ -230,6 +231,8 @@ const BookingProfileContent: React.FC<BookingProfileContentProps> = ({
 
       <div className="flex flex-col items-stretch grow gap-5 lg:gap-7.5">
         <RideDetail data={data} />
+
+        {data?.coor && <CoorDetail data={data?.coor} />}
 
         <PickupInfo data={data} />
 

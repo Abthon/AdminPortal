@@ -8,6 +8,10 @@ const BookingSidebar = () => {
       active: true,
     },
     {
+      title: "Corporate Detail",
+      target: "coor-detail",
+    },
+    {
       title: "Pick up Information",
       target: "pickup-info",
     },
