@@ -63,9 +63,8 @@ const ModalDriverTypeForm = ({
           ? assignVehicleDriver
           : addDriver,
     onSuccess: () => {
-      console.log(isApproved, isEdit, isAssigned, "hahahah");
       toast.success(
-        `Driver ${isApproved ? "Approved" : isEdit ? "Edited" : isAssigned ? "Assigned" : "Created"}`
+        `${isApproved ? "Driver Approved" : isEdit ? "Driver Edited" : isAssigned ? "Vehicle Assigned" : "Driver Created"}`
       );
       queryClient.invalidateQueries({ queryKey: ["Drivers"] });
       onOpenChange();
