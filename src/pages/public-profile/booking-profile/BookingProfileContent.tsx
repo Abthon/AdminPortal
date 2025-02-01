@@ -234,9 +234,9 @@ const BookingProfileContent: React.FC<BookingProfileContentProps> = ({
 
         {data?.coor && <CoorDetail data={data?.coor} />}
 
-        <PickupInfo data={data} />
+        {/* <PickupInfo data={data} />
 
-        <DropOffInfo data={data} />
+        <DropOffInfo data={data} /> */}
 
         <DistancePriceInfo data={data} />
 

@@ -30,7 +30,7 @@ const CoorDetail: React.FC<CoorDetailProps> = ({ data }) => {
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              email
+              Email
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
               {data.email}
@@ -40,24 +40,24 @@ const CoorDetail: React.FC<CoorDetailProps> = ({ data }) => {
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              contactPhoneNumber
+              Contact Phone Number
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
               0{data.contactPhoneNumber}
             </label>
           </div>
         </div>
-        <div className="w-full">
+        {/* <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              currentCredit
+              Current Credit
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
               {data.currentCredit}
             </label>
           </div>
-        </div>
-        <div className="w-full">
+        </div> */}
+        {/* <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
               creditLimit
@@ -66,11 +66,11 @@ const CoorDetail: React.FC<CoorDetailProps> = ({ data }) => {
               {data.creditLimit}
             </label>
           </div>
-        </div>
+        </div> */}
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              status
+              Status
             </label>
             <span
               className={`badge badge-sm ${data.status === "suspended" && "badge-danger"} ${data.status === "inactive" && "badge-warning"} ${data.status === "active" && "badge-success"} ${data.status === "requested" && "badge-primary"} badge-outline`}

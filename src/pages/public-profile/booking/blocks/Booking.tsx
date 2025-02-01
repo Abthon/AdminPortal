@@ -238,15 +238,63 @@ const Booking: React.FC<BookingProps> = ({
   const columns = useMemo<ColumnDef<IBookingData>[]>(
     () => [
       {
-        accessorKey: "id",
-        header: () => <DataGridRowSelectAll />,
-        cell: ({ row }) => <DataGridRowSelect row={row} />,
+        id: "Assign",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Actions" column={column} />
+        ),
         enableSorting: false,
-        enableHiding: false,
+        cell: (info) => {
+          if (
+            info.row.original.status === "requested" ||
+            info.row.original.status === "driver_not_found"
+          ) {
+            return (
+              <button
+                onClick={() => handleOpen(true, info.row.original)}
+                className="btn btn-sm btn-icon btn-clear btn-primary"
+              >
+                <KeenIcon icon="user-tick" />
+              </button>
+            );
+          }
+
+          if (info.row.original.status === "assigned") {
+            return (
+              <button
+                onClick={() => mutateStart(info.row.original.id)}
+                // onClick={() => handleOpen(true, info.row.original)}
+                className="btn btn-sm btn-icon btn-clear btn-success"
+              >
+                <KeenIcon icon="to-right" />
+              </button>
+            );
+          }
+
+          if (info.row.original.status === "started") {
+            return (
+              <button
+                onClick={() => handleOpen(false, info.row.original, true)}
+                className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+              >
+                <KeenIcon icon="minus-circle" />
+              </button>
+            );
+          }
+        },
         meta: {
-          headerClassName: "w-0",
+          headerClassName: "min-w-[75px]",
         },
       },
+      // {
+      //   accessorKey: "id",
+      //   header: () => <DataGridRowSelectAll />,
+      //   cell: ({ row }) => <DataGridRowSelect row={row} />,
+      //   enableSorting: false,
+      //   enableHiding: false,
+      //   meta: {
+      //     headerClassName: "w-0",
+      //   },
+      // },
       // {
       //   // accessorFn: (row) => row.id,
       //   id: "booking_ID",
@@ -400,54 +448,54 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[160px]",
         },
       },
-      {
-        id: "Assign",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Actions" column={column} />
-        ),
-        enableSorting: false,
-        cell: (info) => {
-          if (
-            info.row.original.status === "requested" ||
-            info.row.original.status === "driver_not_found"
-          ) {
-            return (
-              <button
-                onClick={() => handleOpen(true, info.row.original)}
-                className="btn btn-sm btn-icon btn-clear btn-primary"
-              >
-                <KeenIcon icon="user-tick" />
-              </button>
-            );
-          }
+      // {
+      //   id: "Assign",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Actions" column={column} />
+      //   ),
+      //   enableSorting: false,
+      //   cell: (info) => {
+      //     if (
+      //       info.row.original.status === "requested" ||
+      //       info.row.original.status === "driver_not_found"
+      //     ) {
+      //       return (
+      //         <button
+      //           onClick={() => handleOpen(true, info.row.original)}
+      //           className="btn btn-sm btn-icon btn-clear btn-primary"
+      //         >
+      //           <KeenIcon icon="user-tick" />
+      //         </button>
+      //       );
+      //     }
 
-          if (info.row.original.status === "assigned") {
-            return (
-              <button
-                onClick={() => mutateStart(info.row.original.id)}
-                // onClick={() => handleOpen(true, info.row.original)}
-                className="btn btn-sm btn-icon btn-clear btn-success"
-              >
-                <KeenIcon icon="to-right" />
-              </button>
-            );
-          }
+      //     if (info.row.original.status === "assigned") {
+      //       return (
+      //         <button
+      //           onClick={() => mutateStart(info.row.original.id)}
+      //           // onClick={() => handleOpen(true, info.row.original)}
+      //           className="btn btn-sm btn-icon btn-clear btn-success"
+      //         >
+      //           <KeenIcon icon="to-right" />
+      //         </button>
+      //       );
+      //     }
 
-          if (info.row.original.status === "started") {
-            return (
-              <button
-                onClick={() => handleOpen(false, info.row.original, true)}
-                className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-              >
-                <KeenIcon icon="minus-circle" />
-              </button>
-            );
-          }
-        },
-        meta: {
-          headerClassName: "min-w-[75px]",
-        },
-      },
+      //     if (info.row.original.status === "started") {
+      //       return (
+      //         <button
+      //           onClick={() => handleOpen(false, info.row.original, true)}
+      //           className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+      //         >
+      //           <KeenIcon icon="minus-circle" />
+      //         </button>
+      //       );
+      //     }
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[75px]",
+      //   },
+      // },
       // {
       //   id: "Start",
       //   header: ({ column }) => (

@@ -10,6 +10,7 @@ interface RideDetailProps {
 }
 
 const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
+  console.log(data, "d");
   return (
     <div className="card pb-2.5">
       <div className="card-header" id="ride-detail">
@@ -19,7 +20,7 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              id
+              Id
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
               {data.id}
@@ -30,7 +31,7 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              Created at
+              Booking Created At
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
               {timeAgo(data.createdAt)}
@@ -41,7 +42,7 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              status
+              Status
             </label>
             <span
               className={`badge badge-sm ${data.status === "suspended" && "badge-danger"} ${data.status === "inactive" && "badge-warning"} ${data.status === "active" && "badge-success"} ${data.status === "requested" && "badge-primary"} badge-outline`}
@@ -54,7 +55,37 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              remark
+              Pickup Name
+            </label>
+            <label className="form-label flex items-center gap-1 max-w-56">
+              {data.pickupName || "-"}
+            </label>
+          </div>
+        </div>
+        <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <label className="form-label flex items-center gap-1 max-w-56">
+              DropOff Name
+            </label>
+            <label className="form-label flex items-center gap-1 max-w-56">
+              {data.dropOffName || "-"}
+            </label>
+          </div>
+        </div>
+        <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <label className="form-label flex items-center gap-1 max-w-56">
+              Coorporate Name
+            </label>
+            <label className="form-label flex items-center gap-1 max-w-56">
+              {data?.coor?.name || "-"}
+            </label>
+          </div>
+        </div>
+        <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <label className="form-label flex items-center gap-1 max-w-56">
+              Remark
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
               {data.remark || "-"}
