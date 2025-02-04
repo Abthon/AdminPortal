@@ -24,6 +24,7 @@ interface IDataGridColumnHeader<TData, TValue>
   column: Column<TData, TValue>;
   title?: string;
   filter?: ReactNode;
+  hidden?: boolean;
 }
 
 export function DataGridColumnHeader<TData, TValue>({
@@ -31,7 +32,11 @@ export function DataGridColumnHeader<TData, TValue>({
   title = "",
   className,
   filter,
+  hidden,
 }: IDataGridColumnHeader<TData, TValue>) {
+  if (hidden) {
+    column.toggleVisibility(false);
+  }
   if (!filter && !column.getCanSort() && !column.getCanHide()) {
     return <div className={cn(className)}>{title}</div>;
   }

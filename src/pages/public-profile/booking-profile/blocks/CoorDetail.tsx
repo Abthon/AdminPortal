@@ -5,40 +5,68 @@ export function timeAgo(dateISO: string): string {
   return formatDistanceToNow(date, { addSuffix: true });
 }
 
-interface RideDetailProps {
+interface CoorDetailProps {
   data: any;
 }
 
-const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
-  console.log(data, "d");
+const CoorDetail: React.FC<CoorDetailProps> = ({ data }) => {
+  console.log(data, "dat");
   return (
     <div className="card pb-2.5">
-      <div className="card-header" id="ride-detail">
-        <h3 className="card-title">Ride Detail</h3>
+      <div className="card-header" id="coor-detail">
+        <h3 className="card-title">Corporate Detail</h3>
       </div>
       <div className="card-body grid gap-5">
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              Id
+              Name
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {data.id}
+              {data.name}
             </label>
           </div>
         </div>
-
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              Booking Created At
+              Email
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {timeAgo(data.createdAt)}
+              {data.email}
             </label>
           </div>
         </div>
-
+        <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <label className="form-label flex items-center gap-1 max-w-56">
+              Contact Phone Number
+            </label>
+            <label className="form-label flex items-center gap-1 max-w-56">
+              0{data.contactPhoneNumber}
+            </label>
+          </div>
+        </div>
+        {/* <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <label className="form-label flex items-center gap-1 max-w-56">
+              Current Credit
+            </label>
+            <label className="form-label flex items-center gap-1 max-w-56">
+              {data.currentCredit}
+            </label>
+          </div>
+        </div> */}
+        {/* <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <label className="form-label flex items-center gap-1 max-w-56">
+              creditLimit
+            </label>
+            <label className="form-label flex items-center gap-1 max-w-56">
+              {data.creditLimit}
+            </label>
+          </div>
+        </div> */}
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
@@ -55,40 +83,10 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              Pickup Name
+              Created at
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {data.pickupName || "-"}
-            </label>
-          </div>
-        </div>
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <label className="form-label flex items-center gap-1 max-w-56">
-              DropOff Name
-            </label>
-            <label className="form-label flex items-center gap-1 max-w-56">
-              {data.dropOffName || "-"}
-            </label>
-          </div>
-        </div>
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <label className="form-label flex items-center gap-1 max-w-56">
-              Coorporate Name
-            </label>
-            <label className="form-label flex items-center gap-1 max-w-56">
-              {data?.coor?.name || "-"}
-            </label>
-          </div>
-        </div>
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <label className="form-label flex items-center gap-1 max-w-56">
-              Remark
-            </label>
-            <label className="form-label flex items-center gap-1 max-w-56">
-              {data.remark || "-"}
+              {timeAgo(data.createdAt)}
             </label>
           </div>
         </div>
@@ -97,4 +95,4 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
   );
 };
 
-export { RideDetail };
+export { CoorDetail };

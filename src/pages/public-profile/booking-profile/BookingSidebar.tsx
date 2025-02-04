@@ -8,13 +8,17 @@ const BookingSidebar = () => {
       active: true,
     },
     {
-      title: "Pick up Information",
-      target: "pickup-info",
+      title: "Corporate Detail",
+      target: "coor-detail",
     },
-    {
-      title: "Drop off Information",
-      target: "dropoff-info",
-    },
+    // {
+    //   title: "Pick up Information",
+    //   target: "pickup-info",
+    // },
+    // {
+    //   title: "Drop off Information",
+    //   target: "dropoff-info",
+    // },
     {
       title: "Distance & Price Information",
       target: "distance-price-info",

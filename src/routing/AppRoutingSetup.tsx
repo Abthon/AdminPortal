@@ -17,6 +17,7 @@ import { VehicleProfilePage } from "@/pages/public-profile/vehicle-profile";
 import { DepositPage } from "@/pages/public-profile/deposit";
 import { BankPage } from "@/pages/public-profile/bank";
 import { FuelPage } from "@/pages/public-profile/fuel";
+import { UserPage } from "@/pages/public-profile/users";
 const AppRoutingSetup = (): ReactElement => {
   return (
     <Routes>
@@ -84,6 +85,14 @@ const AppRoutingSetup = (): ReactElement => {
             element={
               <RequireAuth allowedRoles={["admin"]}>
                 <ConfigPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <RequireAuth allowedRoles={["admin"]}>
+                <UserPage />
               </RequireAuth>
             }
           />

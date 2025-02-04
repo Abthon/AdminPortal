@@ -700,6 +700,16 @@ export const getMenuSidebar = (
         },
       ],
     } : null,
+    {
+      title: "Users",
+      icon: "user",
+      children: [
+        {
+          title: "Users",
+          path: "/users",
+        },
+      ],
+    },
     getUserType(authToken) === "admin" ?{
       heading: "Coorporate",
     } : null,

@@ -70,7 +70,6 @@ export function setupAxios(axiosInstance: any) {
               }
             );
 
-            console.log(data, "the new token");
             const newAuth = { ...auth, accessToken: data.accessToken };
             setAuth(newAuth);
             axiosInstance.defaults.headers.Authorization = `Bearer ${data.accessToken}`;

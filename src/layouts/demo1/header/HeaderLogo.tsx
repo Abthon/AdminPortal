@@ -1,10 +1,11 @@
-import { Link } from 'react-router-dom';
-import { KeenIcon } from '@/components/keenicons';
-import { toAbsoluteUrl } from '@/utils';
-import { useDemo1Layout } from '../';
+import { Link } from "react-router-dom";
+import { KeenIcon } from "@/components/keenicons";
+import { toAbsoluteUrl } from "@/utils";
+import { useDemo1Layout } from "../";
 
 const HeaderLogo = () => {
-  const { setMobileSidebarOpen, setMobileMegaMenuOpen, megaMenuEnabled } = useDemo1Layout();
+  const { setMobileSidebarOpen, setMobileMegaMenuOpen, megaMenuEnabled } =
+    useDemo1Layout();
 
   const handleSidebarOpen = () => {
     setMobileSidebarOpen(true);
@@ -18,9 +19,14 @@ const HeaderLogo = () => {
     <div className="flex gap-1 lg:hidden items-center -ms-1">
       <Link to="/" className="shrink-0">
         <img
-          src={toAbsoluteUrl('/media/app/mini-logo.jpg')}
-          className="max-h-[25px] w-full" 
+          src={toAbsoluteUrl("/media/app/logo.jpg")}
+          className="dark:hidden max-h-[25px] w-full"
           alt="mini-logo"
+        />
+        <img
+          src={toAbsoluteUrl("/media/app/logo.svg")}
+          className="hidden dark:inline-block max-h-[25px] w-full"
+          alt="logo"
         />
       </Link>
 
