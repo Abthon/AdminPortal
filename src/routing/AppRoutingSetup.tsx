@@ -36,7 +36,7 @@ const AppRoutingSetup = (): ReactElement => {
             path="/vehicle-types"
             element={
               <RequireAuth allowedRoles={["admin"]}>
-                <VechileRegistrationPage />
+                <VehiclePage />
               </RequireAuth>
             }
           />
