@@ -399,7 +399,7 @@ const Deposit = ({
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent className="w-32">
-                <SelectItem value="all">all</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="accepted">Active</SelectItem>
                 <SelectItem value="rejected">InActive</SelectItem>
               </SelectContent>

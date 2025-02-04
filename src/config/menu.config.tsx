@@ -67,6 +67,16 @@ export const MENU_SIDEBAR: TMenuConfig = [
     ],
   },
   {
+    title: "Users",
+    icon: "user",
+    children: [
+      {
+        title: "Users",
+        path: "/users",
+      },
+    ],
+  },
+  {
     heading: "Coorporate",
   },
   {
