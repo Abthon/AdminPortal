@@ -50,7 +50,7 @@ interface AuthContextProps {
   getUser: () => Promise<AxiosResponse<any>>;
   logout: () => void;
   verify: () => Promise<void>;
-  getUserType: (token: string ) => string;
+  getUserType: (token: string ) => any;
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
@@ -93,17 +93,18 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
-  const getUserType = (token: string) : string =>{ 
-    const base64Url = token.split(".")[1]; // Get payload part of the JWT
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
-        .join("")
-    );
-
-    return JSON.parse(jsonPayload).type;
+  const getUserType = (token: string) : any =>{ 
+    if(token){ 
+      const base64Url = token.split(".")[1]; // Get payload part of the JWT
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
+          .join("")
+      );
+      return JSON.parse(jsonPayload).type;
+    }
   }
 
   const login = async (email: string, password: string): Promise<AuthModel> => {
