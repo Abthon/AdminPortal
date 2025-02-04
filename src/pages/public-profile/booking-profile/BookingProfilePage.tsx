@@ -77,7 +77,7 @@
 // };
 
 // export { BookingProfilePage };
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 import { Container } from "@/components/container";
 import {
   Toolbar,
@@ -108,6 +108,7 @@ const BookingProfilePage = () => {
 
   async function getBooking(id: string) {
     const { data } = await axiosInstance.get(`/api/v1/bookings/${id}`);
+    console.log(data, "booking profile");
     const associatedVehicle = await getVehicleType();
     const updatedData = {
       ...data.data,
@@ -116,6 +117,9 @@ const BookingProfilePage = () => {
     return updatedData;
   }
 
+  useEffect(()=> {
+    console.log("initiated!");
+  })
   const {
     isLoading: isBookingLoading,
     data: BookingData,

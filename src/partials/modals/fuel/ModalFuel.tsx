@@ -41,8 +41,6 @@ const ModalFuel = ({
   isEdit,
   fuelData,
 }: IModalFuelProps) => {
-  // console.log(isEdit);
-  // console.log(fuelData, isEdit);
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
     mutationFn: isEdit ? editFuelRecord : addFuelRecord,
