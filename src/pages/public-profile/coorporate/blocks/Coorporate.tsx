@@ -212,52 +212,6 @@ const Coorporate = ({
           headerClassName: "w-0",
         },
       },
-      // {
-      //   accessorFn: (row: ICoorporateData) => row.user,
-      //   id: "users",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader
-      //       title="Member"
-      //       filter={<ColumnInputFilter column={column} />}
-      //       column={column}
-      //     />
-      //   ),
-      //   enableSorting: true,
-      //   cell: ({ row }) => {
-      //     return (
-      //       <div className="flex items-center gap-4">
-      //         <img
-      //           src={`${BaseURL}${row.original.image}`}
-      //           className="rounded-full size-9 shrink-0"
-      //           alt={`${row.original.image}`}
-      //         />
-      //         <div className="flex flex-col gap-0.5">
-      //           <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-      //             {row.original.name}
-      //           </span>
-      //         </div>
-      //       </div>
-      //     );
-      //   },
-      //   meta: {
-      //     className: "min-w-[300px]",
-      //     cellClassName: "min-w-[250px] text-gray-800 font-normal",
-      //   },
-      // },
-      // {
-      //   accessorFn: (row) => row.CoorporateType,
-      //   id: "CoorporateType",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="CoorporateType ID" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.CoorporateType?.id;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
       {
         accessorFn: (row) => row.name,
         id: "name",
@@ -325,121 +279,6 @@ const Coorporate = ({
           headerClassName: "min-w-[180px]",
         },
       },
-      // {
-      //   // accessorFn: (row) => row.email,
-      //   id: "creditLimit",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Credit Limit" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.creditLimit;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.email,
-      //   id: "paymentPlan",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Payment Plan" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.paymentPlan;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.email,
-      //   id: "license",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="License" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.license;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.email,
-      //   id: "tinNo",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Tin No" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.tinNo;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.email,
-      //   id: "nationalId",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="National Id" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.nationalId;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.email,
-      //   id: "contactPhoneNumber",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Contact Phone Number" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.contactPhoneNumber;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.email,
-      //   id: "backupContactPhoneNumber",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader
-      //       title="Backup Contact Phone Number"
-      //       column={column}
-      //     />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.backupContactPhoneNumber;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
-      // {
-      //   accessorFn: (row) => row.booking,
-      //   id: "booking",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="booking" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.booking;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
       {
         id: "Edit",
         header: ({ column }) => (
@@ -562,36 +401,6 @@ const Coorporate = ({
     );
   };
 
-  // if (isCoorporateLoading) {
-  //   return (
-  //     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-  //       <div className="text-muted-foreground bg-card  flex items-center gap-2 px-4 py-2 font-medium leading-none text-sm border shadow-sm rounded-md">
-  //         <svg
-  //           className="animate-spin -ml-1 h-5 w-5 text-muted-foreground"
-  //           xmlns="http://www.w3.org/2000/svg"
-  //           fill="none"
-  //           viewBox="0 0 24 24"
-  //         >
-  //           <circle
-  //             className="opacity-25"
-  //             cx="12"
-  //             cy="12"
-  //             r="10"
-  //             stroke="currentColor"
-  //             strokeWidth="3"
-  //           ></circle>
-  //           <path
-  //             className="opacity-75"
-  //             fill="currentColor"
-  //             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-  //           ></path>
-  //         </svg>
-  //         Loading
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   return (
     <>
       <ModalCoorporateForm
@@ -607,6 +416,7 @@ const Coorporate = ({
         searchInput={searchInput}
         columns={columns}
         data={data}
+        link="coorporates"
         filterInput={filterInput}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
