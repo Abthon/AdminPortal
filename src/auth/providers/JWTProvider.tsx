@@ -12,6 +12,7 @@ import {
 
 import * as authHelper from "../_helpers";
 import { type AuthModel, type UserModel } from "@/auth";
+import { Navigate } from "react-router";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 export const LOGIN_URL = `${API_URL}/prod/api/v1/auth/admin/login`;
@@ -188,6 +189,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
   const logout = () => {
     saveAuth(undefined);
     setCurrentUser(undefined);
+    window.location.reload();
   };
 
   return (

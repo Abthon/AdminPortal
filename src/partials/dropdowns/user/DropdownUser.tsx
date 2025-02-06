@@ -71,7 +71,7 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
               {userData.firstName} {userData.lastName}
             </Link>
             <a
-              href="mailto:c.fisher@gmail.com"
+              href={`mailto:${userData.email}`}
               className="text-xs text-gray-600 hover:text-primary font-medium leading-none"
             >
              {userData.email}
