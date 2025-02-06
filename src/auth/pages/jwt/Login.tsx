@@ -92,16 +92,15 @@ const Login = () => {
           <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">
             Sign in
           </h3>
-          <div className="flex items-center justify-center font-medium">
+          {/* <div className="flex items-center justify-center font-medium">
             <span className="text-2sm text-gray-600 me-1.5">
               Need an account?
             </span>
             <Link to={"/auth/signup"} className="text-2sm link">
               Sign up
             </Link>
-          </div>
+          </div> */}
         </div>
-
         {formik.status && <Alert variant="danger">{formik.status}</Alert>}
 
         <div className="flex flex-col gap-1">
