@@ -26,13 +26,13 @@ const coorporateSchema = Yup.object().shape({
   license: Yup.mixed().required("license is required."),
   tinNo: Yup.string().required("tin number is required."),
   address: Yup.string().required("address is required."),
-  contactPhoneNumber: Yup.string().required(
-    "Contact Phone number is required."
-  ),
-  backupContactPhoneNumber: Yup.string().required(
-    "Backup Phone number is required."
-  ),
-  nationalId: Yup.number().required("nationalId is required."),
+  contactPhoneNumber: Yup.string().required("contact Phone number is required").matches(/^\d{9}$/, {
+    message: 'Invalid phone number.',
+  }),
+  backupContactPhoneNumber: Yup.string().required("backup Phone number is required").matches(/^\d{9}$/, {
+    message: 'Invalid phone number.',
+  }),
+  nationalId: Yup.number(),
   officialStampedLetter: Yup.mixed().required("Stamped Letter is required."),
 });
 
@@ -590,73 +590,79 @@ const ModalCoorporateForm = ({
                     </span>
                   )}
                 </div>
-
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                    Contact Phone Number
-                  </label>
-                  <label className="input">
-                    <input
-                      placeholder="Enter contact phoneNumber"
-                      autoComplete="off"
-                      {...formik.getFieldProps("contactPhoneNumber")}
-                      className={clsx(
-                        "form-control bg-transparent",
-                        {
-                          "is-invalid":
-                            formik.touched.contactPhoneNumber &&
-                            formik.errors.contactPhoneNumber,
-                        },
-                        {
-                          "is-valid":
-                            formik.touched.contactPhoneNumber &&
-                            !formik.errors.contactPhoneNumber,
-                        }
-                      )}
-                    />
-                  </label>
+                  <label className="form-label text-gray-900">contactPhoneNumber</label>
+                  {/* Your existing phone number input code */}
+                  <div className="flex items-center gap-2">
+                    <select className="border border-gray-300 rounded px-2 py-2 text-gray-900" defaultValue="+251">
+                      <option value="+251">+251</option>
+                    </select>
+                    <label className="input flex-1">
+                      <input
+                        placeholder="Enter contactPhoneNumber"
+                        autoComplete="off"
+                        {...formik.getFieldProps("contactPhoneNumber")}
+                        className={clsx(
+                          "form-control bg-transparent",
+                          {
+                            "is-invalid":
+                              formik.touched.contactPhoneNumber &&
+                              formik.errors.contactPhoneNumber,
+                          },
+                          {
+                            "is-valid":
+                              formik.touched.contactPhoneNumber &&
+                              !formik.errors.contactPhoneNumber,
+                          }
+                        )}
+                      />
+                    </label>
+                  </div>
                   {formik.touched.contactPhoneNumber &&
                     formik.errors.contactPhoneNumber && (
                       <span role="alert" className="text-danger text-xs mt-1">
                         {typeof formik.errors.contactPhoneNumber === "string" &&
                           formik.errors.contactPhoneNumber}
                       </span>
-                    )}
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                    Backup Contact Phone Number
-                  </label>
-                  <label className="input">
-                    <input
-                      placeholder="Enter backup contact phoneNumber"
-                      autoComplete="off"
-                      {...formik.getFieldProps("backupContactPhoneNumber")}
-                      className={clsx(
-                        "form-control bg-transparent",
-                        {
-                          "is-invalid":
-                            formik.touched.backupContactPhoneNumber &&
-                            formik.errors.backupContactPhoneNumber,
-                        },
-                        {
-                          "is-valid":
-                            formik.touched.backupContactPhoneNumber &&
-                            !formik.errors.backupContactPhoneNumber,
-                        }
-                      )}
-                    />
-                  </label>
+                  <label className="form-label text-gray-900">backup contactPhoneNumber</label>
+                  {/* Your existing phone number input code */}
+                  <div className="flex items-center gap-2">
+                    <select className="border border-gray-300 rounded px-2 py-2 text-gray-900" defaultValue="+251">
+                      <option value="+251">+251</option>
+                    </select>
+                    <label className="input flex-1">
+                      <input
+                        placeholder="Enter backupPhoneNumber"
+                        autoComplete="off"
+                        {...formik.getFieldProps("backupContactPhoneNumber")}
+                        className={clsx(
+                          "form-control bg-transparent",
+                          {
+                            "is-invalid":
+                              formik.touched.backupContactPhoneNumber &&
+                              formik.errors.backupContactPhoneNumber,
+                          },
+                          {
+                            "is-valid":
+                              formik.touched.backupContactPhoneNumber &&
+                              !formik.errors.backupContactPhoneNumber,
+                          }
+                        )}
+                      />
+                    </label>
+                  </div>
                   {formik.touched.backupContactPhoneNumber &&
                     formik.errors.backupContactPhoneNumber && (
                       <span role="alert" className="text-danger text-xs mt-1">
-                        {typeof formik.errors.backupContactPhoneNumber ===
-                          "string" && formik.errors.backupContactPhoneNumber}
+                        {typeof formik.errors.backupContactPhoneNumber === "string" &&
+                          formik.errors.backupContactPhoneNumber}
                       </span>
-                    )}
+                  )}
                 </div>
-
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
                     National Id
