@@ -78,16 +78,6 @@ const CoorProfilePage = () => {
     enabled: !!id,
   });
 
-  // const {
-  //   isLoading: isBookingLoading,
-  //   data: bookingData,
-  //   isError: isBookingError,
-  // } = useQuery({
-  //   queryKey: ["CoorBooking", id],
-  //   queryFn: () => getCoorBooking(id as string),
-  //   enabled: !!id,
-  // });
-
   const handleClose = () => {
     setApprovalMode(false);
     setProfileModalOpen(false);
@@ -109,13 +99,6 @@ const CoorProfilePage = () => {
     setProfileModalOpen(true);
   };
 
-  // const image = (
-  //   <img
-  //     src={`${BASE_URL}/profile/${DriverData?.profilePhoto}`}
-  //     className={`rounded-full border-3 ${DriverData?.is_online ? "border-success" : "border-danger"} object-cover  size-[100px] shrink-0`}
-  //   />
-  // );
-
   useEffect(
     function () {
       isAddOpen && handleApproval(true);
@@ -132,14 +115,6 @@ const CoorProfilePage = () => {
 
   return (
     <>
-      {/* <ModalDriverTypeForm
-        open={profileModalOpen}
-        onOpenChange={handleClose}
-        isEdit={false}
-        isApproved={approvalMode}
-        isAssigned={assignMode}
-        driverData={currentDriverData}
-      /> */}
       <Fragment>
         <UserProfileHero
           name={`${coorData?.name}`}
@@ -153,28 +128,9 @@ const CoorProfilePage = () => {
 
         <Container>
           <Navbar>
-            {/* <div className="flex items-center justify-end grow lg:grow-0 lg:pb-4 gap-2.5 mb-3 lg:mb-0">
-              <span>Booking</span>
-              <span>Deposit</span>
-            </div> */}
-
             <div></div>
 
             <NavbarActions>
-              {/* <button
-                onClick={() => handleAssign(true)}
-                type="button"
-                className="btn btn-sm btn-primary"
-              >
-                <KeenIcon icon="car" /> Assign Vehicle
-              </button>
-              <button
-                onClick={() => handleApproval(true)}
-                type="button"
-                className="btn btn-sm btn-primary"
-              >
-                <KeenIcon icon="users" /> Approve
-              </button> */}
               <span
                 onClick={() => setActiveTab("bookings")}
                 className="btn btn-sm btn-light"

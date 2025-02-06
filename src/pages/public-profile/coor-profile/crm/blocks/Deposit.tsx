@@ -96,7 +96,8 @@ const Deposit = ({
     sort: any;
   }) {
     //const url = `/api/v1/deposit?filters=coor.id=${id}${filterInput && filterInput !== "all" ? ,isApproved=${filterInput == "accepted" ? "1" : "0"} : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
-    const url = `/api/v1/deposit?filter=coor.id${id}${filterInput && filterInput !== "all" ? `,isApproved=${filterInput == "accepted" ? "1" : "0"}` : ""}take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/deposit?filters=coor.id=${id}${filterInput && filterInput !== "all" ? `,isApproved=${filterInput == "accepted" ? "1" : "0"}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page

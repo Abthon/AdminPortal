@@ -84,7 +84,7 @@ const Booking: React.FC<BookingProps> = ({
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
   const [startDate, setStartDate] = useState<Date | any>(null);
-  const [endDate, setEndDate] = useState<Date | any>(null);
+  // const [endDate, setEndDate] = useState<Date | any>(null);
 
   const handleClose = () => {
     setProfileModalOpen(false);
@@ -100,9 +100,8 @@ const Booking: React.FC<BookingProps> = ({
     pageSize: number;
     sort: any;
     startDate?: any;
-    endDate?: any;
   }) {
-    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}&filters=coor.id=${id}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}${startDate ? `,createdAt>${startDate}` : ""}${endDate ? `,createdAt<${endDate}` : ""}&fields=coor.*,id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber`;
+    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}&filters=coor.id=${id}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}${startDate ? `,createdAt>${startDate}` : ""}&fields=coor.*,id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber`;
     // const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
@@ -194,7 +193,7 @@ const Booking: React.FC<BookingProps> = ({
   }
 
   let { isLoading: isBookingLoading, data: BookingData } = useQuery({
-    queryKey: ["Bookings", searchInput, filterInput, startDate, endDate],
+    queryKey: ["Bookings", searchInput, filterInput, startDate],
     queryFn: revalidateBooking,
   });
 
@@ -654,7 +653,7 @@ const Booking: React.FC<BookingProps> = ({
   const Toolbar = () => {
     const clearInterval = () => {
       setStartDate(null);
-      setEndDate(null);
+      // setEndDate(null);
     };
     const handleStartDateChange = (date: any) => {
       const dateObject = new Date(date);
@@ -669,7 +668,7 @@ const Booking: React.FC<BookingProps> = ({
 
       // Convert to ISO format
       const isoString = dateObject.toISOString();
-      setEndDate(isoString);
+      // setEndDate(isoString);
     };
 
     return (
@@ -686,12 +685,12 @@ const Booking: React.FC<BookingProps> = ({
               placeholderText="Start Date"
               className="btn btn-sm btn-outline btn-primary"
             />
-            <DatePicker
+            {/* <DatePicker
               selected={endDate}
               onChange={handleEndDateChange}
               placeholderText="End Date"
               className="btn btn-sm btn-outline btn-primary"
-            />
+            /> */}
             <button
               onClick={() => clearInterval()}
               className="btn btn-sm btn-outline btn-primary"

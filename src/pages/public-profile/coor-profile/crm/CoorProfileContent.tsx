@@ -20,19 +20,21 @@ const CoorProfileContent = ({
 }: CoorProfileContentProps) => {
   return (
     <div className="grid gap-5 lg:gap-7.5">
-      <Booking
-        _handleAddOpen={_handleAddOpen}
-        isAddOpen={isAddOpen}
-        searchInput={searchInput}
-        id={id}
-      />
-      <Deposit
-        _handleAddOpen={_handleAddOpen}
-        isAddOpen={isAddOpen}
-        searchInput={searchInput}
-        id={id}
-      />
-      {/* <Booking /> */}
+      {activeTab === "bookings" ? (
+        <Booking
+          _handleAddOpen={_handleAddOpen}
+          isAddOpen={isAddOpen}
+          searchInput={searchInput}
+          id={id}
+        />
+      ) : (
+        <Deposit
+          _handleAddOpen={_handleAddOpen}
+          isAddOpen={isAddOpen}
+          searchInput={searchInput}
+          id={id}
+        />
+      )}
     </div>
   );
 };
