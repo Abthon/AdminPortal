@@ -30,6 +30,7 @@ const CoorProfileContent = ({
         _handleAddOpen={_handleAddOpen}
         isAddOpen={isAddOpen}
         searchInput={searchInput}
+        id={id}
       />
       {/* <Booking /> */}
     </div>

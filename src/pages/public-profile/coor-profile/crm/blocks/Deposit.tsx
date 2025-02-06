@@ -44,11 +44,13 @@ const Deposit = ({
   _handleAddOpen,
   // handleDriverNum,
   searchInput,
+  id,
 }: {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
   // handleDriverNum: (num: any) => void;
   searchInput?: string;
+  id: any;
 }) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -93,7 +95,8 @@ const Deposit = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/deposit?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=isApproved=${filterInput == "accepted" ? "1" : "0"}` : ""}`;
+    //const url = `/api/v1/deposit?filters=coor.id=${id}${filterInput && filterInput !== "all" ? ,isApproved=${filterInput == "accepted" ? "1" : "0"} : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/deposit?filter=coor.id${id}${filterInput && filterInput !== "all" ? `,isApproved=${filterInput == "accepted" ? "1" : "0"}` : ""}take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
