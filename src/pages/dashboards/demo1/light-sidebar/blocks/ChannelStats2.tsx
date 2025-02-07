@@ -15,9 +15,9 @@ interface IChannelStatsItem {
 interface IChannelStatsItems extends Array<IChannelStatsItem> {}
 
 const ChannelStats2 = ({ data }: { data: any }) => {
-  useEffect(()=> {
+  useEffect(() => {
     console.log(data, "the data");
-  })
+  });
   const items: IChannelStatsItems = [
     {
       logo: "profile-circle",
@@ -34,7 +34,7 @@ const ChannelStats2 = ({ data }: { data: any }) => {
       color: "primary",
     },
     {
-      logo: "note-2",
+      logo: "hourglass",
       info: data?.totalRequestedBookings,
       desc: "Total Pending Bookings",
       path: "",
@@ -63,10 +63,17 @@ const ChannelStats2 = ({ data }: { data: any }) => {
         key={index}
         className="card flex-col justify-between gap-6 h-full bg-cover rtl:bg-[left_top_-1.7rem] bg-[right_top_-1.7rem] bg-no-repeat channel-stats-bg"
       >
-        <KeenIcon
-          icon={item.logo}
-          className=" text-blue-600 text-[1.75rem] mt-4 ms-5"
-        />
+        {item.logo !== "hourglass" ? (
+          <KeenIcon
+            icon={item.logo}
+            className=" text-blue-600 text-[1.75rem] mt-4 ms-5"
+          />
+        ) : (
+          <img
+            src={toAbsoluteUrl("/media/icons/hourglass3.svg")}
+            className="h-8 w-8 mt-4 ms-5"
+          />
+        )}
 
         <div className="flex flex-col gap-1 pb-4 px-5">
           <span className="text-3xl font-semibold text-gray-900">
