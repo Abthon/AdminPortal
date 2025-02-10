@@ -39,20 +39,6 @@ const CoorProfilePage = () => {
   const [currentDriverData, setCurrentDriverData] =
     useState<IDriversData | null>(null);
 
-  async function getCoorBooking(id: string) {
-    try {
-      //const url = `/api/v1/bookings?filters=coor.id=${getDecodedTokenData()}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
-      const url = `/api/v1/bookings?filters=coor.id=${id}`;
-      const { data } = await axiosInstance.get(
-        url
-        //`/api/v1/drivers/${id}?fields=id,createdAt,firstName,middleName,lastName,phoneNumber,isPhoneNumberAuthenticated,type,drivingLicense,gender,is_online,is_available,isBusy,lat,lng,status,profilePhoto,firebaseToken,averageRating,vehicle.*,bookings.*`
-      );
-      console.log(data, "data");
-      return data.data;
-    } catch (error) {
-      console.log(error);
-    }
-  }
   async function getCoor(id: string) {
     try {
       //const url = `/api/v1/bookings?filters=coor.id=${getDecodedTokenData()}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
@@ -154,6 +140,7 @@ const CoorProfilePage = () => {
             searchInput={searchInput}
             id={id}
             activeTab={activeTab}
+            coorData={coorData}
           />
         </Container>
       </Fragment>
