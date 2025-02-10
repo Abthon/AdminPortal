@@ -431,6 +431,7 @@ const Users = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}
+        link="users"
         sorting={[{ id: "firstName", desc: true }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}

@@ -19,6 +19,7 @@ import { BankPage } from "@/pages/public-profile/bank";
 import { FuelPage } from "@/pages/public-profile/fuel";
 import { UserPage } from "@/pages/public-profile/users";
 import { CoorProfilePage } from "@/pages/public-profile/coor-profile/crm";
+import { UserProfilePage } from "@/pages/public-profile/user-profile/crm";
 const AppRoutingSetup = (): ReactElement => {
   return (
     <Routes>
@@ -102,6 +103,14 @@ const AppRoutingSetup = (): ReactElement => {
             element={
               <RequireAuth allowedRoles={["admin"]}>
                 <UserPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/users/:id"
+            element={
+              <RequireAuth allowedRoles={["admin"]}>
+                <UserProfilePage />
               </RequireAuth>
             }
           />
