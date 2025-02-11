@@ -7,8 +7,10 @@ import { type AuthModel } from "./_models";
 const AUTH_LOCAL_STORAGE_KEY = `${import.meta.env.VITE_APP_NAME}_auth`;
 
 const getAuth = (): AuthModel | undefined => {
+  console.log("getting auth");
   try {
     const auth = getData(AUTH_LOCAL_STORAGE_KEY) as AuthModel | undefined;
+    console.log(auth, "getting auth auth");
     if (auth) {
       return auth;
     } else {
@@ -56,26 +58,32 @@ export function setupAxios(axiosInstance: any) {
       const originalRequest = error.config;
       if (
         error.response &&
-        error.response.status === 401 &&
+        error.response.status === 401  || error.response.status === 403 &&
         !originalRequest._retry
       ) {
         originalRequest._retry = true;
         const auth = getAuth();
+        console.log(auth?.refreshToken, "the refresh token");
         if (auth?.refreshToken) {
           try {
             const { data } = await axios.post(
-              "https://static.129.134.201.195.clients.your-server.de/prod/api/v1/auth/refresh",
+              "https://static.129.134.201.195.clients.your-server.de/test/api/v1/auth/refresh",
               {
-                refreshToken: auth.refreshToken,
+                firebaseToken: "1234",
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${auth?.refreshToken}`
+                }
               }
             );
-
-            const newAuth = { ...auth, accessToken: data.accessToken };
+            const newAuth = { ...auth, accessToken: data.data.accessToken };
             setAuth(newAuth);
             axiosInstance.defaults.headers.Authorization = `Bearer ${data.accessToken}`;
             originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
             return axiosInstance(originalRequest);
           } catch (refreshError) {
+            console.log(refreshError, "refresh error");
             removeAuth();
             window.location.href = "/auth/login"; // Redirect to login page
           }
@@ -90,7 +98,7 @@ export function setupAxios(axiosInstance: any) {
 }
 
 const axiosInstance = axios.create({
-  baseURL: "https://static.129.134.201.195.clients.your-server.de/prod",
+  baseURL: "https://static.129.134.201.195.clients.your-server.de/test",
   // baseURL: 'https://static.129.134.201.195.clients.your-server.de/dev'
   // baseURL: 'http://195.201.134.129/prod', // This is the base URL
 });

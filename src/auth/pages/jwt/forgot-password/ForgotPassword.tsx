@@ -22,10 +22,10 @@ const forgotPasswordSchema = Yup.object().shape({
     .required('Email is required')
 });
 
-const ResetPassword = () => {
+const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [hasErrors, setHasErrors] = useState<boolean | undefined>(undefined);
-  const { requestPasswordResetLink } = useAuthContext();
+  const { forgotPassword } = useAuthContext();
   const { currentLayout } = useLayout();
   const navigate = useNavigate();
 
@@ -36,26 +36,23 @@ const ResetPassword = () => {
       setLoading(true);
       setHasErrors(undefined);
       try {
-        if (!requestPasswordResetLink) {
+        if (!forgotPassword) {
           throw new Error('JWTProvider is required for this form.');
         }
-        await requestPasswordResetLink(values.email);
+        await forgotPassword(values.email);
         setHasErrors(false);
         setLoading(false);
         const params = new URLSearchParams();
         params.append('email', values.email);
         navigate({
-          pathname:
-            currentLayout?.name === 'auth-branded'
-              ? '/auth/reset-password/check-email'
-              : '/auth/classic/reset-password/check-email',
+          pathname:'/auth/reset-password',
           search: params.toString()
         });
       } catch (error) {
         if (error instanceof AxiosError && error.response) {
           setStatus(error.response.data.message);
         } else {
-          setStatus('Password reset failed. Please try again.');
+          setStatus('Forgeting password failed. Please try again.');
         }
         setHasErrors(true);
         setLoading(false);
@@ -73,7 +70,7 @@ const ResetPassword = () => {
         <div className="text-center">
           <h3 className="text-lg font-semibold text-gray-900">Your Email</h3>
           <span className="text-2sm text-gray-600 font-medium">
-            Enter your email to reset password
+            Enter your email to forgot password
           </span>
         </div>
 
@@ -81,7 +78,7 @@ const ResetPassword = () => {
 
         {hasErrors === false && (
           <Alert variant="success">
-            Password reset link sent. Please check your email to proceed
+            Forgot password link sent. Please check your email to proceed
           </Alert>
         )}
 
@@ -131,4 +128,4 @@ const ResetPassword = () => {
   );
 };
 
-export { ResetPassword };
+export { ForgotPassword };

@@ -1,4 +1,4 @@
-export * from './ResetPassword';
+export * from './ForgotPassword';
 export * from './ResetPasswordChange';
 export * from './ResetPasswordChanged';
 export * from './ResetPasswordCheckEmail';

@@ -8,18 +8,21 @@ import { useNavigate } from 'react-router-dom';
 import { useLayout } from '@/providers';
 import { AxiosError } from 'axios';
 
-const passwordSchema = Yup.object().shape({
-  newPassword: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('New password is required'),
+const resetPasswordSchema = Yup.object().shape({
+  email: Yup.string()
+  .required("Email is required").email('Invalid email address'),
+  newPassword: Yup.string().required("Password is required").matches(/^(?=.*\d)[A-Za-z\d]{8,}$/, 'Your password must contain both letters and numbers and the Minimum length should be 8 characters.',
+  ),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('newPassword')], 'Passwords must match')
-    .required('Please confirm your new password')
+    .required('Please confirm your new password'),
+  otp: Yup.string()
+    .required('OTP is required'),
 });
 
 const ResetPasswordChange = () => {
   const { currentLayout } = useLayout();
-  const { changePassword } = useAuthContext();
+  const { resetPassword } = useAuthContext();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [hasErrors, setHasErrors] = useState<boolean | undefined>(undefined);
@@ -28,33 +31,30 @@ const ResetPasswordChange = () => {
 
   const formik = useFormik({
     initialValues: {
+      email: '',
       newPassword: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      otp: '',
     },
-    validationSchema: passwordSchema,
+    validationSchema: resetPasswordSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
+      const updatedValues = {
+        email: values.email, 
+        password: values.newPassword,
+        passwordConfirm: values.confirmPassword, 
+        otp: `${values.otp}`,
+      }
       setLoading(true);
       setHasErrors(undefined);
 
-      const token = new URLSearchParams(window.location.search).get('token');
-      const email = new URLSearchParams(window.location.search).get('email');
-
-      if (!token || !email) {
-        setHasErrors(true);
-        setStatus('Token and email properties are required');
-        setLoading(false);
-        setSubmitting(false);
-        return;
-      }
-
       try {
-        await changePassword(email, token, values.newPassword, values.confirmPassword);
-        setHasErrors(false);
-        navigate(
-          currentLayout?.name === 'auth-branded'
-            ? '/auth/reset-password/changed'
-            : '/auth/classic/reset-password/changed'
-        );
+        if(resetPassword){ 
+          await resetPassword(updatedValues.email, updatedValues.password, updatedValues.passwordConfirm, updatedValues.otp);
+          setHasErrors(false);
+          navigate(
+            '/auth/reset-password/changed'
+          );
+        }
       } catch (error) {
         if (error instanceof AxiosError && error.response) {
           setStatus(error.response.data.message);
@@ -78,10 +78,31 @@ const ResetPasswordChange = () => {
       >
         <div className="text-center">
           <h3 className="text-lg font-medium text-gray-900">Reset Password</h3>
-          <span className="text-2sm text-gray-700">Enter your new password</span>
         </div>
 
         {hasErrors && <Alert variant="danger">{formik.status}</Alert>}
+
+        <div className="flex flex-col gap-1">
+          <label className="form-label text-gray-900">Email</label>
+          <label className="input">
+            <input
+              type='email'
+              placeholder="Enter your email"
+              autoComplete="off"
+              {...formik.getFieldProps('email')}
+              className={clsx(
+                'form-control bg-transparent',
+                { 'is-invalid': formik.touched.email && formik.errors.email },
+                { 'is-valid': formik.touched.email  && !formik.errors.email }
+              )}
+            />
+          </label>
+          {formik.touched.email && formik.errors.email && (
+            <span role="alert" className="text-danger text-xs mt-1">
+              {formik.errors.email}
+            </span>
+          )}
+        </div>
 
         <div className="flex flex-col gap-1">
           <label className="form-label text-gray-900">New Password</label>
@@ -152,6 +173,28 @@ const ResetPasswordChange = () => {
           {formik.touched.confirmPassword && formik.errors.confirmPassword && (
             <span role="alert" className="text-danger text-xs mt-1">
               {formik.errors.confirmPassword}
+            </span>
+          )}
+        </div>
+        
+        <div className="flex flex-col gap-1">
+          <label className="form-label text-gray-900">OTP</label>
+          <label className="input">
+            <input
+              type={'number'}
+              placeholder="Enter your OTP"
+              autoComplete="off"
+              {...formik.getFieldProps('otp')}
+              className={clsx(
+                'form-control bg-transparent',
+                { 'is-invalid': formik.touched.otp && formik.errors.otp },
+                { 'is-valid': formik.touched.otp  && !formik.errors.otp }
+              )}
+            />
+          </label>
+          {formik.touched.otp && formik.errors.otp && (
+            <span role="alert" className="text-danger text-xs mt-1">
+              {formik.errors.otp}
             </span>
           )}
         </div>

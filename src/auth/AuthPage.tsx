@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router';
 import {
   Login,
-  ResetPassword,
+  ForgotPassword,
   ResetPasswordChange,
   ResetPasswordChanged,
   ResetPasswordCheckEmail,
@@ -19,7 +19,11 @@ const AuthPage = () => (
       <Route index element={<Login />} />
       <Route path="/login" element={<Login />} />
       <Route path="/2fa" element={<TwoFactorAuth />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPasswordChange />} />
+      <Route path="/reset-password/changed" element={<ResetPasswordChanged />} />
       <Route path="*" element={<Navigate to="/error/404" />} />
+      {/* <Route path="/reset-password" element={<ResetPassword />} />
       {/* <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/check-email" element={<CheckEmail />} />

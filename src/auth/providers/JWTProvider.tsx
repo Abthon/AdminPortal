@@ -15,12 +15,12 @@ import { type AuthModel, type UserModel } from "@/auth";
 import { Navigate } from "react-router";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
-export const LOGIN_URL = `${API_URL}/prod/api/v1/auth/admin/login`;
-export const VARIFY_ACCOUNT_URL = `${API_URL}/prod/api/v1/auth/admin/verify`;
-export const REGISTER_URL = `${API_URL}/prod/api/v1/auth/admin/signup`;
-export const FORGOT_PASSWORD_URL = `${API_URL}/prod/api/v1/auth/admin/forgotPassword`;
-export const RESET_PASSWORD_URL = `${API_URL}/prod/reset-password`;
-export const GET_USER_URL = `${API_URL}/prod/api/v1/admin/1`;
+export const LOGIN_URL = `${API_URL}/test/api/v1/auth/admin/login`;
+export const VARIFY_ACCOUNT_URL = `${API_URL}/test/api/v1/auth/admin/verify`;
+export const REGISTER_URL = `${API_URL}/test/api/v1/auth/admin/signup`;
+export const FORGOT_PASSWORD_URL = `${API_URL}/test/api/v1/auth/admin/forgotPassword`;
+export const RESET_PASSWORD_URL = `${API_URL}/test/api/v1/auth/admin/resetPassword`;
+export const GET_USER_URL = `${API_URL}/test/api/v1/admin/1`;
 
 interface AuthContextProps {
   loading: boolean;
@@ -34,7 +34,7 @@ interface AuthContextProps {
   loginWithGoogle?: () => Promise<void>;
   loginWithFacebook?: () => Promise<void>;
   loginWithGithub?: () => Promise<void>;
-  requestPasswordResetLink?: (email: string) => Promise<void>;
+  resetPassword?: (email: string, password: string, passwordConfirm: string, otp: string) => Promise<void>;
   register: (
     firstname: string,
     lastname: string,
@@ -42,12 +42,6 @@ interface AuthContextProps {
     password: string
   ) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
-  changePassword: (
-    email: string,
-    token: string,
-    password: string,
-    password_confirmation: string
-  ) => Promise<void>;
   getUser: () => Promise<AxiosResponse<any>>;
   logout: () => void;
   verify: () => Promise<void>;
@@ -168,20 +162,21 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     });
   };
 
-  const changePassword = async (
+  const resetPassword = async (
     email: string,
-    token: string,
     password: string,
-    password_confirmation: string
+    passwordConfirm: string,
+    otp: string,
   ) => {
-    await axios.post(RESET_PASSWORD_URL, {
+    const {data } = await axios.post(RESET_PASSWORD_URL, {
       email,
-      token,
       password,
-      password_confirmation,
+      passwordConfirm,
+      otp,
     });
-  };
 
+    console.log(data, "the reset data");
+  };
   const getUser = async () => {
     return await axios.get<UserModel>(GET_USER_URL);
   };
@@ -205,11 +200,11 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
         varifyAccount,
         register,
         forgotPassword,
-        changePassword,
         getUser,
         logout,
         verify,
         getUserType,
+        resetPassword
       }}
     >
       {children}
