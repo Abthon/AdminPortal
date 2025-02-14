@@ -41,6 +41,7 @@ const Demo1LightSidebarContent = () => {
 
   async function fetchCorporateStats() {
     const response = await axiosInstance.get(`/api/v1/admin/sys/stats`);
+    console.log(response?.data, "response stat");
     return response.data;
   }
 

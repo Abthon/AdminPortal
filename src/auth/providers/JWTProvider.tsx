@@ -34,7 +34,12 @@ interface AuthContextProps {
   loginWithGoogle?: () => Promise<void>;
   loginWithFacebook?: () => Promise<void>;
   loginWithGithub?: () => Promise<void>;
-  resetPassword?: (email: string, password: string, passwordConfirm: string, otp: string) => Promise<void>;
+  resetPassword?: (
+    email: string,
+    password: string,
+    passwordConfirm: string,
+    otp: string
+  ) => Promise<void>;
   register: (
     firstname: string,
     lastname: string,
@@ -166,9 +171,9 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     email: string,
     password: string,
     passwordConfirm: string,
-    otp: string,
+    otp: string
   ) => {
-    const {data } = await axios.post(RESET_PASSWORD_URL, {
+    const { data } = await axios.post(RESET_PASSWORD_URL, {
       email,
       password,
       passwordConfirm,
@@ -204,7 +209,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
         logout,
         verify,
         getUserType,
-        resetPassword
+        resetPassword,
       }}
     >
       {children}

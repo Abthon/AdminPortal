@@ -57,9 +57,8 @@ export function setupAxios(axiosInstance: any) {
     async (error: any) => {
       const originalRequest = error.config;
       if (
-        error.response &&
-        error.response.status === 401  || error.response.status === 403 &&
-        !originalRequest._retry
+        (error.response && error.response.status === 401) ||
+        (error.response.status === 403 && !originalRequest._retry)
       ) {
         originalRequest._retry = true;
         const auth = getAuth();
@@ -73,8 +72,8 @@ export function setupAxios(axiosInstance: any) {
               },
               {
                 headers: {
-                  Authorization: `Bearer ${auth?.refreshToken}`
-                }
+                  Authorization: `Bearer ${auth?.refreshToken}`,
+                },
               }
             );
             const newAuth = { ...auth, accessToken: data.data.accessToken };

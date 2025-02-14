@@ -91,8 +91,6 @@
 //   return filteredMenuItems;
 // };
 
-
-
 // export const MENU_MEGA: TMenuConfig = [
 //   {
 //     title: "Home",
@@ -648,24 +646,26 @@ export const getMenuSidebar = (
           ],
         }
       : null, // Use null when the condition fails
-    getUserType(authToken) === "admin" ? {
-      title: "Vehicle",
-      icon: "car",
-      children: [
-        {
-          title: "Vehicles",
-          path: "/vehicles",
-        },
-        {
-          title: "Vehicle Types",
-          path: "/vehicle-types",
-        },
-        {
-          title: "Fuels",
-          path: "/fuels",
-        },
-      ],
-    } : null,
+    getUserType(authToken) === "admin"
+      ? {
+          title: "Vehicle",
+          icon: "car",
+          children: [
+            {
+              title: "Vehicles",
+              path: "/vehicles",
+            },
+            {
+              title: "Vehicle Types",
+              path: "/vehicle-types",
+            },
+            {
+              title: "Fuels",
+              path: "/fuels",
+            },
+          ],
+        }
+      : null,
     {
       title: "Booking",
       icon: "calendar",
@@ -676,53 +676,80 @@ export const getMenuSidebar = (
         },
       ],
     },
-    getUserType(authToken) === "admin" ? {
-      title: "Config",
-      icon: "setting-2",
-      children: [
-        {
-          title: "Configs",
-          path: "/configs",
-        },
-      ],
-    } : null,
-    getUserType(authToken) === "admin" ?{
-      title: "Finance",
-      icon: "dollar",
-      children: [
-        {
-          title: "Deposits",
-          path: "/deposits",
-        },
-        {
-          title: "Banks",
-          path: "/banks",
-        },
-      ],
-    } : null,
-    getUserType(authToken) === "admin" ?{
-      title: "Users",
-      icon: "user",
-      children: [
-        {
+    getUserType(authToken) === "admin"
+      ? {
+          title: "Config",
+          icon: "setting-2",
+          children: [
+            {
+              title: "Configs",
+              path: "/configs",
+            },
+          ],
+        }
+      : null,
+    getUserType(authToken) === "admin"
+      ? {
+          title: "Finance",
+          icon: "dollar",
+          children: [
+            {
+              title: "Deposits",
+              path: "/deposits",
+            },
+            {
+              title: "Banks",
+              path: "/banks",
+            },
+          ],
+        }
+      : null,
+    getUserType(authToken) === "admin"
+      ? {
           title: "Users",
-          path: "/users",
-        },
-      ],
-    } : null,
-    getUserType(authToken) === "admin" ?{
-      heading: "Coorporate",
-    } : null,
-    getUserType(authToken) === "admin" ?{
-      title: "Coorporate",
-      icon: "cheque",
-      children: [
-        {
-          title: "Coorporates",
-          path: "/coorporates",
-        },
-      ],
-    } : null,
+          icon: "user",
+          children: [
+            {
+              title: "Users",
+              path: "/users",
+            },
+          ],
+        }
+      : null,
+    getUserType(authToken) === "admin"
+      ? {
+          heading: "Coorporate",
+        }
+      : null,
+    getUserType(authToken) === "admin"
+      ? {
+          title: "Coorporate",
+          icon: "cheque",
+          children: [
+            {
+              title: "Coorporates",
+              path: "/coorporates",
+            },
+          ],
+        }
+      : null,
+    getUserType(authToken) === "admin"
+      ? {
+          heading: "Report",
+        }
+      : null,
+    getUserType(authToken) === "admin"
+      ? {
+          title: "Report",
+          icon: "questionnaire-tablet",
+          children: [
+            {
+              title: "Reports",
+              path: "/report",
+            },
+          ],
+        }
+      : null,
   ];
 
   // Filter out null values using a type guard
