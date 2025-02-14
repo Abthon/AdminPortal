@@ -1,16 +1,87 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import ApexChart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
+import axiosInstance from "@/auth/_helpers";
+import { useQuery } from "react-query";
+import { DataGridLoader } from "@/components";
+
+type User = {
+  id: number;
+  firstName: string;
+  lastName: string;
+};
+
+type DriverStat = {
+  id: number;
+  averageDeliveryTime: number;
+};
+
+const transformDriverData = (driverData: any[]): DriverStat[] => {
+  return driverData.map(({ id, data }) => ({
+    id,
+    averageDeliveryTime: data?.data?.averageDeliveryTime ?? 0, // Default to 0 if undefined
+  }));
+};
+
+const fetchDriverStats = async (userIds: number[]) => {
+  const url = `/api/v1/drivers/me/stats?startDate=2024-01-01&endDate=2025-02-13`;
+  const driverData = await Promise.all(
+    userIds.map(async (id) => {
+      try {
+        const { data } = await axiosInstance.post(url, { driverId: id });
+        return { id, data }; // Store id and response data
+      } catch (error) {
+        console.error(`Error fetching data for driverId ${id}:`, error);
+        return { id, data: null }; // Handle errors gracefully
+      }
+    })
+  );
+
+  return driverData; // Array of responses
+};
+
+const extractUserIds = (users: User[]): number[] => {
+  return users.map((user) => user.id);
+};
 
 const DriverDeliveryChart = () => {
+  const [driverDatas, setDriverDatas] = useState([]);
+  const [avgDeliveries, setAvgDeliveres] = useState<any>([]);
+  async function getDrivers() {
+    const url = `/api/v1/drivers?fields=id,firstName,lastName`;
+    const { data } = await axiosInstance.get(url);
+    const userIds = extractUserIds(data.data);
+    //  console.log(userIds, "userIds");
+    // const url2 = `/api/v1/drivers/me/stats?startDate=2024-01-01&endDate=2025-02-13`;
+    const driverData2 = await fetchDriverStats(userIds);
+    const transformedData = transformDriverData(driverData2);
+    console.log(transformedData, "there we land");
+    setAvgDeliveres(transformedData);
+    console.log(data, "chart");
+    return data;
+  }
+
+  const { isLoading: isDriverLoading, data: DriverData } = useQuery({
+    queryKey: ["Drivers"],
+    queryFn: getDrivers,
+  });
+
+  console.log(avgDeliveries, "me me");
+
   const driverNames = [
-    "Driver 1",
-    "Driver 2",
-    "Driver 3",
-    "Driver 4",
-    "Driver 5",
+    DriverData?.data?.[0]?.firstName,
+    DriverData?.data?.[1]?.firstName,
+    DriverData?.data?.[2]?.firstName,
+    DriverData?.data?.[3]?.firstName,
+    DriverData?.data?.[4]?.firstName,
   ];
-  const averageDeliveryTimes = [0, 20, 12, 18, 25];
+  const averageDeliveryTimes = [
+    Math.round(avgDeliveries?.[0]?.averageDeliveryTime),
+    Math.round(avgDeliveries?.[1]?.averageDeliveryTime),
+    Math.round(avgDeliveries?.[2]?.averageDeliveryTime),
+    Math.round(avgDeliveries?.[3]?.averageDeliveryTime),
+    Math.round(avgDeliveries?.[4]?.averageDeliveryTime),
+  ];
 
   const options: ApexOptions = {
     chart: {
@@ -68,6 +139,11 @@ const DriverDeliveryChart = () => {
       horizontalAlign: "center", // Center the legend
     },
   };
+
+  if (isDriverLoading)
+    // if (isDriverLoading) {
+    return <DataGridLoader message="Loading" />;
+  // }
 
   return (
     <Fragment>

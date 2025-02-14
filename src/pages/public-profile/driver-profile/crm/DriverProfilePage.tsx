@@ -100,6 +100,8 @@ const DriverProfilePage = () => {
     return null; // Prevent rendering of the current component
   }
 
+  console.log(DriverData, "data data");
+
   return (
     <>
       <ModalDriverTypeForm

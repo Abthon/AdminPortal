@@ -1,5 +1,7 @@
+import { KeenIcon } from "@/components";
 import { CommonRating } from "@/partials/common";
 import { formatDistanceToNow } from "date-fns";
+import { useState } from "react";
 
 interface IGeneralInfoItem {
   label: string;
@@ -24,11 +26,19 @@ export function truncateString(str: string) {
   }
 }
 
+const removeBaseUrl = (url: any) => {
+  const baseUrl =
+    "https://static.129.134.201.195.clients.your-server.de/test/static/profile/";
+  console.log(url.replace(baseUrl, url, "here here"));
+  return url.replace(baseUrl, "");
+};
+
 interface GeneralInfoProps {
   data: any;
 }
 
 const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
+  console.log(data, "dl");
   const items: IGeneralInfoItems = [
     { label: "Phone:", info: `+251 ${data.phoneNumber}`, type: 1 },
     { label: "Rating:", info: <CommonRating rating={data.rating} />, type: 2 },
@@ -41,11 +51,38 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
     { label: "Created at:", info: timeAgo(data.createdAt) },
     {
       label: "Driver License:",
-      info: truncateString(data.drivingLicense),
+      info: data.drivingLicense,
     },
   ];
 
   const renderItems = (item: IGeneralInfoItem, index: number) => {
+    const baseUrl =
+      "https://static.129.134.201.195.clients.your-server.de/test/static/profile/";
+
+    //const [fileName, setFileName] = useState("1739010042516-image_picker.jpg");
+    //const fileName = data?.driverLicense;
+
+    const downloadFile = async (fileName: any) => {
+      try {
+        const fileUrl = `${baseUrl}${fileName}`;
+        const response = await fetch(fileUrl);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Release memory
+        window.URL.revokeObjectURL(blobUrl);
+      } catch (error) {
+        console.error("Error downloading the file:", error);
+      }
+    };
+
     return (
       <tr key={index}>
         <td className="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">
@@ -56,6 +93,15 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
             <span>{item.info}</span>
           ) : item.type === 2 ? (
             <span>{item.info}</span>
+          ) : item.label === "Driver License:" ? (
+            <div>
+              <button
+                onClick={() => downloadFile(item.info)}
+                className="btn btn-sm btn-icon btn-clear btn-primary"
+              >
+                <KeenIcon icon="folder-down" />
+              </button>
+            </div>
           ) : (
             <span
               dangerouslySetInnerHTML={{ __html: item.info as string }}

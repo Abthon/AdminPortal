@@ -23,7 +23,7 @@ const MediaUploads = () => {
     const sum = num.reduce((acc, current) => acc + current, 0);
 
     // Return the normalized value
-    return (sum / totalNum) * 100;
+    return Math.round((sum / totalNum) * 100);
   };
 
   console.log(
