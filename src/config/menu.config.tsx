@@ -707,7 +707,7 @@ export const getMenuSidebar = (
     getUserType(authToken) === "admin"
       ? {
           title: "Users",
-          icon: "user",
+          icon: "people",
           children: [
             {
               title: "Users",
