@@ -9,10 +9,9 @@ import {
   useState,
   useContext,
 } from "react";
-
 import * as authHelper from "../_helpers";
 import { type AuthModel, type UserModel } from "@/auth";
-import { Navigate } from "react-router";
+import { useNavigate } from "react-router";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
 export const LOGIN_URL = `${API_URL}/prod/api/v1/auth/admin/login`;
@@ -67,6 +66,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
   const [loading, setLoading] = useState(true);
   const [auth, setAuth] = useState<AuthModel | undefined>(authHelper.getAuth());
   const [currentUser, setCurrentUser] = useState<UserModel | undefined>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(false);
@@ -151,9 +151,6 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
         middleName: "MiddleName",
         gender: "male",
       });
-      // saveAuth(auth);
-      // const { data: user } = await getUser();
-      // setCurrentUser(user);
     } catch (error) {
       console.log("error catched", error);
       saveAuth(undefined);
@@ -179,9 +176,8 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
       passwordConfirm,
       otp,
     });
-
-    console.log(data, "the reset data");
   };
+
   const getUser = async () => {
     return await axios.get<UserModel>(GET_USER_URL);
   };
@@ -189,7 +185,8 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
   const logout = () => {
     saveAuth(undefined);
     setCurrentUser(undefined);
-    window.location.reload();
+    navigate("/auth/login")
+    // window.location.reload();
   };
 
   return (

@@ -14,21 +14,22 @@ const RequireAuth = ({allowedRoles, children}: ProtectedRouteProps) => {
   const [ userType, setUserType ] = useState(decodeJWT(auth?.accessToken || ""))
 
   function decodeJWT(token: string) {
-    const base64Url = token.split(".")[1]; // Get payload part of the JWT
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
-        .join("")
-    );
+    if(token !== ""){
+      const base64Url = token.split(".")[1]; // Get payload part of the JWT
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => `%${("00" + c.charCodeAt(0).toString(16)).slice(-2)}`)
+          .join("")
+      );
 
-    return JSON.parse(jsonPayload).type;
+      return JSON.parse(jsonPayload).type;
+    }
   }
 
   useEffect(()=> {
     console.log(getUserType(auth?.accessToken || ""), "user type");
-    console.log("hahahaha");
   }, [])
 
   if (loading) {
