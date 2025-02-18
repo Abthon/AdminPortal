@@ -42,7 +42,7 @@ const DriverPage = () => {
                   <KeenIcon icon="magnifier" />
                   <input
                     type="text"
-                    placeholder="Search users"
+                    placeholder="Search drivers"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                   />
