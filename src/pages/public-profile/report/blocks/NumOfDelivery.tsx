@@ -11,11 +11,12 @@ interface ReportChartProps {
   DriverLoading: any;
 }
 
-const DriverDeliveryChart = ({
+const NumOfDelivery = ({
   avgDeliveries,
   DriverData,
   DriverLoading,
 }: ReportChartProps) => {
+  console.log("mer", avgDeliveries);
   const driverNames = [
     DriverData?.data?.[0]?.firstName,
     DriverData?.data?.[1]?.firstName,
@@ -49,7 +50,7 @@ const DriverDeliveryChart = ({
     },
     yaxis: {
       title: {
-        text: "Average Delivery Time (minutes)", // Title of the Y-axis
+        text: "Num of Deliveries", // Title of the Y-axis
       },
       min: 0, // Minimum value for Y-axis (starting from 0)
       tickAmount: 6, // Set the number of ticks for better granularity
@@ -111,4 +112,4 @@ const DriverDeliveryChart = ({
   );
 };
 
-export { DriverDeliveryChart };
+export { NumOfDelivery };

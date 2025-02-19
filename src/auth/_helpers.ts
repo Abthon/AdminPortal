@@ -7,17 +7,17 @@ import { type AuthModel } from "./_models";
 const AUTH_LOCAL_STORAGE_KEY = `${import.meta.env.VITE_APP_NAME}_auth`;
 
 const getAuth = (): AuthModel | undefined => {
-  console.log("getting auth");
+  //console.log("getting auth");
   try {
     const auth = getData(AUTH_LOCAL_STORAGE_KEY) as AuthModel | undefined;
-    console.log(auth, "getting auth auth");
+    //console.log(auth, "getting auth auth");
     if (auth) {
       return auth;
     } else {
       return undefined;
     }
   } catch (error) {
-    console.error("AUTH LOCAL STORAGE PARSE ERROR", error);
+    // console.error("AUTH LOCAL STORAGE PARSE ERROR", error);
   }
 };
 
@@ -33,7 +33,7 @@ const removeAuth = () => {
   try {
     localStorage.removeItem(AUTH_LOCAL_STORAGE_KEY);
   } catch (error) {
-    console.error("AUTH LOCAL STORAGE REMOVE ERROR", error);
+    //console.error("AUTH LOCAL STORAGE REMOVE ERROR", error);
   }
 };
 
@@ -62,11 +62,11 @@ export function setupAxios(axiosInstance: any) {
       ) {
         originalRequest._retry = true;
         const auth = getAuth();
-        console.log(auth?.refreshToken, "the refresh token");
+        //console.log(auth?.refreshToken, "the refresh token");
         if (auth?.refreshToken) {
           try {
             const { data } = await axios.post(
-              "https://static.129.134.201.195.clients.your-server.de/prod/api/v1/auth/refresh",
+              "https://static.129.134.201.195.clients.your-server.de/test/api/v1/auth/refresh",
               {
                 firebaseToken: "1234",
               },
@@ -82,7 +82,7 @@ export function setupAxios(axiosInstance: any) {
             originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
             return axiosInstance(originalRequest);
           } catch (refreshError) {
-            console.log(refreshError, "refresh error");
+            //console.log(refreshError, "refresh error");
             removeAuth();
             window.location.href = "/auth/login"; // Redirect to login page
           }
@@ -97,9 +97,9 @@ export function setupAxios(axiosInstance: any) {
 }
 
 const axiosInstance = axios.create({
-  baseURL: "https://static.129.134.201.195.clients.your-server.de/prod",
+  baseURL: "https://static.129.134.201.195.clients.your-server.de/test",
   // baseURL: 'https://static.129.134.201.195.clients.your-server.de/dev'
-  // baseURL: 'http://195.201.134.129/prod', // This is the base URL
+  // baseURL: 'http://195.201.134.129/test', // This is the base URL
 });
 
 setupAxios(axiosInstance);
