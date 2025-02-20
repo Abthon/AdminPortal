@@ -50,9 +50,8 @@ const Dispatcher = ({
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
-  const [currentDispatcherData, setCurrentDispatcherData] = useState<IDispatcherData | null>(
-    null
-  );
+  const [currentDispatcherData, setCurrentDispatcherData] =
+    useState<IDispatcherData | null>(null);
   const [totalPage, setTotalPage] = useState(0);
   const [pageIndex, setPageIndex] = useState({ index: 0 });
   const [totalItems, setTotalItems] = useState(0);
@@ -69,7 +68,10 @@ const Dispatcher = ({
     _handleAddOpen(false);
   };
 
-  const handleOpen = (isEdit: boolean, rowData: IDispatcherData | null = null) => {
+  const handleOpen = (
+    isEdit: boolean,
+    rowData: IDispatcherData | null = null
+  ) => {
     setApprovalMode(false);
     setEditMode(isEdit);
     setCurrentDispatcherData(rowData);
@@ -122,8 +124,9 @@ const Dispatcher = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/admins?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,isApproved=${filterInput == "approved" ? "1" : "0"}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/admin?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,isApproved=${filterInput == "approved" ? "1" : "0"}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
+    console.log("hi", data);
 
     // calculating how many items are there on the current page
     const startIndex =
@@ -319,7 +322,10 @@ const Dispatcher = ({
     [mutate]
   );
 
-  const data: IDispatcherData[] = useMemo(() => DispatcherData ?? [], [DispatcherData]);
+  const data: IDispatcherData[] = useMemo(
+    () => DispatcherData ?? [],
+    [DispatcherData]
+  );
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -396,7 +402,7 @@ const Dispatcher = ({
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}
-        sorting={[{ id: "name", desc: true }]}
+        sorting={[{ id: "firstName", desc: true }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />

@@ -707,7 +707,7 @@ export const getMenuSidebar = (
     getUserType(authToken) === "admin"
       ? {
           title: "Users",
-          icon: "user",
+          icon: "people",
           children: [
             {
               title: "Users",
@@ -750,18 +750,18 @@ export const getMenuSidebar = (
           heading: "Report",
         }
       : null,
-    // getUserType(authToken) === "admin"
-    //   ? {
-    //       title: "Report",
-    //       icon: "questionnaire-tablet",
-    //       children: [
-    //         {
-    //           title: "Reports",
-    //           path: "/report",
-    //         },
-    //       ],
-    //     }
-    //   : null,
+    getUserType(authToken) === "admin"
+      ? {
+          title: "Report",
+          icon: "questionnaire-tablet",
+          children: [
+            {
+              title: "Reports",
+              path: "/report",
+            },
+          ],
+        }
+      : null,
   ];
 
   // Filter out null values using a type guard

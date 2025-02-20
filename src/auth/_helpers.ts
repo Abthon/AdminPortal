@@ -7,17 +7,17 @@ import { type AuthModel } from "./_models";
 const AUTH_LOCAL_STORAGE_KEY = `${import.meta.env.VITE_APP_NAME}_auth`;
 
 const getAuth = (): AuthModel | undefined => {
-  console.log("getting auth");
+  //console.log("getting auth");
   try {
     const auth = getData(AUTH_LOCAL_STORAGE_KEY) as AuthModel | undefined;
-    console.log(auth, "getting auth auth");
+    //console.log(auth, "getting auth auth");
     if (auth) {
       return auth;
     } else {
       return undefined;
     }
   } catch (error) {
-    console.error("AUTH LOCAL STORAGE PARSE ERROR", error);
+    // console.error("AUTH LOCAL STORAGE PARSE ERROR", error);
   }
 };
 
@@ -33,7 +33,7 @@ const removeAuth = () => {
   try {
     localStorage.removeItem(AUTH_LOCAL_STORAGE_KEY);
   } catch (error) {
-    console.error("AUTH LOCAL STORAGE REMOVE ERROR", error);
+    //console.error("AUTH LOCAL STORAGE REMOVE ERROR", error);
   }
 };
 
@@ -62,7 +62,7 @@ export function setupAxios(axiosInstance: any) {
       ) {
         originalRequest._retry = true;
         const auth = getAuth();
-        console.log(auth?.refreshToken, "the refresh token");
+        //console.log(auth?.refreshToken, "the refresh token");
         if (auth?.refreshToken) {
           try {
             const { data } = await axios.post(
@@ -83,9 +83,9 @@ export function setupAxios(axiosInstance: any) {
             originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
             // return axiosInstance(originalRequest);
           } catch (refreshError) {
-            // console.log(refreshError, "refresh error");
-            // removeAuth();
-            // window.location.href = "/auth/login"; // Redirect to login page
+            //console.log(refreshError, "refresh error");
+            removeAuth();
+            window.location.href = "/auth/login"; // Redirect to login page
           }
         } else {
           removeAuth();

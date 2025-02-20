@@ -376,7 +376,7 @@ const Booking: React.FC<BookingProps> = ({
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.estimatedTraveledDistance;
+          return `${info.row.original.estimatedTraveledDistance} Km`;
         },
         meta: {
           headerClassName: "min-w-[80px]",
@@ -390,7 +390,7 @@ const Booking: React.FC<BookingProps> = ({
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.estimatedPrice;
+          return `${info.row.original.estimatedPrice} Birr`;
         },
         meta: {
           headerClassName: "min-w-[100px]",
