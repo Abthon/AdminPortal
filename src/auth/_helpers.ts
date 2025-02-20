@@ -77,14 +77,15 @@ export function setupAxios(axiosInstance: any) {
               }
             );
             const newAuth = { ...auth, accessToken: data.data.accessToken };
+            // console.log(newAuth, "access");
             setAuth(newAuth);
-            axiosInstance.defaults.headers.Authorization = `Bearer ${data.accessToken}`;
-            originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-            return axiosInstance(originalRequest);
+            axiosInstance.defaults.headers.Authorization = `Bearer ${data.data.accessToken}`;
+            originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
+            // return axiosInstance(originalRequest);
           } catch (refreshError) {
-            console.log(refreshError, "refresh error");
-            removeAuth();
-            window.location.href = "/auth/login"; // Redirect to login page
+            // console.log(refreshError, "refresh error");
+            // removeAuth();
+            // window.location.href = "/auth/login"; // Redirect to login page
           }
         } else {
           removeAuth();

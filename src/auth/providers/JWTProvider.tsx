@@ -185,7 +185,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
   const logout = () => {
     saveAuth(undefined);
     setCurrentUser(undefined);
-    navigate("/auth/login")
+    navigate("/auth/login");
     // window.location.reload();
   };
 

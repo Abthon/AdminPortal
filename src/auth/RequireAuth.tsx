@@ -8,13 +8,13 @@ interface ProtectedRouteProps {
   children: ReactNode;
 }
 
-const RequireAuth = ({allowedRoles, children}: ProtectedRouteProps) => {
+const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const { auth, loading, getUserType } = useAuthContext();
   const location = useLocation();
-  const [ userType, setUserType ] = useState(decodeJWT(auth?.accessToken || ""))
+  const [userType, setUserType] = useState(decodeJWT(auth?.accessToken || ""));
 
   function decodeJWT(token: string) {
-    if(token !== ""){
+    if (token !== "") {
       const base64Url = token.split(".")[1]; // Get payload part of the JWT
       const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
       const jsonPayload = decodeURIComponent(
@@ -28,20 +28,24 @@ const RequireAuth = ({allowedRoles, children}: ProtectedRouteProps) => {
     }
   }
 
-  useEffect(()=> {
+  useEffect(() => {
     console.log(getUserType(auth?.accessToken || ""), "user type");
-  }, [])
+  }, []);
 
   if (loading) {
     return <ScreenLoader />;
   }
 
-  if(!allowedRoles.includes(userType)){
-    return <Navigate to="/auth/login" state={{ from: location }} replace />
+  if (!allowedRoles.includes(userType)) {
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
   return auth ? (
-    children ? children : <Outlet />
+    children ? (
+      children
+    ) : (
+      <Outlet />
+    )
   ) : (
     <Navigate to="/auth/login" state={{ from: location }} replace />
   );
