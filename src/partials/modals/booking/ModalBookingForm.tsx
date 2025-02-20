@@ -22,7 +22,7 @@ const bookingSchema = Yup.object().shape({
   dropOffName: Yup.string().required("Drop off is required."),
   vehicleTypeId: Yup.number().required("Vehicle type is required."),
   phoneNumber: Yup.string().matches(/^\d{9}$/, {
-    message: 'Invalid phone number.',
+    message: "Invalid phone number.",
   }),
   driverId: Yup.number(),
   corporateId: Yup.number(),
@@ -46,7 +46,9 @@ const ModalBookingForm = ({
   /* importing booking */
   const [searchInput, setSearchInput] = useState("");
   const [estimatedPrice, setEstimatedPrice] = useState(0);
-  const [bookingType, setBookingType] = useState<'user' | 'corporate' | null>(null);
+  const [bookingType, setBookingType] = useState<"user" | "corporate" | null>(
+    null
+  );
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
     mutationFn: isEndBooking ? editBooking : addBooking,
@@ -154,9 +156,9 @@ const ModalBookingForm = ({
         dropOffLng: dropOffLng.toString(),
         pickupName,
         dropOffName,
-        ...(driverId ? { driverId } : {}),        
-        ...(corporateId ? { coorId: corporateId } : {}),        
-        ...(phoneNumber ? { contactPhoneNumber: phoneNumber } : {}),        
+        ...(driverId ? { driverId } : {}),
+        ...(corporateId ? { coorId: corporateId } : {}),
+        ...(phoneNumber ? { contactPhoneNumber: phoneNumber } : {}),
         estimatedPrice: price,
         estimatedTraveledDistance: distance,
         vehicleType: Number(vehicleTypeId),
@@ -660,77 +662,91 @@ const ModalBookingForm = ({
                     }}
                   />
                 </div>
-                  <div className="flex flex-col gap-3">
-                    <label className="form-label text-gray-900">Booking Type</label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2">
+                <div className="flex flex-col gap-3">
+                  <label className="form-label text-gray-900">
+                    Booking Type
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="bookingType"
+                        value="user"
+                        checked={bookingType === "user"}
+                        onChange={(e) => setBookingType("user")}
+                        className="radio radio-primary"
+                      />
+                      <span>User</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="bookingType"
+                        value="corporate"
+                        checked={bookingType === "corporate"}
+                        onChange={(e) => setBookingType("corporate")}
+                        className="radio radio-primary"
+                      />
+                      <span>Corporate</span>
+                    </label>
+                  </div>
+                </div>
+
+                {bookingType === "user" && (
+                  <div className="flex flex-col gap-1">
+                    <label className="form-label text-gray-900">
+                      Phone Number
+                    </label>
+                    {/* Your existing phone number input code */}
+                    <div className="flex items-center gap-2">
+                      <select
+                        className="border border-gray-300 rounded px-2 py-2 text-gray-900"
+                        disabled={isEdit}
+                        defaultValue="+251"
+                      >
+                        <option value="+251">+251</option>
+                      </select>
+                      <label className="input flex-1">
                         <input
-                          type="radio"
-                          name="bookingType"
-                          value="user"
-                          checked={bookingType === 'user'}
-                          onChange={(e) => setBookingType('user')}
-                          className="radio radio-primary"
+                          placeholder="Enter phone number"
+                          autoComplete="off"
+                          disabled={isEdit}
+                          {...formik.getFieldProps("phoneNumber")}
                         />
-                        <span>User</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="bookingType"
-                          value="corporate"
-                          checked={bookingType === 'corporate'}
-                          onChange={(e) => setBookingType('corporate')}
-                          className="radio radio-primary"
-                        />
-                        <span>Corporate</span>
                       </label>
                     </div>
                   </div>
-
-                  {bookingType === 'user' && (
-                    <div className="flex flex-col gap-1">
-                      <label className="form-label text-gray-900">Phone Number</label>
-                      {/* Your existing phone number input code */}
-                      <div className="flex items-center gap-2">
-                        <select className="border border-gray-300 rounded px-2 py-2 text-gray-900" disabled={isEdit} defaultValue="+251">
-                          <option value="+251">+251</option>
-                        </select>
-                        <label className="input flex-1">
-                          <input
-                            placeholder="Enter phone number"
-                            autoComplete="off"
-                            disabled={isEdit}
-                            {...formik.getFieldProps("phoneNumber")}
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  )}
-                  {bookingType === 'corporate' && (
-                    <div className="flex flex-col gap-1">
-                      <label className="form-label text-gray-900">Corporates</label>
-                      {/* Your existing corporates dropdown code */}
-                      <label className="input">
-                        <select
-                          {...formik.getFieldProps("corporateId")}
-                          className="form-control form-select w-full"
-                          style={{
-                            backgroundColor: "transparent",
-                            outline: "none",
-                            borderColor: "blue",
-                          }}
-                        >
-                          <option value="" disabled>Select a Corporate</option>
-                          {corporates?.map((corporate: { id: number; name: string; }) => (
+                )}
+                {bookingType === "corporate" && (
+                  <div className="flex flex-col gap-1">
+                    <label className="form-label text-gray-900">
+                      Corporates
+                    </label>
+                    {/* Your existing corporates dropdown code */}
+                    <label className="input">
+                      <select
+                        {...formik.getFieldProps("corporateId")}
+                        className="form-control form-select w-full"
+                        style={{
+                          backgroundColor: "transparent",
+                          outline: "none",
+                          borderColor: "blue",
+                        }}
+                      >
+                        <option value="" disabled>
+                          Select a Corporate
+                        </option>
+                        {corporates?.map(
+                          (corporate: { id: number; name: string }) => (
                             <option key={corporate.id} value={corporate.id}>
                               {corporate.name}
                             </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-                  )}
+                          )
+                        )}
+                      </select>
+                    </label>
+                  </div>
+                )}
 
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Driver</label>
@@ -826,6 +842,7 @@ const ModalBookingForm = ({
                     </label>
                   )}
                 </div>
+
                 <div>
                   <label className="form-label text-gray-900">
                     Estimated Price: {estimatedPrice} Birr
@@ -834,7 +851,7 @@ const ModalBookingForm = ({
                 <button
                   type="submit"
                   className="btn btn-primary flex justify-center grow"
-                  disabled={isLoading || estimatedPrice === 0}
+                  // disabled={estimatedPrice === 0}
                 >
                   {isEdit ? "Edit" : "Create"}
                 </button>
@@ -864,7 +881,7 @@ const ModalBookingForm = ({
                 <button
                   type="submit"
                   className="btn btn-primary flex justify-center grow"
-                  disabled={isLoading}
+                  // disabled={isLoading}
                 >
                   {isEdit ? "Edit" : "Create"}
                 </button>

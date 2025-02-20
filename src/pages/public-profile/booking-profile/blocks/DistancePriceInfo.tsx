@@ -39,7 +39,7 @@ const DistancePriceInfo: React.FC<DistancePriceInfoProps> = ({ data }) => {
               Estimated Traveled Distance
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {data.estimatedTraveledDistance}
+              {data.estimatedTraveledDistance} Km
             </label>
           </div>
         </div>
@@ -50,7 +50,7 @@ const DistancePriceInfo: React.FC<DistancePriceInfoProps> = ({ data }) => {
               Actual Traveled Distance
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {data.actualTraveledDistance}
+              {data.actualTraveledDistance} Km
             </label>
           </div>
         </div>

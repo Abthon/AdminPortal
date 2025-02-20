@@ -167,7 +167,6 @@ const ModalBankForm = ({
                   />
                 </label>
               </div>
-
               <div className="flex flex-col gap-1">
                 <label className="form-label text-gray-900">
                   Account Number
@@ -187,7 +186,6 @@ const ModalBankForm = ({
                   />
                 </label>
               </div>
-
               <div className="flex flex-col gap-1">
                 <label className="form-label text-gray-900">Account Name</label>
                 {formik.touched.accountName && formik.errors.accountName ? (
@@ -205,22 +203,19 @@ const ModalBankForm = ({
                   />
                 </label>
               </div>
+
               <div className="flex flex-col gap-1">
                 <label className="form-label text-gray-900">Status</label>
-                {/* {formik.touched.isApproved && formik.errors.isApproved ? (
-                  <div className="text-red-500 text-sm">
-                    {typeof formik.errors.isApproved === "string"
-                      ? formik.errors.isApproved
-                      : null}
-                  </div>
-                ) : null} */}
-                <select
-                  {...formik.getFieldProps("isApproved")}
-                  className="block w-full p-2 border border-gray-300 rounded"
-                >
-                  <option value="true" label="True" />
-                  <option selected value="false" label="False" />
-                </select>
+
+                <label className="input">
+                  <select
+                    {...formik.getFieldProps("isApproved")}
+                    className="w-full p-2 border border-gray-300 rounded bg-white"
+                  >
+                    <option value="true">Accept</option>
+                    <option value="false">Reject</option>
+                  </select>
+                </label>
               </div>
 
               {/* <div className="flex flex-col gap-1">
@@ -244,7 +239,6 @@ const ModalBankForm = ({
                   </select>
                 </label>
               </div> */}
-
               <button
                 type="submit"
                 className="btn btn-primary flex justify-center"

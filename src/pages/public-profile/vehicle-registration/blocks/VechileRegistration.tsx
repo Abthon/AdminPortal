@@ -159,8 +159,8 @@ const VehicleRegistration = ({
       toast("Vehicle successfully deleted!");
     },
     onError: (error) => {
-      toast("Error Encountered deleting the vehicle");
-      console.error(error);
+      toast(error?.message || "Error Encountered deleting the vehicle");
+      console.error(error?.message);
     },
   });
 

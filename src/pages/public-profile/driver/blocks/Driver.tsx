@@ -192,7 +192,8 @@ const Drivers = ({
       toast("Driver successfully deleted!");
     },
     onError: (error) => {
-      toast("Error Encountered deleting the driver");
+      toast(error?.message || "Error Encountered deleting the driver");
+      //toast("Error Encountered deleting the driver");
     },
   });
 
