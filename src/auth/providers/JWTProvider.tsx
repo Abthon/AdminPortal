@@ -19,7 +19,7 @@ export const VARIFY_ACCOUNT_URL = `${API_URL}/prod/api/v1/auth/admin/verify`;
 export const REGISTER_URL = `${API_URL}/prod/api/v1/auth/admin/signup`;
 export const FORGOT_PASSWORD_URL = `${API_URL}/prod/api/v1/auth/admin/forgotPassword`;
 export const RESET_PASSWORD_URL = `${API_URL}/prod/api/v1/auth/admin/resetPassword`;
-export const GET_USER_URL = `${API_URL}/prod/api/v1/admin/1`;
+export const GET_USER_URL = `${API_URL}/prod/api/v1/admin/me`;
 
 interface AuthContextProps {
   loading: boolean;
@@ -53,7 +53,6 @@ interface AuthContextProps {
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
-
 export const useAuthContext = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -78,7 +77,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
         const { data: user } = await getUser();
         setCurrentUser(user);
       } catch {
-        saveAuth(undefined);
+        // saveAuth(undefined);
         setCurrentUser(undefined);
       }
     }

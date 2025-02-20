@@ -3,7 +3,6 @@ import axios from "axios";
 
 import { getData, setData } from "@/utils";
 import { type AuthModel } from "./_models";
-
 const AUTH_LOCAL_STORAGE_KEY = `${import.meta.env.VITE_APP_NAME}_auth`;
 
 const getAuth = (): AuthModel | undefined => {
@@ -83,13 +82,15 @@ export function setupAxios(axiosInstance: any) {
             originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
             // return axiosInstance(originalRequest);
           } catch (refreshError) {
+            console.log("First wust");
             //console.log(refreshError, "refresh error");
-            removeAuth();
-            window.location.href = "/auth/login"; // Redirect to login page
+            // removeAuth();
+            // window.location.href = "/auth/login"; // Redirect to login page
           }
         } else {
-          removeAuth();
-          window.location.href = "/auth/login"; // Redirect to login page
+          console.log("Second wust");
+          // removeAuth();
+          // window.location.href = "/auth/login"; // Redirect to login page
         }
       }
       return Promise.reject(error);
