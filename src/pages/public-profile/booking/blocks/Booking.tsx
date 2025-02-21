@@ -36,6 +36,7 @@ interface IBookingData {
   dropOffLat: number;
   dropOffLng: number;
   estimatedTraveledDistance: number;
+  actualTraveledDistance: number;
   estimatedPrice: number;
   actualPrice: number;
   status: string;
@@ -372,11 +373,25 @@ const Booking: React.FC<BookingProps> = ({
         // accessorFn: (row) => row.estimatedTraveledDistance,
         id: "estimatedTraveledDistance",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Distance" column={column} />
+          <DataGridColumnHeader title="Est Distance" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
           return `${info.row.original.estimatedTraveledDistance} Km`;
+        },
+        meta: {
+          headerClassName: "min-w-[80px]",
+        },
+      },
+      {
+        // accessorFn: (row) => row.estimatedTraveledDistance,
+        id: "actualTraveledDistance",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Actual Distance" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return `${info.row.original.actualTraveledDistance} Km`;
         },
         meta: {
           headerClassName: "min-w-[80px]",
