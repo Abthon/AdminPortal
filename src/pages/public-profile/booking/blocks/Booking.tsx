@@ -100,7 +100,6 @@ const Booking: React.FC<BookingProps> = ({
     const { data } = await axiosInstance.get(url);
 
     console.log(data, "data ke get booking");
-
     // calculating how many items are there on the current page
     const startIndex =
       (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;

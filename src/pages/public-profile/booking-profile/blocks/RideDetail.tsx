@@ -72,6 +72,18 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
             </label>
           </div>
         </div>
+
+        <div className="w-full">
+          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+            <label className="form-label flex items-center gap-1 max-w-56">
+              Admin Name
+            </label>
+            <label className="form-label flex items-center gap-1 max-w-56">
+              {data.admin.firstName + " " + data.admin.lastName || "-"}
+            </label>
+          </div>
+        </div>
+
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
@@ -82,6 +94,7 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
             </label>
           </div>
         </div>
+
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
