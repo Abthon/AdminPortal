@@ -61,7 +61,7 @@ const DistancePriceInfo: React.FC<DistancePriceInfoProps> = ({ data }) => {
               Estimated Price
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {data.estimatedPrice}
+              {data.estimatedPrice} Birr
             </label>
           </div>
         </div>
@@ -71,7 +71,7 @@ const DistancePriceInfo: React.FC<DistancePriceInfoProps> = ({ data }) => {
               Actual Price
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {data.actualPrice}
+              {data.actualPrice} Birr
             </label>
           </div>
         </div>

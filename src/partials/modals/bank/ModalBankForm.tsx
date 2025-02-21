@@ -207,15 +207,13 @@ const ModalBankForm = ({
               <div className="flex flex-col gap-1">
                 <label className="form-label text-gray-900">Status</label>
 
-                <label className="input">
-                  <select
-                    {...formik.getFieldProps("isApproved")}
-                    className="w-full p-2 border border-gray-300 rounded bg-white"
-                  >
-                    <option value="true">Accept</option>
-                    <option value="false">Reject</option>
-                  </select>
-                </label>
+                <select
+                  {...formik.getFieldProps("isApproved")}
+                  className="w-full p-2 border border-gray-300 rounded bg-white"
+                >
+                  <option value="true">Accept</option>
+                  <option value="false">Reject</option>
+                </select>
               </div>
 
               {/* <div className="flex flex-col gap-1">
