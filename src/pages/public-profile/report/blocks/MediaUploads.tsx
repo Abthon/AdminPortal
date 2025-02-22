@@ -186,6 +186,9 @@ const MediaUploads = () => {
   return (
     <Fragment>
       <div className="card">
+        <div className="card-header" id="distance-price-info">
+          <h3 className="card-title">Successful & Failed Deliveries Chart</h3>
+        </div>
         <div className="px-3 py-1">
           <ApexChart
             id="media_uploads_chart"

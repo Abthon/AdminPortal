@@ -16,21 +16,28 @@ const NumOfDelivery = ({
   DriverData,
   DriverLoading,
 }: ReportChartProps) => {
-  console.log("mer", avgDeliveries);
-  const driverNames = [
-    DriverData?.data?.[0]?.firstName,
-    DriverData?.data?.[1]?.firstName,
-    DriverData?.data?.[2]?.firstName,
-    DriverData?.data?.[3]?.firstName,
-    DriverData?.data?.[4]?.firstName,
-  ];
-  const averageDeliveryTimes = [
-    Math.round(avgDeliveries?.[0]?.averageDeliveryTime),
-    Math.round(avgDeliveries?.[1]?.averageDeliveryTime),
-    Math.round(avgDeliveries?.[2]?.averageDeliveryTime),
-    Math.round(avgDeliveries?.[3]?.averageDeliveryTime),
-    Math.round(avgDeliveries?.[4]?.averageDeliveryTime),
-  ];
+  // console.log("mer", avgDeliveries);
+  // console.log(DriverData.data.length, "dr.");
+  let driverNames: any = [];
+  let averageDeliveryTimes: any = [];
+  for (let i = 0; i < DriverData?.data?.length; i++) {
+    driverNames.push(DriverData?.data?.[i]?.firstName);
+    averageDeliveryTimes.push(
+      Math.round(avgDeliveries?.[i]?.averageDeliveryTime)
+    );
+  }
+  // const driverNames = [
+  //   DriverData?.data?.[0]?.firstName,
+  //   DriverData?.data?.[1]?.firstName,
+  //   DriverData?.data?.[2]?.firstName,
+  //   DriverData?.data?.[3]?.firstName,
+  // ];
+  // const averageDeliveryTimes = [
+  //   Math.round(avgDeliveries?.[0]?.averageDeliveryTime),
+  //   Math.round(avgDeliveries?.[1]?.averageDeliveryTime),
+  //   Math.round(avgDeliveries?.[2]?.averageDeliveryTime),
+  //   Math.round(avgDeliveries?.[3]?.averageDeliveryTime),
+  // ];
 
   const options: ApexOptions = {
     chart: {
@@ -97,6 +104,9 @@ const NumOfDelivery = ({
   return (
     <Fragment>
       <div className="card">
+        <div className="card-header" id="distance-price-info">
+          <h3 className="card-title">Number of deliveries per driver chart</h3>
+        </div>
         <div className="px-3 py-1">
           <ApexChart
             id="media_uploads_chart"
