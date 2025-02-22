@@ -120,7 +120,7 @@ const ReportContent = () => {
   });
 
   const items: any = [
-    { number: depositData?.approvedDeposits, label: "Approved Deposit" },
+    { number: depositData?.approvedDeposits, label: "Total Revenue" },
     // { number: "369M", label: "Revenue" },
     // { number: "27", label: "Company Rank" },
   ];

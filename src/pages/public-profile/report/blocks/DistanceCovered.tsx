@@ -80,7 +80,7 @@ const DistanceCovered = ({
         const driver = driverNames[dataPointIndex];
         const avgTime = series[seriesIndex][dataPointIndex];
 
-        return `<div><strong>${driver}</strong><br/>Average Delivery Time: ${avgTime} minutes</div>`;
+        return `<div><strong>${driver}</strong><br/>Distance Covered: ${avgTime} km</div>`;
       },
     },
     fill: {
