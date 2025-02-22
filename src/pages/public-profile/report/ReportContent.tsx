@@ -5,12 +5,14 @@ import {
   Connections,
   Contributions,
   DriverDeliveryChart,
-  MediaUploads,
+  DeliveryStatus,
   Projects,
   RecentUploads,
   Tags,
   UnlockPartnerships,
   WorkExperience,
+  Statistics,
+  DistanceCovered,
 } from "./blocks";
 import axiosInstance from "@/auth/_helpers";
 import { useQuery } from "react-query";
@@ -40,6 +42,12 @@ const transformDriverData2 = (driverData: any[]): DriverStat[] => {
     averageDeliveryTime: data?.data?.completedBookings ?? 0, // Default to 0 if undefined
   }));
 };
+const transformDriverData3 = (driverData: any[]): DriverStat[] => {
+  return driverData.map(({ id, data }) => ({
+    id,
+    averageDeliveryTime: data?.data?.totalDistanceTravelled ?? 0, // Default to 0 if undefined
+  }));
+};
 
 const fetchDriverStats = async (userIds: number[]) => {
   const url = `/api/v1/drivers/me/stats?startDate=2024-01-01&endDate=2025-02-13`;
@@ -59,6 +67,22 @@ const fetchDriverStats = async (userIds: number[]) => {
   return driverData; // Array of responses
 };
 
+const getDeposit = async () => {
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString("en-US");
+  console.log(formattedDate, "date");
+
+  const url = `/api/v1/deposit/stats?startDate=2024-02-01&endDate=${formattedDate}`;
+  try {
+    const { data } = await axiosInstance.get(url);
+    console.log("data data", data.data);
+    return data?.data;
+  } catch (error) {
+    console.error("Error fetching deposit data:", error);
+    return null;
+  }
+};
+
 const extractUserIds = (users: User[]): number[] => {
   return users.map((user) => user.id);
 };
@@ -66,6 +90,7 @@ const extractUserIds = (users: User[]): number[] => {
 const ReportContent = () => {
   const [avgDeliveries, setAvgDeliveres] = useState<any>([]);
   const [numDeliveries, setNumDeliveres] = useState<any>([]);
+  const [distanceCovered, setDistanceCovered] = useState<any>([]);
   async function getDrivers() {
     const url = `/api/v1/drivers?fields=id,firstName,lastName`;
     const { data } = await axiosInstance.get(url);
@@ -76,8 +101,10 @@ const ReportContent = () => {
     const transformedData_2 = transformDriverData2(driverData2);
     setNumDeliveres(transformedData_2);
     const transformedData = transformDriverData(driverData2);
-    console.log(transformedData, "there we land");
     setAvgDeliveres(transformedData);
+    const transformedData_3 = transformDriverData3(driverData2);
+    console.log(driverData2, "transformed_data_3");
+    setDistanceCovered(driverData2);
     console.log(data, "chart");
     return data;
   }
@@ -87,21 +114,35 @@ const ReportContent = () => {
     queryFn: getDrivers,
   });
 
+  const { isLoading: isDepositLoading, data: depositData } = useQuery({
+    queryKey: ["Deposit"],
+    queryFn: getDeposit,
+  });
+
+  const items: any = [
+    { number: depositData?.approvedDeposits, label: "Approved Deposit" },
+    // { number: "369M", label: "Revenue" },
+    // { number: "27", label: "Company Rank" },
+  ];
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-7.5">
-      <div className="col-span-1">
+      <div className="col-span-1 lg:col-span-3">
+        <Statistics items={items} />
+      </div>
+      <div className="col-span-1 ">
         <div className="grid gap-5 lg:gap-7.5">
-          <MediaUploads />
+          {/* <DeliveryStatus /> */}
+          <DistanceCovered
+            avgDeliveries={distanceCovered}
+            DriverData={DriverData}
+            DriverLoading={isDriverLoading}
+          />
           <NumOfDelivery
             avgDeliveries={numDeliveries}
             DriverData={DriverData}
             DriverLoading={isDriverLoading}
           />
-          {/* <CommunityBadges title="Community Badges" />
-          <About />
-          <WorkExperience />
-          <Tags title="Skills" />
-          <RecentUploads title="Recent Uploads" /> */}
         </div>
       </div>
 
@@ -113,10 +154,6 @@ const ReportContent = () => {
             DriverData={DriverData}
             DriverLoading={isDriverLoading}
           />
-
-          {/* <WorkExperience />
-          <Tags title="Skills" />
-          <RecentUploads title="Recent Uploads" /> */}
         </div>
       </div>
     </div>
@@ -128,7 +165,7 @@ const ReportContent = () => {
     //       <div className="flex flex-col gap-5 lg:gap-7.5">
     //         <UnlockPartnerships />
 
-    //         <MediaUploads />
+    //         <DeliveryStatus />
     //       </div>
 
     //       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-7.5">

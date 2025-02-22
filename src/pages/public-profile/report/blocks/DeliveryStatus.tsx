@@ -4,7 +4,7 @@ import { ApexOptions } from "apexcharts";
 import axiosInstance from "@/auth/_helpers";
 import { useQuery } from "react-query";
 
-const MediaUploads = () => {
+const DeliveryStatus = () => {
   async function getStats() {
     const response = await axiosInstance.get(`/api/v1/admin/sys/stats`);
     console.log(response?.data, "response stat");
@@ -204,4 +204,4 @@ const MediaUploads = () => {
   );
 };
 
-export { MediaUploads };
+export { DeliveryStatus };
