@@ -93,7 +93,7 @@ const ModalDriverTypeForm = ({
         driverId: +driverData.id,
         vehicleId: +values.vehicleId,
       };
-      console.log(updatedFields, "updated fields")
+      console.log(updatedFields, "updated fields");
       const res = await axiosInstance.patch(
         `/api/v1/drivers/assign-vehicle/`,
         updatedFields
@@ -170,7 +170,7 @@ const ModalDriverTypeForm = ({
       if (res_1.status === 201 && res_2.status === 201) {
         const profile = res_1.data.data.filename;
         const license = res_2.data.data.filename;
-        let { profilePhoto, drivingLicense, ...rest } = values;
+        let { profilePhoto, drivingLicense, vehicleId, ...rest } = values;
         rest = { ...rest, profilePhoto: profile, drivingLicense: license };
         console.log(rest, "result to be sent");
         const res = await axiosInstance.post(`/api/v1/drivers`, rest);
@@ -246,7 +246,11 @@ const ModalDriverTypeForm = ({
 
   const formik = useFormik({
     initialValues,
-    validationSchema: isApproved ? approvalSchema : isAssigned ? VehicleAssignSchema: driverSchema,
+    validationSchema: isApproved
+      ? approvalSchema
+      : isAssigned
+        ? VehicleAssignSchema
+        : driverSchema,
     // [Todo ] : The try catch logic must be moved out of this.
     onSubmit: async (values, { setStatus, setSubmitting }) => {
       try {

@@ -436,7 +436,7 @@ const Booking: React.FC<BookingProps> = ({
         enableSorting: true,
         cell: (info) => {
           return info.row.original.coor?.name;
-        },
+        },  
         meta: {
           headerClassName: "min-w-[100px]",
         },
