@@ -463,7 +463,6 @@ const Booking: React.FC<BookingProps> = ({
         ),
         enableSorting: true,
         cell: (info) => {
-          console.log("info", info.row.original.status);
           return (
             <span
               className={`badge badge-${getStatusColor(info.row.original.status)} shrink-0 badge-outline rounded-[30px]`}
