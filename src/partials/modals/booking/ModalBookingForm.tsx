@@ -748,7 +748,7 @@ const ModalBookingForm = ({
                   </div>
                 )}
 
-                <div className="flex flex-col gap-1">
+                {/* <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Driver</label>
                   {formik.touched.driverId && formik.errors.driverId ? (
                     <div className="text-red-500 text-sm">
@@ -789,7 +789,7 @@ const ModalBookingForm = ({
                       </select>
                     </label>
                   )}
-                </div>
+                </div> */}
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
                     Vehicle Type
