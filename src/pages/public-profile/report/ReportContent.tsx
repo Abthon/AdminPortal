@@ -12,7 +12,9 @@ import {
   UnlockPartnerships,
   WorkExperience,
   Statistics,
-  DistanceCovered,
+  Highlights,
+  Pie,
+  DriversInfo,
 } from "./blocks";
 import axiosInstance from "@/auth/_helpers";
 import { useQuery } from "react-query";
@@ -29,43 +31,43 @@ type DriverStat = {
   averageDeliveryTime: number;
 };
 
-const transformDriverData = (driverData: any[]): DriverStat[] => {
-  return driverData.map(({ id, data }) => ({
-    id,
-    averageDeliveryTime: data?.data?.averageDeliveryTime ?? 0, // Default to 0 if undefined
-  }));
-};
+// const transformDriverData = (driverData: any[]): DriverStat[] => {
+//   return driverData.map(({ id, data }) => ({
+//     id,
+//     averageDeliveryTime: data?.data?.averageDeliveryTime ?? 0, // Default to 0 if undefined
+//   }));
+// };
 
-const transformDriverData2 = (driverData: any[]): DriverStat[] => {
-  return driverData.map(({ id, data }) => ({
-    id,
-    averageDeliveryTime: data?.data?.completedBookings ?? 0, // Default to 0 if undefined
-  }));
-};
-const transformDriverData3 = (driverData: any[]): DriverStat[] => {
-  return driverData.map(({ id, data }) => ({
-    id,
-    averageDeliveryTime: data?.data?.totalDistanceTravelled ?? 0, // Default to 0 if undefined
-  }));
-};
+// const transformDriverData2 = (driverData: any[]): DriverStat[] => {
+//   return driverData.map(({ id, data }) => ({
+//     id,
+//     averageDeliveryTime: data?.data?.completedBookings ?? 0, // Default to 0 if undefined
+//   }));
+// };
+// const transformDriverData3 = (driverData: any[]): DriverStat[] => {
+//   return driverData.map(({ id, data }) => ({
+//     id,
+//     averageDeliveryTime: data?.data?.totalDistanceTravelled ?? 0, // Default to 0 if undefined
+//   }));
+// };
 
-const fetchDriverStats = async (userIds: number[]) => {
-  const url = `/api/v1/drivers/me/stats?startDate=2024-01-01&endDate=2025-02-13`;
-  const driverData = await Promise.all(
-    userIds.map(async (id) => {
-      try {
-        const { data } = await axiosInstance.post(url, { driverId: id });
-        console.log("data", data?.data);
-        return { id, data }; // Store id and response data
-      } catch (error) {
-        console.error(`Error fetching data for driverId ${id}:`, error);
-        return { id, data: null }; // Handle errors gracefully
-      }
-    })
-  );
+// const fetchDriverStats = async (userIds: number[]) => {
+//   const url = `/api/v1/drivers/me/stats?startDate=2024-01-01&endDate=2025-02-13`;
+//   const driverData = await Promise.all(
+//     userIds.map(async (id) => {
+//       try {
+//         const { data } = await axiosInstance.post(url, { driverId: id });
+//         console.log("data", data?.data);
+//         return { id, data }; // Store id and response data
+//       } catch (error) {
+//         console.error(`Error fetching data for driverId ${id}:`, error);
+//         return { id, data: null }; // Handle errors gracefully
+//       }
+//     })
+//   );
 
-  return driverData; // Array of responses
-};
+//   return driverData; // Array of responses
+// };
 
 const getDeposit = async () => {
   const today = new Date();
@@ -83,35 +85,20 @@ const getDeposit = async () => {
   }
 };
 
-const extractUserIds = (users: User[]): number[] => {
-  return users.map((user) => user.id);
-};
+async function fetchStats() {
+  const response = await axiosInstance.get(`/api/v1/admin/sys/stats`);
+  console.log(response?.data, "response stat");
+  return response.data.data;
+}
+
+// const extractUserIds = (users: User[]): number[] => {
+//   return users.map((user) => user.id);
+// };
 
 const ReportContent = () => {
-  const [avgDeliveries, setAvgDeliveres] = useState<any>([]);
-  const [numDeliveries, setNumDeliveres] = useState<any>([]);
-  const [distanceCovered, setDistanceCovered] = useState<any>([]);
-  async function getDrivers() {
-    const url = `/api/v1/drivers?fields=id,firstName,lastName`;
-    const { data } = await axiosInstance.get(url);
-    const userIds = extractUserIds(data.data);
-    //  console.log(userIds, "userIds");
-    // const url2 = `/api/v1/drivers/me/stats?startDate=2024-01-01&endDate=2025-02-13`;
-    const driverData2 = await fetchDriverStats(userIds);
-    const transformedData_2 = transformDriverData2(driverData2);
-    setNumDeliveres(transformedData_2);
-    const transformedData = transformDriverData(driverData2);
-    setAvgDeliveres(transformedData);
-    const transformedData_3 = transformDriverData3(driverData2);
-    console.log(driverData2, "transformed_data_3");
-    setDistanceCovered(driverData2);
-    console.log(data, "chart");
-    return data;
-  }
-
-  const { isLoading: isDriverLoading, data: DriverData } = useQuery({
+  const { isLoading: isDriverLoading, data: stats } = useQuery({
     queryKey: ["Drivers"],
-    queryFn: getDrivers,
+    queryFn: fetchStats,
   });
 
   const { isLoading: isDepositLoading, data: depositData } = useQuery({
@@ -127,35 +114,28 @@ const ReportContent = () => {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-7.5">
-      <div className="col-span-1 lg:col-span-3">
+      {/* First div: Takes full width */}
+      <div className="col-span-1 xl:col-span-2">
         <Statistics items={items} />
       </div>
-      <div className="col-span-1 ">
-        <div className="grid gap-5 lg:gap-7.5">
-          {/* <DeliveryStatus /> */}
-          <DistanceCovered
-            avgDeliveries={distanceCovered}
-            DriverData={DriverData}
-            DriverLoading={isDriverLoading}
-          />
-          <NumOfDelivery
-            avgDeliveries={numDeliveries}
-            DriverData={DriverData}
-            DriverLoading={isDriverLoading}
-          />
-        </div>
+
+      {/* Second and Third div: 50% width each */}
+      <div className="col-span-1">
+        <Highlights data={stats} />
       </div>
 
       <div className="col-span-1">
-        <div className="grid gap-5 lg:gap-7.5">
-          {/* <UnlockPartnerships /> */}
-          <DriverDeliveryChart
-            avgDeliveries={avgDeliveries}
-            DriverData={DriverData}
-            DriverLoading={isDriverLoading}
-          />
-        </div>
+        <Pie title="Coor" info={stats} />
       </div>
+
+      {/* Fourth div: Another row with 50-50 split */}
+      <div className="col-span-1">
+        <DriversInfo stats={stats} />
+      </div>
+
+      {/* <div className="col-span-1">
+        <Pie title="Coor" info={stats} />
+      </div> */}
     </div>
 
     //   </div>

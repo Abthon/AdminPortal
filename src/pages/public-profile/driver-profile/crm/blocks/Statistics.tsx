@@ -33,7 +33,12 @@ const Statistics = () => {
   const { id } = useParams();
   console.log(id, "id");
   const fetchDriverStats = async () => {
-    const url = `/api/v1/drivers/me/stats?startDate=2024-01-01&endDate=2025-02-13`;
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString("en-US");
+    //console.log(formattedDate, "date");
+
+    //const url = `/api/v1/deposit/stats?startDate=2024-02-01&endDate=${formattedDate}`;
+    const url = `/api/v1/drivers/me/stats?startDate=2024-01-01&endDate=${formattedDate}`;
 
     try {
       const { data } = await axiosInstance.post(url, { driverId: id });
