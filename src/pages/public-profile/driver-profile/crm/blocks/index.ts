@@ -4,3 +4,4 @@ export * from "./DriverVehicleInfo";
 export * from "./DriverBooking";
 export * from "./GeneralInfo";
 export * from "./RecentInvoices";
+export * from "./Statistics";

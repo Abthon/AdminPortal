@@ -6,6 +6,7 @@ import {
   DriverVehicleInfo,
   GeneralInfo,
   RecentInvoices,
+  Statistics,
 } from "./blocks";
 import { DriverLocation } from "./blocks/DriverLocation";
 
@@ -18,6 +19,9 @@ const DriverProfileContent: React.FC<DriverProfileContentProps> = ({
 }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5">
+      <div className="col-span-1 lg:col-span-3">
+        <Statistics />
+      </div>
       <div className="col-span-1">
         <div className="grid gap-5 lg:gap-7.5">
           <GeneralInfo data={data} />
