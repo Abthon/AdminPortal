@@ -27,7 +27,14 @@ const AppRoutingSetup = (): ReactElement => {
     <Routes>
       <Route>
         <Route element={<Demo1Layout />}>
-          <Route path="/" element={<DefaultPage />} />
+          <Route
+            path="/"
+            element={
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
+                <DefaultPage />
+              </RequireAuth>
+            }
+          />
           <Route
             path="/drivers"
             element={
