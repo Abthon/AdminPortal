@@ -3,6 +3,7 @@ export * from "./CommunityBadges";
 export * from "./Connections";
 export * from "./Contributions";
 export * from "./Contributors";
+export * from "./Coorporate";
 export * from "./DeliveryStatus";
 export * from "./DriversInfo";
 export * from "./DriverDeliveryChart";

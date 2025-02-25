@@ -36,8 +36,8 @@ const DepositPage = () => {
                 </div>
               </ToolbarDescription>
             </ToolbarHeading>
-            {/* <ToolbarActions>
-              <div className="flex">
+            <ToolbarActions>
+              {/* <div className="flex">
                 <label className="input input-sm">
                   <KeenIcon icon="magnifier" />
                   <input
@@ -47,16 +47,16 @@ const DepositPage = () => {
                     onChange={(e) => setSearchInput(e.target.value)}
                   />
                 </label>
-              </div>
+              </div> */}
               <button
                 onClick={() => {
                   setIsAddOpen((open) => !open);
                 }}
                 className="btn btn-sm btn-primary"
               >
-                Add Driver
+                Deposit
               </button>
-            </ToolbarActions> */}
+            </ToolbarActions>
           </Toolbar>
         </Container>
       )}

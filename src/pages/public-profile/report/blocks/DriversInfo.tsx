@@ -21,17 +21,18 @@ const DriversInfo = ({ stats }: ReportChartProps) => {
     plotOptions: {
       bar: {
         columnWidth: "70%", // Adjust the width of the bars
+        horizontal: true,
       },
     },
     xaxis: {
       categories: ["Payroll", "Comission"], // Set the driver names as categories (X-axis)
       title: {
-        text: "Drivers", // Title of the X-axis
+        text: "Driver Types", // Title of the X-axis
       },
     },
     yaxis: {
       title: {
-        text: "Driver Types", // Title of the Y-axis
+        text: "", // Title of the Y-axis
       },
       min: 0, // Minimum value for Y-axis (starting from 0)
       tickAmount: 6, // Set the number of ticks for better granularity

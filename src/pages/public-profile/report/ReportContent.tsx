@@ -15,10 +15,12 @@ import {
   Highlights,
   Pie,
   DriversInfo,
+  Coorporate,
 } from "./blocks";
 import axiosInstance from "@/auth/_helpers";
 import { useQuery } from "react-query";
 import { NumOfDelivery } from "./blocks/NumOfDelivery";
+import { DeliveriesChart } from "./blocks/DeliveriesChart";
 
 type User = {
   id: number;
@@ -113,30 +115,65 @@ const ReportContent = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-7.5">
-      {/* First div: Takes full width */}
-      <div className="col-span-1 xl:col-span-2">
-        <Statistics items={items} />
-      </div>
-
-      {/* Second and Third div: 50% width each */}
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 lg:gap-7.5">
       <div className="col-span-1">
-        <Highlights data={stats} />
+        <div className="grid gap-5 lg:gap-7.5">
+          <Statistics items={items} />
+
+          <Highlights data={stats} />
+
+          <Pie title="Coor" info={stats} />
+
+          <DriversInfo stats={stats} />
+          {/* <Tags title="Skills" />
+
+          <RecentUploads title="Recent Uploads" /> */}
+        </div>
       </div>
 
-      <div className="col-span-1">
-        <Pie title="Coor" info={stats} />
-      </div>
+      <div className="col-span-2">
+        <div className="flex flex-col gap-5 lg:gap-7.5">
+          <div className="flex flex-col gap-5 lg:gap-7.5">
+            <DeliveriesChart />
+          </div>
 
-      {/* Fourth div: Another row with 50-50 split */}
-      <div className="col-span-1">
-        <DriversInfo stats={stats} />
-      </div>
+          {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-7.5">
+            <Connections title="Contributors" />
 
-      {/* <div className="col-span-1">
-        <Pie title="Coor" info={stats} />
-      </div> */}
+            <Contributions title="Assistance" />
+          </div> */}
+
+          {/* <Projects /> */}
+          <Coorporate />
+        </div>
+      </div>
     </div>
+    // <div className="grid grid-cols-4 gap-5 lg:gap-7.5">
+    //   {/* First div: Takes full width (spans all 4 columns) */}
+    //   <div className="col-span-4">
+    //     <Statistics items={items} />
+    //   </div>
+
+    //   {/* Second div: Takes 25% width */}
+    //   <div className="col-span-1">
+    //     <Highlights data={stats} />
+    //   </div>
+
+    //   {/* Third div: Takes 75% width */}
+    //   <div className="col-span-3">
+    //     <DriversInfo stats={stats} />
+    //   </div>
+
+    //   {/* Fourth div: 25% width */}
+    //   <div className="col-span-1">
+    //     <Pie title="Coor" info={stats} />
+    //   </div>
+
+    //   {/* Fifth div: 75% width */}
+    //   <div className="col-span-3">
+    //     <Pie title="Coor" info={stats} />
+    //   </div>
+    // </div>
 
     //   </div>
 

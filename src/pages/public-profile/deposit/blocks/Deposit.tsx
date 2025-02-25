@@ -26,6 +26,7 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalDriverTypeForm } from "@/partials/modals/driver";
 import axiosInstance from "@/auth/_helpers";
 import { timeAgo } from "@/utils/Time";
+import { ModalPayment } from "@/partials/modals/payment";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface IDriversData {
@@ -61,9 +62,10 @@ const Deposit = ({
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
 
-  useEffect(() => {
-    console.log(pageIndex, "current page Index is: ");
-  }, [pageIndex]);
+  const handleClose = () => {
+    setProfileModalOpen(false);
+    _handleAddOpen(false);
+  };
 
   const handleOpen = (isEdit: boolean, rowData: IDriversData | null = null) => {
     setApprovalMode(false);
@@ -172,9 +174,16 @@ const Deposit = ({
     },
   });
 
-  const approveDeposit = (obj: { id: string; value: boolean }) => {
-    mutate(obj); // Pass the object directly to `mutate`
-  };
+  // const approveDeposit = (obj: { id: string; value: boolean }) => {
+  //   mutate(obj); // Pass the object directly to `mutate`
+  // };
+
+  useEffect(
+    function () {
+      isAddOpen && handleOpen(false);
+    },
+    [isAddOpen]
+  );
 
   const columns = useMemo<ColumnDef<IDriversData>[]>(
     () => [
@@ -420,6 +429,7 @@ const Deposit = ({
 
   return (
     <>
+      <ModalPayment open={profileModalOpen} onOpenChange={handleClose} />
       <DataGrid
         onFetchData={getDeposits}
         data={data}
