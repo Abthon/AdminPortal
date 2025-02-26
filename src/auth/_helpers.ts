@@ -3,7 +3,7 @@ import axios from "axios";
 
 import { getData, setData } from "@/utils";
 import { type AuthModel } from "./_models";
-const AUTH_LOCAL_STORAGE_KEY = `${import.meta.env.VITE_APP_NAME}_auth`;
+const AUTH_LOCAL_STORAGE_KEY = `${import.meta.env.VITE_APP_NAME}_admin_auth`;
 
 const getAuth = (): AuthModel | undefined => {
   //console.log("getting auth");
