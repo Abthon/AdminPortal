@@ -99,6 +99,20 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
           </div>
         </div>
 
+        {data.driver?.firstName ? (
+          <div className="w-full">
+            <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+              <label className="form-label flex items-center gap-1 max-w-56">
+                Assigned Driver
+              </label>
+              <label className="form-label flex items-center gap-1 max-w-56">
+                {data.driver?.firstName + " " + data.driver?.lastName || "-"}
+              </label>
+            </div>
+          </div>
+        ) : (
+          ""
+        )}
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
