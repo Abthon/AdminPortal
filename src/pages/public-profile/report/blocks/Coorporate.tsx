@@ -241,7 +241,7 @@ const Coorporate = ({}: CoorporateProps) => {
         ),
         enableSorting: true,
         cell: (info) => {
-          console.log(info.row.original, "org");
+          // console.log(info.row.original, "org");
           return info.row.original.creditLimit;
         },
         meta: {
@@ -256,7 +256,7 @@ const Coorporate = ({}: CoorporateProps) => {
         ),
         enableSorting: true,
         cell: (info) => {
-          console.log(info.row.original, "org");
+          //console.log(info.row.original, "org");
           return info.row.original.currentCredit;
         },
         meta: {

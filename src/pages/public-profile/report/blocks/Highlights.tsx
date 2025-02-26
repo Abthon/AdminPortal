@@ -17,12 +17,15 @@ interface IHighlightsItem {
 interface IHighlightsItems extends Array<IHighlightsItem> {}
 
 interface IHighlightsProps {
-  limit?: number;
   data: any;
 }
 
-const Highlights = ({ limit, data }: IHighlightsProps) => {
+const Highlights = ({ data }: IHighlightsProps) => {
   const { isRTL } = useLanguage();
+  console.log(
+    "stats",
+    (data?.totalCompletedBookings / data?.totalBooking) * 100
+  );
 
   const items: IHighlightsItems = [
     { badgeColor: "badge-success", lebel: "Completed" },
@@ -82,13 +85,22 @@ const Highlights = ({ limit, data }: IHighlightsProps) => {
 
         <div className="flex items-center gap-1 mb-1.5">
           <div
-            className={`bg-success h-2 w-full max-w-[${(data?.totalCompletedBookings / data?.totalBooking) * 100}%] rounded-sm`}
+            className="bg-success h-2 rounded-sm"
+            style={{
+              width: `${(data?.totalCompletedBookings / data?.totalBooking) * 100}%`,
+            }}
           ></div>
           <div
-            className={`bg-brand h-2 w-full max-w-[${((data?.totalTimeoutBookings + data?.totalCancelledBookings + data?.totalDriverNotFoundBookings) / data?.totalBooking) * 100}%] rounded-sm`}
+            className="bg-brand h-2 rounded-sm"
+            style={{
+              width: `${((data?.totalTimeoutBookings + data?.totalCancelledBookings + data?.totalDriverNotFoundBookings) / data?.totalBooking) * 100}%`,
+            }}
           ></div>
           <div
-            className={`bg-warning h-2 w-full max-w-[${((data?.totalAssignedBookings + data?.totalStartedBookings + data?.totalRequestedBookings) / data?.totalBooking) * 100}%] rounded-sm`}
+            className="bg-warning h-2 rounded-sm"
+            style={{
+              width: `${((data?.totalAssignedBookings + data?.totalStartedBookings + data?.totalRequestedBookings) / data?.totalBooking) * 100}%`,
+            }}
           ></div>
         </div>
 
