@@ -23,7 +23,7 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
               Id
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {data.id}
+              {data?.id}
             </label>
           </div>
         </div>
@@ -34,7 +34,7 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
               Booking Created At
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {timeAgo(data.createdAt)}
+              {timeAgo(data?.createdAt)}
             </label>
           </div>
         </div>
@@ -45,9 +45,9 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
               Status
             </label>
             <span
-              className={`badge badge-sm ${data.status === "suspended" && "badge-danger"} ${data.status === "inactive" && "badge-warning"} ${data.status === "active" && "badge-success"} ${data.status === "requested" && "badge-primary"} badge-outline`}
+              className={`badge badge-sm ${data?.status === "suspended" && "badge-danger"} ${data?.status === "inactive" && "badge-warning"} ${data.status === "active" && "badge-success"} ${data.status === "requested" && "badge-primary"} badge-outline`}
             >
-              {data.status}
+              {data?.status}
             </span>
           </div>
         </div>
@@ -58,7 +58,7 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
               Pickup Name
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {data.pickupName || "-"}
+              {data?.pickupName || "-"}
             </label>
           </div>
         </div>
@@ -68,21 +68,25 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
               DropOff Name
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
-              {data.dropOffName || "-"}
+              {data?.dropOffName || "-"}
             </label>
           </div>
         </div>
 
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <label className="form-label flex items-center gap-1 max-w-56">
-              Admin Name
-            </label>
-            <label className="form-label flex items-center gap-1 max-w-56">
-              {data.admin.firstName + " " + data.admin.lastName || "-"}
-            </label>
+        {data.admin?.firstName ? (
+          <div className="w-full">
+            <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+              <label className="form-label flex items-center gap-1 max-w-56">
+                Admin Name
+              </label>
+              <label className="form-label flex items-center gap-1 max-w-56">
+                {data.admin?.firstName + " " + data.admin?.lastName || "-"}
+              </label>
+            </div>
           </div>
-        </div>
+        ) : (
+          ""
+        )}
 
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
