@@ -26,6 +26,7 @@ import { useFormik } from "formik";
 
 const bankSchema = Yup.object().shape({
   bankId: Yup.number().required("bankId is required."),
+  coorId: Yup.number().required("Corporate is required."),
   type: Yup.string().required("type is required."),
   amount: Yup.number().required("amount is required."),
   receipt: Yup.string().required("receipt is required."),
@@ -69,6 +70,8 @@ const ModalPayment = ({ open, onOpenChange }: IModalPaymentProps) => {
       }
 
       values.bankId = Number(values.bankId);
+      values.coorId = Number(values.coorId);
+
       const res = await axiosInstance.post(
         `/api/v1/payment/deposit/receipt`,
         values
@@ -86,6 +89,7 @@ const ModalPayment = ({ open, onOpenChange }: IModalPaymentProps) => {
 
   const initialValues = {
     bankId: 1,
+    coorId: null,
     type: "bank",
     amount: 0,
     receipt: "receipt_12345",
@@ -102,6 +106,20 @@ const ModalPayment = ({ open, onOpenChange }: IModalPaymentProps) => {
       throw new Error("Failed to fetch banks");
     }
     const data = res.data;
+    return data.data;
+  });
+
+  const {
+    data: corporates,
+    isLoading: isCorporateLoading,
+    error: corporatesError,
+  } = useQuery("corporates", async () => {
+    const res = await axiosInstance.get("api/v1/coorporate");
+    if (res.status !== 200) {
+      throw new Error("Failed to fetch corporates");
+    }
+    const data = res.data;
+    console.log("corporates list", data.data);
     return data.data;
   });
 
@@ -126,24 +144,7 @@ const ModalPayment = ({ open, onOpenChange }: IModalPaymentProps) => {
           <div className="flex flex-col justify-end border-b-0 grow px-9 bg-gradient-to-t from-light from-3% to-transparent">
             <div className="w-full flex justify-center items-center">
               <div className="flex items-center">
-                <div className="flex flex-wrap justify-center gap-1 lg:gap-10 text-sm">
-                  {/* <div className="flex gap-1 items-center">
-                    <span
-                      className={`${activeTab === "Automatic" ? "text-primary" : "text-gray-600"} hover:text-primary cursor-pointer`}
-                      onClick={() => setActiveTab("Automatic")}
-                    >
-                      Automatic
-                    </span>
-                  </div> */}
-                  {/* <div className="flex gap-1 items-center">
-                    <span
-                      className={`${activeTab === "Manual" ? "text-primary" : "text-gray-600"} hover:text-primary cursor-pointer`}
-                      onClick={() => setActiveTab("Manual")}
-                    >
-                      Manual
-                    </span>
-                  </div> */}
-                </div>
+                <div className="flex flex-wrap justify-center gap-1 lg:gap-10 text-sm"></div>
               </div>
             </div>
           </div>
@@ -175,23 +176,6 @@ const ModalPayment = ({ open, onOpenChange }: IModalPaymentProps) => {
               </div>
             ) : (
               <>
-                {/* <div className="flex flex-col gap-3 ">
-                  <label className="form-label text-gray-900">bankId</label>
-
-                  <label className="input">
-                    <input
-                      placeholder="Enter bankId"
-                      autoComplete="off"
-                      type="number"
-                      {...formik.getFieldProps("bankId")}
-                    />
-                  </label>
-                  {formik.touched.bankId && formik.errors.bankId && (
-                    <span role="alert" className="text-danger text-xs mt-1">
-                      {formik.errors.bankId}
-                    </span>
-                  )}
-                </div> */}
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">bank ID</label>
                   {isbanksLoading ? (
@@ -219,6 +203,42 @@ const ModalPayment = ({ open, onOpenChange }: IModalPaymentProps) => {
                         ))}
                       </select>
                     </label>
+                  )}
+                  {formik.touched?.bankId && formik.errors?.bankId && (
+                    <span role="alert" className="text-danger text-xs mt-1">
+                      {formik.errors?.bankId}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">Corporates</label>
+                  {/* Your existing corporates dropdown code */}
+                  <label className="input">
+                    <select
+                      {...formik.getFieldProps("coorId")}
+                      className="form-control form-select w-full"
+                      style={{
+                        backgroundColor: "transparent",
+                        outline: "none",
+                        borderColor: "blue",
+                      }}
+                    >
+                      <option value="" disabled>
+                        Select a Corporate
+                      </option>
+                      {corporates?.map(
+                        (corporate: { id: number; name: string }) => (
+                          <option key={corporate.id} value={corporate.id}>
+                            {corporate.name}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </label>
+                  {formik.touched?.coorId && formik.errors?.coorId && (
+                    <span role="alert" className="text-danger text-xs mt-1">
+                      {formik.errors?.coorId}
+                    </span>
                   )}
                 </div>
                 <div className="hidden">

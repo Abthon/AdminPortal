@@ -27,7 +27,7 @@ const DeliveriesChart = () => {
   const getLast7Days = (): string[] => {
     const dates: string[] = [];
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 6; i > 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i); // Subtract i days from today
 
