@@ -5,8 +5,6 @@ interface IHighlightsRow {
   icon: string;
   text: string;
   total: number;
-  stats: number;
-  increase: boolean;
 }
 interface IHighlightsRows extends Array<IHighlightsRow> {}
 
@@ -22,6 +20,31 @@ interface IHighlightsProps {
 
 const Highlights = ({ data }: IHighlightsProps) => {
   const { isRTL } = useLanguage();
+
+  const rows: IHighlightsRows = [
+    {
+      icon: "like",
+      text: "Completed",
+      total: data?.totalCompletedBookings,
+    },
+    {
+      icon: "information-2",
+      text: "OnGoing",
+      total:
+        data?.totalTimeoutBookings +
+        data?.totalCancelledBookings +
+        data?.totalDriverNotFoundBookings,
+    },
+    {
+      icon: "dislike",
+      text: "Failed",
+      total:
+        data?.totalAssignedBookings +
+        data?.totalStartedBookings +
+        data?.totalRequestedBookings,
+    },
+  ];
+
   console.log(
     "stats",
     (data?.totalCompletedBookings / data?.totalBooking) * 100
@@ -46,7 +69,7 @@ const Highlights = ({ data }: IHighlightsProps) => {
 
         <div className="flex items-center text-sm font-medium text-gray-800 gap-6">
           {" "}
-          <span className="lg:text-right">${row.total}k</span>
+          <span className="lg:text-right">{row.total}</span>
         </div>
       </div>
     );
@@ -110,9 +133,9 @@ const Highlights = ({ data }: IHighlightsProps) => {
           })}
         </div>
 
-        {/* <div className="border-b border-gray-300"></div>
+        <div className="border-b border-gray-300"></div>
 
-        <div className="grid gap-3">{rows.slice(0, limit).map(renderRow)}</div> */}
+        <div className="grid gap-3">{rows.slice(0, 3).map(renderRow)}</div>
       </div>
     </div>
   );

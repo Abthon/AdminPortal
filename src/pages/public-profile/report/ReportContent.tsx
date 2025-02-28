@@ -122,7 +122,7 @@ const ReportContent = () => {
 
           <Highlights data={stats} />
 
-          <Pie title="Coor" info={stats} />
+          <Pie title="Corporates" info={stats} />
 
           <DriversInfo stats={stats} />
           {/* <Tags title="Skills" />

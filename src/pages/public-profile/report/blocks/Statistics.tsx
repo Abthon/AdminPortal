@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface IStatisticsItem {
   number: string;
@@ -16,7 +16,7 @@ const Statistics = ({ items }: IStatisticsProps) => {
       <React.Fragment key={index}>
         <div className="grid grid-cols-1 place-content-center flex-1 gap-1 text-center">
           <span className="text-gray-900 text-2xl lg:text-2.5xl leading-none font-semibold">
-            {item.number}
+            {item.number} Birr
           </span>
           <span className="text-gray-700 text-sm">{item.label}</span>
         </div>
@@ -39,4 +39,9 @@ const Statistics = ({ items }: IStatisticsProps) => {
   );
 };
 
-export { Statistics, type IStatisticsItem, type IStatisticsItems, type IStatisticsProps };
+export {
+  Statistics,
+  type IStatisticsItem,
+  type IStatisticsItems,
+  type IStatisticsProps,
+};
