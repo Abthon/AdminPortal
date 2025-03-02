@@ -44,11 +44,13 @@ const ModalBookingForm = ({
   bookingData,
 }: IModalBookingFormProps) => {
   /* importing booking */
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY;
   const [searchInput, setSearchInput] = useState("");
   const [estimatedPrice, setEstimatedPrice] = useState(0);
   const [bookingType, setBookingType] = useState<"user" | "corporate" | null>(
     null
   );
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
     mutationFn: isEndBooking ? editBooking : addBooking,
@@ -329,6 +331,19 @@ const ModalBookingForm = ({
   });
 
   useEffect(() => {
+    if (window.google && window.google.maps) {
+      setIsGoogleLoaded(true);
+    } else {
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => setIsGoogleLoaded(true);
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  useEffect(() => {
     setEstimatedPrice(0);
     if (open) {
       if (isEdit) {
@@ -464,95 +479,100 @@ const ModalBookingForm = ({
                         : null}
                     </div>
                   ) : null}
-                  <GooglePlacesAutocomplete
-                    apiKey={import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY || ""}
-                    selectProps={{
-                      value: formik.values.pickupName
-                        ? {
-                            label: formik.values.pickupName,
-                            value: {
-                              description: formik.values.pickupName,
-                              geometry: {
-                                location: {
-                                  lat: formik.values.pickupLat,
-                                  lng: formik.values.pickupLng,
+                  {isGoogleLoaded && (
+                    <GooglePlacesAutocomplete
+                      apiKey={
+                        import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY || ""
+                      }
+                      selectProps={{
+                        value: formik.values.pickupName
+                          ? {
+                              label: formik.values.pickupName,
+                              value: {
+                                description: formik.values.pickupName,
+                                geometry: {
+                                  location: {
+                                    lat: formik.values.pickupLat,
+                                    lng: formik.values.pickupLng,
+                                  },
                                 },
                               },
-                            },
-                          }
-                        : null,
-                      onChange: async (value) => {
-                        if (value && value.value && value.value.place_id) {
-                          const placeId = value.value.place_id;
-
-                          // Initialize Google Maps Places Service
-                          const service = new google.maps.places.PlacesService(
-                            document.createElement("div")
-                          );
-                          service.getDetails({ placeId }, (place, status) => {
-                            if (
-                              status ===
-                              google.maps.places.PlacesServiceStatus.OK
-                            ) {
-                              formik.setFieldValue("pickupName", value.label);
-                              formik.setFieldValue(
-                                "pickupLat",
-                                place?.geometry?.location?.lat()
-                              );
-                              formik.setFieldValue(
-                                "pickupLng",
-                                place?.geometry?.location?.lng()
-                              );
-                              calculateEstimatedPrice(
-                                place?.geometry?.location?.lat().toString() ||
-                                  "",
-                                place?.geometry?.location?.lng().toString() ||
-                                  "",
-                                formik.values.dropOffLat,
-                                formik.values.dropOffLng,
-                                formik.values.vehicleTypeId
-                              );
-                            } else {
-                              console.error(
-                                "Failed to fetch place details:",
-                                status
-                              );
                             }
-                          });
-                        } else {
-                          console.error("Invalid value:", value);
-                        }
-                      },
-                      styles: {
-                        control: (provided, state) => ({
-                          ...provided,
-                          backgroundColor: "transparent",
-                          borderColor: "#3d3e46 !important",
-                          boxShadow: "none !important",
-                          outline: "none !important",
-                          fontSize: ".85em",
-                          paddingLeft: "5px",
-                          maxWidth: "390px",
-                          overflow: "hidden",
-                        }),
-                        input: (provided) => ({
-                          ...provided,
-                          color: "gray", // [ text color ]
-                        }),
-                        placeholder: (provided) => ({
-                          ...provided,
-                          color: "#9ca3af", // Optional: Customize placeholder text color
-                        }),
-                        singleValue: (provided) => ({
-                          ...provided,
-                          color: "#808290", // Optional: Customize selected value text color
-                        }),
-                      },
-                    }}
-                    autocompletionRequest={{
-                      componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
-                    }}
-                  />
+                          : null,
+                        onChange: async (value) => {
+                          if (value && value.value && value.value.place_id) {
+                            const placeId = value.value.place_id;
+
+                            // Initialize Google Maps Places Service
+                            const service =
+                              new google.maps.places.PlacesService(
+                                document.createElement("div")
+                              );
+                            service.getDetails({ placeId }, (place, status) => {
+                              if (
+                                status ===
+                                google.maps.places.PlacesServiceStatus.OK
+                              ) {
+                                formik.setFieldValue("pickupName", value.label);
+                                formik.setFieldValue(
+                                  "pickupLat",
+                                  place?.geometry?.location?.lat()
+                                );
+                                formik.setFieldValue(
+                                  "pickupLng",
+                                  place?.geometry?.location?.lng()
+                                );
+                                calculateEstimatedPrice(
+                                  place?.geometry?.location?.lat().toString() ||
+                                    "",
+                                  place?.geometry?.location?.lng().toString() ||
+                                    "",
+                                  formik.values.dropOffLat,
+                                  formik.values.dropOffLng,
+                                  formik.values.vehicleTypeId
+                                );
+                              } else {
+                                console.error(
+                                  "Failed to fetch place details:",
+                                  status
+                                );
+                              }
+                            });
+                          } else {
+                            console.error("Invalid value:", value);
+                          }
+                        },
+                        styles: {
+                          control: (provided, state) => ({
+                            ...provided,
+                            backgroundColor: "transparent",
+                            borderColor: "#3d3e46 !important",
+                            boxShadow: "none !important",
+                            outline: "none !important",
+                            fontSize: ".85em",
+                            paddingLeft: "5px",
+                            maxWidth: "390px",
+                            overflow: "hidden",
+                          }),
+                          input: (provided) => ({
+                            ...provided,
+                            color: "gray", // [ text color ]
+                          }),
+                          placeholder: (provided) => ({
+                            ...provided,
+                            color: "#9ca3af", // Optional: Customize placeholder text color
+                          }),
+                          singleValue: (provided) => ({
+                            ...provided,
+                            color: "#808290", // Optional: Customize selected value text color
+                          }),
+                        },
+                      }}
+                      autocompletionRequest={{
+                        componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
+                      }}
+                    />
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -566,107 +586,115 @@ const ModalBookingForm = ({
                         : null}
                     </div>
                   ) : null}
-                  <GooglePlacesAutocomplete
-                    apiKey={import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY || ""}
-                    selectProps={{
-                      value: formik.values.dropOffName
-                        ? {
-                            label: formik.values.dropOffName,
-                            value: {
-                              description: formik.values.dropOffName,
-                              geometry: {
-                                location: {
-                                  lat: formik.values.dropOffLat,
-                                  lng: formik.values.dropOffLng,
+                  {isGoogleLoaded && (
+                    <GooglePlacesAutocomplete
+                      apiKey={
+                        import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY || ""
+                      }
+                      selectProps={{
+                        value: formik.values.dropOffName
+                          ? {
+                              label: formik.values.dropOffName,
+                              value: {
+                                description: formik.values.dropOffName,
+                                geometry: {
+                                  location: {
+                                    lat: formik.values.dropOffLat,
+                                    lng: formik.values.dropOffLng,
+                                  },
                                 },
                               },
-                            },
-                          }
-                        : null,
-                      onChange: async (value) => {
-                        if (value && value.value && value.value.place_id) {
-                          const placeId = value.value.place_id;
-                          // Initialize Google Maps Places Service
-                          const service = new google.maps.places.PlacesService(
-                            document.createElement("div")
-                          );
-                          service.getDetails({ placeId }, (place, status) => {
-                            if (
-                              status ===
-                              google.maps.places.PlacesServiceStatus.OK
-                            ) {
-                              formik.setFieldValue("dropOffName", value.label);
-                              formik.setFieldValue(
-                                "dropOffLat",
-                                place?.geometry?.location?.lat()
-                              );
-                              formik.setFieldValue(
-                                "dropOffLng",
-                                place?.geometry?.location?.lng()
-                              );
-                              calculateEstimatedPrice(
-                                formik.values.pickupLat,
-                                formik.values.pickupLng,
-                                place?.geometry?.location?.lat().toString() ||
-                                  "",
-                                place?.geometry?.location?.lng().toString() ||
-                                  "",
-                                formik.values.vehicleTypeId
-                              );
-                            } else {
-                              console.error(
-                                "Failed to fetch place details:",
-                                status
-                              );
                             }
-                          });
-                        } else {
-                          console.error("Invalid value:", value);
-                        }
-                      },
-                      styles: {
-                        control: (provided, state) => ({
-                          ...provided,
-                          backgroundColor: "transparent",
-                          borderColor: "#3d3e46 !important",
-                          boxShadow: "none !important",
-                          outline: "none !important",
-                          fontSize: ".85em",
-                          paddingLeft: "5px",
-                          maxWidth: "390px",
-                          overflow: "hidden",
-                        }),
-                        // menu: (provided) => ({
-                        //   ...provided,
-                        //   backgroundColor: '#3d3e46',
-                        //   border: '1px solid #3d3e46',
-                        //   borderRadius: '4px',
-                        //   boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                        //   zIndex: 1000,
-                        // }),
-                        // menuList: (provided) => ({
-                        //   ...provided,
-                        //   padding: "0", // Remove additional padding
-                        //   backgroundColor: '#3d3e46',
-                        // }),
-                        input: (provided) => ({
-                          ...provided,
-                          color: "gray", // [ text color ]
-                        }),
-                        placeholder: (provided) => ({
-                          ...provided,
-                          color: "#9ca3af", // Optional: Customize placeholder text color
-                        }),
-                        singleValue: (provided) => ({
-                          ...provided,
-                          color: "#808290", // Optional: Customize selected value text color
-                        }),
-                      },
-                    }}
-                    autocompletionRequest={{
-                      componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
-                    }}
-                  />
+                          : null,
+                        onChange: async (value) => {
+                          if (value && value.value && value.value.place_id) {
+                            const placeId = value.value.place_id;
+                            // Initialize Google Maps Places Service
+                            const service =
+                              new google.maps.places.PlacesService(
+                                document.createElement("div")
+                              );
+                            service.getDetails({ placeId }, (place, status) => {
+                              if (
+                                status ===
+                                google.maps.places.PlacesServiceStatus.OK
+                              ) {
+                                formik.setFieldValue(
+                                  "dropOffName",
+                                  value.label
+                                );
+                                formik.setFieldValue(
+                                  "dropOffLat",
+                                  place?.geometry?.location?.lat()
+                                );
+                                formik.setFieldValue(
+                                  "dropOffLng",
+                                  place?.geometry?.location?.lng()
+                                );
+                                calculateEstimatedPrice(
+                                  formik.values.pickupLat,
+                                  formik.values.pickupLng,
+                                  place?.geometry?.location?.lat().toString() ||
+                                    "",
+                                  place?.geometry?.location?.lng().toString() ||
+                                    "",
+                                  formik.values.vehicleTypeId
+                                );
+                              } else {
+                                console.error(
+                                  "Failed to fetch place details:",
+                                  status
+                                );
+                              }
+                            });
+                          } else {
+                            console.error("Invalid value:", value);
+                          }
+                        },
+                        styles: {
+                          control: (provided, state) => ({
+                            ...provided,
+                            backgroundColor: "transparent",
+                            borderColor: "#3d3e46 !important",
+                            boxShadow: "none !important",
+                            outline: "none !important",
+                            fontSize: ".85em",
+                            paddingLeft: "5px",
+                            maxWidth: "390px",
+                            overflow: "hidden",
+                          }),
+                          // menu: (provided) => ({
+                          //   ...provided,
+                          //   backgroundColor: '#3d3e46',
+                          //   border: '1px solid #3d3e46',
+                          //   borderRadius: '4px',
+                          //   boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                          //   zIndex: 1000,
+                          // }),
+                          // menuList: (provided) => ({
+                          //   ...provided,
+                          //   padding: "0", // Remove additional padding
+                          //   backgroundColor: '#3d3e46',
+                          // }),
+                          input: (provided) => ({
+                            ...provided,
+                            color: "gray", // [ text color ]
+                          }),
+                          placeholder: (provided) => ({
+                            ...provided,
+                            color: "#9ca3af", // Optional: Customize placeholder text color
+                          }),
+                          singleValue: (provided) => ({
+                            ...provided,
+                            color: "#808290", // Optional: Customize selected value text color
+                          }),
+                        },
+                      }}
+                      autocompletionRequest={{
+                        componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
+                      }}
+                    />
+                  )}
                 </div>
                 <div className="flex flex-col gap-3">
                   <label className="form-label text-gray-900">
