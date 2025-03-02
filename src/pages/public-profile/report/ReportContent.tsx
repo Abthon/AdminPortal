@@ -124,7 +124,7 @@ const ReportContent = () => {
 
           <Pie title="Corporates" info={stats} />
 
-          <DriversInfo stats={stats} />
+          {/* <DriversInfo stats={stats} /> */}
           {/* <Tags title="Skills" />
 
           <RecentUploads title="Recent Uploads" /> */}
@@ -146,6 +146,9 @@ const ReportContent = () => {
           {/* <Projects /> */}
           <Coorporate />
         </div>
+      </div>
+      <div className="lg:col-span-3">
+        <DriversInfo stats={stats} />
       </div>
     </div>
     // <div className="grid grid-cols-4 gap-5 lg:gap-7.5">

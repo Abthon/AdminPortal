@@ -549,6 +549,9 @@ const ModalBookingForm = ({
                         }),
                       },
                     }}
+                    autocompletionRequest={{
+                      componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
+                    }}
                   />
                 </div>
 
@@ -659,6 +662,9 @@ const ModalBookingForm = ({
                           color: "#808290", // Optional: Customize selected value text color
                         }),
                       },
+                    }}
+                    autocompletionRequest={{
+                      componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
                     }}
                   />
                 </div>
