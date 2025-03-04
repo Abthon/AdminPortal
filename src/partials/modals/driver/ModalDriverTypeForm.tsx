@@ -203,6 +203,7 @@ const ModalDriverTypeForm = ({
         middleName,
         gender,
         type,
+        phoneNumber,
         drivingLicense,
       };
 
@@ -486,7 +487,7 @@ const ModalDriverTypeForm = ({
                       <input
                         placeholder="Enter phone number"
                         autoComplete="off"
-                        disabled={isEdit}
+                        // disabled={isEdit}
                         {...formik.getFieldProps("phoneNumber")}
                       />
                     </label>
