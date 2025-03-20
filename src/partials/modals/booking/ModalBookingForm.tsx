@@ -45,7 +45,9 @@ const ModalBookingForm = ({
 }: IModalBookingFormProps) => {
   /* importing booking */
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY;
+  const [corporateSearchTerm, setCorporateSearchTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState(0);
   const [bookingType, setBookingType] = useState<"user" | "corporate" | null>(
     null
@@ -166,6 +168,8 @@ const ModalBookingForm = ({
         vehicleType: Number(vehicleTypeId),
       };
 
+      console.log(finalReq, "the final request haha");
+
       const res_3 = await axiosInstance.post("api/v1/bookings/admin", finalReq);
       if (res_3.status !== 201) {
         throw new Error(res_3.data.message || "Failed to create the booking.");
@@ -227,20 +231,38 @@ const ModalBookingForm = ({
       throw new Error(errorMessage || errorMessageAlt);
     }
   }
-
   const {
-    data: corporates,
-    isLoading: isCorporateLoading,
-    error: corporatesError,
-  } = useQuery("corporates", async () => {
-    const res = await axiosInstance.get("api/v1/coorporate");
-    if (res.status !== 200) {
-      throw new Error("Failed to fetch corporates");
+    data: searchedCorporates,
+    isLoading: isSearchingCorporates,
+    error: corporateSearchError,
+  } = useQuery(
+    ["searchCorporates", corporateSearchTerm], // Query key includes search term
+    async () => {
+      const url = `/api/v1/coorporate?filters=name=${corporateSearchTerm}`; // Adjust the endpoint and filter key as needed
+      const res = await axiosInstance.get(url);
+      if (res.status !== 200) {
+        throw new Error("Failed to fetch corporates");
+      }
+      return res.data.data; // Adjust based on your API response structure
+    },
+    {
+      enabled: !!corporateSearchTerm.trim(), // Only run the query if there's a search term
+      staleTime: 0, // No caching for fresh searches
     }
-    const data = res.data;
-    console.log("corporates list", data.data);
-    return data.data;
-  });
+  );
+  // const {
+  //   data: corporates,
+  //   isLoading: isCorporateLoading,
+  //   error: corporatesError,
+  // } = useQuery("corporates", async () => {
+  //   const res = await axiosInstance.get("api/v1/coorporate");
+  //   if (res.status !== 200) {
+  //     throw new Error("Failed to fetch corporates");
+  //   }
+  //   const data = res.data;
+  //   console.log("corporates list", data.data);
+  //   return data.data;
+  // });
 
   const {
     data: drivers,
@@ -754,9 +776,117 @@ const ModalBookingForm = ({
                 {bookingType === "corporate" && (
                   <div className="flex flex-col gap-1">
                     <label className="form-label text-gray-900">
-                      Corporates
+                      Search for Corporate
                     </label>
-                    {/* Your existing corporates dropdown code */}
+                    <input
+                      type="text"
+                      placeholder="Search corporates..."
+                      value={corporateSearchTerm}
+                      onChange={(e) => {
+                        setCorporateSearchTerm(e.target.value);
+                        setShowDropdown(true);
+                      }}
+                      onFocus={() => setShowDropdown(true)}
+                      className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none transition-all duration-200 ${
+                        formik.values.corporateId
+                          ? "bg-gray-100"
+                          : "bg-transparent"
+                      }`}
+                      style={{
+                        backgroundColor: formik.values.corporateId
+                          ? "#f3f4f6"
+                          : "transparent", // Light gray background when a corporate is selected
+                      }}
+                    />
+                    {showDropdown && (
+                      <div className="mt-2 max-h-40 overflow-y-auto shadow-sm rounded-lg border border-gray-200 bg-white">
+                        {isSearchingCorporates ? (
+                          <div className="p-3 text-gray-500 text-sm">
+                            Loading...
+                          </div>
+                        ) : corporateSearchError ? (
+                          <div className="p-3 text-red-500 text-sm">
+                            Error loading corporates
+                          </div>
+                        ) : searchedCorporates?.length > 0 ? (
+                          searchedCorporates.map((corporate: any) => (
+                            <div
+                              key={corporate.id}
+                              className="p-3 hover:bg-gray-50 cursor-pointer transition-all duration-200"
+                              onClick={() => {
+                                console.log(corporate.id, "the corporate id");
+                                formik.setFieldValue(
+                                  "corporateId",
+                                  corporate.id.toString()
+                                );
+                                setCorporateSearchTerm(corporate.name); // Update search term to show selected corporate
+                                setShowDropdown(false); // Hide dropdown after selection
+                              }}
+                            >
+                              <span className="text-gray-900 font-medium">
+                                {corporate.name}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-3 text-gray-500 text-sm">
+                            No corporates found
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* {bookingType === "corporate" && (
+                  <div className="flex flex-col gap-1">
+                    <label className="form-label text-gray-900">
+                      Search for Corporate
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Search corporates..."
+                      value={corporateSearchTerm}
+                      onChange={(e) => setCorporateSearchTerm(e.target.value)}
+                      className="form-control w-full"
+                      style={{
+                        backgroundColor: "transparent",
+                        outline: "none",
+                        borderColor: "blue",
+                      }}
+                    />
+                    <div className="mt-2 max-h-40 overflow-y-auto">
+                      {isSearchingCorporates ? (
+                        <div className="p-2 text-gray-500">Loading...</div>
+                      ) : corporateSearchError ? (
+                        <div className="p-2 text-red-500">
+                          Error loading corporates
+                        </div>
+                      ) : searchedCorporates?.length > 0 ? (
+                        searchedCorporates.map((corporate: any) => (
+                          <div
+                            key={corporate.id}
+                            className="p-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => {
+                              formik.setFieldValue("corporateId", corporate.id);
+                              setCorporateSearchTerm(corporate.name); // Update search term to show selected corporate
+                            }}
+                          >
+                            {corporate.name}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-2 text-gray-500">
+                          No corporates found
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )} */}
+                {/* {bookingType === "corporate" && (
+                  <div className="flex flex-col gap-1">
+                    <label className="form-label text-gray-900">
+                      Search for Corporate
+                    </label>
                     <label className="input">
                       <select
                         {...formik.getFieldProps("corporateId")}
@@ -780,7 +910,7 @@ const ModalBookingForm = ({
                       </select>
                     </label>
                   </div>
-                )}
+                )} */}
 
                 {/* <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Driver</label>
