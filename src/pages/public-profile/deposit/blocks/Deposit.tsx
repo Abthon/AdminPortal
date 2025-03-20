@@ -37,6 +37,7 @@ interface IDriversData {
   receipt: string;
   description: string;
   createdAt: string;
+  coor: any;
   isApproved: boolean;
 }
 
@@ -95,8 +96,9 @@ const Deposit = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/deposit?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=isApproved=${filterInput == "accepted" ? "1" : "0"}` : ""}`;
+    const url = `/api/v1/deposit?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=isApproved=${filterInput == "accepted" ? "1" : "0"}` : ""}&fields=coor.*,createdAt,type,amount,receipt,description,isApproved`;
     const { data } = await axiosInstance.get(url);
+    console.log(data, "deposit data");
 
     // calculating how many items are there on the current page
     const startIndex =
@@ -187,16 +189,16 @@ const Deposit = ({
 
   const columns = useMemo<ColumnDef<IDriversData>[]>(
     () => [
-      {
-        accessorKey: "id",
-        header: () => <DataGridRowSelectAll />,
-        cell: ({ row }) => <DataGridRowSelect row={row} />,
-        enableSorting: false,
-        enableHiding: false,
-        meta: {
-          headerClassName: "w-0",
-        },
-      },
+      // {
+      //   accessorKey: "id",
+      //   header: () => <DataGridRowSelectAll />,
+      //   cell: ({ row }) => <DataGridRowSelect row={row} />,
+      //   enableSorting: false,
+      //   enableHiding: false,
+      //   meta: {
+      //     headerClassName: "w-0",
+      //   },
+      // },
       {
         accessorFn: (row) => row.createdAt,
         id: "createdAt",
@@ -209,6 +211,20 @@ const Deposit = ({
         },
         meta: {
           headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        // accessorFn: (row) => row.estimatedPrice,
+        id: "corporatename",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Corporate" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.coor?.name;
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
         },
       },
       {
