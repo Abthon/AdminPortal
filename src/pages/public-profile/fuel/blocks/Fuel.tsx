@@ -1,6 +1,4 @@
-/* eslint-disable prettier/prettier */
 import { useEffect, useMemo, useState } from "react";
-import { toAbsoluteUrl } from "@/utils";
 import {
   DataGrid,
   DataGridColumnHeader,
@@ -9,20 +7,10 @@ import {
   DataGridRowSelect,
 } from "@/components";
 import { ColumnDef, Column, RowSelectionState } from "@tanstack/react-table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import clsx from "clsx";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { ModalVehicleRegistrationForm } from "@/partials/modals/vechicle-registration";
 import axiosInstance from "@/auth/_helpers";
-import { Link } from "react-router-dom";
 import { timeAgo } from "@/utils/Time";
 import { ModalFuel } from "@/partials/modals/fuel";
 
@@ -32,6 +20,7 @@ interface IFuelData {
   fuelCost: string;
   fuelQuantity: string;
   odometerValue: string;
+  vehicle: any;
 }
 
 interface IColumnFilterProps<TData, TValue> {
@@ -79,7 +68,7 @@ const Fuel = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/fuel?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/fuel?fields=vehicle.*,id,createdAt,fuelCost,fuelQuantity,odometerValue&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -181,6 +170,20 @@ const Fuel = ({
           // >
           // </Link>
           //info.row.original.make
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
+        // accessorFn: (row) => row.model,
+        id: "plateNumber",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Plate Number" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.vehicle.plate_number;
         },
         meta: {
           headerClassName: "min-w-[180px]",

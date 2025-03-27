@@ -9,9 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import * as Yup from "yup";
 import clsx from "clsx";
-// import { Link } from "react-router-dom";
 import { useFormik } from "formik";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 
@@ -41,6 +40,8 @@ const ModalFuel = ({
   isEdit,
   fuelData,
 }: IModalFuelProps) => {
+  const [plateNumberSearchTerm, setPlateSearchTerm] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
     mutationFn: isEdit ? editFuelRecord : addFuelRecord,
@@ -114,6 +115,27 @@ const ModalFuel = ({
       throw new Error(errorMessage || errorMessageAlt);
     }
   }
+
+  const {
+    data: searchedPlates,
+    isLoading: isSearchingPlates,
+    error: plateSearchError,
+  } = useQuery(
+    ["searchPlates", plateNumberSearchTerm], // Query key includes search term
+    async () => {
+      const url = `/api/v1/vehicles?filters=plate_number=${plateNumberSearchTerm}`; // Adjust the endpoint and filter key as needed
+      const res = await axiosInstance.get(url);
+      console.log(res, "THe respponse");
+      if (res.status !== 200) {
+        throw new Error("Failed to fetch vehicle");
+      }
+      return res.data.data; // Adjust based on your API response structure
+    },
+    {
+      enabled: !!plateNumberSearchTerm.trim(), // Only run the query if there's a search term
+      staleTime: 0, // No caching for fresh searches
+    }
+  );
 
   const {
     data: Vehicle,
@@ -234,7 +256,7 @@ const ModalFuel = ({
               )}
             </div>
 
-            <div className={`flex flex-col gap-1 ${isEdit && "hidden"}`}>
+            {/* <div className={`flex flex-col gap-1 ${isEdit && "hidden"}`}>
               <label className="form-label text-gray-900">Vehicle</label>
               {isVehicleLoading ? (
                 <span>Loading Vehicle ...</span>
@@ -264,8 +286,64 @@ const ModalFuel = ({
                     formik.errors.vehicleId}
                 </span>
               )}
-            </div>
+            </div> */}
 
+            <div className="flex flex-col gap-1">
+              <label className="form-label text-gray-900">Plate number</label>
+              <input
+                type="text"
+                placeholder="Search plates..."
+                value={plateNumberSearchTerm}
+                onChange={(e) => {
+                  setPlateSearchTerm(e.target.value);
+                  setShowDropdown(true);
+                }}
+                onFocus={() => setShowDropdown(true)}
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none transition-all duration-200 ${
+                  formik.values.vehicleId ? "bg-gray-100" : "bg-transparent"
+                }`}
+                style={{
+                  backgroundColor: formik.values.vehicleId
+                    ? "#f3f4f6"
+                    : "transparent", // Light gray background when a vehicle is selected
+                }}
+              />
+              {showDropdown && (
+                <div className="mt-2 max-h-40 overflow-y-auto shadow-sm rounded-lg border border-gray-200 bg-white">
+                  {isSearchingPlates ? (
+                    <div className="p-3 text-gray-500 text-sm">Loading...</div>
+                  ) : plateSearchError ? (
+                    <div className="p-3 text-red-500 text-sm">
+                      Error loading plate number
+                    </div>
+                  ) : searchedPlates?.length > 0 ? (
+                    searchedPlates.map((vehicle: any) => (
+                      <div
+                        key={vehicle.id}
+                        className="p-3 hover:bg-gray-50 cursor-pointer transition-all duration-200"
+                        onClick={() => {
+                          formik.setFieldValue(
+                            "vehicleId",
+                            vehicle.id.toString()
+                          );
+                          console.log(vehicle.plate_number, "the number");
+                          setPlateSearchTerm(vehicle.plate_number);
+                          setShowDropdown(false);
+                        }}
+                      >
+                        <span className="text-gray-900 font-medium">
+                          {vehicle.plate_number}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-3 text-gray-500 text-sm">
+                      No plate number found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <div className={`flex flex-col gap-1 ${isEdit && "hidden"}`}>
               <label className="form-label text-gray-900">Fuel Quantity</label>
               <label className="input">
