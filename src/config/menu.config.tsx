@@ -663,6 +663,10 @@ export const getMenuSidebar = (
               title: "Fuels",
               path: "/fuels",
             },
+            {
+              title: "Odometer",
+              path: "/odometer",
+            },
           ],
         }
       : null,

@@ -22,6 +22,7 @@ import { DispatcherPage } from "@/pages/public-profile/dispatchers";
 import { CoorProfilePage } from "@/pages/public-profile/coor-profile/crm";
 import { UserProfilePage } from "@/pages/public-profile/user-profile/crm";
 import { ReportPage } from "@/pages/public-profile/report";
+import { OdometerPage } from "@/pages/public-profile/odometer";
 const AppRoutingSetup = (): ReactElement => {
   return (
     <Routes>
@@ -136,6 +137,14 @@ const AppRoutingSetup = (): ReactElement => {
             element={
               <RequireAuth allowedRoles={["admin"]}>
                 <FuelPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/odometer"
+            element={
+              <RequireAuth allowedRoles={["admin"]}>
+                <OdometerPage />
               </RequireAuth>
             }
           />

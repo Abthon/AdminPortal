@@ -39,7 +39,7 @@ const ModalVehicleRegistrationForm = ({
   vehicleData,
 }: IModalVehicleFormProps) => {
   // console.log(isEdit);
-  // console.log(vehicleData, isEdit);
+  console.log(vehicleData, "isEdit");
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
     mutationFn: isEdit ? editVehicleType : addVehicle,
@@ -259,13 +259,27 @@ const ModalVehicleRegistrationForm = ({
   //     formik.resetForm();
   //   }
   // }, [vehicleData, isEdit]);
+  // useEffect(() => {
+  //   //console.log("there rh", isEdit);
+  //   if (open) {
+  //     if (isEdit) {
+  //       formik.setValues(vehicleData || {}); // Populate form with edit data
+  //     } else {
+  //       formik.resetForm(); // Reset form for add mode
+  //     }
+  //   }
+  // }, [isEdit, open, vehicleData]);
   useEffect(() => {
-    //console.log("there rh", isEdit);
     if (open) {
-      if (isEdit) {
-        formik.setValues(vehicleData || {}); // Populate form with edit data
+      if (isEdit && vehicleData) {
+        // Ensure vehicleTypeId is a number when setting form values
+        const formattedData = {
+          ...vehicleData,
+          vehicleTypeId: Number(vehicleData.id),
+        };
+        formik.setValues(formattedData);
       } else {
-        formik.resetForm(); // Reset form for add mode
+        formik.resetForm();
       }
     }
   }, [isEdit, open, vehicleData]);
@@ -374,7 +388,7 @@ const ModalVehicleRegistrationForm = ({
                 <span>Error loading vehicle type</span>
               ) : (
                 <label className="input">
-                  <select
+                  {/* <select
                     {...formik.getFieldProps("vehicleTypeId")}
                     className="form-control form-select w-full outline-none"
                   >
@@ -384,6 +398,28 @@ const ModalVehicleRegistrationForm = ({
                     {vehicleType?.map(
                       (vehicle: { id: number; name: string }) => (
                         <option key={vehicle.id} value={vehicle.id}>
+                          {`${vehicle.name}`}
+                        </option>
+                      )
+                    )}
+                  </select> */}
+                  <select
+                    {...formik.getFieldProps("vehicleTypeId")}
+                    className="form-control form-select w-full outline-none"
+                    value={formik.values.vehicleTypeId} // Explicitly set the value
+                  >
+                    <option value="" disabled>
+                      Select a vehicle type
+                    </option>
+                    {vehicleType?.map(
+                      (vehicle: { id: number; name: string }) => (
+                        <option
+                          key={vehicle.id}
+                          value={vehicle.id}
+                          selected={
+                            Number(formik.values.vehicleTypeId) === vehicle.id
+                          } // Add selected attribute
+                        >
                           {`${vehicle.name}`}
                         </option>
                       )
@@ -466,15 +502,6 @@ const ModalVehicleRegistrationForm = ({
                       : null;
                     formik.setFieldValue("photo", file);
                   }}
-                  // className={clsx(
-                  //   "form-control bg-transparent",
-                  //   {
-                  //     "is-invalid": formik.touched.photo && formik.errors.photo,
-                  //   },
-                  //   {
-                  //     "is-valid": formik.touched.photo && !formik.errors.photo,
-                  //   }
-                  // )}
                 />
               </label>
               {formik.errors.photo && (
