@@ -166,7 +166,7 @@ const ModalBookingForm = ({
         pickupName,
         dropOffName,
         ...(driverId ? { driverId } : {}),
-        ...(corporateId ? { coorId: corporateId } : {}),
+        ...(corporateId ? { coorId: Number(corporateId) } : {}),
         ...(phoneNumber ? { contactPhoneNumber: phoneNumber } : {}),
         estimatedPrice: price,
         estimatedTraveledDistance: distance,
