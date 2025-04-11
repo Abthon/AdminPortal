@@ -208,9 +208,9 @@ const ModalBookingForm = ({
           `api/v1/bookings/end/${bookingData.id}`,
           {
             actualtraveledPath: "_p~iF~ps|U_ulLnnqC_mqNrxq1oK5bM",
-            distance: distance,
-            duration: duration,
-            driverId: `${res_primary.data.data.driver.id}`,
+            distance: Number(distance),
+            duration: Number(duration),
+            driverId: Number(res_primary.data.data.driver.id),
           }
         );
         if (res.status !== 201) {
