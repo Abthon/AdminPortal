@@ -52,6 +52,7 @@ const ModalBookingForm = ({
   const [bookingType, setBookingType] = useState<"user" | "corporate" | null>(
     null
   );
+  const [notifyDrivers, setNotifyDrivers] = useState(false);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
@@ -101,14 +102,18 @@ const ModalBookingForm = ({
           lng2: Number(dropOffLng),
           vehicleTypeId: Number(vehicleTypeId),
         };
+        try {
+          const res = await axiosInstance.post(
+            "api/v1/bookings/estimate/",
+            updatedFields
+          );
 
-        const res = await axiosInstance.post(
-          "api/v1/bookings/estimate/",
-          updatedFields
-        );
-        if (res.status === 200) {
-          const price = Math.floor(res.data.data.estimatedPrice);
-          setEstimatedPrice(price);
+          if (res.status === 200) {
+            const price = Math.floor(res.data.data.prices[0].estimatedPrice);
+            setEstimatedPrice(price);
+          }
+        } catch (e) {
+          console.log(e, "the error");
         }
       } catch (err) {
         console.log("Error calculating estimate:", err);
@@ -151,7 +156,7 @@ const ModalBookingForm = ({
 
       const data = res.data;
       const distance = Math.floor(data.data.estimatedDistance);
-      const price = Math.floor(data.data.estimatedPrice);
+      const price = Math.floor(res.data.data.prices[0].estimatedPrice);
 
       const finalReq = {
         pickupLat: pickupLat.toString(),
@@ -166,9 +171,8 @@ const ModalBookingForm = ({
         estimatedPrice: price,
         estimatedTraveledDistance: distance,
         vehicleType: Number(vehicleTypeId),
+        notifyNearbyDrivers: notifyDrivers,
       };
-
-      console.log(finalReq, "the final request haha");
 
       const res_3 = await axiosInstance.post("api/v1/bookings/admin", finalReq);
       if (res_3.status !== 201) {
@@ -177,7 +181,6 @@ const ModalBookingForm = ({
 
       return res_3.data;
     } catch (err: any) {
-      console.log(err, "The error");
       const errorMessage = err?.response?.data?.message;
       const errorMessageAlt =
         (err as Error).message || "An error occurred while adding the booking.";
@@ -188,7 +191,6 @@ const ModalBookingForm = ({
   async function editBooking(values: { [key: string]: any }) {
     try {
       const { id, distance, duration } = values;
-      console.log(distance, duration, "distance duration");
       // const updatedFields = {
       //   status,
       //   remark,
@@ -200,7 +202,6 @@ const ModalBookingForm = ({
         const res_primary = await axiosInstance.get(
           `/api/v1/bookings/${bookingData.id}?fields=driver.id`
         );
-        console.log(res_primary, "driver Id");
         const res = await axiosInstance.post(
           `api/v1/bookings/end/${bookingData.id}`,
           {
@@ -215,7 +216,6 @@ const ModalBookingForm = ({
         }
         return res.data;
       } catch (err: any) {
-        console.log(err, "The error");
         const errorMessage = err?.response?.data?.message;
         const errorMessageAlt =
           (err as Error).message ||
@@ -308,7 +308,6 @@ const ModalBookingForm = ({
     // setItemsOnPage(itemsOnPage);
     // setTotalItems(data.pagination.totalItems);
     // handleDriverNum(data.data.length);
-    console.log(data.data, "data");
     return data.data;
   }
 
@@ -331,7 +330,6 @@ const ModalBookingForm = ({
       queryClient.invalidateQueries({ queryKey: ["Bookings"] });
       onOpenChange();
     } catch (err: any) {
-      console.log(err, "The error");
       const errorMessage = err?.response?.data?.message;
       const errorMessageAlt =
         (err as Error).message || "An error occurred while adding the booking.";
@@ -1007,6 +1005,15 @@ const ModalBookingForm = ({
                   )}
                 </div>
 
+                <label className="form-label text-gray-900">
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={notifyDrivers}
+                    onChange={(e) => setNotifyDrivers(e.target.checked)}
+                  />
+                  Notify nearby drivers
+                </label>
                 <div>
                   <label className="form-label text-gray-900">
                     Estimated Price: {estimatedPrice} Birr
