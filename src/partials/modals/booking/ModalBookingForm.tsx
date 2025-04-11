@@ -1022,7 +1022,7 @@ const ModalBookingForm = ({
                             }}
                           >
                             <span className="text-gray-900 font-medium">
-                              {driver.firstName}
+                              {driver.firstName} {driver.lastName}
                             </span>
                           </div>
                         ))
