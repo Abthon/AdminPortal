@@ -46,12 +46,15 @@ const ModalBookingForm = ({
   /* importing booking */
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY;
   const [corporateSearchTerm, setCorporateSearchTerm] = useState("");
+  const [driverSearchTerm, setDriverSearchTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showDriverDropdown, setShowDriverDropdown] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState(0);
   const [bookingType, setBookingType] = useState<"user" | "corporate" | null>(
     null
   );
+  const [notifyDrivers, setNotifyDrivers] = useState(false);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
@@ -101,14 +104,18 @@ const ModalBookingForm = ({
           lng2: Number(dropOffLng),
           vehicleTypeId: Number(vehicleTypeId),
         };
+        try {
+          const res = await axiosInstance.post(
+            "api/v1/bookings/estimate/",
+            updatedFields
+          );
 
-        const res = await axiosInstance.post(
-          "api/v1/bookings/estimate/",
-          updatedFields
-        );
-        if (res.status === 200) {
-          const price = Math.floor(res.data.data.estimatedPrice);
-          setEstimatedPrice(price);
+          if (res.status === 200) {
+            const price = Math.floor(res.data.data.prices[0].estimatedPrice);
+            setEstimatedPrice(price);
+          }
+        } catch (e) {
+          console.log(e, "the error");
         }
       } catch (err) {
         console.log("Error calculating estimate:", err);
@@ -151,7 +158,7 @@ const ModalBookingForm = ({
 
       const data = res.data;
       const distance = Math.floor(data.data.estimatedDistance);
-      const price = Math.floor(data.data.estimatedPrice);
+      const price = Math.floor(res.data.data.prices[0].estimatedPrice);
 
       const finalReq = {
         pickupLat: pickupLat.toString(),
@@ -160,15 +167,14 @@ const ModalBookingForm = ({
         dropOffLng: dropOffLng.toString(),
         pickupName,
         dropOffName,
-        ...(driverId ? { driverId } : {}),
-        ...(corporateId ? { coorId: corporateId } : {}),
+        ...(driverId ? { driverId: Number(driverId) } : {}),
+        ...(corporateId ? { coorId: Number(corporateId) } : {}),
         ...(phoneNumber ? { contactPhoneNumber: phoneNumber } : {}),
         estimatedPrice: price,
         estimatedTraveledDistance: distance,
         vehicleType: Number(vehicleTypeId),
+        notifyNearbyDrivers: notifyDrivers,
       };
-
-      console.log(finalReq, "the final request haha");
 
       const res_3 = await axiosInstance.post("api/v1/bookings/admin", finalReq);
       if (res_3.status !== 201) {
@@ -177,7 +183,6 @@ const ModalBookingForm = ({
 
       return res_3.data;
     } catch (err: any) {
-      console.log(err, "The error");
       const errorMessage = err?.response?.data?.message;
       const errorMessageAlt =
         (err as Error).message || "An error occurred while adding the booking.";
@@ -188,7 +193,6 @@ const ModalBookingForm = ({
   async function editBooking(values: { [key: string]: any }) {
     try {
       const { id, distance, duration } = values;
-      console.log(distance, duration, "distance duration");
       // const updatedFields = {
       //   status,
       //   remark,
@@ -200,14 +204,13 @@ const ModalBookingForm = ({
         const res_primary = await axiosInstance.get(
           `/api/v1/bookings/${bookingData.id}?fields=driver.id`
         );
-        console.log(res_primary, "driver Id");
         const res = await axiosInstance.post(
           `api/v1/bookings/end/${bookingData.id}`,
           {
             actualtraveledPath: "_p~iF~ps|U_ulLnnqC_mqNrxq1oK5bM",
-            distance: distance,
-            duration: duration,
-            driverId: `${res_primary.data.data.driver.id}`,
+            distance: Number(distance),
+            duration: Number(duration),
+            driverId: Number(res_primary.data.data.driver.id),
           }
         );
         if (res.status !== 201) {
@@ -215,7 +218,6 @@ const ModalBookingForm = ({
         }
         return res.data;
       } catch (err: any) {
-        console.log(err, "The error");
         const errorMessage = err?.response?.data?.message;
         const errorMessageAlt =
           (err as Error).message ||
@@ -231,6 +233,27 @@ const ModalBookingForm = ({
       throw new Error(errorMessage || errorMessageAlt);
     }
   }
+
+  const {
+    data: searchdDrivers,
+    isLoading: isSearchingDrivers,
+    error: driverSearchError,
+  } = useQuery(
+    ["searchDrivers", driverSearchTerm], // Query key includes search term
+    async () => {
+      const url = `/api/v1/drivers?filters=firstName=${driverSearchTerm}`; // Adjust the endpoint and filter key as needed
+      const res = await axiosInstance.get(url);
+      if (res.status !== 200) {
+        throw new Error("Failed to fetch drivers");
+      }
+      return res.data.data; // Adjust based on your API response structure
+    },
+    {
+      enabled: !!driverSearchTerm.trim(), // Only run the query if there's a search term
+      staleTime: 0, // No caching for fresh searches
+    }
+  );
+
   const {
     data: searchedCorporates,
     isLoading: isSearchingCorporates,
@@ -308,7 +331,6 @@ const ModalBookingForm = ({
     // setItemsOnPage(itemsOnPage);
     // setTotalItems(data.pagination.totalItems);
     // handleDriverNum(data.data.length);
-    console.log(data.data, "data");
     return data.data;
   }
 
@@ -331,7 +353,6 @@ const ModalBookingForm = ({
       queryClient.invalidateQueries({ queryKey: ["Bookings"] });
       onOpenChange();
     } catch (err: any) {
-      console.log(err, "The error");
       const errorMessage = err?.response?.data?.message;
       const errorMessageAlt =
         (err as Error).message || "An error occurred while adding the booking.";
@@ -956,6 +977,65 @@ const ModalBookingForm = ({
                 </div> */}
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
+                    Search for drivers
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Search drivers..."
+                    value={driverSearchTerm}
+                    onChange={(e) => {
+                      setDriverSearchTerm(e.target.value);
+                      setShowDriverDropdown(true);
+                    }}
+                    onFocus={() => setShowDriverDropdown(true)}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none transition-all duration-200 ${
+                      formik.values.driverId ? "bg-gray-100" : "bg-transparent"
+                    }`}
+                    style={{
+                      backgroundColor: formik.values.driverId
+                        ? "#f3f4f6"
+                        : "transparent", // Light gray background when a corporate is selected
+                    }}
+                  />
+                  {showDriverDropdown && (
+                    <div className="mt-2 max-h-40 overflow-y-auto shadow-sm rounded-lg border border-gray-200 bg-white">
+                      {isSearchingDrivers ? (
+                        <div className="p-3 text-gray-500 text-sm">
+                          Loading...
+                        </div>
+                      ) : driverSearchError ? (
+                        <div className="p-3 text-red-500 text-sm">
+                          Error loading drivers
+                        </div>
+                      ) : searchdDrivers?.length > 0 ? (
+                        searchdDrivers.map((driver: any) => (
+                          <div
+                            key={driver.id}
+                            className="p-3 hover:bg-gray-50 cursor-pointer transition-all duration-200"
+                            onClick={() => {
+                              formik.setFieldValue(
+                                "driverId",
+                                driver.id.toString()
+                              );
+                              setDriverSearchTerm(driver.firstName); // Update search term to show selected drivers
+                              setShowDriverDropdown(false); // Hide dropdown after selection
+                            }}
+                          >
+                            <span className="text-gray-900 font-medium">
+                              {driver.firstName} {driver.lastName}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-3 text-gray-500 text-sm">
+                          No driver found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">
                     Vehicle Type
                   </label>
                   {formik.touched.vehicleTypeId &&
@@ -1007,6 +1087,15 @@ const ModalBookingForm = ({
                   )}
                 </div>
 
+                <label className="form-label text-gray-900">
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={notifyDrivers}
+                    onChange={(e) => setNotifyDrivers(e.target.checked)}
+                  />
+                  Notify nearby drivers
+                </label>
                 <div>
                   <label className="form-label text-gray-900">
                     Estimated Price: {estimatedPrice} Birr

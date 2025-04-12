@@ -28,7 +28,7 @@ export function truncateString(str: string) {
 
 const removeBaseUrl = (url: any) => {
   const baseUrl =
-    "https://static.129.134.201.195.clients.your-server.de/prod/static/profile/";
+    "https://static.129.134.201.195.clients.your-server.de/test/static/profile/";
   console.log(url.replace(baseUrl, url, "here here"));
   return url.replace(baseUrl, "");
 };
@@ -57,7 +57,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
 
   const renderItems = (item: IGeneralInfoItem, index: number) => {
     const baseUrl =
-      "https://static.129.134.201.195.clients.your-server.de/prod/static/profile/";
+      "https://static.129.134.201.195.clients.your-server.de/test/static/profile/";
 
     //const [fileName, setFileName] = useState("1739010042516-image_picker.jpg");
     //const fileName = data?.driverLicense;
