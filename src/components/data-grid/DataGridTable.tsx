@@ -12,6 +12,8 @@ const nonClickableColumns = [
   "Edit",
   "Delete",
   "Approve",
+  "Cash",
+  "Invoice",
 ];
 
 const DataGridTable = <TData,>() => {

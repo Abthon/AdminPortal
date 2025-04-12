@@ -23,6 +23,7 @@ import { CoorProfilePage } from "@/pages/public-profile/coor-profile/crm";
 import { UserProfilePage } from "@/pages/public-profile/user-profile/crm";
 import { ReportPage } from "@/pages/public-profile/report";
 import { OdometerPage } from "@/pages/public-profile/odometer";
+import { BookingPaymentPage } from "@/pages/public-profile/booking payment";
 const AppRoutingSetup = (): ReactElement => {
   return (
     <Routes>
@@ -177,6 +178,14 @@ const AppRoutingSetup = (): ReactElement => {
             element={
               <RequireAuth allowedRoles={["admin"]}>
                 <BankPage />
+              </RequireAuth>
+            }
+          />{" "}
+          <Route
+            path="/booking-payment"
+            element={
+              <RequireAuth allowedRoles={["admin"]}>
+                <BookingPaymentPage />
               </RequireAuth>
             }
           />
