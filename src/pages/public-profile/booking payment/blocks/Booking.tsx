@@ -420,9 +420,10 @@ const Booking: React.FC<BookingProps> = ({
               onClick={() =>
                 mutate({ id: info.row.original.id, method: "cash" })
               }
-              className="btn btn-sm btn-icon btn-clear text-green-600 hover:bg-green-500 hover:text-white"
+              className="btn btn-sm btn-icon btn-clear text-white  hover:text-green-600"
             >
-              <KeenIcon icon="bill" />
+              {/* <KeenIcon className="mr-1" icon="bill" /> */}
+              <p className="p-6">Cash</p>
             </button>
           );
         },
@@ -443,9 +444,10 @@ const Booking: React.FC<BookingProps> = ({
               onClick={() =>
                 mutate({ id: info.row.original.id, method: "invoice" })
               }
-              className="btn btn-sm btn-icon btn-clear text-gray-600 hover:bg-gray-500 hover:text-white"
+              className="btn btn-sm btn-icon btn-clear text-white  hover:text-green-600"
             >
-              <KeenIcon icon="subtitle" />
+              {/* <KeenIcon className="mr-1" icon="bill" /> */}
+              <p className="p-6">Invoice</p>
             </button>
           );
         },

@@ -65,7 +65,7 @@ export function setupAxios(axiosInstance: any) {
         if (auth?.refreshToken) {
           try {
             const { data } = await axios.post(
-              "https://static.129.134.201.195.clients.your-server.de/prod/api/v1/auth/refresh",
+              "https://static.129.134.201.195.clients.your-server.de/test/api/v1/auth/refresh",
               {
                 firebaseToken: "1234",
               },
@@ -99,9 +99,9 @@ export function setupAxios(axiosInstance: any) {
 }
 
 const axiosInstance = axios.create({
-  baseURL: "https://static.129.134.201.195.clients.your-server.de/prod",
+  baseURL: "https://static.129.134.201.195.clients.your-server.de/test",
   // baseURL: 'https://static.129.134.201.195.clients.your-server.de/dev'
-  // baseURL: 'http://195.201.134.129/prod', // This is the base URL
+  // baseURL: 'http://195.201.134.129/test', // This is the base URL
 });
 
 setupAxios(axiosInstance);
