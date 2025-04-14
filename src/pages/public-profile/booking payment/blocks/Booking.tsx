@@ -107,7 +107,6 @@ const Booking: React.FC<BookingProps> = ({
     sort: any;
   }) {
     const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}&filters=status=completed${activeTab == "bookings" ? ",paymentMethod=null," : activeTab == "cash" ? ",paymentMethod=cash" : ",paymentMethod=invoice"}&fields=coor.*,driver.*,id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber`;
-    console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
     console.log(data, "data ke get booking");
@@ -298,48 +297,48 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[100px]",
         },
       },
-      {
-        // accessorFn: (row) => row.estimatedTraveledDistance,
-        id: "estimatedTraveledDistance",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Est Distance" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return `${info.row.original.estimatedTraveledDistance} Km`;
-        },
-        meta: {
-          headerClassName: "min-w-[80px]",
-        },
-      },
-      {
-        // accessorFn: (row) => row.estimatedTraveledDistance,
-        id: "actualTraveledDistance",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Actual Distance" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return `${info.row.original.actualTraveledDistance} Km`;
-        },
-        meta: {
-          headerClassName: "min-w-[80px]",
-        },
-      },
-      {
-        // accessorFn: (row) => row.estimatedPrice,
-        id: "estimatedPrice",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Est Price" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return `${info.row.original.estimatedPrice} Birr`;
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
-        },
-      },
+      // {
+      //   // accessorFn: (row) => row.estimatedTraveledDistance,
+      //   id: "estimatedTraveledDistance",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Est Distance" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return `${info.row.original.estimatedTraveledDistance} Km`;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[80px]",
+      //   },
+      // },
+      // {
+      //   // accessorFn: (row) => row.estimatedTraveledDistance,
+      //   id: "actualTraveledDistance",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Actual Distance" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return `${info.row.original.actualTraveledDistance} Km`;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[80px]",
+      //   },
+      // },
+      // {
+      //   // accessorFn: (row) => row.estimatedPrice,
+      //   id: "estimatedPrice",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Est Price" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return `${info.row.original.estimatedPrice} Birr`;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[100px]",
+      //   },
+      // },
       {
         // accessorFn: (row) => row.estimatedPrice,
         id: "actualPrice",
@@ -357,6 +356,21 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
+        id: "corporateOrUser",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Corporate/User" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.coor?.name
+            ? info.row.original.coor.name
+            : `+251${info.row.original.coor?.contactPhoneNumber}`;
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
+      }, // {
+      {
         // accessorFn: (row) => row.estimatedPrice,
         id: "corporatename",
         header: ({ column }) => (
@@ -371,8 +385,7 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        // accessorFn: (row) => row.estimatedPrice,
-        id: "contactPhoneNumber",
+        id: "userPhoneNumber",
         header: ({ column }) => (
           <DataGridColumnHeader title="UserPhone" column={column} />
         ),
@@ -420,7 +433,7 @@ const Booking: React.FC<BookingProps> = ({
               onClick={() =>
                 mutate({ id: info.row.original.id, method: "cash" })
               }
-              className="btn btn-sm btn-icon btn-clear text-white  hover:text-green-600"
+              className="btn btn-sm px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
             >
               {/* <KeenIcon className="mr-1" icon="bill" /> */}
               <p className="p-6">Cash</p>
@@ -428,7 +441,7 @@ const Booking: React.FC<BookingProps> = ({
           );
         },
         meta: {
-          headerClassName: "min-w-[80px]",
+          headerClassName: "min-w-[40px]",
         },
       },
       {
@@ -444,7 +457,7 @@ const Booking: React.FC<BookingProps> = ({
               onClick={() =>
                 mutate({ id: info.row.original.id, method: "invoice" })
               }
-              className="btn btn-sm btn-icon btn-clear text-white  hover:text-green-600"
+              className="btn btn-sm px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
             >
               {/* <KeenIcon className="mr-1" icon="bill" /> */}
               <p className="p-6">Invoice</p>
@@ -452,7 +465,7 @@ const Booking: React.FC<BookingProps> = ({
           );
         },
         meta: {
-          headerClassName: "min-w-[80px]",
+          headerClassName: "min-w-[40px]",
         },
       },
     ],

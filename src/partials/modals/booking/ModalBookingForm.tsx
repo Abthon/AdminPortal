@@ -51,9 +51,11 @@ const ModalBookingForm = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDriverDropdown, setShowDriverDropdown] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState(0);
-  const [bookingType, setBookingType] = useState<"user" | "corporate" | null>(
-    null
-  );
+  const [userType, setUserType] = useState<"user" | "corporate" | null>(null);
+  const [bookingType, setBookingType] = useState<
+    "single_trip" | "round_trip" | null
+  >(null);
+
   const [notifyDrivers, setNotifyDrivers] = useState(false);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const queryClient = useQueryClient();
@@ -124,7 +126,6 @@ const ModalBookingForm = ({
   };
 
   async function addBooking(values: { [key: string]: any }) {
-    console.log(values, "the values baby");
     try {
       const {
         pickupLat,
@@ -159,6 +160,7 @@ const ModalBookingForm = ({
       const data = res.data;
       const distance = Math.floor(data.data.estimatedDistance);
       const price = Math.floor(res.data.data.prices[0].estimatedPrice);
+      const estimatedDuration = Math.floor(data.data.estimatedDuration);
 
       const finalReq = {
         pickupLat: pickupLat.toString(),
@@ -171,11 +173,14 @@ const ModalBookingForm = ({
         ...(corporateId ? { coorId: Number(corporateId) } : {}),
         ...(phoneNumber ? { contactPhoneNumber: phoneNumber } : {}),
         estimatedPrice: price,
+        estimatedDuration: estimatedDuration,
         estimatedTraveledDistance: distance,
         vehicleType: Number(vehicleTypeId),
         notifyNearbyDrivers: notifyDrivers,
+        type: bookingType,
       };
 
+      console.log(finalReq, "the final requesttttttttt");
       const res_3 = await axiosInstance.post("api/v1/bookings/admin", finalReq);
       if (res_3.status !== 201) {
         throw new Error(res_3.data.message || "Failed to create the booking.");
@@ -748,9 +753,36 @@ const ModalBookingForm = ({
                       <input
                         type="radio"
                         name="bookingType"
+                        value="single_trip"
+                        checked={bookingType === "single_trip"}
+                        onChange={(e) => setBookingType("single_trip")}
+                        className="radio radio-primary"
+                      />
+                      <span>Single</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="bookingType"
+                        value="round_trip"
+                        checked={bookingType === "round_trip"}
+                        onChange={(e) => setBookingType("round_trip")}
+                        className="radio radio-primary"
+                      />
+                      <span>Round</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <label className="form-label text-gray-900">User Type</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="userType"
                         value="user"
-                        checked={bookingType === "user"}
-                        onChange={(e) => setBookingType("user")}
+                        checked={userType === "user"}
+                        onChange={(e) => setUserType("user")}
                         className="radio radio-primary"
                       />
                       <span>User</span>
@@ -758,10 +790,10 @@ const ModalBookingForm = ({
                     <label className="flex items-center gap-2">
                       <input
                         type="radio"
-                        name="bookingType"
+                        name="userType"
                         value="corporate"
-                        checked={bookingType === "corporate"}
-                        onChange={(e) => setBookingType("corporate")}
+                        checked={userType === "corporate"}
+                        onChange={(e) => setUserType("corporate")}
                         className="radio radio-primary"
                       />
                       <span>Corporate</span>
@@ -769,7 +801,7 @@ const ModalBookingForm = ({
                   </div>
                 </div>
 
-                {bookingType === "user" && (
+                {userType === "user" && (
                   <div className="flex flex-col gap-1">
                     <label className="form-label text-gray-900">
                       Phone Number
@@ -794,7 +826,7 @@ const ModalBookingForm = ({
                     </div>
                   </div>
                 )}
-                {bookingType === "corporate" && (
+                {userType === "corporate" && (
                   <div className="flex flex-col gap-1">
                     <label className="form-label text-gray-900">
                       Search for Corporate

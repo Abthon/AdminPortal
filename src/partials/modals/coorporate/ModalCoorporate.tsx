@@ -17,21 +17,31 @@ import { toast } from "sonner";
 
 const coorporateSchema = Yup.object().shape({
   name: Yup.string().required("name is required."),
-  email: Yup.string().email("Invalid email address").required("Email is required."),
-  password: Yup.string().required("Password is required").matches(/^(?=.*\d)[A-Za-z\d]{8,}$/, 'Your password must contain both letters and numbers and the Minimum length should be 8 characters.',
-  ),
+  email: Yup.string()
+    .email("Invalid email address")
+    .required("Email is required."),
+  password: Yup.string()
+    .required("Password is required")
+    .matches(
+      /^(?=.*\d)[A-Za-z\d]{8,}$/,
+      "Your password must contain both letters and numbers and the Minimum length should be 8 characters."
+    ),
   creditLimit: Yup.number().required("creditLimit is required"),
   contractLength: Yup.string().required("contractLength is required."),
   paymentPlan: Yup.number().required("payment Plan is required."),
   license: Yup.mixed().required("license is required."),
   tinNo: Yup.string().required("tin number is required."),
   address: Yup.string().required("address is required."),
-  contactPhoneNumber: Yup.string().required("contact Phone number is required").matches(/^\d{9}$/, {
-    message: 'Invalid phone number.',
-  }),
-  backupContactPhoneNumber: Yup.string().required("backup Phone number is required").matches(/^\d{9}$/, {
-    message: 'Invalid phone number.',
-  }),
+  contactPhoneNumber: Yup.string()
+    .required("contact Phone number is required")
+    .matches(/^\d{9}$/, {
+      message: "Invalid phone number.",
+    }),
+  backupContactPhoneNumber: Yup.string()
+    .required("backup Phone number is required")
+    .matches(/^\d{9}$/, {
+      message: "Invalid phone number.",
+    }),
   nationalId: Yup.number(),
   officialStampedLetter: Yup.mixed().required("Stamped Letter is required."),
 });
@@ -140,7 +150,7 @@ const ModalCoorporateForm = ({
       }
 
       const licenseFormData = new FormData();
-      if(license){
+      if (license) {
         licenseFormData.append("file", officialStampedLetter);
       }
 
@@ -180,7 +190,6 @@ const ModalCoorporateForm = ({
         "An error occurred while adding the coorporate.";
       throw new Error(errorMessage || errorMessageAlt);
     }
-
   }
 
   async function editCoorporate(values: { [key: string]: any }) {
@@ -211,6 +220,7 @@ const ModalCoorporateForm = ({
         email: updatedFields.email,
         creditLimit: updatedFields.creditLimit,
         contractLength: updatedFields.contractLength,
+        password: updatedFields.password,
         paymentPlan: updatedFields.paymentPlan,
         license: updatedFields.license,
         tinNo: updatedFields.tinNo,
@@ -512,9 +522,7 @@ const ModalCoorporateForm = ({
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                    license
-                  </label>
+                  <label className="form-label text-gray-900">license</label>
 
                   <label className="input  max-w-[390px] overflow-hidden">
                     <input
@@ -530,8 +538,8 @@ const ModalCoorporateForm = ({
                   </label>
                   {formik.errors.license && (
                     <span role="alert" className="text-danger text-xs mt-1">
-                      {typeof formik.errors.license ===
-                        "string" && formik.errors.license}
+                      {typeof formik.errors.license === "string" &&
+                        formik.errors.license}
                     </span>
                   )}
                 </div>
@@ -591,10 +599,15 @@ const ModalCoorporateForm = ({
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">contactPhoneNumber</label>
+                  <label className="form-label text-gray-900">
+                    contactPhoneNumber
+                  </label>
                   {/* Your existing phone number input code */}
                   <div className="flex items-center gap-2">
-                    <select className="border border-gray-300 rounded px-2 py-2 text-gray-900" defaultValue="+251">
+                    <select
+                      className="border border-gray-300 rounded px-2 py-2 text-gray-900"
+                      defaultValue="+251"
+                    >
                       <option value="+251">+251</option>
                     </select>
                     <label className="input flex-1">
@@ -624,14 +637,19 @@ const ModalCoorporateForm = ({
                         {typeof formik.errors.contactPhoneNumber === "string" &&
                           formik.errors.contactPhoneNumber}
                       </span>
-                  )}
+                    )}
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">backup contactPhoneNumber</label>
+                  <label className="form-label text-gray-900">
+                    backup contactPhoneNumber
+                  </label>
                   {/* Your existing phone number input code */}
                   <div className="flex items-center gap-2">
-                    <select className="border border-gray-300 rounded px-2 py-2 text-gray-900" defaultValue="+251">
+                    <select
+                      className="border border-gray-300 rounded px-2 py-2 text-gray-900"
+                      defaultValue="+251"
+                    >
                       <option value="+251">+251</option>
                     </select>
                     <label className="input flex-1">
@@ -658,10 +676,10 @@ const ModalCoorporateForm = ({
                   {formik.touched.backupContactPhoneNumber &&
                     formik.errors.backupContactPhoneNumber && (
                       <span role="alert" className="text-danger text-xs mt-1">
-                        {typeof formik.errors.backupContactPhoneNumber === "string" &&
-                          formik.errors.backupContactPhoneNumber}
+                        {typeof formik.errors.backupContactPhoneNumber ===
+                          "string" && formik.errors.backupContactPhoneNumber}
                       </span>
-                  )}
+                    )}
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
