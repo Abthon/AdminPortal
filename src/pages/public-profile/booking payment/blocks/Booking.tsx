@@ -355,21 +355,21 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[100px]",
         },
       },
-      {
-        id: "corporateOrUser",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Corporate/User" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.coor?.name
-            ? info.row.original.coor.name
-            : `+251${info.row.original.coor?.contactPhoneNumber}`;
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
-        },
-      }, // {
+      // {
+      //   id: "corporateOrUser",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Corporate/User" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.coor?.name
+      //       ? info.row.original.coor.name
+      //       : `+251${info.row.original.coor?.contactPhoneNumber}`;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[100px]",
+      //   },
+      // }, // {
       {
         // accessorFn: (row) => row.estimatedPrice,
         id: "corporatename",
@@ -384,19 +384,19 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[100px]",
         },
       },
-      {
-        id: "userPhoneNumber",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="UserPhone" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return `${info.row.original.coor?.contactPhoneNumber ? `+251${info.row.original.coor?.contactPhoneNumber}` : ""}`;
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
-        },
-      },
+      // {
+      //   id: "userPhoneNumber",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="UserPhone" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return `${info.row.original.coor?.contactPhoneNumber ? `+251${info.row.original.coor?.contactPhoneNumber}` : ""}`;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[100px]",
+      //   },
+      // },
       {
         // accessorFn: (row) => row.status,
         id: "status",
