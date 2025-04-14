@@ -328,19 +328,19 @@ const Drivers = ({
       //     headerClassName: "min-w-[150px]",
       //   },
       // },
-      {
-        id: "type",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Type" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.type;
-        },
-        meta: {
-          headerClassName: "min-w-[140px]",
-        },
-      },
+      // {
+      //   id: "type",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Type" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.type;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[140px]",
+      //   },
+      // },
       {
         id: "Edit",
         header: ({ column }) => (

@@ -71,7 +71,7 @@ const Demo1LightSidebarContent = () => {
 
   return (
     <div className="grid gap-5 lg:gap-7.5 pb-12">
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-5 lg:gap-7.5 h-full items-stretch">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7.5 h-full items-stretch">
         <ChannelStats2 data={data?.data} />
       </div>
 

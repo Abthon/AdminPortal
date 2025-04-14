@@ -12,6 +12,7 @@ interface IChannelStatsItem {
   path: string;
   color: string;
 }
+
 interface IChannelStatsItems extends Array<IChannelStatsItem> {}
 
 const ChannelStats2 = ({ data }: { data: any }) => {
@@ -47,14 +48,14 @@ const ChannelStats2 = ({ data }: { data: any }) => {
       path: "",
       color: "red",
     },
-    {
-      logo: "user",
-      logoDark: "tiktok-dark.svg",
-      info: data?.totalCorporates,
-      desc: "Total Corporates",
-      path: "",
-      color: "red",
-    },
+    // {
+    //   logo: "user",
+    //   logoDark: "tiktok-dark.svg",
+    //   info: data?.totalCorporates,
+    //   desc: "Total Corporates",
+    //   path: "",
+    //   color: "red",
+    // },
   ];
 
   const renderItem = (item: IChannelStatsItem, index: number) => {

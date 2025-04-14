@@ -428,34 +428,34 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[100px]",
         },
       },
-      {
-        // accessorFn: (row) => row.estimatedPrice,
-        id: "corporatename",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="CorporateName" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.coor?.name;
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
-        },
-      },
-      {
-        // accessorFn: (row) => row.estimatedPrice,
-        id: "contactPhoneNumber",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="UserPhone" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return `${info.row.original.coor?.contactPhoneNumber ? `+251${info.row.original.coor?.contactPhoneNumber}` : ""}`;
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
-        },
-      },
+      // {
+      //   // accessorFn: (row) => row.estimatedPrice,
+      //   id: "corporatename",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="CorporateName" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.coor?.name;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[100px]",
+      //   },
+      // },
+      // {
+      //   // accessorFn: (row) => row.estimatedPrice,
+      //   id: "contactPhoneNumber",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="UserPhone" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return `${info.row.original.coor?.contactPhoneNumber ? `+251${info.row.original.coor?.contactPhoneNumber}` : ""}`;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[100px]",
+      //   },
+      // },
       {
         // accessorFn: (row) => row.status,
         id: "status",

@@ -24,7 +24,7 @@ const HeaderLogo = () => {
           alt="mini-logo"
         />
         <img
-          src={toAbsoluteUrl("/media/app/logo.svg")}
+          src={toAbsoluteUrl("/media/app/mini-logo.svg")}
           className="hidden dark:inline-block max-h-[25px] w-full"
           alt="logo"
         />

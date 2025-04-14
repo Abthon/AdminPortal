@@ -30,7 +30,7 @@ const Demo1LightSidebarPage = () => {
         <Toolbar>
           <ToolbarHeading
             title="Dashboard"
-            description=" Admin Control Center"
+            // description=" Admin Control Center"
           />
           {/* <ToolbarActions>
             <Popover>
