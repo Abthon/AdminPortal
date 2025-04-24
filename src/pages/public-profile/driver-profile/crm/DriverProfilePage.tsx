@@ -125,7 +125,8 @@ const DriverProfilePage = () => {
 
         <Container>
           <Navbar>
-            <PageMenu />
+            {/* <PageMenu /> */}
+            <div></div>
 
             <NavbarActions>
               <button
