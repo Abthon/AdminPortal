@@ -49,8 +49,8 @@ const DeliveriesChart = () => {
           const url = `api/v1/bookings?filters=status=completed,createdAt=${date}`;
           console.log("url", url);
           const { data } = await axiosInstance.get(url); // Change to GET
-          console.log("data", data?.data, "date", date);
-          return data?.data.length;
+          console.log("data 2", data.pagination.totalItems, "date 2", date);
+          return data?.pagination?.totalItems;
         } catch (error) {
           console.error(`Error fetching data for date ${date}:`, error);
           return null;
@@ -132,7 +132,7 @@ const DeliveriesChart = () => {
     },
     yaxis: {
       min: 0,
-      max: 20,
+      max: 32,
       tickAmount: 4,
       axisTicks: {
         show: false,

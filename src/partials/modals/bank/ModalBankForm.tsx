@@ -17,9 +17,7 @@ const bankSchema = Yup.object().shape({
   name: Yup.string().required("name is required."),
   accountNumber: Yup.string().required("accountNumber is required."),
   accountName: Yup.string().required("accountName is required."),
-  // isApproved: Yup.string()
-  //   .oneOf(["true", "false"], "Invalid status")
-  //   .required("Status is required"),
+  isApproved: Yup.string().required("Status is required."),
 });
 
 interface IModalBankFormProps {
@@ -55,10 +53,12 @@ const ModalBankForm = ({
         name: "",
         accountNumber: "",
         accountName: "",
+        isApproved: "true",
       };
 
   async function addBank(values: any) {
     try {
+      console.log(values.isApproved, "values isApproved");
       // Convert `isapproved` to a boolean if it exists in `values`
       if (values.isApproved !== undefined) {
         values.isApproved = values.isApproved === "true";
@@ -216,27 +216,6 @@ const ModalBankForm = ({
                 </select>
               </div>
 
-              {/* <div className="flex flex-col gap-1">
-                <label className="form-label text-gray-900">isApproved</label>
-                {formik.touched.isApproved && formik.errors.isApproved ? (
-                  <div className="text-red-500 text-sm">
-                    {typeof formik.errors.isApproved === "string"
-                      ? formik.errors.isApproved
-                      : null}
-                  </div>
-                ) : null}
-                <label className="input">
-                  <select
-                    disabled={isEdit}
-                    {...formik.getFieldProps("isApproved")}
-                    className="form-control form-select w-full outline-none bg-transparent"
-                  >
-                    <option value="">Select isApproved</option>
-                    <option value="true">true</option>
-                    <option value="false">false</option>
-                  </select>
-                </label>
-              </div> */}
               <button
                 type="submit"
                 className="btn btn-primary flex justify-center"

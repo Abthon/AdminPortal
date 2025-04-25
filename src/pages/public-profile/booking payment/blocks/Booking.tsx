@@ -90,12 +90,12 @@ const Booking: React.FC<BookingProps> = ({
     _handleAddOpen(false);
   };
 
-  useEffect(
-    function () {
-      console.log("activeTab", activeTab);
-    },
-    [activeTab]
-  );
+  // useEffect(
+  //   function () {
+  //     console.log("activeTab", activeTab);
+  //   },
+  //   [activeTab]
+  // );
 
   async function getBookings({
     pageIndex,
@@ -168,26 +168,6 @@ const Booking: React.FC<BookingProps> = ({
     const { data } = await axiosInstance.get(url);
     return data;
   }
-
-  // async function startBooking(id: string) {
-  //   const res = await axiosInstance.get(
-  //     `/api/v1/bookings/${id}?fields=driver.id`
-  //   );
-  //   console.log(res, "driver Id");
-  //   console.log(res.data.data.driver.id, "driver Id");
-  //   const { data } = await axiosInstance.post(`/api/v1/bookings/start/${id}`, {
-  //     driverId: res.data.data.driver.id,
-  //   });
-  //   console.log(data, "starting");
-  //   return data;
-  // }
-
-  // async function getBookings(): Promise<IBookingData[]> {
-  //   const { data } = await axiosInstance.get("/api/v1/bookings");
-  //   console.log(data.data);
-  //   handleBookingNum(data.data.length);
-  //   return data.data;
-  // }
 
   const changePayment = async ({
     id,
@@ -297,48 +277,7 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[100px]",
         },
       },
-      // {
-      //   // accessorFn: (row) => row.estimatedTraveledDistance,
-      //   id: "estimatedTraveledDistance",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Est Distance" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return `${info.row.original.estimatedTraveledDistance} Km`;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[80px]",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.estimatedTraveledDistance,
-      //   id: "actualTraveledDistance",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Actual Distance" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return `${info.row.original.actualTraveledDistance} Km`;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[80px]",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.estimatedPrice,
-      //   id: "estimatedPrice",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Est Price" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return `${info.row.original.estimatedPrice} Birr`;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[100px]",
-      //   },
-      // },
+
       {
         // accessorFn: (row) => row.estimatedPrice,
         id: "actualPrice",
@@ -374,11 +313,14 @@ const Booking: React.FC<BookingProps> = ({
         // accessorFn: (row) => row.estimatedPrice,
         id: "corporatename",
         header: ({ column }) => (
-          <DataGridColumnHeader title="CorporateName" column={column} />
+          <DataGridColumnHeader title="Customer" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          return info.row.original.coor?.name;
+          return (
+            info.row.original.coor?.name ||
+            `+251${info.row.original.contactPhoneNumber}`
+          );
         },
         meta: {
           headerClassName: "min-w-[100px]",
@@ -423,22 +365,29 @@ const Booking: React.FC<BookingProps> = ({
       {
         id: "Cash",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Cash" column={column} />
+          <DataGridColumnHeader
+            // hidden={activeTab == "bookings"}
+            title="Cash"
+            column={column}
+          />
         ),
+
         enableSorting: false,
         cell: (info) => {
-          return (
-            <button
-              // disabled={true}
-              onClick={() =>
-                mutate({ id: info.row.original.id, method: "cash" })
-              }
-              className="btn btn-sm px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
-            >
-              {/* <KeenIcon className="mr-1" icon="bill" /> */}
-              <p className="p-6">Cash</p>
-            </button>
-          );
+          console.log("activeTab1", activeTab);
+          if (activeTab == "bookings" && !info.row.original.coor?.name)
+            return (
+              <button
+                // disabled={true}
+                onClick={() =>
+                  mutate({ id: info.row.original.id, method: "cash" })
+                }
+                className="btn btn-sm  bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+              >
+                {/* <KeenIcon className="mr-1" icon="bill" /> */}
+                <p className="p-6">Cash</p>
+              </button>
+            );
         },
         meta: {
           headerClassName: "min-w-[40px]",
@@ -447,29 +396,36 @@ const Booking: React.FC<BookingProps> = ({
       {
         id: "Invoice",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Invoice" column={column} />
+          <DataGridColumnHeader
+            // hidden={activeTab != "bookings"}
+            title="Invoice"
+            column={column}
+          />
         ),
+
         enableSorting: false,
         cell: (info) => {
-          return (
-            <button
-              // disabled={true}
-              onClick={() =>
-                mutate({ id: info.row.original.id, method: "invoice" })
-              }
-              className="btn btn-sm px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
-            >
-              {/* <KeenIcon className="mr-1" icon="bill" /> */}
-              <p className="p-6">Invoice</p>
-            </button>
-          );
+          console.log("activeTab2", activeTab);
+          if (activeTab == "bookings" && info.row.original.coor?.name)
+            return (
+              <button
+                // disabled={true}
+                onClick={() =>
+                  mutate({ id: info.row.original.id, method: "invoice" })
+                }
+                className="btn btn-sm px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+              >
+                {/* <KeenIcon className="mr-1" icon="bill" /> */}
+                <p className="p-6">Invoice</p>
+              </button>
+            );
         },
         meta: {
           headerClassName: "min-w-[40px]",
         },
       },
     ],
-    [mutate]
+    [mutate, activeTab]
   );
 
   const data: IBookingData[] = useMemo(() => BookingData ?? [], [BookingData]);

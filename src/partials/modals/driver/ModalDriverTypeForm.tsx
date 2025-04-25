@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "react-query";
 import { toast } from "sonner";
 import axiosInstance from "@/auth/_helpers";
@@ -53,6 +53,9 @@ const ModalDriverTypeForm = ({
   isAssigned,
   driverData,
 }: IModalDriverTypeFormProps) => {
+  const [plateNumberSearchTerm, setPlateSearchTerm] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [vehicleName, setVehicleName] = useState("");
   const queryClient = useQueryClient();
   const { mutate } = useMutation({
     mutationFn: isApproved
@@ -75,6 +78,27 @@ const ModalDriverTypeForm = ({
   });
 
   const {
+    data: searchedPlates,
+    isLoading: isSearchingPlates,
+    error: plateSearchError,
+  } = useQuery(
+    ["searchPlates", plateNumberSearchTerm], // Query key includes search term
+    async () => {
+      const url = `/api/v1/vehicles?filters=plate_number=${plateNumberSearchTerm}`; // Adjust the endpoint and filter key as needed
+      const res = await axiosInstance.get(url);
+      console.log(res.data.data[0].make, "THe respponse");
+      if (res?.status !== 200) {
+        throw new Error("Failed to fetch vehicle");
+      }
+      return res.data.data; // Adjust based on your API response structure
+    },
+    {
+      enabled: !!plateNumberSearchTerm.trim(), // Only run the query if there's a search term
+      staleTime: 0, // No caching for fresh searches
+    }
+  );
+
+  const {
     data: Vehicle,
     isLoading: isVehicleLoading,
     error: VehicleError,
@@ -86,6 +110,10 @@ const ModalDriverTypeForm = ({
     const data = res.data;
     return data.data;
   });
+
+  useEffect(() => {
+    setVehicleName("");
+  }, []);
 
   async function assignVehicleDriver(values: any) {
     try {
@@ -167,7 +195,7 @@ const ModalDriverTypeForm = ({
         driverLicenseData
       );
 
-      if (res_1.status === 201 && res_2.status === 201) {
+      if (res_1?.status === 201 && res_2?.status === 201) {
         const profile = res_1.data.data.filename;
         const license = res_2.data.data.filename;
         let { profilePhoto, drivingLicense, vehicleId, ...rest } = values;
@@ -216,7 +244,7 @@ const ModalDriverTypeForm = ({
           formData
         );
         console.log("Profile edited!");
-        if (res_1.status === 201) {
+        if (res_1?.status === 201) {
           const profile = res_1.data.data.filename;
           updatedValues = { ...updatedValues, profilePhoto: profile };
           // console.log(updatedValues, "result to be sent");
@@ -333,7 +361,7 @@ const ModalDriverTypeForm = ({
                 onSubmit={formik.handleSubmit}
                 className="flex flex-col gap-5"
               >
-                <div className={`flex flex-col gap-1 ${isEdit && "hidden"}`}>
+                {/* <div className={`flex flex-col gap-1 ${isEdit && "hidden"}`}>
                   <label className="form-label text-gray-900">Vehicle</label>
                   {isVehicleLoading ? (
                     <span>Loading Vehicle ...</span>
@@ -365,10 +393,75 @@ const ModalDriverTypeForm = ({
                         formik.errors.vehicleId}
                     </span>
                   )}
+                </div> */}
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">
+                    Plate number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Search plates..."
+                    value={plateNumberSearchTerm}
+                    onChange={(e) => {
+                      setPlateSearchTerm(e.target.value);
+                      setShowDropdown(true);
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none transition-all duration-200 ${
+                      formik.values.vehicleId ? "bg-gray-100" : "bg-transparent"
+                    }`}
+                    style={{
+                      backgroundColor: formik.values.vehicleId
+                        ? "#f3f4f6"
+                        : "transparent", // Light gray background when a vehicle is selected
+                    }}
+                  />
+                  {showDropdown && (
+                    <div className="mt-2 max-h-40 overflow-y-auto shadow-sm rounded-lg border border-gray-200 bg-white">
+                      {isSearchingPlates ? (
+                        <div className="p-3 text-gray-500 text-sm">
+                          Loading...
+                        </div>
+                      ) : plateSearchError ? (
+                        <div className="p-3 text-red-500 text-sm">
+                          Error loading plate number
+                        </div>
+                      ) : searchedPlates?.length > 0 ? (
+                        searchedPlates.map((vehicle: any) => (
+                          <div
+                            key={vehicle.id}
+                            className="p-3 hover:bg-gray-50 cursor-pointer transition-all duration-200"
+                            onClick={() => {
+                              formik.setFieldValue(
+                                "vehicleId",
+                                vehicle.id.toString()
+                              );
+                              console.log("vehicle", vehicle.make);
+                              setVehicleName(vehicle.make);
+                              console.log(vehicle.plate_number, "the number");
+                              setPlateSearchTerm(vehicle.plate_number);
+                              setShowDropdown(false);
+                            }}
+                          >
+                            <span className="text-gray-900 font-medium">
+                              {vehicle.plate_number}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-3 text-gray-500 text-sm">
+                          No plate number found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <span className="my-4 form-label text-gray-900">
+                    Make: {vehicleName && !showDropdown ? vehicleName : ""}
+                  </span>
                 </div>
                 <div className="flex justify-center mt-4">
                   <button type="submit" className="btn btn-primary">
-                    Approve
+                    Assign
                   </button>
                 </div>
               </form>
