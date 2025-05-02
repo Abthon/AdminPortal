@@ -55,9 +55,20 @@ const ModalBookingForm = ({
   const [bookingType, setBookingType] = useState<
     "single_trip" | "round_trip" | null
   >(null);
-
   const [notifyDrivers, setNotifyDrivers] = useState(false);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [stops, setStops] = useState<
+    Array<{
+      stopName: string;
+      stopLat: number;
+      stopLng: number;
+    }>
+  >([]);
+  const [currentStop, setCurrentStop] = useState({
+    name: "",
+    lat: "",
+    lng: "",
+  });
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
     mutationFn: isEndBooking ? editBooking : addBooking,
@@ -84,6 +95,7 @@ const ModalBookingForm = ({
     distance: "",
     duration: "",
     phoneNumber: "",
+    stops: [],
     // status: "",
     // remark: "",
     // traveledPath: "",
@@ -138,6 +150,7 @@ const ModalBookingForm = ({
         driverId,
         corporateId,
         phoneNumber,
+        stops,
       } = values;
 
       const updatedFields = {
@@ -172,15 +185,16 @@ const ModalBookingForm = ({
         ...(driverId ? { driverId: Number(driverId) } : {}),
         ...(corporateId ? { coorId: Number(corporateId) } : {}),
         ...(phoneNumber ? { contactPhoneNumber: phoneNumber } : {}),
-        estimatedPrice: price,
-        estimatedDuration: estimatedDuration,
+        estimatedPrice: Number(price),
+        estimatedDuration: Number(estimatedDuration),
         estimatedTraveledDistance: distance,
         vehicleType: Number(vehicleTypeId),
         notifyNearbyDrivers: notifyDrivers,
         type: bookingType,
+        ...(stops && stops.length > 0 ? { stops } : {}),
       };
 
-      console.log(finalReq, "the final requesttttttttt");
+      console.log("finalReqqqq babyyyy", finalReq);
       const res_3 = await axiosInstance.post("api/v1/bookings/admin", finalReq);
       if (res_3.status !== 201) {
         throw new Error(res_3.data.message || "Failed to create the booking.");
@@ -615,6 +629,7 @@ const ModalBookingForm = ({
                             color: "#808290", // Optional: Customize selected value text color
                           }),
                         },
+                        placeholder: "Enter a dropOff location",
                       }}
                       autocompletionRequest={{
                         componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
@@ -622,7 +637,178 @@ const ModalBookingForm = ({
                     />
                   )}
                 </div>
+                <div className="flex flex-col gap-1">
+                  <label className="form-label text-gray-900">
+                    Add Stops (Optional)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {isGoogleLoaded && (
+                      <div className="flex-1">
+                        <GooglePlacesAutocomplete
+                          apiKey={
+                            import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY || ""
+                          }
+                          selectProps={{
+                            value: currentStop.name
+                              ? {
+                                  label: currentStop.name,
+                                  value: {
+                                    description: currentStop.name,
+                                    geometry: {
+                                      location: {
+                                        lat: currentStop.lat,
+                                        lng: currentStop.lng,
+                                      },
+                                    },
+                                  },
+                                }
+                              : null,
+                            onChange: async (value) => {
+                              if (
+                                value &&
+                                value.value &&
+                                value.value.place_id
+                              ) {
+                                const placeId = value.value.place_id;
 
+                                // Initialize Google Maps Places Service
+                                const service =
+                                  new google.maps.places.PlacesService(
+                                    document.createElement("div")
+                                  );
+                                service.getDetails(
+                                  { placeId },
+                                  (place, status) => {
+                                    if (
+                                      status ===
+                                      google.maps.places.PlacesServiceStatus.OK
+                                    ) {
+                                      setCurrentStop({
+                                        name: value.label,
+                                        lat:
+                                          place?.geometry?.location
+                                            ?.lat()
+                                            ?.toString() || "",
+                                        lng:
+                                          place?.geometry?.location
+                                            ?.lng()
+                                            ?.toString() || "",
+                                      });
+                                    } else {
+                                      console.error(
+                                        "Failed to fetch place details:",
+                                        status
+                                      );
+                                    }
+                                  }
+                                );
+                              } else {
+                                console.error("Invalid value:", value);
+                              }
+                            },
+                            styles: {
+                              control: (provided, state) => ({
+                                ...provided,
+                                backgroundColor: "transparent",
+                                borderColor: "#3d3e46 !important",
+                                boxShadow: "none !important",
+                                outline: "none !important",
+                                fontSize: ".85em",
+                                paddingLeft: "5px",
+                                maxWidth: "390px",
+                                overflow: "hidden",
+                              }),
+                              input: (provided) => ({
+                                ...provided,
+                                color: "gray", // [ text color ]
+                              }),
+                              placeholder: (provided) => ({
+                                ...provided,
+                                color: "#9ca3af", // Optional: Customize placeholder text color
+                              }),
+                              singleValue: (provided) => ({
+                                ...provided,
+                                color: "#808290", // Optional: Customize selected value text color
+                              }),
+                            },
+                            placeholder: "Enter a stop location",
+                          }}
+                          autocompletionRequest={{
+                            componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
+                          }}
+                        />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-icon btn-sm btn-secondary"
+                      onClick={() => {
+                        if (
+                          currentStop.name &&
+                          currentStop.lat &&
+                          currentStop.lng
+                        ) {
+                          // Add current stop to stops array
+                          const newStop = {
+                            stopName: currentStop.name,
+                            stopLat: parseFloat(currentStop.lat),
+                            stopLng: parseFloat(currentStop.lng),
+                          };
+
+                          const updatedStops = [...stops, newStop];
+                          setStops(updatedStops);
+                          formik.setFieldValue("stops", updatedStops);
+
+                          // Reset the current stop
+                          setCurrentStop({ name: "", lat: "", lng: "" });
+                        }
+                      }}
+                      disabled={!currentStop.name}
+                    >
+                      <KeenIcon icon="plus" className="text-white" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Display selected stops */}
+                {stops.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Selected Stops:
+                    </p>
+                    <div className="space-y-2">
+                      {stops.map((stop, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-2 bg-gray-50 rounded-md border border-gray-200"
+                        >
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-800">
+                              {stop.stopName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {stop.stopLat.toFixed(6)},{" "}
+                              {stop.stopLng.toFixed(6)}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            className="btn btn-icon btn-sm btn-ghost-danger"
+                            onClick={() => {
+                              const updatedStops = stops.filter(
+                                (_, i) => i !== index
+                              );
+                              setStops(updatedStops);
+                              formik.setFieldValue("stops", updatedStops);
+                            }}
+                          >
+                            <KeenIcon icon="trash" className="text-danger" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
                     DropOff Location
@@ -737,6 +923,7 @@ const ModalBookingForm = ({
                             color: "#808290", // Optional: Customize selected value text color
                           }),
                         },
+                        placeholder: "Enter a pickUp location",
                       }}
                       autocompletionRequest={{
                         componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
