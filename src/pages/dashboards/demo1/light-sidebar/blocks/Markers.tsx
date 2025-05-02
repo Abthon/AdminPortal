@@ -6,7 +6,7 @@ interface MarkerProps {
 }
 
 const CustomMarker: React.FC<MarkerProps> = ({ driver }) => {
-  console.log(driver, "driver");
+  //console.log(driver, "driver");
   const successImg = toAbsoluteUrl("/media/illustrations/success-loc.png");
   const failureImg = toAbsoluteUrl("/media/illustrations/fail-loc.png");
 
