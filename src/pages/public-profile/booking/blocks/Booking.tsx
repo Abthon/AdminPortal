@@ -76,6 +76,7 @@ const Booking: React.FC<BookingProps> = ({
 }) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [notify, setNotify] = useState(false);
   const [isEndBooking, setIsEndBooking] = useState(false);
   const [currentBookingData, setCurrentBookingData] =
     useState<IBookingData | null>(null);
@@ -146,13 +147,15 @@ const Booking: React.FC<BookingProps> = ({
   const handleOpen = (
     isEdit: boolean,
     rowData: IBookingData | null = null,
-    isEndBooking: boolean | null = null
+    isEndBooking: boolean | null = null,
+    isNotify?: boolean
   ) => {
     setEditMode(isEdit);
     setCurrentBookingData(rowData);
     setIsEndBooking(isEndBooking || false);
     console.log(rowData, "rowdata");
     setProfileModalOpen(true);
+    setNotify(isNotify || false);
   };
 
   async function revalidateBooking() {
@@ -287,47 +290,28 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[75px]",
         },
       },
-      // {
-      //   accessorKey: "id",
-      //   header: () => <DataGridRowSelectAll />,
-      //   cell: ({ row }) => <DataGridRowSelect row={row} />,
-      //   enableSorting: false,
-      //   enableHiding: false,
-      //   meta: {
-      //     headerClassName: "w-0",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.id,
-      //   id: "booking_ID",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader
-      //       title="ID"
-      //       column={column}
-      //       // filter={<ColumnInputFilter column={column} />}
-      //     />
-      //   ),
-      //   enableSorting: true,
-      //   cell: ({ row }) => {
-      //     return (
-      //       <div className="flex items-center">
-      //         <div className="flex flex-col gap-0.5">
-      //           <Link
-      //             to={`/booking/${row.original.id}`}
-      //             className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
-      //           >
-      //             {row.original.id}
-      //           </Link>
-      //         </div>
-      //       </div>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "w-0",
-      //     className: "w-0",
-      //     cellClassName: "w-0",
-      //   },
-      // },
+      {
+        id: "Notify",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Notify" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <button
+              // disabled={true}
+              onClick={() => handleOpen(true, info.row.original, false, true)}
+              className="btn btn-sm btn-icon btn-clear text-blue-600 hover:bg-blue-500 hover:text-white"
+            >
+              <KeenIcon icon="information-2" />
+            </button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[80px]",
+        },
+      },
+
       {
         accessorFn: (row) => row.createdAt,
         id: "createdAt",
@@ -568,6 +552,7 @@ const Booking: React.FC<BookingProps> = ({
         isEdit={editMode}
         isEndBooking={isEndBooking}
         bookingData={currentBookingData}
+        isNotify={notify}
       />
       <DataGrid
         onFetchData={getBookings}

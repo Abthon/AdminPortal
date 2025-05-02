@@ -33,6 +33,7 @@ interface IModalBookingFormProps {
   isEdit: boolean;
   isEndBooking: boolean;
   bookingData: any;
+  isNotify?: boolean;
   onOpenChange: () => void;
 }
 
@@ -41,6 +42,7 @@ const ModalBookingForm = ({
   onOpenChange,
   isEdit,
   isEndBooking,
+  isNotify,
   bookingData,
 }: IModalBookingFormProps) => {
   /* importing booking */
@@ -292,19 +294,6 @@ const ModalBookingForm = ({
       staleTime: 0, // No caching for fresh searches
     }
   );
-  // const {
-  //   data: corporates,
-  //   isLoading: isCorporateLoading,
-  //   error: corporatesError,
-  // } = useQuery("corporates", async () => {
-  //   const res = await axiosInstance.get("api/v1/coorporate");
-  //   if (res.status !== 200) {
-  //     throw new Error("Failed to fetch corporates");
-  //   }
-  //   const data = res.data;
-  //   console.log("corporates list", data.data);
-  //   return data.data;
-  // });
 
   const {
     data: drivers,
@@ -375,6 +364,33 @@ const ModalBookingForm = ({
       const errorMessage = err?.response?.data?.message;
       const errorMessageAlt =
         (err as Error).message || "An error occurred while adding the booking.";
+      toast.error(errorMessage || errorMessage);
+    }
+  }
+
+  async function notifyDriver(driverId: any) {
+    try {
+      // console.log("booking id", bookingData.id);
+      // console.log("driver id", driverId);
+
+      const res_3 = await axiosInstance.post(
+        `api/v1/bookings/notify-drivers/${bookingData.id}`,
+        {
+          drivers: [driverId],
+        }
+      );
+      console.log(res_3, "result");
+      if (res_3.status !== 200) {
+        throw new Error(res_3.data.message || "Failed to notify the driver.");
+      }
+      toast.success(`Driver Notified!`);
+      queryClient.invalidateQueries({ queryKey: ["Bookings"] });
+      onOpenChange();
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message ||
+        "An error occurred while notifying the driver.";
       toast.error(errorMessage || errorMessage);
     }
   }
@@ -468,7 +484,12 @@ const ModalBookingForm = ({
                       className="menu-item"
                       key={index}
                       onClick={() => {
-                        handleAssignBookingSubmit(driver.id);
+                        if (isNotify) {
+                          console.log("hi");
+                          notifyDriver(driver.id);
+                        } else {
+                          handleAssignBookingSubmit(driver.id);
+                        }
                       }}
                     >
                       <div className="menu-link flex justify-between gap-2">
