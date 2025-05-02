@@ -605,7 +605,7 @@ const ModalCoorporateForm = ({
                   {/* Your existing phone number input code */}
                   <div className="flex items-center gap-2">
                     <select
-                      className="border border-gray-300 rounded px-2 py-2 text-gray-900"
+                      className="border border-gray-300 rounded px-2 py-2 text-gray-900 dark:bg-secondary-clarity dark:text-white"
                       defaultValue="+251"
                     >
                       <option value="+251">+251</option>
@@ -647,7 +647,7 @@ const ModalCoorporateForm = ({
                   {/* Your existing phone number input code */}
                   <div className="flex items-center gap-2">
                     <select
-                      className="border border-gray-300 rounded px-2 py-2 text-gray-900"
+                      className="border border-gray-300 rounded px-2 py-2 text-gray-900 dark:bg-secondary-clarity dark:text-white"
                       defaultValue="+251"
                     >
                       <option value="+251">+251</option>
@@ -719,7 +719,7 @@ const ModalCoorporateForm = ({
                     officialStampedLetter
                   </label>
 
-                  <label className="input  max-w-[390px] overflow-hidden">
+                  <label className="input  max-w-[390px] overflow-hidden ">
                     <input
                       type="file"
                       name="file"

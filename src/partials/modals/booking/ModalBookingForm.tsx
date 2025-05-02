@@ -996,7 +996,7 @@ const ModalBookingForm = ({
                     {/* Your existing phone number input code */}
                     <div className="flex items-center gap-2">
                       <select
-                        className="border border-gray-300 rounded px-2 py-2 text-gray-900"
+                        className="border border-gray-300 rounded px-2 py-2 text-gray-900 bg-white dark:bg-gray-100 dark:text-white"
                         disabled={isEdit}
                         defaultValue="+251"
                       >

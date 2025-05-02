@@ -231,7 +231,7 @@ const ModalUserForm = ({
                 <div className="flex items-center gap-2">
                   {/* Country code dropdown */}
                   <select
-                    className="border border-gray-300 rounded px-2 py-2 text-sm text-gray-900 dark:text-gray-100"
+                    className="border border-gray-300 rounded px-2 py-2 text-sm text-gray-900 dark:text-gray-100 dark:bg-secondary-clarity dark:text-white"
                     disabled={isEdit}
                     defaultValue="+251" // If you want to default to +251
                   >
