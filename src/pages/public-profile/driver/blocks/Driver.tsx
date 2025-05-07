@@ -51,6 +51,7 @@ const Drivers = ({
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
+  const [del, setDel] = useState(false);
   const [currentDriverData, setCurrentDriverData] =
     useState<IDriversData | null>(null);
   const [totalPage, setTotalPage] = useState(0);
@@ -71,11 +72,16 @@ const Drivers = ({
     _handleAddOpen(false);
   };
 
-  const handleOpen = (isEdit: boolean, rowData: IDriversData | null = null) => {
+  const handleOpen = (
+    isEdit: boolean,
+    rowData: IDriversData | null = null,
+    isDelete?: boolean
+  ) => {
     setApprovalMode(false);
     setEditMode(isEdit);
     setCurrentDriverData(rowData);
     setProfileModalOpen(true);
+    setDel(isDelete || false);
   };
 
   const handleApproval = (
@@ -370,7 +376,8 @@ const Drivers = ({
         cell: (info) => {
           return (
             <button
-              onClick={() => mutate(info.row.original.id)}
+              //onClick={() => mutate(info.row.original.id)}
+              onClick={() => handleOpen(true, info.row.original, true)}
               className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
             >
               <KeenIcon icon="trash" />
@@ -492,6 +499,7 @@ const Drivers = ({
         isEdit={editMode}
         isApproved={approvalMode}
         driverData={currentDriverData}
+        isDelete={del}
       />
       <DataGrid
         onFetchData={getDrivers}

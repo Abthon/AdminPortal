@@ -77,6 +77,7 @@ const Booking: React.FC<BookingProps> = ({
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [notify, setNotify] = useState(false);
+  const [del, setDel] = useState(false);
   const [isEndBooking, setIsEndBooking] = useState(false);
   const [currentBookingData, setCurrentBookingData] =
     useState<IBookingData | null>(null);
@@ -148,7 +149,8 @@ const Booking: React.FC<BookingProps> = ({
     isEdit: boolean,
     rowData: IBookingData | null = null,
     isEndBooking: boolean | null = null,
-    isNotify?: boolean
+    isNotify?: boolean,
+    isDelete?: boolean
   ) => {
     setEditMode(isEdit);
     setCurrentBookingData(rowData);
@@ -156,6 +158,7 @@ const Booking: React.FC<BookingProps> = ({
     console.log(rowData, "rowdata");
     setProfileModalOpen(true);
     setNotify(isNotify || false);
+    setDel(isDelete || false);
   };
 
   async function revalidateBooking() {
@@ -473,7 +476,11 @@ const Booking: React.FC<BookingProps> = ({
           return (
             <button
               // disabled={true}
-              onClick={() => mutate(info.row.original.id)}
+              // onClick={() => mutate(info.row.original.id)}
+              onClick={() =>
+                handleOpen(true, info.row.original, false, false, true)
+              }
+              //onClick={() => handleOpen(true, info.row.original, false, true)}
               className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
             >
               <KeenIcon icon="trash" />
@@ -553,6 +560,7 @@ const Booking: React.FC<BookingProps> = ({
         isEndBooking={isEndBooking}
         bookingData={currentBookingData}
         isNotify={notify}
+        isDelete={del}
       />
       <DataGrid
         onFetchData={getBookings}

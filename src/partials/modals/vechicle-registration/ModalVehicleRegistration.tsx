@@ -29,6 +29,7 @@ interface IModalVehicleFormProps {
   open: boolean;
   isEdit: boolean;
   vehicleData: any;
+  isDelete?: boolean;
   onOpenChange: () => void;
 }
 
@@ -36,6 +37,7 @@ const ModalVehicleRegistrationForm = ({
   open,
   onOpenChange,
   isEdit,
+  isDelete,
   vehicleData,
 }: IModalVehicleFormProps) => {
   // console.log(isEdit);
@@ -140,6 +142,28 @@ const ModalVehicleRegistrationForm = ({
       const errorMessageAlt =
         (err as Error).message || "An error occurred while adding the vehicle.";
       throw new Error(errorMessage || errorMessageAlt);
+    }
+  }
+
+  async function deleteVehicle(id: any) {
+    try {
+      // console.log("booking id", bookingData.id);
+      // console.log("driver id", driverId);
+
+      const res_3 = await axiosInstance.delete(`/api/v1/vehicles/${id}`);
+      console.log(res_3, "result");
+      if (res_3.status !== 200) {
+        throw new Error(res_3.data.message || "Failed to notify the Vehicle.");
+      }
+      toast.success(`Vehicle Deleted!`);
+      queryClient.invalidateQueries({ queryKey: ["Vehicle"] });
+      onOpenChange();
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message ||
+        "An error occurred while deleting the Vehicle.";
+      toast.error(errorMessage || errorMessage);
     }
   }
 
@@ -283,6 +307,38 @@ const ModalVehicleRegistrationForm = ({
       }
     }
   }, [isEdit, open, vehicleData]);
+
+  if (isDelete) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[400px] w-full">
+          <DialogHeader className="py-4 text-center">
+            <DialogTitle className="text-lg font-semibold text-gray-900"></DialogTitle>
+            <DialogDescription className="text-sm text-gray-500 mt-2 pt-6">
+              This action cannot be undone. Do you really want to delete this
+              item?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody className="p-0 pt-2 pb-5 flex justify-center gap-4">
+            <button
+              onClick={() => {
+                deleteVehicle(vehicleData.id);
+              }}
+              className="btn btn-danger btn-md min-w-[100px] rounded-lg"
+            >
+              Yes, Delete
+            </button>
+            <button
+              onClick={onOpenChange}
+              className="btn btn-outline btn-md min-w-[100px] rounded-lg"
+            >
+              Cancel
+            </button>
+          </DialogBody>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

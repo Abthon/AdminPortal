@@ -47,6 +47,7 @@ const Dispatcher = ({
   handleDispatcherNum: (num: any) => void;
   searchInput?: string;
 }) => {
+  const [del, setDel] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
@@ -70,12 +71,14 @@ const Dispatcher = ({
 
   const handleOpen = (
     isEdit: boolean,
-    rowData: IDispatcherData | null = null
+    rowData: IDispatcherData | null = null,
+    isDelete?: boolean
   ) => {
     setApprovalMode(false);
     setEditMode(isEdit);
     setCurrentDispatcherData(rowData);
     setProfileModalOpen(true);
+    setDel(isDelete || false);
   };
 
   const handleApproval = (
@@ -307,7 +310,8 @@ const Dispatcher = ({
         cell: (info) => {
           return (
             <button
-              onClick={() => mutate(info.row.original.id)}
+              //onClick={() => mutate(info.row.original.id)}
+              onClick={() => handleOpen(true, info.row.original, true)}
               className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
             >
               <KeenIcon icon="trash" />
@@ -391,6 +395,7 @@ const Dispatcher = ({
         isEdit={editMode}
         isApproved={approvalMode}
         dispatcherData={currentDispatcherData}
+        isDelete={del}
       />
       <DataGrid
         onFetchData={getDispatchers}

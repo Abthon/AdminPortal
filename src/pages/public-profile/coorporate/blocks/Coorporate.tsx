@@ -64,6 +64,7 @@ const Coorporate = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
+  const [del, setDel] = useState(false);
 
   const handleClose = () => {
     setApprovalMode(false);
@@ -73,12 +74,14 @@ const Coorporate = ({
 
   const handleOpen = (
     isEdit: boolean,
-    rowData: ICoorporateData | null = null
+    rowData: ICoorporateData | null = null,
+    isDelete?: boolean
   ) => {
     setApprovalMode(false);
     setEditMode(isEdit);
     setCurrentCoorporateData(rowData);
     setProfileModalOpen(true);
+    setDel(isDelete || false);
   };
 
   const handleApproval = (
@@ -299,26 +302,27 @@ const Coorporate = ({
           headerClassName: "min-w-[80px]",
         },
       },
-      {
-        id: "Delete",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Delete" column={column} />
-        ),
-        enableSorting: false,
-        cell: (info) => {
-          return (
-            <button
-              onClick={() => mutate(info.row.original.id)}
-              className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-            >
-              <KeenIcon icon="trash" />
-            </button>
-          );
-        },
-        meta: {
-          headerClassName: "w-[80px]",
-        },
-      },
+      // {
+      //   id: "Delete",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Delete" column={column} />
+      //   ),
+      //   enableSorting: false,
+      //   cell: (info) => {
+      //     return (
+      //       <button
+      //         // onClick={() => mutate(info.row.original.id)}
+      //         onClick={() => handleOpen(true, info.row.original, true)}
+      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+      //       >
+      //         <KeenIcon icon="trash" />
+      //       </button>
+      //     );
+      //   },
+      //   meta: {
+      //     headerClassName: "w-[80px]",
+      //   },
+      // },
       {
         id: "Approve",
         header: ({ column }) => (
@@ -409,6 +413,7 @@ const Coorporate = ({
         isEdit={editMode}
         isApproved={approvalMode}
         CoorporateData={currentCoorporateData}
+        isDelete={del}
       />
       <DataGrid
         onFetchData={getCoorporates}
