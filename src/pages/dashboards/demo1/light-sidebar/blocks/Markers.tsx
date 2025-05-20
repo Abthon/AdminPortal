@@ -23,7 +23,7 @@ const CustomMarker: React.FC<MarkerProps> = ({ driver }) => {
         mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
       >
         <div>
-          <p>{driver.firstName}</p>
+          <p>{driver.firstName}</p> 
         </div>
       </OverlayView>
     </MarkerF>

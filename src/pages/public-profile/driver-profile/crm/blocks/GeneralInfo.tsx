@@ -37,8 +37,13 @@ interface GeneralInfoProps {
   data: any;
 }
 
+import React from "react";
 const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
   console.log(data, "dl");
+  // Add state for modal
+  const [showModal, setShowModal] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+
   const items: IGeneralInfoItems = [
     { label: "Phone:", info: `+251 ${data.phoneNumber}`, type: 1 },
     { label: "Rating:", info: <CommonRating rating={data.rating} />, type: 2 },
@@ -57,29 +62,16 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
 
   const renderItems = (item: IGeneralInfoItem, index: number) => {
     const baseUrl =
-      "https://static.129.134.201.195.clients.your-server.de/test/static/profile/";
+      "https://static.129.134.201.195.clients.your-server.de/test/static//license/";
 
-    //const [fileName, setFileName] = useState("1739010042516-image_picker.jpg");
-    //const fileName = data?.driverLicense;
-
-    const downloadFile = async (fileName: any) => {
+    // Function to open image in modal
+    const openImageModal = async (fileName: any) => {
       try {
         const fileUrl = `${baseUrl}${fileName}`;
-        const response = await fetch(fileUrl);
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Release memory
-        window.URL.revokeObjectURL(blobUrl);
+        setImageUrl(fileUrl);
+        setShowModal(true);
       } catch (error) {
-        console.error("Error downloading the file:", error);
+        console.error("Error opening the image:", error);
       }
     };
 
@@ -96,7 +88,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
           ) : item.label === "Driver License:" ? (
             <div>
               <button
-                onClick={() => downloadFile(item.info)}
+                onClick={() => openImageModal(item.info)}
                 className="btn btn-sm btn-icon btn-clear btn-primary"
               >
                 <KeenIcon icon="folder-down" />
@@ -127,6 +119,42 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Image Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-4 rounded-lg max-w-3xl max-h-[90vh] overflow-auto">
+            <div className="flex justify-between mb-4">
+              <h3 className="text-lg font-semibold">Driver License</h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <KeenIcon icon="cross" />
+              </button>
+            </div>
+            <div className="flex justify-center">
+              <img
+                src={imageUrl}
+                alt="Driver License"
+                className="max-w-full max-h-[70vh] object-contain"
+              />
+            </div>
+            <div className="flex justify-center mt-4">
+              <a
+                href={imageUrl}
+                download
+                className="btn btn-sm btn-primary"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <KeenIcon icon="folder-down" className="me-2" />
+                Download
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
