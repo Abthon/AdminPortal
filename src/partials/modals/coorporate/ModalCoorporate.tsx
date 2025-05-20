@@ -54,6 +54,7 @@ interface IModalCoorporateFormProps {
   open: boolean;
   isEdit: boolean;
   isApproved: boolean;
+  isDelete?: boolean;
   CoorporateData: any;
   onOpenChange: () => void;
 }
@@ -62,6 +63,7 @@ const ModalCoorporateForm = ({
   open,
   onOpenChange,
   isEdit,
+  isDelete,
   isApproved,
   CoorporateData,
 }: IModalCoorporateFormProps) => {
@@ -84,6 +86,30 @@ const ModalCoorporateForm = ({
       toast.error((err as Error).message);
     },
   });
+
+  async function deleteCoorporate(id: any) {
+    try {
+      // console.log("booking id", bookingData.id);
+      // console.log("driver id", driverId);
+
+      const res_3 = await axiosInstance.delete(`/api/v1/coorporate/${id}`);
+      console.log(res_3, "result");
+      if (res_3.status !== 200) {
+        throw new Error(
+          res_3.data.message || "Failed to notify the Coorporate."
+        );
+      }
+      toast.success(`Coorporate Deleted!`);
+      queryClient.invalidateQueries({ queryKey: ["Coorporate"] });
+      onOpenChange();
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message ||
+        "An error occurred while deleting the Coorporate.";
+      toast.error(errorMessage || errorMessage);
+    }
+  }
 
   async function approveCoorporate(values: Object) {
     try {
@@ -277,6 +303,38 @@ const ModalCoorporateForm = ({
       }
     }
   }, [isEdit, open, CoorporateData]);
+
+  if (isDelete) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[400px] w-full">
+          <DialogHeader className="py-4 text-center">
+            <DialogTitle className="text-lg font-semibold text-gray-900"></DialogTitle>
+            <DialogDescription className="text-sm text-gray-500 mt-2 pt-6">
+              This action cannot be undone. Do you really want to delete this
+              item?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody className="p-0 pt-2 pb-5 flex justify-center gap-4">
+            <button
+              onClick={() => {
+                deleteCoorporate(CoorporateData.id);
+              }}
+              className="btn btn-danger btn-md min-w-[100px] rounded-lg"
+            >
+              Yes, Delete
+            </button>
+            <button
+              onClick={onOpenChange}
+              className="btn btn-outline btn-md min-w-[100px] rounded-lg"
+            >
+              Cancel
+            </button>
+          </DialogBody>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

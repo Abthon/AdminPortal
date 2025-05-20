@@ -6,7 +6,7 @@ interface MarkerProps {
 }
 
 const CustomMarker: React.FC<MarkerProps> = ({ driver }) => {
-  console.log(driver, "driver");
+  //console.log(driver, "driver");
   const successImg = toAbsoluteUrl("/media/illustrations/success-loc.png");
   const failureImg = toAbsoluteUrl("/media/illustrations/fail-loc.png");
 
@@ -23,7 +23,7 @@ const CustomMarker: React.FC<MarkerProps> = ({ driver }) => {
         mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
       >
         <div>
-          <p>{driver.firstName}</p>
+          <p>{driver.firstName}</p> 
         </div>
       </OverlayView>
     </MarkerF>

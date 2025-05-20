@@ -58,6 +58,7 @@ const VechileType = ({
     useState<IVehicleTypeData | null>(null);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
+  const [del, setDel] = useState(false);
 
   const handleClose = () => {
     setProfileModalOpen(false);
@@ -66,12 +67,14 @@ const VechileType = ({
 
   const handleOpen = (
     isEdit: boolean,
-    rowData: IVehicleTypeData | null = null
+    rowData: IVehicleTypeData | null = null,
+    isDelete?: boolean
   ) => {
     setEditMode(isEdit);
     setCurrentVehicleData(rowData);
     console.log(rowData, "rowdata");
     setProfileModalOpen(true);
+    setDel(isDelete || false);
   };
 
   async function getVehicleType({
@@ -316,7 +319,8 @@ const VechileType = ({
         cell: (info) => {
           return (
             <button
-              onClick={() => mutate(info.row.original.id)}
+              // onClick={() => mutate(info.row.original.id)}
+              onClick={() => handleOpen(true, info.row.original, true)}
               className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
             >
               <KeenIcon icon="trash" />
@@ -373,6 +377,7 @@ const VechileType = ({
         onOpenChange={handleClose}
         isEdit={editMode}
         vehicleData={currentVehicleData}
+        isDelete={del}
       />
       <DataGrid
         onFetchData={getVehicleType}

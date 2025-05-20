@@ -22,7 +22,6 @@ import {
 import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
 
-
 interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
 }
@@ -51,6 +50,7 @@ const Config = ({
   const [editMode, setEditMode] = useState<boolean>(false);
   const [currentConfigData, setcurrentConfigData] =
     useState<IConfigData | null>(null);
+  const [del, setDel] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
 
@@ -59,11 +59,16 @@ const Config = ({
     _handleAddOpen(false);
   };
 
-  const handleOpen = (isEdit: boolean, rowData: IConfigData | null = null) => {
+  const handleOpen = (
+    isEdit: boolean,
+    rowData: IConfigData | null = null,
+    isDelete?: boolean
+  ) => {
     setEditMode(isEdit);
     setcurrentConfigData(rowData);
     console.log(rowData, "rowdata");
     setProfileModalOpen(true);
+    setDel(isDelete || false);
   };
 
   async function getConfig({
@@ -265,7 +270,8 @@ const Config = ({
         cell: (info) => {
           return (
             <button
-              onClick={() => mutate(info.row.original.id)}
+              // onClick={() => mutate(info.row.original.id)}
+              onClick={() => handleOpen(true, info.row.original, true)}
               className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
             >
               <KeenIcon icon="trash" />
@@ -319,6 +325,7 @@ const Config = ({
         onOpenChange={handleClose}
         isEdit={editMode}
         configData={currentConfigData}
+        isDelete={del}
       />
       <DataGrid
         onFetchData={getConfig}

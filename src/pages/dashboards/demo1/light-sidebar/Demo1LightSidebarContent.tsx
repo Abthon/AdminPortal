@@ -43,6 +43,7 @@ const DashboardSkeleton = () => {
 
 const Demo1LightSidebarContent = () => {
   async function getDrivers() {
+    console.log("new data");
     const url = `/api/v1/drivers`;
     const { data } = await axiosInstance.get(url);
     return data.data;
@@ -53,11 +54,13 @@ const Demo1LightSidebarContent = () => {
   >({
     queryKey: ["Bookings"],
     queryFn: getDrivers,
+    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchIntervalInBackground: true,
   });
 
   async function fetchStats() {
     const response = await axiosInstance.get(`/api/v1/admin/sys/stats`);
-    console.log(response?.data, "response stat");
+    // console.log(response?.data, "response stat");
     return response.data;
   }
 
@@ -81,60 +84,3 @@ const Demo1LightSidebarContent = () => {
 };
 
 export { Demo1LightSidebarContent };
-
-{
-  /* <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
-        <div className="lg:col-span-1">
-          <Highlights limit={4} />
-        </div>
-
-        <div className="lg:col-span-2">
-          <Contributions title="booking" />
-        </div>
-      </div> */
-}
-
-{
-  /* <div className="grid gap-2">
-        <div className="grid grid-cols-2 h-full items-stretch">
-          <div>
-          </div>
-
-          <div>
-            <Highlights limit={3} />
-            <Contributions title="booking" />
-          </div>
-        </div>
-      </div> */
-}
-
-{
-  /* <div className="grid lg:grid-cols-3 gap-y-5 lg:gap-7.5 items-stretch">
-        <div className="lg:col-span-1">
-          <div className="grid grid-cols-2 gap-5 lg:gap-7.5 h-full items-stretch">
-            <ChannelStats2 />
-          </div>
-        </div>
-
-        <div className="lg:col-span-2">
-         
-          <DriversLocationMap data={DriverData} />
-        </div>
-      </div> */
-}
-
-{
-  /* <ChannelStats2 /> */
-}
-
-{
-  /* <div className="grid lg:grid-cols-3 gap-5 lg:gap-7.5 items-stretch">
-        <div className="lg:col-span-1">
-          <TeamMeeting />
-        </div>
-
-        <div className="lg:col-span-2">
-          <Teams />
-        </div>
-      </div> */
-}

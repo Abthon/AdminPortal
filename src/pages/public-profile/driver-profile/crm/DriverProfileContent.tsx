@@ -14,6 +14,8 @@ interface DriverProfileContentProps {
   data: any;
 }
 
+import React from 'react';
+
 const DriverProfileContent: React.FC<DriverProfileContentProps> = ({
   data,
 }) => {

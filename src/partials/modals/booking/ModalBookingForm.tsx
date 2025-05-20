@@ -31,8 +31,10 @@ const bookingSchema = Yup.object().shape({
 interface IModalBookingFormProps {
   open: boolean;
   isEdit: boolean;
+  isDelete?: boolean;
   isEndBooking: boolean;
   bookingData: any;
+  isNotify?: boolean;
   onOpenChange: () => void;
 }
 
@@ -40,7 +42,9 @@ const ModalBookingForm = ({
   open,
   onOpenChange,
   isEdit,
+  isDelete,
   isEndBooking,
+  isNotify,
   bookingData,
 }: IModalBookingFormProps) => {
   /* importing booking */
@@ -81,6 +85,8 @@ const ModalBookingForm = ({
       toast.error((err as Error).message);
     },
   });
+
+  console.log("isdelete", isDelete);
 
   const initialValues = {
     pickupName: "",
@@ -292,19 +298,6 @@ const ModalBookingForm = ({
       staleTime: 0, // No caching for fresh searches
     }
   );
-  // const {
-  //   data: corporates,
-  //   isLoading: isCorporateLoading,
-  //   error: corporatesError,
-  // } = useQuery("corporates", async () => {
-  //   const res = await axiosInstance.get("api/v1/coorporate");
-  //   if (res.status !== 200) {
-  //     throw new Error("Failed to fetch corporates");
-  //   }
-  //   const data = res.data;
-  //   console.log("corporates list", data.data);
-  //   return data.data;
-  // });
 
   const {
     data: drivers,
@@ -379,6 +372,54 @@ const ModalBookingForm = ({
     }
   }
 
+  async function notifyDriver(driverId: any) {
+    try {
+      // console.log("booking id", bookingData.id);
+      // console.log("driver id", driverId);
+
+      const res_3 = await axiosInstance.post(
+        `api/v1/bookings/notify-drivers/${bookingData.id}`,
+        {
+          drivers: [driverId],
+        }
+      );
+      console.log(res_3, "result");
+      if (res_3.status !== 200) {
+        throw new Error(res_3.data.message || "Failed to notify the driver.");
+      }
+      toast.success(`Driver Notified!`);
+      queryClient.invalidateQueries({ queryKey: ["Bookings"] });
+      onOpenChange();
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message ||
+        "An error occurred while notifying the driver.";
+      toast.error(errorMessage || errorMessage);
+    }
+  }
+  async function deleteBooking(id: any) {
+    try {
+      // console.log("booking id", bookingData.id);
+      // console.log("driver id", driverId);
+
+      const res_3 = await axiosInstance.delete(`/api/v1/bookings/${id}`);
+      console.log(res_3, "result");
+      if (res_3.status !== 200) {
+        throw new Error(res_3.data.message || "Failed to notify the booking.");
+      }
+      toast.success(`Booking Deleted!`);
+      queryClient.invalidateQueries({ queryKey: ["Bookings"] });
+      onOpenChange();
+    } catch (err: any) {
+      const errorMessage = err?.response?.data?.message;
+      const errorMessageAlt =
+        (err as Error).message ||
+        "An error occurred while deleting the booking.";
+      toast.error(errorMessage || errorMessage);
+    }
+  }
+
   const formik = useFormik({
     initialValues,
     validationSchema: !isEndBooking && bookingSchema,
@@ -415,6 +456,38 @@ const ModalBookingForm = ({
       }
     }
   }, [isEdit, open, bookingData]);
+
+  if (isDelete) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[400px] w-full">
+          <DialogHeader className="py-4 text-center">
+            <DialogTitle className="text-lg font-semibold text-gray-900"></DialogTitle>
+            <DialogDescription className="text-sm text-gray-500 mt-2 pt-6">
+              This action cannot be undone. Do you really want to delete this
+              item?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody className="p-0 pt-2 pb-5 flex justify-center gap-4">
+            <button
+              onClick={() => {
+                deleteBooking(bookingData.id);
+              }}
+              className="btn btn-danger btn-md min-w-[100px] rounded-lg"
+            >
+              Yes, Delete
+            </button>
+            <button
+              onClick={onOpenChange}
+              className="btn btn-outline btn-md min-w-[100px] rounded-lg"
+            >
+              Cancel
+            </button>
+          </DialogBody>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   if (isEdit) {
     return (
@@ -468,7 +541,12 @@ const ModalBookingForm = ({
                       className="menu-item"
                       key={index}
                       onClick={() => {
-                        handleAssignBookingSubmit(driver.id);
+                        if (isNotify) {
+                          console.log("hi");
+                          notifyDriver(driver.id);
+                        } else {
+                          handleAssignBookingSubmit(driver.id);
+                        }
                       }}
                     >
                       <div className="menu-link flex justify-between gap-2">

@@ -47,16 +47,22 @@ const Fuel = ({
   );
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
+  const [del, setDel] = useState(false);
 
   const handleClose = () => {
     setProfileModalOpen(false);
     _handleAddOpen(false);
   };
 
-  const handleOpen = (isEdit: boolean, rowData: IFuelData | null = null) => {
+  const handleOpen = (
+    isEdit: boolean,
+    rowData: IFuelData | null = null,
+    isDelete?: boolean
+  ) => {
     setEditMode(isEdit);
     setCurrentFuelData(rowData);
     setProfileModalOpen(true);
+    setDel(isDelete || false);
   };
 
   async function getFuels({
@@ -260,7 +266,8 @@ const Fuel = ({
         cell: (info) => {
           return (
             <button
-              onClick={() => mutate(info.row.original.id)}
+              onClick={() => handleOpen(true, info.row.original, true)}
+              //  onClick={() => mutate(info.row.original.id)}
               className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
             >
               <KeenIcon icon="trash" />
@@ -310,6 +317,7 @@ const Fuel = ({
         onOpenChange={handleClose}
         isEdit={editMode}
         fuelData={currentFuelData}
+        isDelete={del}
       />
       <DataGrid
         onFetchData={getFuels}
