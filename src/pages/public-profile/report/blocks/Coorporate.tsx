@@ -93,7 +93,6 @@ const Coorporate = ({}: CoorporateProps) => {
     sort: any;
   }) {
     const url = `/api/v1/coorporate?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
-    console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -134,15 +133,12 @@ const Coorporate = ({}: CoorporateProps) => {
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
-    //  handleCoorporateNum(data.data.length);
     return data;
   }
 
   async function revalidateCoorporate() {
     const url = `/api/v1/coorporate?`;
     const { data } = await axiosInstance.get(url);
-    //   handleCoorporateNum(data.data.length);
-    console.log(data.data, "driver data");
     return data;
   }
 
@@ -152,12 +148,12 @@ const Coorporate = ({}: CoorporateProps) => {
     return data;
   }
 
+  const queryClient = useQueryClient();
+
   const { isLoading: isCoorporateLoading, data: CoorporateData } = useQuery({
     queryKey: ["Coorporate", filterInput],
     queryFn: revalidateCoorporate,
   });
-
-  const queryClient = useQueryClient();
 
   const { isLoading: isDeleting, mutate } = useMutation<string, Error, string>({
     mutationFn: deleteCoorporates,
@@ -196,16 +192,6 @@ const Coorporate = ({}: CoorporateProps) => {
   const columns = useMemo<ColumnDef<ICoorporateData>[]>(
     () => [
       {
-        accessorKey: "id",
-        header: () => <DataGridRowSelectAll />,
-        cell: ({ row }) => <DataGridRowSelect row={row} />,
-        enableSorting: false,
-        enableHiding: false,
-        meta: {
-          headerClassName: "w-0",
-        },
-      },
-      {
         accessorFn: (row) => row.name,
         id: "name",
         header: ({ column }) => (
@@ -216,138 +202,88 @@ const Coorporate = ({}: CoorporateProps) => {
           return info.row.original.name;
         },
         meta: {
-          headerClassName: "min-w-[180px]",
+          headerClassName: "min-w-[150px]",
         },
       },
-      // {
-      //   // accessorFn: (row) => row.email,
-      //   id: "email",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Email" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.email;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
       {
-        // accessorFn: (row) => row.address,
         id: "creditLimit",
         header: ({ column }) => (
           <DataGridColumnHeader title="Credit Limit" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          // console.log(info.row.original, "org");
           return info.row.original.creditLimit;
         },
         meta: {
-          headerClassName: "min-w-[250px]",
+          headerClassName: "min-w-[120px]",
         },
       },
       {
-        // accessorFn: (row) => row.address,
         id: "currentCredit",
         header: ({ column }) => (
           <DataGridColumnHeader title="Current Credit" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          //console.log(info.row.original, "org");
           return info.row.original.currentCredit;
         },
         meta: {
-          headerClassName: "min-w-[250px]",
+          headerClassName: "min-w-[120px]",
         },
       },
-      // {
-      //   // accessorFn: (row) => row.status,
-      //   id: "status",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Status" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return (
-      //       <div className="flex justify-between relative">
-      //         <span
-      //           className={`badge ${info.row.original.status === "suspended" && "badge-danger"} ${info.row.original.status === "inactive" && "badge-warning"} ${info.row.original.status === "active" && "badge-success"} ${info.row.original.status === "pending" && "badge-primary"} shrink-0 badge-outline rounded-[30px]`}
-      //         >
-      //           <span
-      //             className={`size-1.5 rounded-full ${info.row.original.status === "suspended" && "bg-danger"} ${info.row.original.status === "inactive" && "bg-warning"} ${info.row.original.status === "active" && "bg-success"} ${info.row.original.status === "pending" && "bg-primary"} me-1.5`}
-      //           ></span>
-      //           {info.row.original.status}
-      //         </span>
-      //       </div>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[180px]",
-      //   },
-      // },
-      // {
-      //   id: "Edit",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Edit" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <button
-      //         onClick={() => handleOpen(true, info.row.original)}
-      //         className="btn btn-sm btn-icon btn-clear btn-primary"
-      //       >
-      //         <KeenIcon icon="notepad-edit" />
-      //       </button>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[80px]",
-      //   },
-      // },
-      // {
-      //   id: "Delete",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Delete" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <button
-      //         onClick={() => mutate(info.row.original.id)}
-      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-      //       >
-      //         <KeenIcon icon="trash" />
-      //       </button>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "w-[80px]",
-      //   },
-      // },
-      // {
-      //   id: "Approve",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Approve" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <button
-      //         onClick={() => handleApproval(true, info.row.original)}
-      //         className="btn btn-sm btn-icon btn-clear btn-primary hover:text-white"
-      //       >
-      //         <KeenIcon icon="double-check" />
-      //       </button>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[80px]",
-      //   },
-      // },
+      {
+        id: "status",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Status" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          const status = info.row.original.status;
+          const getStatusColor = (status: string) => {
+            switch (status) {
+              case "active":
+                return "badge-success";
+              case "inactive":
+                return "badge-warning";
+              case "pending":
+                return "badge-primary";
+              case "suspended":
+                return "badge-danger";
+              default:
+                return "badge-secondary";
+            }
+          };
+
+          const getDotColor = (status: string) => {
+            switch (status) {
+              case "active":
+                return "bg-success";
+              case "inactive":
+                return "bg-warning";
+              case "pending":
+                return "bg-primary";
+              case "suspended":
+                return "bg-danger";
+              default:
+                return "bg-secondary";
+            }
+          };
+
+          return (
+            <span
+              className={`badge ${getStatusColor(status)} shrink-0 badge-outline rounded-[30px]`}
+            >
+              <span
+                className={`size-1.5 rounded-full ${getDotColor(status)} me-1.5`}
+              ></span>
+              {status}
+            </span>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[80px]",
+        },
+      },
     ],
     [mutate]
   );
@@ -372,9 +308,9 @@ const Coorporate = ({}: CoorporateProps) => {
   };
 
   const Toolbar = () => {
-    const handleFilterChange = (value: any) => {
-      setFilterInput(value); // Update the state when the user selects an item
-      console.log("Filter value changed to:", value); // Optional: log for debugging
+    const handleFilterChange = (value: string) => {
+      setFilterInput(value);
+      queryClient.invalidateQueries({ queryKey: ["Coorporate"] });
     };
 
     return (
@@ -401,9 +337,6 @@ const Coorporate = ({}: CoorporateProps) => {
                 <SelectItem value="suspended">Suspended</SelectItem>
               </SelectContent>
             </Select>
-            <button className="btn btn-sm btn-outline btn-primary">
-              <KeenIcon icon="setting-4" /> Filters
-            </button>
           </div>
         </div>
       </div>
@@ -415,13 +348,11 @@ const Coorporate = ({}: CoorporateProps) => {
       <DataGrid
         onFetchData={getCoorporates}
         onSearchData={searchCoorporate}
-        // searchInput={searchInput}
         columns={columns}
         data={data}
         link="coorporates"
         filterInput={filterInput}
-        rowSelection={true}
-        onRowSelectionChange={handleRowSelection}
+        rowSelection={false}
         pagination={{ size: 5 }}
         sorting={[{ id: "name", desc: true }]}
         toolbar={<Toolbar />}
