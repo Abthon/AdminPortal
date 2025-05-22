@@ -99,7 +99,9 @@ const Dispatcher = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/admin?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=isApproved=${filterInput == "approved" ? "1" : "0"}` : ""}`;
+    const statusFilter =
+      filterInput && filterInput !== "all" ? `status=${filterInput}` : "";
+    const url = `/api/v1/admin?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&filters=type=dispatch${statusFilter ? `,${statusFilter}` : ""}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -127,7 +129,9 @@ const Dispatcher = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/admin?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,isApproved=${filterInput == "approved" ? "1" : "0"}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    const statusFilter =
+      filterInput && filterInput !== "all" ? `status=${filterInput}` : "";
+    const url = `/api/v1/admin?filters=firstName=${search},type=dispatch${statusFilter ? `,${statusFilter}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
     console.log("hi", data);
 
@@ -146,7 +150,9 @@ const Dispatcher = ({
   }
 
   async function revalidateDispatcher() {
-    const url = `/api/v1/admin?`;
+    const statusFilter =
+      filterInput && filterInput !== "all" ? `status=${filterInput}` : "";
+    const url = `/api/v1/admin?filters=type=dispatch${statusFilter ? `,${statusFilter}` : ""}`;
     const { data } = await axiosInstance.get(url);
     handleDispatcherNum(data.data.length);
     return data;
@@ -347,8 +353,10 @@ const Dispatcher = ({
 
   const Toolbar = () => {
     const handleFilterChange = (value: any) => {
-      setFilterInput(value); // Update the state when the user selects an item
-      console.log("Filter value changed to:", value); // Optional: log for debugging
+      setFilterInput(value);
+      queryClient.invalidateQueries({
+        queryKey: ["Dispatchers", searchInput, value],
+      });
     };
 
     return (
@@ -373,10 +381,6 @@ const Dispatcher = ({
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
-
-            <button className="btn btn-sm btn-outline btn-primary">
-              <KeenIcon icon="setting-4" /> Filters
-            </button>
           </div>
         </div>
       </div>
