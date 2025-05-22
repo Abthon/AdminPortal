@@ -74,7 +74,7 @@ const Fuel = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/fuel?fields=vehicle.*,id,createdAt,fuelCost,fuelQuantity,odometerValue&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/fuel?fields=vehicle.*,id,createdAt,fuelCost,fuelQuantity,odometerValue&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${searchInput ? `&filters=vehicle.plate_number=${searchInput}` : ""}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -95,7 +95,7 @@ const Fuel = ({
   }
 
   async function revalidateFuel() {
-    const url = `/api/v1/fuel?`;
+    const url = `/api/v1/fuel?${searchInput ? `filters=vehicle.plate_number=${searchInput}` : ""}`;
     const { data } = await axiosInstance.get(url);
     handleVehicleNum(data.data.length);
     console.log(data.data, "driver data");
@@ -109,7 +109,7 @@ const Fuel = ({
   }
 
   const { isLoading: isFuelLoading, data: FuelData } = useQuery({
-    queryKey: ["Fuel"],
+    queryKey: ["Fuel", searchInput],
     queryFn: revalidateFuel,
   });
 

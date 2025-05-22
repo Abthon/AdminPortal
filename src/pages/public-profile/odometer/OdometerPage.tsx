@@ -17,7 +17,7 @@ import { useLayout } from "@/providers";
 const OdometerPage = () => {
   const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
   const [vehicleNum, setVehicleNum] = useState(null);
-  // const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const { currentLayout } = useLayout();
 
   return (
@@ -37,17 +37,17 @@ const OdometerPage = () => {
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>
-              {/* <div className="flex">
+              <div className="flex">
                 <label className="input input-sm">
                   <KeenIcon icon="magnifier" />
                   <input
                     type="text"
-                    placeholder="Search By Model"
+                    placeholder="Search By Plate Number"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                   />
                 </label>
-              </div> */}
+              </div>
               <button
                 onClick={() => {
                   setIsAddOpen((open) => !open);
@@ -65,7 +65,7 @@ const OdometerPage = () => {
         <OdometerPageContent
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
-          // searchInput={searchInput}
+          searchInput={searchInput}
           handleVehicleNum={setVehicleNum}
         />
       </Container>

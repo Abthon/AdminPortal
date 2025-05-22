@@ -71,7 +71,7 @@ const Odometer = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/odometer?fields=vehicle.*,initial,final,recordedAt,createdAt&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/odometer?fields=vehicle.*,initial,final,recordedAt,createdAt&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${searchInput ? `&filters=vehicle.plate_number=${searchInput}` : ""}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -92,7 +92,7 @@ const Odometer = ({
   }
 
   async function revalidateOdometer() {
-    const url = `/api/v1/odometer?`;
+    const url = `/api/v1/odometer?${searchInput ? `filters=vehicle.plate_number=${searchInput}` : ""}`;
     const { data } = await axiosInstance.get(url);
     handleVehicleNum(data.data.length);
     console.log(data.data, "driver data");
@@ -106,7 +106,7 @@ const Odometer = ({
   }
 
   const { isLoading: isOdomterLoading, data: OdometerData } = useQuery({
-    queryKey: ["Odometer"],
+    queryKey: ["Odometer", searchInput],
     queryFn: revalidateOdometer,
   });
 
