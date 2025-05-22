@@ -26,6 +26,7 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalDriverTypeForm } from "@/partials/modals/driver";
 import axiosInstance from "@/auth/_helpers";
 import { ModalDispatcherForm } from "@/partials/modals/dispatcher";
+import { Switch } from "@/components/ui/switch";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface IDispatcherData {
@@ -163,6 +164,13 @@ const Dispatcher = ({
     return data;
   }
 
+  async function updateDispatcherStatus(id: string, status: string) {
+    const { data } = await axiosInstance.patch(`/api/v1/admin/${id}`, {
+      status: status,
+    });
+    return data;
+  }
+
   const { isLoading: isDriverLoading, data: DispatcherData } = useQuery({
     queryKey: ["Dispatchers", searchInput, filterInput],
     queryFn: revalidateDispatcher,
@@ -188,6 +196,20 @@ const Dispatcher = ({
     },
     onError: (error) => {
       toast("Error Encountered deleting the dispatcher");
+    },
+  });
+
+  const { mutate: updateStatus } = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      updateDispatcherStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["Dispatchers"],
+      });
+      toast("Status updated successfully!");
+    },
+    onError: (error) => {
+      toast("Error updating status");
     },
   });
 
@@ -257,17 +279,16 @@ const Dispatcher = ({
         ),
         enableSorting: true,
         cell: (info) => {
+          const isActive = info.row.original.status === "active";
           return (
-            <div className="flex justify-between relative">
+            <span
+              className={`badge ${!isActive && "badge-danger"} ${isActive && "badge-success"} shrink-0 badge-outline rounded-[30px]`}
+            >
               <span
-                className={`badge ${info.row.original.status === "inactive" && "badge-danger"} ${info.row.original.status === "active" && "badge-success"} shrink-0 badge-outline rounded-[30px]`}
-              >
-                <span
-                  className={`size-1.5 rounded-full ${info.row.original.status === "inactive" && "bg-danger"} ${info.row.original.status === "active" && "bg-success"} me-1.5`}
-                ></span>
-                {info.row.original.status}
-              </span>
-            </div>
+                className={`size-1.5 rounded-full ${!isActive && "bg-danger"} ${isActive && "bg-success"} me-1.5`}
+              ></span>
+              {info.row.original.status}
+            </span>
           );
         },
         meta: {
@@ -316,7 +337,6 @@ const Dispatcher = ({
         cell: (info) => {
           return (
             <button
-              //onClick={() => mutate(info.row.original.id)}
               onClick={() => handleOpen(true, info.row.original, true)}
               className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
             >
@@ -328,8 +348,45 @@ const Dispatcher = ({
           headerClassName: "w-[80px]",
         },
       },
+      {
+        id: "Toggle Status",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Toggle Status" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          const isActive = info.row.original.status === "active";
+          return (
+            <div
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="pointer-events-auto"
+            >
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  updateStatus({
+                    id: info.row.original.id,
+                    status: isActive ? "inactive" : "active",
+                  });
+                }}
+                className={`btn btn-sm btn-icon btn-clear ${isActive ? "text-success" : "text-danger"}`}
+              >
+                <KeenIcon icon={isActive ? "check-circle" : "cross-circle"} />
+              </button>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "w-[80px]",
+          cellClassName: "pointer-events-none",
+        },
+      },
     ],
-    [mutate]
+    [mutate, updateStatus]
   );
 
   const data: IDispatcherData[] = useMemo(

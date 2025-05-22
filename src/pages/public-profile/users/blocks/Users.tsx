@@ -28,6 +28,7 @@ import axiosInstance from "@/auth/_helpers";
 import { ModalBankForm } from "@/partials/modals/bank";
 import { timeAgo } from "@/utils/Time";
 import { ModalUserForm } from "@/partials/modals/user";
+import { Switch } from "@/components/ui/switch";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 function getStatusColor(status: string): string {
@@ -177,6 +178,13 @@ const Users = ({
     return data;
   }
 
+  async function updateUserStatus(id: string, status: string) {
+    const { data } = await axiosInstance.patch(`/api/v1/users/${id}`, {
+      status: status,
+    });
+    return data;
+  }
+
   const { isLoading: isDriverLoading, data: UserData } = useQuery({
     queryKey: ["Users", searchInput, filterInput],
     queryFn: revalidateUsers,
@@ -202,6 +210,20 @@ const Users = ({
     },
     onError: (error) => {
       toast("Error Encountered deleting the user");
+    },
+  });
+
+  const { mutate: updateStatus } = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      updateUserStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["Users"],
+      });
+      toast("Status updated successfully!");
+    },
+    onError: (error) => {
+      toast("Error updating status");
     },
   });
 
@@ -300,16 +322,14 @@ const Users = ({
         enableSorting: true,
         cell: (info) => {
           return (
-            <div className="flex justify-between relative">
+            <span
+              className={`badge badge-${getStatusColor(info.row.original.status)} shrink-0 badge-outline rounded-[30px]`}
+            >
               <span
-                className={`badge badge-${getStatusColor(info.row.original.status)} shrink-0 badge-outline rounded-[30px]`}
-              >
-                <span
-                  className={`size-1.5 rounded-full bg-${getStatusColor(info.row.original.status)} me-1.5`}
-                ></span>
-                {info.row.original.status}
-              </span>
-            </div>
+                className={`size-1.5 rounded-full bg-${getStatusColor(info.row.original.status)} me-1.5`}
+              ></span>
+              {info.row.original.status}
+            </span>
           );
         },
         meta: {
@@ -330,28 +350,45 @@ const Users = ({
           headerClassName: "min-w-[90px]",
         },
       },
-      // {
-      //   id: "Edit",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Edit" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <button
-      //         onClick={() => handleOpen(true, info.row.original)}
-      //         className="btn btn-sm btn-icon btn-clear btn-primary"
-      //       >
-      //         <KeenIcon icon="notepad-edit" />
-      //       </button>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[80px]",
-      //   },
-      // },
+      {
+        id: "Toggle Status",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Toggle Status" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          const isActive = info.row.original.status === "active";
+          return (
+            <div
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="pointer-events-auto"
+            >
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  updateStatus({
+                    id: info.row.original.id,
+                    status: isActive ? "inactive" : "active",
+                  });
+                }}
+                className={`btn btn-sm btn-icon btn-clear ${isActive ? "text-success" : "text-danger"}`}
+              >
+                <KeenIcon icon={isActive ? "check-circle" : "cross-circle"} />
+              </button>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "w-[80px]",
+          cellClassName: "pointer-events-none",
+        },
+      },
     ],
-    [mutate]
+    [mutate, updateStatus]
   );
 
   const data: IBankData[] = useMemo(() => UserData ?? [], [UserData]);
