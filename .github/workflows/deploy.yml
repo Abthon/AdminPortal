@@ -3,7 +3,7 @@ on:
     branches:
       - main
 
-name: 🚀 Deploy Angular app on push
+name: 🚀 Deploy React Admin Panel
 
 jobs:
   web-deploy:
@@ -14,7 +14,7 @@ jobs:
     - name: 🚚 Get latest code
       uses: actions/checkout@v3
 
-    - name: 📂 Install Node.js and Yarn
+    - name: 📦 Install Node.js and Yarn
       uses: actions/setup-node@v2
       with:
         node-version: 20
@@ -23,13 +23,14 @@ jobs:
     - name: 📂 Install project dependencies
       run: yarn install
 
-    - name: 📂 Build app with Yarn
+    - name: 🏗️ Build React app
       run: yarn build
 
-    - name: 📂 Sync files
+    - name: 🚀 Deploy to FTP server
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
         server: ${{ secrets.ftp_server }}
         username: ${{ secrets.ftp_username }}
         password: ${{ secrets.ftp_password }}
-        server-dir: /
+        server-dir: /admin.navigo.et
+        local-dir: build
