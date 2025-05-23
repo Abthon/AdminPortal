@@ -116,7 +116,7 @@ const Users = ({
     sort: any;
   }) {
     console.log(filterInput, "right");
-    const url = `/api/v1/users?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0]?.desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
+    const url = `/api/v1/users?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0]?.desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}`;
     console.log("url", url);
     const { data } = await axiosInstance.get(url);
 
@@ -147,7 +147,7 @@ const Users = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/users?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/users?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
 
     const { data } = await axiosInstance.get(url);
 

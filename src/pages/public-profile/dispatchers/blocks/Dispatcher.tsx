@@ -101,7 +101,7 @@ const Dispatcher = ({
     sort: any;
   }) {
     const statusFilter =
-      filterInput && filterInput !== "all" ? `status=${filterInput}` : "";
+      filterInput && filterInput !== "all" ? `status:=${filterInput}` : "";
     const url = `/api/v1/admin?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&filters=type=dispatch${statusFilter ? `,${statusFilter}` : ""}`;
     const { data } = await axiosInstance.get(url);
 
@@ -131,7 +131,7 @@ const Dispatcher = ({
     sort: any;
   }) {
     const statusFilter =
-      filterInput && filterInput !== "all" ? `status=${filterInput}` : "";
+      filterInput && filterInput !== "all" ? `status:=${filterInput}` : "";
     const url = `/api/v1/admin?filters=firstName=${search},type=dispatch${statusFilter ? `,${statusFilter}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
     console.log("hi", data);
@@ -152,7 +152,7 @@ const Dispatcher = ({
 
   async function revalidateDispatcher() {
     const statusFilter =
-      filterInput && filterInput !== "all" ? `status=${filterInput}` : "";
+      filterInput && filterInput !== "all" ? `status:=${filterInput}` : "";
     const url = `/api/v1/admin?filters=type=dispatch${statusFilter ? `,${statusFilter}` : ""}`;
     const { data } = await axiosInstance.get(url);
     handleDispatcherNum(data.data.length);
