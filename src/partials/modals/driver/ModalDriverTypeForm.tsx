@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "react-query";
 import { toast } from "sonner";
 import axiosInstance from "@/auth/_helpers";
+import clsx from "clsx";
 
 const driverSchema = Yup.object().shape({
   firstName: Yup.string().required("First name is required."),
@@ -23,7 +24,9 @@ const driverSchema = Yup.object().shape({
     .matches(/^\d{9}$/, {
       message: "Invalid phone number.",
     }),
-  type: Yup.string().required("Type is required."),
+  type: Yup.string()
+    .required("Type is required.")
+    .oneOf(["comission", "payrol"]),
   drivingLicense: Yup.mixed().required("Driving license is required."),
   profilePhoto: Yup.mixed().required("Profile photo is required."),
 });
@@ -643,45 +646,34 @@ const ModalDriverTypeForm = ({
                   </div>
                 </div>
 
-                {/* <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                    Phone Number
-                  </label>
-                  {formik.touched.phoneNumber && formik.errors.phoneNumber ? (
-                    <div className="text-red-500 text-sm">
-                      {typeof formik.errors.phoneNumber === "string"
-                        ? formik.errors.phoneNumber
-                        : null}
-                    </div>
-                  ) : null}
-                  <label className="input">
-                    <input
-                      placeholder="Enter phone number"
-                      autoComplete="off"
-                      disabled={isEdit}
-                      {...formik.getFieldProps("phoneNumber")}
-                    />
-                  </label>
-                </div> */}
-
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Type</label>
-                  {formik.touched.type && formik.errors.type ? (
-                    <div className="text-red-500 text-sm">
-                      {typeof formik.errors.type === "string"
-                        ? formik.errors.type
-                        : null}
-                    </div>
-                  ) : null}
                   <label className="input">
                     <select
                       {...formik.getFieldProps("type")}
-                      className="form-control form-select w-full outline-none bg-transparent"
+                      className={clsx(
+                        "form-control form-select w-full outline-none",
+                        {
+                          "is-invalid":
+                            formik.touched.type && formik.errors.type,
+                        },
+                        {
+                          "is-valid":
+                            formik.touched.type && !formik.errors.type,
+                        }
+                      )}
                     >
+                      <option value="">Select type</option>
                       <option value="comission">Commission</option>
-                      <option value="payroll">Payroll</option>
+                      <option value="payrol">Payrol</option>
                     </select>
                   </label>
+                  {formik.touched.type && formik.errors.type && (
+                    <span role="alert" className="text-danger text-xs mt-1">
+                      {typeof formik.errors.type === "string" &&
+                        formik.errors.type}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1">
