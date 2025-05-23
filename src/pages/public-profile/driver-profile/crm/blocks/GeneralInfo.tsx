@@ -91,7 +91,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
                 onClick={() => openImageModal(item.info)}
                 className="btn btn-sm btn-icon btn-clear btn-primary"
               >
-                <KeenIcon icon="folder-down" />
+                <KeenIcon icon="eye" />
               </button>
             </div>
           ) : (
