@@ -169,7 +169,7 @@ const ModalVehicleRegistrationForm = ({
 
   async function editVehicleType(values: any) {
     try {
-      const { photo, librae, id, ...updatedFields } = values;
+      const { photo, librae, id, vehicleTypeId, ...updatedFields } = values;
       const formData = new FormData();
       const newFormData = new FormData();
       let photo_res;
@@ -206,22 +206,22 @@ const ModalVehicleRegistrationForm = ({
         librae_res = res_2.data.data.filename;
       }
 
-      const lastData = {
+      const finalDataToSend = {
         ...updatedFields,
+        vehicleTypeId: Number(vehicleTypeId),
         ...(photo_res !== undefined && { photo: photo_res }),
         ...(librae_res !== undefined && { librae: librae_res }),
       };
 
       try {
-        let { owner, createdAt, driver, vehicleType, vehicleTypeId, ...rest } =
-          lastData;
-        rest = {
-          ...rest,
-          vehicleType: "comission",
-          vehicleTypeId: Number(vehicleTypeId),
-        };
-        console.log(rest, "data without owner.");
-        const res_3 = await axiosInstance.patch(`api/v1/vehicles/${id}`, rest);
+        // Exclude properties that should not be sent to the backend
+        const { createdAt, owner, driver, vehicleType, ...restOfData } =
+          finalDataToSend;
+
+        const res_3 = await axiosInstance.patch(
+          `api/v1/vehicles/${id}`,
+          restOfData
+        );
         if (res_3.status !== 200) {
           throw new Error(
             res_3.data.message || "Failed to update the vehicle."
@@ -267,6 +267,7 @@ const ModalVehicleRegistrationForm = ({
     validationSchema: vehicleSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
       console.log(formik.errors, "err");
+      console.log("Values on submit:", values);
       console.log("here");
       try {
         mutate(values);
@@ -297,11 +298,18 @@ const ModalVehicleRegistrationForm = ({
     if (open) {
       if (isEdit && vehicleData) {
         // Ensure vehicleTypeId is a number when setting form values
+        console.log("Vehicle Data in Edit Mode:", vehicleData);
         const formattedData = {
           ...vehicleData,
-          vehicleTypeId: Number(vehicleData.id),
+          // Assuming vehicleData contains a field like 'type' or 'vehicleType' or 'vehicleTypeId'
+          // Adjust 'vehicleTypeId' to the actual field name in your vehicleData
+          vehicleTypeId: Number(
+            vehicleData.vehicleType?.id || vehicleData.vehicleTypeId || ""
+          ), // Try accessing through vehicleType.id or vehicleTypeId
         };
+        console.log("Formatted Data for Formik:", formattedData);
         formik.setValues(formattedData);
+        console.log("Formik values after setValues:", formik.values);
       } else {
         formik.resetForm();
       }
@@ -444,38 +452,14 @@ const ModalVehicleRegistrationForm = ({
                 <span>Error loading vehicle type</span>
               ) : (
                 <label className="input">
-                  {/* <select
-                    {...formik.getFieldProps("vehicleTypeId")}
-                    className="form-control form-select w-full outline-none"
-                  >
-                    <option value="" disabled>
-                      Select a vehicle type
-                    </option>
-                    {vehicleType?.map(
-                      (vehicle: { id: number; name: string }) => (
-                        <option key={vehicle.id} value={vehicle.id}>
-                          {`${vehicle.name}`}
-                        </option>
-                      )
-                    )}
-                  </select> */}
                   <select
                     {...formik.getFieldProps("vehicleTypeId")}
                     className="form-control form-select w-full outline-none"
-                    value={formik.values.vehicleTypeId} // Explicitly set the value
                   >
-                    <option value="" disabled>
-                      Select a vehicle type
-                    </option>
+                    <option value="">Select a vehicle type</option>
                     {vehicleType?.map(
                       (vehicle: { id: number; name: string }) => (
-                        <option
-                          key={vehicle.id}
-                          value={vehicle.id}
-                          selected={
-                            Number(formik.values.vehicleTypeId) === vehicle.id
-                          } // Add selected attribute
-                        >
+                        <option key={vehicle.id} value={vehicle.id}>
                           {`${vehicle.name}`}
                         </option>
                       )

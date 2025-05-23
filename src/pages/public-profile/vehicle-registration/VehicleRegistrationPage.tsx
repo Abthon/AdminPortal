@@ -42,7 +42,7 @@ const VechileRegistrationPage = () => {
                   <KeenIcon icon="magnifier" />
                   <input
                     type="text"
-                    placeholder="Search By Model"
+                    placeholder="Search By Make"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                   />

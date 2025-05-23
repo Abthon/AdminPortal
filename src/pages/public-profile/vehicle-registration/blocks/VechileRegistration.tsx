@@ -115,7 +115,7 @@ const VehicleRegistration = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/vehicles?filters=model=${search}&take=${pageSize}&page=${pageIndex}&sort=make=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/vehicles?filters=make=${search}&take=${pageSize}&page=${pageIndex}&sort=make=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page

@@ -188,7 +188,18 @@ const ModalVehicleTypeForm = ({
   useEffect(() => {
     if (open) {
       if (isEdit) {
-        formik.setValues(vehicleData || {}); // Populate form with edit data
+        // Ensure vehicleType is populated correctly
+        formik.setValues({
+          ...(vehicleData || {}),
+          // Assuming vehicleData contains a field like 'type' or 'vehicleType'
+          // Adjust 'vehicleType' to the actual field name in your vehicleData
+          name: vehicleData?.name || "", // Example: populating 'name'
+          baseFare: vehicleData?.baseFare || "", // Example: populating 'baseFare'
+          additionalFarePerKm: vehicleData?.additionalFarePerKm || "", // Example: populating 'additionalFarePerKm'
+          minWeightCapacity: vehicleData?.minWeightCapacity || "", // Example: populating 'minWeightCapacity'
+          maxWeightCapacity: vehicleData?.maxWeightCapacity || "", // Example: populating 'maxWeightCapacity'
+          // ... include other fields similarly
+        });
       } else {
         formik.resetForm(); // Reset form for add mode
       }
