@@ -60,7 +60,6 @@ const Drivers = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
-  const [filterInputAvaliable, setFilterInputAvaliable] = useState("all");
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -114,7 +113,7 @@ const Drivers = ({
     //   console.log(sort, "sorting is finally here");
     // }
     // [Todo: refactor url]
-    const url = `/api/v1/drivers?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}${filterInputAvaliable && filterInputAvaliable !== "all" ? `${filterInput && filterInput !== "all" ? `,is_online=${filterInputAvaliable == "online" ? "1" : "0"}` : `&filters=is_online=${filterInputAvaliable == "online" ? "1" : "0"}`}` : ""}`;
+    const url = `/api/v1/drivers?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -144,7 +143,7 @@ const Drivers = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/drivers?filters=firstname=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}${filterInputAvaliable && filterInputAvaliable !== "all" ? `,is_online=${filterInputAvaliable == "online" ? "1" : "0"}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/drivers?filters=firstname=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -162,7 +161,7 @@ const Drivers = ({
   }
 
   async function revalidateDriver() {
-    const url = `/api/v1/drivers?filters=firstname=${searchInput}`;
+    const url = `/api/v1/drivers?filters=firstname=${searchInput}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}`;
     const { data } = await axiosInstance.get(url);
     handleDriverNum(data.data.length);
     console.log(data.data, "driver data");
@@ -175,7 +174,7 @@ const Drivers = ({
   }
 
   const { isLoading: isDriverLoading, data: DriverData } = useQuery({
-    queryKey: ["Drivers", searchInput, filterInput, filterInputAvaliable],
+    queryKey: ["Drivers", searchInput, filterInput],
     queryFn: revalidateDriver,
   });
 
@@ -434,11 +433,6 @@ const Drivers = ({
       console.log("Filter value changed to:", value); // Optional: log for debugging
     };
 
-    const handleFilterChangeAvaliable = (value: any) => {
-      setFilterInputAvaliable(value); // Update the state when the user selects an item
-      console.log("Filter value changed to:", value); // Optional: log for debugging
-    };
-
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
@@ -464,20 +458,6 @@ const Drivers = ({
               </SelectContent>
             </Select>
 
-            <Select
-              value={filterInputAvaliable}
-              onValueChange={handleFilterChangeAvaliable}
-              defaultValue="all"
-            >
-              <SelectTrigger className="w-28" size="sm">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent className="w-32">
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="online">Online</SelectItem>
-                <SelectItem value="offline">Offline</SelectItem>
-              </SelectContent>
-            </Select>
             <button className="btn btn-sm btn-outline btn-primary">
               <KeenIcon icon="setting-4" /> Filters
             </button>
@@ -508,7 +488,6 @@ const Drivers = ({
         link={"driver"}
         columns={columns}
         filterInput={filterInput}
-        filterInput_2={filterInputAvaliable}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         searchInput={searchInput}
