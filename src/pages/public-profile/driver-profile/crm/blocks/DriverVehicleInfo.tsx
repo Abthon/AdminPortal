@@ -54,15 +54,6 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
               </tbody>
             </table>
           </div>
-
-          <div className="card-footer justify-center">
-            <Link
-              to={`/public-profile/vehicle-registration/${data?.id}`}
-              className="btn btn-link"
-            >
-              View
-            </Link>
-          </div>
         </>
       ) : (
         <div className="card-body pt-3.5 flex justify-center items-center">

@@ -37,31 +37,6 @@ const DriverBooking: React.FC<DriverBookingProps> = ({ data }) => {
             {item.status}
           </div>
         </td>
-
-        <td className="text-start">
-          <Menu>
-            <MenuItem
-              toggle="dropdown"
-              trigger="click"
-              dropdownProps={{
-                placement: isRTL() ? "bottom-start" : "bottom-end",
-                modifiers: [
-                  {
-                    name: "offset",
-                    options: {
-                      offset: isRTL() ? [0, -10] : [0, 10], // [skid, distance]
-                    },
-                  },
-                ],
-              }}
-            >
-              <MenuToggle className="btn btn-sm btn-icon btn-light btn-clear">
-                <KeenIcon icon="dots-vertical" />
-              </MenuToggle>
-              {DropdownCrudItem1()}
-            </MenuItem>
-          </Menu>
-        </td>
       </tr>
     );
   };
@@ -70,29 +45,6 @@ const DriverBooking: React.FC<DriverBookingProps> = ({ data }) => {
     <div className="card">
       <div className="card-header">
         <h3 className="card-title">Driver Bookings</h3>
-
-        {/* <Menu>
-          <MenuItem
-            toggle="dropdown"
-            trigger="click"
-            dropdownProps={{
-              placement: isRTL() ? "bottom-start" : "bottom-end",
-              modifiers: [
-                {
-                  name: "offset",
-                  options: {
-                    offset: isRTL() ? [0, -10] : [0, 10], // [skid, distance]
-                  },
-                },
-              ],
-            }}
-          >
-            <MenuToggle className="btn btn-sm btn-icon btn-light btn-clear">
-              <KeenIcon icon="dots-vertical" />
-            </MenuToggle>
-            {DropdownCrud1()}
-          </MenuItem>
-        </Menu> */}
       </div>
       <div className="card-table scrollable-x-auto">
         <table className="table text-end">
@@ -102,7 +54,6 @@ const DriverBooking: React.FC<DriverBookingProps> = ({ data }) => {
               <th className="text-start min-w-[100px] !text-gray-700"> To</th>
               <th className="min-w-[100px]">Distance</th>
               <th className="min-w-[110px] !text-gray-700">Status</th>
-              <th className="w-[30px]"></th>
             </tr>
           </thead>
           <tbody>
