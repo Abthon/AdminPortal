@@ -106,12 +106,13 @@ const ModalFuel = ({
 
   async function editFuelRecord(values: any) {
     try {
-      const { id, fuelCost, odometerValue } = values;
+      const { id, fuelCost, odometerValue, fuelQuantity } = values;
 
       // Convert `isApproved` to a boolean if it exists
       const updatedValues: any = {
         fuelCost,
         odometerValue,
+        fuelQuantity,
       };
 
       try {
@@ -398,14 +399,13 @@ const ModalFuel = ({
                 </div>
               )}
             </div>
-            <div className={`flex flex-col gap-1 ${isEdit && "hidden"}`}>
+            <div className="flex flex-col gap-1">
               <label className="form-label text-gray-900">Fuel Quantity</label>
               <label className="input">
                 <input
                   placeholder="Enter fuelQuantity"
                   autoComplete="off"
                   type="number"
-                  disabled={isEdit}
                   {...formik.getFieldProps("fuelQuantity")}
                   className={clsx(
                     "form-control bg-transparent",
