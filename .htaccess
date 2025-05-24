@@ -1,0 +1,6 @@
+AddType text/javascript .js
+AddType text/css .css
+AddType image/png .png
+AddType image/jpeg .jpg .jpeg
+AddType application/json .json
+AddType image/x-icon .ico
