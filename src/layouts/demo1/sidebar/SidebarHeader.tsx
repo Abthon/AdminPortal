@@ -21,12 +21,12 @@ const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
       </Link>
       <Link to="/" className="hidden dark:block">
         <img
-          src={toAbsoluteUrl("/media/app/mini-logo.svg")}
-          className="default-logo min-h-[20px] max-w-[40px] object-cover"
+          src={toAbsoluteUrl("/media/app/logo.jpg")}
+          className="default-logo min-h-[40px] max-w-[40px] object-cover"
         />
         <img
-          src={toAbsoluteUrl("/media/app/mini-logo.svg")}
-          className="small-logo min-h-[20px] max-w-[40px] object-cover"
+          src={toAbsoluteUrl("/media/app/logo.jpg")}
+          className="small-logo min-h-[40px] max-w-[40px] object-cover"
         />
       </Link>
     </Fragment>
@@ -35,12 +35,12 @@ const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
   const darkLogo = () => (
     <Link to="/">
       <img
-        src={toAbsoluteUrl("/media/app/default-logo-dark.svg")}
-        className="default-logo min-h-[22px] max-w-none"
+        src={toAbsoluteUrl("/media/app/logo.jpg")}
+        className="default-logo min-h-[40px] max-w-[40px] object-cover"
       />
       <img
-        src={toAbsoluteUrl("/media/app/mini-logo.svg")}
-        className="small-logo min-h-[22px] max-w-none"
+        src={toAbsoluteUrl("/media/app/logo.jpg")}
+        className="small-logo min-h-[40px] max-w-[40px] object-cover"
       />
     </Link>
   );

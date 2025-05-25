@@ -20,12 +20,12 @@ const HeaderLogo = () => {
       <Link to="/" className="shrink-0">
         <img
           src={toAbsoluteUrl("/media/app/logo.jpg")}
-          className="dark:hidden max-h-[25px] w-full"
-          alt="mini-logo"
+          className="dark:hidden max-h-[25px] w-full object-cover"
+          alt="logo"
         />
         <img
-          src={toAbsoluteUrl("/media/app/mini-logo.svg")}
-          className="hidden dark:inline-block max-h-[25px] w-full"
+          src={toAbsoluteUrl("/media/app/logo.jpg")}
+          className="hidden dark:inline-block max-h-[25px] w-full object-cover"
           alt="logo"
         />
       </Link>
