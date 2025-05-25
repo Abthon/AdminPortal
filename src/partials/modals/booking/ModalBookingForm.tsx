@@ -25,7 +25,6 @@ const bookingSchema = Yup.object().shape({
     message: "Invalid phone number.",
   }),
   driverId: Yup.number(),
-  corporateId: Yup.number(),
 });
 
 interface IModalBookingFormProps {
@@ -55,24 +54,9 @@ const ModalBookingForm = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDriverDropdown, setShowDriverDropdown] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState(0);
-  const [userType, setUserType] = useState<"user" | "corporate" | null>(null);
-  const [bookingType, setBookingType] = useState<
-    "single_trip" | "round_trip" | null
-  >(null);
+  const [userType, setUserType] = useState<"user" | null>(null);
   const [notifyDrivers, setNotifyDrivers] = useState(false);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
-  const [stops, setStops] = useState<
-    Array<{
-      stopName: string;
-      stopLat: number;
-      stopLng: number;
-    }>
-  >([]);
-  const [currentStop, setCurrentStop] = useState({
-    name: "",
-    lat: "",
-    lng: "",
-  });
   const queryClient = useQueryClient();
   const { mutate, isLoading } = useMutation({
     mutationFn: isEndBooking ? editBooking : addBooking,
@@ -96,16 +80,10 @@ const ModalBookingForm = ({
     dropOffLat: "",
     dropOffLng: "",
     driverId: "",
-    corporateId: "",
     vehicleTypeId: "",
     distance: "",
     duration: "",
     phoneNumber: "",
-    stops: [],
-    // status: "",
-    // remark: "",
-    // traveledPath: "",
-    // polyline: "",
   };
 
   const calculateEstimatedPrice = async (
@@ -130,16 +108,27 @@ const ModalBookingForm = ({
             updatedFields
           );
 
-          if (res.status === 200) {
+          if (
+            res.status === 201 &&
+            res.data?.data?.prices?.[0]?.estimatedPrice
+          ) {
             const price = Math.floor(res.data.data.prices[0].estimatedPrice);
+            console.log("Calculated price:", price); // Debug log
             setEstimatedPrice(price);
+          } else {
+            console.log("Invalid response structure:", res.data); // Debug log
+            setEstimatedPrice(0);
           }
         } catch (e) {
-          console.log(e, "the error");
+          console.log("API Error:", e); // Debug log
+          setEstimatedPrice(0);
         }
       } catch (err) {
         console.log("Error calculating estimate:", err);
+        setEstimatedPrice(0);
       }
+    } else {
+      setEstimatedPrice(0);
     }
   };
 
@@ -154,32 +143,8 @@ const ModalBookingForm = ({
         pickupName,
         dropOffName,
         driverId,
-        corporateId,
         phoneNumber,
-        stops,
       } = values;
-
-      const updatedFields = {
-        lat1: pickupLat,
-        lng1: pickupLng,
-        lat2: dropOffLat,
-        lng2: dropOffLng,
-        vehicleTypeId: Number(vehicleTypeId),
-      };
-
-      const res = await axiosInstance.post(
-        "api/v1/bookings/estimate/",
-        updatedFields
-      );
-
-      if (res.status !== 200) {
-        throw new Error(res.data.message || "Failed to create the booking.");
-      }
-
-      const data = res.data;
-      const distance = Math.floor(data.data.estimatedDistance);
-      const price = Math.floor(res.data.data.prices[0].estimatedPrice);
-      const estimatedDuration = Math.floor(data.data.estimatedDuration);
 
       const finalReq = {
         pickupLat: pickupLat.toString(),
@@ -189,24 +154,21 @@ const ModalBookingForm = ({
         pickupName,
         dropOffName,
         ...(driverId ? { driverId: Number(driverId) } : {}),
-        ...(corporateId ? { coorId: Number(corporateId) } : {}),
         ...(phoneNumber ? { contactPhoneNumber: phoneNumber } : {}),
-        estimatedPrice: Number(price),
-        estimatedDuration: Number(estimatedDuration),
-        estimatedTraveledDistance: distance,
+        estimatedPrice: Number(estimatedPrice),
+        estimatedDuration: 0, // This will be calculated by the backend
+        estimatedTraveledDistance: 0, // This will be calculated by the backend
         vehicleType: Number(vehicleTypeId),
         notifyNearbyDrivers: notifyDrivers,
-        type: bookingType,
-        ...(stops && stops.length > 0 ? { stops } : {}),
       };
 
-      console.log("finalReqqqq babyyyy", finalReq);
-      const res_3 = await axiosInstance.post("api/v1/bookings/admin", finalReq);
-      if (res_3.status !== 201) {
-        throw new Error(res_3.data.message || "Failed to create the booking.");
+      console.log("Creating booking with data:", finalReq);
+      const res = await axiosInstance.post("api/v1/bookings/admin", finalReq);
+      if (res.status !== 201) {
+        throw new Error(res.data.message || "Failed to create the booking.");
       }
 
-      return res_3.data;
+      return res.data;
     } catch (err: any) {
       const errorMessage = err?.response?.data?.message;
       const errorMessageAlt =
@@ -717,178 +679,6 @@ const ModalBookingForm = ({
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
-                    Add Stops (Optional)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    {isGoogleLoaded && (
-                      <div className="flex-1">
-                        <GooglePlacesAutocomplete
-                          apiKey={
-                            import.meta.env.VITE_APP_GOOGLE_MAPS_API_KEY || ""
-                          }
-                          selectProps={{
-                            value: currentStop.name
-                              ? {
-                                  label: currentStop.name,
-                                  value: {
-                                    description: currentStop.name,
-                                    geometry: {
-                                      location: {
-                                        lat: currentStop.lat,
-                                        lng: currentStop.lng,
-                                      },
-                                    },
-                                  },
-                                }
-                              : null,
-                            onChange: async (value) => {
-                              if (
-                                value &&
-                                value.value &&
-                                value.value.place_id
-                              ) {
-                                const placeId = value.value.place_id;
-
-                                // Initialize Google Maps Places Service
-                                const service =
-                                  new google.maps.places.PlacesService(
-                                    document.createElement("div")
-                                  );
-                                service.getDetails(
-                                  { placeId },
-                                  (place, status) => {
-                                    if (
-                                      status ===
-                                      google.maps.places.PlacesServiceStatus.OK
-                                    ) {
-                                      setCurrentStop({
-                                        name: value.label,
-                                        lat:
-                                          place?.geometry?.location
-                                            ?.lat()
-                                            ?.toString() || "",
-                                        lng:
-                                          place?.geometry?.location
-                                            ?.lng()
-                                            ?.toString() || "",
-                                      });
-                                    } else {
-                                      console.error(
-                                        "Failed to fetch place details:",
-                                        status
-                                      );
-                                    }
-                                  }
-                                );
-                              } else {
-                                console.error("Invalid value:", value);
-                              }
-                            },
-                            styles: {
-                              control: (provided, state) => ({
-                                ...provided,
-                                backgroundColor: "transparent",
-                                borderColor: "#3d3e46 !important",
-                                boxShadow: "none !important",
-                                outline: "none !important",
-                                fontSize: ".85em",
-                                paddingLeft: "5px",
-                                maxWidth: "390px",
-                                overflow: "hidden",
-                              }),
-                              input: (provided) => ({
-                                ...provided,
-                                color: "gray", // [ text color ]
-                              }),
-                              placeholder: (provided) => ({
-                                ...provided,
-                                color: "#9ca3af", // Optional: Customize placeholder text color
-                              }),
-                              singleValue: (provided) => ({
-                                ...provided,
-                                color: "#808290", // Optional: Customize selected value text color
-                              }),
-                            },
-                            placeholder: "Enter a stop location",
-                          }}
-                          autocompletionRequest={{
-                            componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
-                          }}
-                        />
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="btn btn-icon btn-sm btn-secondary"
-                      onClick={() => {
-                        if (
-                          currentStop.name &&
-                          currentStop.lat &&
-                          currentStop.lng
-                        ) {
-                          // Add current stop to stops array
-                          const newStop = {
-                            stopName: currentStop.name,
-                            stopLat: parseFloat(currentStop.lat),
-                            stopLng: parseFloat(currentStop.lng),
-                          };
-
-                          const updatedStops = [...stops, newStop];
-                          setStops(updatedStops);
-                          formik.setFieldValue("stops", updatedStops);
-
-                          // Reset the current stop
-                          setCurrentStop({ name: "", lat: "", lng: "" });
-                        }
-                      }}
-                      disabled={!currentStop.name}
-                    >
-                      <KeenIcon icon="plus" className="text-white" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Display selected stops */}
-                {stops.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-sm font-medium text-gray-700 mb-2">
-                      Selected Stops:
-                    </p>
-                    <div className="space-y-2">
-                      {stops.map((stop, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-2 bg-gray-50 rounded-md border border-gray-200"
-                        >
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-800">
-                              {stop.stopName}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {stop.stopLat.toFixed(6)},{" "}
-                              {stop.stopLng.toFixed(6)}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            className="btn btn-icon btn-sm btn-ghost-danger"
-                            onClick={() => {
-                              const updatedStops = stops.filter(
-                                (_, i) => i !== index
-                              );
-                              setStops(updatedStops);
-                              formik.setFieldValue("stops", updatedStops);
-                            }}
-                          >
-                            <KeenIcon icon="trash" className="text-danger" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
                     DropOff Location
                   </label>
                   {formik.touched.dropOffName && formik.errors.dropOffName ? (
@@ -975,19 +765,6 @@ const ModalBookingForm = ({
                             maxWidth: "390px",
                             overflow: "hidden",
                           }),
-                          // menu: (provided) => ({
-                          //   ...provided,
-                          //   backgroundColor: '#3d3e46',
-                          //   border: '1px solid #3d3e46',
-                          //   borderRadius: '4px',
-                          //   boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                          //   zIndex: 1000,
-                          // }),
-                          // menuList: (provided) => ({
-                          //   ...provided,
-                          //   padding: "0", // Remove additional padding
-                          //   backgroundColor: '#3d3e46',
-                          // }),
                           input: (provided) => ({
                             ...provided,
                             color: "gray", // [ text color ]
@@ -1007,328 +784,6 @@ const ModalBookingForm = ({
                         componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
                       }}
                     />
-                  )}
-                </div>
-                <div className="flex flex-col gap-3">
-                  <label className="form-label text-gray-900">
-                    Booking Type
-                  </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="bookingType"
-                        value="single_trip"
-                        checked={bookingType === "single_trip"}
-                        onChange={(e) => setBookingType("single_trip")}
-                        className="radio radio-primary"
-                      />
-                      <span>Single</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="bookingType"
-                        value="round_trip"
-                        checked={bookingType === "round_trip"}
-                        onChange={(e) => setBookingType("round_trip")}
-                        className="radio radio-primary"
-                      />
-                      <span>Round</span>
-                    </label>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-3">
-                  <label className="form-label text-gray-900">User Type</label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="userType"
-                        value="user"
-                        checked={userType === "user"}
-                        onChange={(e) => setUserType("user")}
-                        className="radio radio-primary"
-                      />
-                      <span>User</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="userType"
-                        value="corporate"
-                        checked={userType === "corporate"}
-                        onChange={(e) => setUserType("corporate")}
-                        className="radio radio-primary"
-                      />
-                      <span>Corporate</span>
-                    </label>
-                  </div>
-                </div>
-
-                {userType === "user" && (
-                  <div className="flex flex-col gap-1">
-                    <label className="form-label text-gray-900">
-                      Phone Number
-                    </label>
-                    {/* Your existing phone number input code */}
-                    <div className="flex items-center gap-2">
-                      <select
-                        className="border border-gray-300 rounded px-2 py-2 text-gray-900 bg-white dark:bg-gray-100 dark:text-white"
-                        disabled={isEdit}
-                        defaultValue="+251"
-                      >
-                        <option value="+251">+251</option>
-                      </select>
-                      <label className="input flex-1">
-                        <input
-                          placeholder="Enter phone number"
-                          autoComplete="off"
-                          disabled={isEdit}
-                          {...formik.getFieldProps("phoneNumber")}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                )}
-                {userType === "corporate" && (
-                  <div className="flex flex-col gap-1">
-                    <label className="form-label text-gray-900">
-                      Search for Corporate
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Search corporates..."
-                      value={corporateSearchTerm}
-                      onChange={(e) => {
-                        setCorporateSearchTerm(e.target.value);
-                        setShowDropdown(true);
-                      }}
-                      onFocus={() => setShowDropdown(true)}
-                      className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none transition-all duration-200 ${
-                        formik.values.corporateId
-                          ? "bg-gray-100"
-                          : "bg-transparent"
-                      }`}
-                      style={{
-                        backgroundColor: formik.values.corporateId
-                          ? "#f3f4f6"
-                          : "transparent", // Light gray background when a corporate is selected
-                      }}
-                    />
-                    {showDropdown && (
-                      <div className="mt-2 max-h-40 overflow-y-auto shadow-sm rounded-lg border border-gray-200 bg-white">
-                        {isSearchingCorporates ? (
-                          <div className="p-3 text-gray-500 text-sm">
-                            Loading...
-                          </div>
-                        ) : corporateSearchError ? (
-                          <div className="p-3 text-red-500 text-sm">
-                            Error loading corporates
-                          </div>
-                        ) : searchedCorporates?.length > 0 ? (
-                          searchedCorporates.map((corporate: any) => (
-                            <div
-                              key={corporate.id}
-                              className="p-3 hover:bg-gray-50 cursor-pointer transition-all duration-200"
-                              onClick={() => {
-                                console.log(corporate.id, "the corporate id");
-                                formik.setFieldValue(
-                                  "corporateId",
-                                  corporate.id.toString()
-                                );
-                                setCorporateSearchTerm(corporate.name); // Update search term to show selected corporate
-                                setShowDropdown(false); // Hide dropdown after selection
-                              }}
-                            >
-                              <span className="text-gray-900 font-medium">
-                                {corporate.name}
-                              </span>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="p-3 text-gray-500 text-sm">
-                            No corporates found
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-                {/* {bookingType === "corporate" && (
-                  <div className="flex flex-col gap-1">
-                    <label className="form-label text-gray-900">
-                      Search for Corporate
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Search corporates..."
-                      value={corporateSearchTerm}
-                      onChange={(e) => setCorporateSearchTerm(e.target.value)}
-                      className="form-control w-full"
-                      style={{
-                        backgroundColor: "transparent",
-                        outline: "none",
-                        borderColor: "blue",
-                      }}
-                    />
-                    <div className="mt-2 max-h-40 overflow-y-auto">
-                      {isSearchingCorporates ? (
-                        <div className="p-2 text-gray-500">Loading...</div>
-                      ) : corporateSearchError ? (
-                        <div className="p-2 text-red-500">
-                          Error loading corporates
-                        </div>
-                      ) : searchedCorporates?.length > 0 ? (
-                        searchedCorporates.map((corporate: any) => (
-                          <div
-                            key={corporate.id}
-                            className="p-2 hover:bg-gray-100 cursor-pointer"
-                            onClick={() => {
-                              formik.setFieldValue("corporateId", corporate.id);
-                              setCorporateSearchTerm(corporate.name); // Update search term to show selected corporate
-                            }}
-                          >
-                            {corporate.name}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="p-2 text-gray-500">
-                          No corporates found
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )} */}
-                {/* {bookingType === "corporate" && (
-                  <div className="flex flex-col gap-1">
-                    <label className="form-label text-gray-900">
-                      Search for Corporate
-                    </label>
-                    <label className="input">
-                      <select
-                        {...formik.getFieldProps("corporateId")}
-                        className="form-control form-select w-full"
-                        style={{
-                          backgroundColor: "transparent",
-                          outline: "none",
-                          borderColor: "blue",
-                        }}
-                      >
-                        <option value="" disabled>
-                          Select a Corporate
-                        </option>
-                        {corporates?.map(
-                          (corporate: { id: number; name: string }) => (
-                            <option key={corporate.id} value={corporate.id}>
-                              {corporate.name}
-                            </option>
-                          )
-                        )}
-                      </select>
-                    </label>
-                  </div>
-                )} */}
-
-                {/* <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">Driver</label>
-                  {formik.touched.driverId && formik.errors.driverId ? (
-                    <div className="text-red-500 text-sm">
-                      {typeof formik.errors.driverId === "string"
-                        ? formik.errors.driverId
-                        : null}
-                    </div>
-                  ) : null}
-                  {isDriversLoading ? (
-                    <span>Loading drivers...</span>
-                  ) : driversError ? (
-                    <span>Error loading drivers</span>
-                  ) : (
-                    <label className="input">
-                      <select
-                        {...formik.getFieldProps("driverId")}
-                        className="form-control form-select w-full"
-                        style={{
-                          backgroundColor: "transparent",
-                          outline: "none",
-                          borderColor: "blue",
-                        }}
-                      >
-                        <option value="" disabled>
-                          Select a driver
-                        </option>
-                        {drivers?.map(
-                          (driver: {
-                            id: number;
-                            firstName: string;
-                            lastName: string;
-                          }) => (
-                            <option key={driver.id} value={driver.id}>
-                              {`${driver.firstName} ${driver.lastName}`}
-                            </option>
-                          )
-                        )}
-                      </select>
-                    </label>
-                  )}
-                </div> */}
-                <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                    Search for drivers
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Search drivers..."
-                    value={driverSearchTerm}
-                    onChange={(e) => {
-                      setDriverSearchTerm(e.target.value);
-                      setShowDriverDropdown(true);
-                    }}
-                    onFocus={() => setShowDriverDropdown(true)}
-                    className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none transition-all duration-200 ${
-                      formik.values.driverId ? "bg-gray-100" : "bg-transparent"
-                    }`}
-                    style={{
-                      backgroundColor: formik.values.driverId
-                        ? "#f3f4f6"
-                        : "transparent", // Light gray background when a corporate is selected
-                    }}
-                  />
-                  {showDriverDropdown && (
-                    <div className="mt-2 max-h-40 overflow-y-auto shadow-sm rounded-lg border border-gray-200 bg-white">
-                      {isSearchingDrivers ? (
-                        <div className="p-3 text-gray-500 text-sm">
-                          Loading...
-                        </div>
-                      ) : driverSearchError ? (
-                        <div className="p-3 text-red-500 text-sm">
-                          Error loading drivers
-                        </div>
-                      ) : searchdDrivers?.length > 0 ? (
-                        searchdDrivers.map((driver: any) => (
-                          <div
-                            key={driver.id}
-                            className="p-3 hover:bg-gray-50 cursor-pointer transition-all duration-200"
-                            onClick={() => {
-                              formik.setFieldValue(
-                                "driverId",
-                                driver.id.toString()
-                              );
-                              setDriverSearchTerm(driver.firstName); // Update search term to show selected drivers
-                              setShowDriverDropdown(false); // Hide dropdown after selection
-                            }}
-                          >
-                            <span className="text-gray-900 font-medium">
-                              {driver.firstName} {driver.lastName}
-                            </span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="p-3 text-gray-500 text-sm">
-                          No driver found
-                        </div>
-                      )}
-                    </div>
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
@@ -1395,13 +850,21 @@ const ModalBookingForm = ({
                 </label>
                 <div>
                   <label className="form-label text-gray-900">
-                    Estimated Price: {estimatedPrice} Birr
+                    Estimated Price:{" "}
+                    {estimatedPrice > 0
+                      ? `${estimatedPrice} Birr`
+                      : "Calculating..."}
                   </label>
                 </div>
                 <button
                   type="submit"
                   className="btn btn-primary flex justify-center grow"
-                  disabled={estimatedPrice === 0}
+                  disabled={
+                    !formik.values.pickupName ||
+                    !formik.values.dropOffName ||
+                    !formik.values.vehicleTypeId ||
+                    estimatedPrice === 0
+                  }
                 >
                   {isEdit ? "Edit" : "Create"}
                 </button>
@@ -1431,7 +894,6 @@ const ModalBookingForm = ({
                 <button
                   type="submit"
                   className="btn btn-primary flex justify-center grow"
-                  // disabled={isLoading}
                 >
                   {isEdit ? "Edit" : "Create"}
                 </button>

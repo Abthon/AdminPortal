@@ -41,7 +41,6 @@ interface IBookingData {
   actualPrice: number;
   status: string;
   createdAt: string;
-  coor: any;
   driver: any;
   contactPhoneNumber: string;
 }
@@ -99,8 +98,7 @@ const Booking: React.FC<BookingProps> = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}&fields=coor.*,driver.*,id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber`;
-    // const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
+    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}&fields=driver.*,id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber`;
     const { data } = await axiosInstance.get(url);
 
     console.log(data, "data ke get booking");
@@ -415,34 +413,34 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[100px]",
         },
       },
-      {
-        // accessorFn: (row) => row.estimatedPrice,
-        id: "corporatename",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="CorporateName" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.coor?.name;
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
-        },
-      },
-      {
-        // accessorFn: (row) => row.estimatedPrice,
-        id: "contactPhoneNumber",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="UserPhone" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return `${info.row.original.coor?.contactPhoneNumber ? `+251${info.row.original.coor?.contactPhoneNumber}` : ""}`;
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
-        },
-      },
+      // {
+      //   // accessorFn: (row) => row.estimatedPrice,
+      //   id: "corporatename",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="CorporateName" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.coor?.name;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[100px]",
+      //   },
+      // },
+      // {
+      //   // accessorFn: (row) => row.estimatedPrice,
+      //   id: "contactPhoneNumber",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="UserPhone" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return `${info.row.original.coor?.contactPhoneNumber ? `+251${info.row.original.coor?.contactPhoneNumber}` : ""}`;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[100px]",
+      //   },
+      // },
       {
         // accessorFn: (row) => row.status,
         id: "status",
