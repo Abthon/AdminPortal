@@ -61,7 +61,6 @@ export function setupAxios(axiosInstance: any) {
       ) {
         originalRequest._retry = true;
         const auth = getAuth();
-        //console.log(auth?.refreshToken, "the refresh token");
         if (auth?.refreshToken) {
           try {
             const { data } = await axios.post(
@@ -76,7 +75,6 @@ export function setupAxios(axiosInstance: any) {
               }
             );
             const newAuth = { ...auth, accessToken: data.data.accessToken };
-            // console.log(newAuth, "access");
             setAuth(newAuth);
             axiosInstance.defaults.headers.Authorization = `Bearer ${data.data.accessToken}`;
             originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;

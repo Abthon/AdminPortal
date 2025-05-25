@@ -40,14 +40,14 @@ export const getMenuSidebar = (
               title: "Vehicle Types",
               path: "/vehicle-types",
             },
-            {
-              title: "Fuels",
-              path: "/fuels",
-            },
-            {
-              title: "Odometer",
-              path: "/odometer",
-            },
+            // {
+            //   title: "Fuels",
+            //   path: "/fuels",
+            // },
+            // {
+            //   title: "Odometer",
+            //   path: "/odometer",
+            // },
           ],
         }
       : null,
