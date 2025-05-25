@@ -64,7 +64,7 @@ export function setupAxios(axiosInstance: any) {
         if (auth?.refreshToken) {
           try {
             const { data } = await axios.post(
-              "http://static.108.155.13.49.clients.your-server.de/test/api/v1/auth/refresh",
+              "https://app.navigo.et/test/api/v1/auth/refresh",
               {
                 firebaseToken: "1234",
               },
@@ -97,7 +97,7 @@ export function setupAxios(axiosInstance: any) {
 }
 
 const axiosInstance = axios.create({
-  baseURL: "http://static.108.155.13.49.clients.your-server.de/test",
+  baseURL: "https://app.navigo.et/test",
 });
 
 setupAxios(axiosInstance);
