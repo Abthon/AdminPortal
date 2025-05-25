@@ -28,7 +28,8 @@ export function truncateString(str: string) {
 }
 
 const removeBaseUrl = (url: any) => {
-  const baseUrl = "https://app.navigo.et/test/static/profile/";
+  const baseUrl =
+    "http://static.108.155.13.49.clients.your-server.de/test/static/profile/";
   console.log(url.replace(baseUrl, url, "here here"));
   return url.replace(baseUrl, "");
 };
@@ -60,7 +61,8 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
   ];
 
   const renderItems = (item: IGeneralInfoItem, index: number) => {
-    const baseUrl = "https://app.navigo.et/test/static/license/";
+    const baseUrl =
+      "http://static.108.155.13.49.clients.your-server.de/test/static/license/";
 
     // Function to open image in modal
     const openImageModal = async (fileName: any) => {

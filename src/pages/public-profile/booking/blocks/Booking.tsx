@@ -178,6 +178,13 @@ const Booking: React.FC<BookingProps> = ({
     return data;
   }
 
+  async function completeBooking(id: string) {
+    const { data } = await axiosInstance.post(
+      `/api/v1/bookings/complete/${id}`
+    );
+    return data;
+  }
+
   // async function getBookings(): Promise<IBookingData[]> {
   //   const { data } = await axiosInstance.get("/api/v1/bookings");
   //   console.log(data.data);
@@ -218,6 +225,19 @@ const Booking: React.FC<BookingProps> = ({
     },
     onError: (error: unknown) => {
       toast("Error Encountered while starting the booking");
+    },
+  });
+
+  const { isLoading: isCompleting, mutate: mutateComplete } = useMutation({
+    mutationFn: completeBooking,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["Bookings"],
+      });
+      toast("Booking successfully Completed!");
+    },
+    onError: (error: unknown) => {
+      toast("Error Encountered while completing the booking");
     },
   });
 
@@ -268,7 +288,6 @@ const Booking: React.FC<BookingProps> = ({
             return (
               <button
                 onClick={() => mutateStart(info.row.original.id)}
-                // onClick={() => handleOpen(true, info.row.original)}
                 className="btn btn-sm btn-icon btn-clear btn-success"
               >
                 <KeenIcon icon="to-right" />
@@ -283,6 +302,17 @@ const Booking: React.FC<BookingProps> = ({
                 className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
               >
                 <KeenIcon icon="minus-circle" />
+              </button>
+            );
+          }
+
+          if (info.row.original.status === "ended") {
+            return (
+              <button
+                onClick={() => mutateComplete(info.row.original.id)}
+                className="btn btn-sm btn-icon btn-clear btn-success"
+              >
+                <KeenIcon icon="check-circle" />
               </button>
             );
           }

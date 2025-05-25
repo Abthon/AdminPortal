@@ -14,8 +14,6 @@ import { CoorporatePage } from "@/pages/public-profile/coorporate";
 import { DriverProfilePage } from "@/pages/public-profile/driver-profile/crm";
 import { BookingProfilePage } from "@/pages/public-profile/booking-profile";
 import { VehicleProfilePage } from "@/pages/public-profile/vehicle-profile";
-import { DepositPage } from "@/pages/public-profile/deposit";
-import { BankPage } from "@/pages/public-profile/bank";
 import { FuelPage } from "@/pages/public-profile/fuel";
 import { UserPage } from "@/pages/public-profile/users";
 import { DispatcherPage } from "@/pages/public-profile/dispatchers";
@@ -23,7 +21,7 @@ import { CoorProfilePage } from "@/pages/public-profile/coor-profile/crm";
 import { UserProfilePage } from "@/pages/public-profile/user-profile/crm";
 import { ReportPage } from "@/pages/public-profile/report";
 import { OdometerPage } from "@/pages/public-profile/odometer";
-import { BookingPaymentPage } from "@/pages/public-profile/booking payment";
+
 const AppRoutingSetup = (): ReactElement => {
   return (
     <Routes>
@@ -162,30 +160,6 @@ const AppRoutingSetup = (): ReactElement => {
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <BookingProfilePage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/deposits"
-            element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <DepositPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/banks"
-            element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <BankPage />
-              </RequireAuth>
-            }
-          />{" "}
-          <Route
-            path="/booking-payment"
-            element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <BookingPaymentPage />
               </RequireAuth>
             }
           />

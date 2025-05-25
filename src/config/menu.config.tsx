@@ -75,26 +75,6 @@ export const getMenuSidebar = (
       : null,
     getUserType(authToken) === "admin"
       ? {
-          title: "Finance",
-          icon: "dollar",
-          children: [
-            {
-              title: "Deposits",
-              path: "/deposits",
-            },
-            {
-              title: "Banks",
-              path: "/banks",
-            },
-            {
-              title: "Booking Payment",
-              path: "/booking-payment",
-            },
-          ],
-        }
-      : null,
-    getUserType(authToken) === "admin"
-      ? {
           title: "Users",
           icon: "people",
           children: [
