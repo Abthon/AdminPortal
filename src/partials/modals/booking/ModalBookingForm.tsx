@@ -147,8 +147,8 @@ const ModalBookingForm = ({
       } = values;
 
       const finalReq = {
-        pickupLat: pickupLat.toString(),
-        pickupLng: pickupLng.toString(),
+        pickupLat: Number(pickupLat),
+        pickupLng: Number(pickupLng),
         dropOffLat: dropOffLat.toString(),
         dropOffLng: dropOffLng.toString(),
         pickupName,
@@ -156,8 +156,7 @@ const ModalBookingForm = ({
         ...(driverId ? { driverId: Number(driverId) } : {}),
         ...(phoneNumber ? { contactPhoneNumber: phoneNumber } : {}),
         estimatedPrice: Number(estimatedPrice),
-        estimatedDuration: 0, // This will be calculated by the backend
-        estimatedTraveledDistance: 0, // This will be calculated by the backend
+        estimatedTraveledDistance: 0,
         vehicleType: Number(vehicleTypeId),
         notifyNearbyDrivers: notifyDrivers,
       };

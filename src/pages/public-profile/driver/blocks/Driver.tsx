@@ -33,7 +33,6 @@ interface IDriversData {
   gender: string;
   status: string;
   profilePhoto: string;
-  type: string;
   is_online: boolean;
 }
 
@@ -113,7 +112,7 @@ const Drivers = ({
     //   console.log(sort, "sorting is finally here");
     // }
     // [Todo: refactor url]
-    const url = `/api/v1/drivers?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
+    const url = `/api/v1/drivers?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -143,7 +142,7 @@ const Drivers = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/drivers?filters=firstname=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/drivers?filters=firstname=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -161,7 +160,7 @@ const Drivers = ({
   }
 
   async function revalidateDriver() {
-    const url = `/api/v1/drivers?filters=firstname=${searchInput}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}`;
+    const url = `/api/v1/drivers?filters=firstname=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}`;
     const { data } = await axiosInstance.get(url);
     handleDriverNum(data.data.length);
     console.log(data.data, "driver data");
@@ -333,19 +332,6 @@ const Drivers = ({
       //     headerClassName: "min-w-[150px]",
       //   },
       // },
-      {
-        id: "type",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Type" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.type;
-        },
-        meta: {
-          headerClassName: "min-w-[140px]",
-        },
-      },
       {
         id: "Edit",
         header: ({ column }) => (

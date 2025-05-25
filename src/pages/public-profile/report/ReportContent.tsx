@@ -14,8 +14,6 @@ import {
   Statistics,
   Highlights,
   Pie,
-  DriversInfo,
-  Coorporate,
 } from "./blocks";
 import axiosInstance from "@/auth/_helpers";
 import { useQuery } from "react-query";
@@ -122,7 +120,7 @@ const ReportContent = () => {
 
           <Highlights data={stats} />
 
-          <Pie title="Corporates" info={stats} />
+          {/* <Pie title="Corporates" info={stats} /> */}
 
           {/* <DriversInfo stats={stats} /> */}
           {/* <Tags title="Skills" />
@@ -144,11 +142,8 @@ const ReportContent = () => {
           </div> */}
 
           {/* <Projects /> */}
-          <Coorporate />
+          {/* <Coorporate /> */}
         </div>
-      </div>
-      <div className="lg:col-span-3">
-        <DriversInfo stats={stats} />
       </div>
     </div>
     // <div className="grid grid-cols-4 gap-5 lg:gap-7.5">

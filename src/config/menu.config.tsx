@@ -119,23 +119,6 @@ export const getMenuSidebar = (
       : null,
     getUserType(authToken) === "admin"
       ? {
-          heading: "Coorporate",
-        }
-      : null,
-    getUserType(authToken) === "admin"
-      ? {
-          title: "Coorporate",
-          icon: "cheque",
-          children: [
-            {
-              title: "Coorporates",
-              path: "/coorporates",
-            },
-          ],
-        }
-      : null,
-    getUserType(authToken) === "admin"
-      ? {
           heading: "Report",
         }
       : null,

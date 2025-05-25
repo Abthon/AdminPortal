@@ -24,9 +24,6 @@ const driverSchema = Yup.object().shape({
     .matches(/^\d{9}$/, {
       message: "Invalid phone number.",
     }),
-  type: Yup.string()
-    .required("Type is required.")
-    .oneOf(["comission", "payrol"]),
   drivingLicense: Yup.mixed().required("Driving license is required."),
   profilePhoto: Yup.mixed().required("Profile photo is required."),
 });
@@ -593,24 +590,32 @@ const ModalDriverTypeForm = ({
 
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">Gender</label>
-                  {formik.touched.gender && formik.errors.gender ? (
-                    <div className="text-red-500 text-sm">
-                      {typeof formik.errors.gender === "string"
-                        ? formik.errors.gender
-                        : null}
-                    </div>
-                  ) : null}
                   <label className="input">
                     <select
-                      disabled={isEdit}
                       {...formik.getFieldProps("gender")}
-                      className="form-control form-select w-full outline-none bg-transparent"
+                      className={clsx(
+                        "form-control form-select w-full outline-none",
+                        {
+                          "is-invalid":
+                            formik.touched.gender && formik.errors.gender,
+                        },
+                        {
+                          "is-valid":
+                            formik.touched.gender && !formik.errors.gender,
+                        }
+                      )}
                     >
                       <option value="">Select gender</option>
                       <option value="male">Male</option>
                       <option value="female">Female</option>
                     </select>
                   </label>
+                  {formik.touched.gender && formik.errors.gender && (
+                    <span role="alert" className="text-danger text-xs mt-1">
+                      {typeof formik.errors.gender === "string" &&
+                        formik.errors.gender}
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
@@ -644,36 +649,6 @@ const ModalDriverTypeForm = ({
                       />
                     </label>
                   </div>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">Type</label>
-                  <label className="input">
-                    <select
-                      {...formik.getFieldProps("type")}
-                      className={clsx(
-                        "form-control form-select w-full outline-none",
-                        {
-                          "is-invalid":
-                            formik.touched.type && formik.errors.type,
-                        },
-                        {
-                          "is-valid":
-                            formik.touched.type && !formik.errors.type,
-                        }
-                      )}
-                    >
-                      <option value="">Select type</option>
-                      <option value="comission">Commission</option>
-                      <option value="payrol">Payrol</option>
-                    </select>
-                  </label>
-                  {formik.touched.type && formik.errors.type && (
-                    <span role="alert" className="text-danger text-xs mt-1">
-                      {typeof formik.errors.type === "string" &&
-                        formik.errors.type}
-                    </span>
-                  )}
                 </div>
 
                 <div className="flex flex-col gap-1">

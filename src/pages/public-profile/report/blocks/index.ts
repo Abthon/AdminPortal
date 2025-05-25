@@ -5,7 +5,6 @@ export * from "./Contributions";
 export * from "./Contributors";
 export * from "./Coorporate";
 export * from "./DeliveryStatus";
-export * from "./DriversInfo";
 export * from "./DriverDeliveryChart";
 export * from "./Highlights";
 export * from "./Projects";
