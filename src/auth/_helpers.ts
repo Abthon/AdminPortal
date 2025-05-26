@@ -2,6 +2,7 @@ import { User as Auth0UserModel } from "@auth0/auth0-spa-js";
 import axios from "axios";
 
 import { getData, setData } from "@/utils";
+import { getApiUrl } from "@/utils/api";
 import { type AuthModel } from "./_models";
 const AUTH_LOCAL_STORAGE_KEY = `${import.meta.env.VITE_APP_NAME}_admin_auth`;
 
@@ -39,11 +40,16 @@ const removeAuth = () => {
 export function setupAxios(axiosInstance: any) {
   axiosInstance.defaults.headers.Accept = "application/json";
   axiosInstance.interceptors.request.use(
-    (config: { headers: { Authorization: string } }) => {
+    (config: { headers: { Authorization: string }; url: string }) => {
       const auth = getAuth();
 
       if (auth?.accessToken) {
         config.headers.Authorization = `Bearer ${auth.accessToken}`;
+      }
+
+      // Add /test prefix to all API requests
+      if (config.url && !config.url.includes("/test/")) {
+        config.url = getApiUrl(config.url);
       }
 
       return config;
