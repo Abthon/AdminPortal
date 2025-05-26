@@ -104,7 +104,7 @@ export function setupAxios(axiosInstance: any) {
 }
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_APP_API_URL || "/test",
+  baseURL: import.meta.env.VITE_APP_API_URL,
 });
 
 setupAxios(axiosInstance);
