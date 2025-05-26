@@ -42,14 +42,14 @@ const UserProfilePage = () => {
   async function getUser(id: string) {
     try {
       const url = `/api/v1/users/${id}`;
-      const { data } = await axiosInstance.get(
-        url
-        //`/api/v1/drivers/${id}?fields=id,createdAt,firstName,middleName,lastName,phoneNumber,isPhoneNumberAuthenticated,type,drivingLicense,gender,is_online,is_available,isBusy,lat,lng,status,profilePhoto,firebaseToken,averageRating,vehicle.*,bookings.*`
-      );
-      console.log(data, "data");
+      const { data } = await axiosInstance.get(url);
+      if (!data || !data.data) {
+        throw new Error("Invalid response format");
+      }
       return data.data;
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching user:", error);
+      throw error; // Re-throw to be caught by React Query
     }
   }
 
@@ -95,20 +95,26 @@ const UserProfilePage = () => {
 
   if (isUserError || !userData) {
     navigate("/error/404");
-    return null; // Prevent rendering of the current component
+    return null;
   }
+
+  // Add null check for userData properties
+  const userName =
+    userData?.firstName && userData?.lastName
+      ? `${userData.firstName} ${userData.lastName}`
+      : "Unknown User";
+
+  const phoneNumber = userData?.phoneNumber
+    ? `+251${userData.phoneNumber}`
+    : "No phone number";
 
   return (
     <>
       <Fragment>
         <UserProfileHero
-          name={`${userData?.firstName} ${userData?.lastName}`}
+          name={userName}
           image={""}
-          info={[
-            // { stat: userData.status },
-            { label: `+251${userData?.phoneNumber}`, icon: "phone" },
-            // { label: `${userData?.email}`, icon: "sms" },
-          ]}
+          info={[{ label: phoneNumber, icon: "phone" }]}
         />
 
         {/* <Container>
