@@ -1,12 +1,12 @@
-import { ChangeEvent, Fragment, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FormattedMessage } from 'react-intl';
-import { useAuthContext } from '@/auth';
-import { useLanguage } from '@/i18n';
-import { toAbsoluteUrl } from '@/utils';
-import { DropdownUserLanguages } from './DropdownUserLanguages';
-import { useSettings } from '@/providers/SettingsProvider';
-import { DefaultTooltip, KeenIcon } from '@/components';
+import { ChangeEvent, Fragment, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { FormattedMessage } from "react-intl";
+import { useAuthContext } from "@/auth";
+import { useLanguage } from "@/i18n";
+import { toAbsoluteUrl } from "@/utils";
+import { DropdownUserLanguages } from "./DropdownUserLanguages";
+import { useSettings } from "@/providers/SettingsProvider";
+import { DefaultTooltip, KeenIcon } from "@/components";
 import axiosInstance from "@/auth/_helpers";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import {
@@ -16,9 +16,9 @@ import {
   MenuTitle,
   MenuSeparator,
   MenuArrow,
-  MenuIcon
-} from '@/components/menu';
-import {useState} from "react";
+  MenuIcon,
+} from "@/components/menu";
+import { useState } from "react";
 
 interface IDropdownUserProps {
   menuItemRef: any;
@@ -43,24 +43,43 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
   });
 
   const handleThemeMode = (event: ChangeEvent<HTMLInputElement>) => {
-    const newThemeMode = event.target.checked ? 'dark' : 'light';
+    const newThemeMode = event.target.checked ? "dark" : "light";
 
     storeSettings({
-      themeMode: newThemeMode
+      themeMode: newThemeMode,
     });
   };
 
-  useEffect(()=> { 
+  useEffect(() => {
     me();
-  }, [])
+  }, []);
 
   const buildHeader = () => {
+    if (isLoading || !userData) {
+      return (
+        <div className="flex items-center justify-between px-5 py-1.5 gap-1.5">
+          <div className="flex items-center gap-2">
+            <img
+              className="size-9 rounded-full border-2 border-success"
+              src={toAbsoluteUrl("/media/avatars/300-2.png")}
+              alt=""
+            />
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm text-gray-800 font-semibold leading-none">
+                Loading...
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="flex items-center justify-between px-5 py-1.5 gap-1.5">
         <div className="flex items-center gap-2">
           <img
             className="size-9 rounded-full border-2 border-success"
-            src={toAbsoluteUrl('/media/avatars/300-2.png')}
+            src={toAbsoluteUrl("/media/avatars/300-2.png")}
             alt=""
           />
           <div className="flex flex-col gap-1.5">
@@ -68,13 +87,13 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
               to="#"
               className="text-sm text-gray-800 hover:text-primary font-semibold leading-none"
             >
-              {userData.firstName} {userData.lastName}
+              {userData?.firstName || ""} {userData?.lastName || ""}
             </Link>
             <a
-              href={`mailto:${userData.email}`}
+              href={`mailto:${userData?.email || ""}`}
               className="text-xs text-gray-600 hover:text-primary font-medium leading-none"
             >
-             {userData.email}
+              {userData?.email || "No email"}
             </a>
           </div>
         </div>
@@ -251,7 +270,7 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
               <input
                 name="theme"
                 type="checkbox"
-                checked={settings.themeMode === 'dark'}
+                checked={settings.themeMode === "dark"}
                 onChange={handleThemeMode}
                 value="1"
               />

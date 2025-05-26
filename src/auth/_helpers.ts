@@ -104,9 +104,16 @@ export function setupAxios(axiosInstance: any) {
 }
 
 const axiosInstance = axios.create({
-  baseURL: "/test",
+  baseURL: import.meta.env.VITE_APP_API_URL || "/test",
 });
 
 setupAxios(axiosInstance);
+
+// Add a function to check if user is authenticated
+export const isAuthenticated = (): boolean => {
+  const auth = getAuth();
+  return !!auth?.accessToken;
+};
+
 export default axiosInstance;
 export { AUTH_LOCAL_STORAGE_KEY, getAuth, removeAuth, setAuth };
