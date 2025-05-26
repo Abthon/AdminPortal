@@ -16,7 +16,7 @@ const getAuth = (): AuthModel | undefined => {
       return undefined;
     }
   } catch (error) {
-    // console.error("AUTH LOCAL STORAGE PARSE ERROR", error);
+    console.error("AUTH LOCAL STORAGE PARSE ERROR", error);
   }
 };
 
@@ -32,7 +32,7 @@ const removeAuth = () => {
   try {
     localStorage.removeItem(AUTH_LOCAL_STORAGE_KEY);
   } catch (error) {
-    //console.error("AUTH LOCAL STORAGE REMOVE ERROR", error);
+    console.error("AUTH LOCAL STORAGE REMOVE ERROR", error);
   }
 };
 
@@ -55,42 +55,49 @@ export function setupAxios(axiosInstance: any) {
     (response: any) => response,
     async (error: any) => {
       const originalRequest = error.config;
-      if (
-        (error.response && error.response.status === 401) ||
-        (error.response.status === 403 && !originalRequest._retry)
-      ) {
+
+      // If the error is 401 and we haven't retried yet
+      if (error.response?.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
         const auth = getAuth();
+
         if (auth?.refreshToken) {
           try {
+            // Attempt to refresh the token
             const { data } = await axiosInstance.post(
               "/api/v1/auth/refresh",
-              {
-                firebaseToken: "1234",
-              },
+              {},
               {
                 headers: {
-                  Authorization: `Bearer ${auth?.refreshToken}`,
+                  Authorization: `Bearer ${auth.refreshToken}`,
                 },
               }
             );
+
+            // Update the auth with new access token
             const newAuth = { ...auth, accessToken: data.data.accessToken };
             setAuth(newAuth);
+
+            // Update the authorization header
             axiosInstance.defaults.headers.Authorization = `Bearer ${data.data.accessToken}`;
             originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
-            // return axiosInstance(originalRequest);
+
+            // Retry the original request
+            return axiosInstance(originalRequest);
           } catch (refreshError) {
-            console.log("First wust");
-            //console.log(refreshError, "refresh error");
-            // removeAuth();
-            // window.location.href = "/auth/login"; // Redirect to login page
+            // If refresh fails, clear auth and redirect to login
+            removeAuth();
+            window.location.href = "/auth/login";
+            return Promise.reject(refreshError);
           }
         } else {
-          console.log("Second wust");
-          // removeAuth();
-          // window.location.href = "/auth/login"; // Redirect to login page
+          // No refresh token available, clear auth and redirect to login
+          removeAuth();
+          window.location.href = "/auth/login";
+          return Promise.reject(error);
         }
       }
+
       return Promise.reject(error);
     }
   );

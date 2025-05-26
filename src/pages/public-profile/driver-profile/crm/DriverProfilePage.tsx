@@ -32,7 +32,6 @@ const DriverProfilePage = () => {
   const navigate = useNavigate();
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
-  const [assignMode, setAssignMode] = useState(false);
   const [isAddOpen, _handleAddOpen] = useState(false);
   const [currentDriverData, setCurrentDriverData] =
     useState<IDriversData | null>(null);
@@ -53,9 +52,9 @@ const DriverProfilePage = () => {
     data: DriverData,
     isError,
   } = useQuery({
-    queryKey: ["Driver", id], // Include the ID in the query key
-    queryFn: () => getDriver(id as string), // Cast `id` to string (safe due to `enabled`)
-    enabled: !!id, // Ensure the query only runs if ID is defined
+    queryKey: ["Driver", id],
+    queryFn: () => getDriver(id as string),
+    enabled: !!id,
   });
 
   const handleClose = () => {
@@ -68,13 +67,6 @@ const DriverProfilePage = () => {
 
   const handleApproval = (isEdit: boolean) => {
     setApprovalMode(isEdit);
-    setCurrentDriverData(DriverData);
-    setProfileModalOpen(true);
-  };
-
-  const handleAssign = (isEdit: boolean) => {
-    setAssignMode(isEdit);
-    setApprovalMode(false);
     setCurrentDriverData(DriverData);
     setProfileModalOpen(true);
   };
@@ -97,10 +89,8 @@ const DriverProfilePage = () => {
 
   if (isError || !DriverData) {
     navigate("/error/404");
-    return null; // Prevent rendering of the current component
+    return null;
   }
-
-  console.log(DriverData, "data data");
 
   return (
     <>
@@ -109,7 +99,6 @@ const DriverProfilePage = () => {
         onOpenChange={handleClose}
         isEdit={false}
         isApproved={approvalMode}
-        isAssigned={assignMode}
         driverData={currentDriverData}
       />
       <Fragment>
@@ -117,7 +106,6 @@ const DriverProfilePage = () => {
           name={`${DriverData?.firstName} ${DriverData?.lastName}`}
           image={image}
           info={[
-            // { stat: DriverData.status },
             { label: "Addis Ababa", icon: "geolocation" },
             { label: `+251${DriverData?.phoneNumber}`, icon: "sms" },
           ]}
@@ -125,17 +113,9 @@ const DriverProfilePage = () => {
 
         <Container>
           <Navbar>
-            {/* <PageMenu /> */}
             <div></div>
 
             <NavbarActions>
-              <button
-                onClick={() => handleAssign(true)}
-                type="button"
-                className="btn btn-sm btn-primary"
-              >
-                <KeenIcon icon="car" /> Assign Vehicle
-              </button>
               <button
                 onClick={() => handleApproval(true)}
                 type="button"
@@ -143,10 +123,6 @@ const DriverProfilePage = () => {
               >
                 <KeenIcon icon="users" /> Approve
               </button>
-              {/* <button className="btn btn-sm btn-icon btn-light">
-              <KeenIcon icon="messages" />
-            </button>
-            <NavbarDropdown /> */}
             </NavbarActions>
           </Navbar>
         </Container>

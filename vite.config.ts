@@ -79,7 +79,7 @@ export default defineConfig({
       },
       // Add proxy for API requests
       "/test": {
-        target: "http://static.108.155.13.49.clients.your-server.de",
+        target: "https://app.navigo.et",
         changeOrigin: true,
         secure: false,
       },

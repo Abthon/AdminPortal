@@ -42,7 +42,7 @@ const BookingPage = () => {
                   <KeenIcon icon="magnifier" />
                   <input
                     type="text"
-                    placeholder="Search By Pick up name"
+                    placeholder="Search By ID"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                   />

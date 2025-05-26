@@ -23,6 +23,18 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+// Create custom green icon for actual path markers
+const greenIcon = new L.Icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
 const GoogleLayer = memo(({ onLayerLoaded }) => {
   const map = useMap();
   const googleLayerRef = useRef(null);
@@ -82,6 +94,8 @@ export const PathInfo = ({ data }) => {
   const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [endcodedPolyline, setEncodedPolyline] = useState("");
   const [isGoogleLayerLoaded, setGoogleLayerLoaded] = useState(false);
+  const [actualPickup, setActualPickup] = useState(null);
+  const [actualDropoff, setActualDropoff] = useState(null);
 
   const pickup = {
     lat: data.pickupLat || 9.0308644,
@@ -112,16 +126,21 @@ export const PathInfo = ({ data }) => {
   }, [isGoogleLayerLoaded]);
 
   useEffect(() => {
-    if(data.actualtraveledPath) {
+    if (data.actualtraveledPath) {
       const decodedPath = decode(data.actualtraveledPath).map((arr) => ({
-        lat: arr[0], 
-        lng: arr[1]
+        lat: arr[0],
+        lng: arr[1],
       }));
 
+      // Set actual pickup and dropoff points from the path
+      if (decodedPath.length > 0) {
+        setActualPickup(decodedPath[0]);
+        setActualDropoff(decodedPath[decodedPath.length - 1]);
+      }
+
       setRouteCoordinates(decodedPath);
-    }
-    else{
-      if(endcodedPolyline) {
+    } else {
+      if (endcodedPolyline) {
         const decodedPath = decode(endcodedPolyline).map(([lat, lng]) => ({
           lat,
           lng,
@@ -129,7 +148,7 @@ export const PathInfo = ({ data }) => {
         setRouteCoordinates(decodedPath);
       }
     }
-  }, [endcodedPolyline]);
+  }, [endcodedPolyline, data.actualtraveledPath]);
 
   const handleGoogleLayerLoaded = () => {
     setGoogleLayerLoaded(true);
@@ -150,41 +169,113 @@ export const PathInfo = ({ data }) => {
         {/* Google Layer for the map */}
         <GoogleLayer onLayerLoaded={handleGoogleLayerLoaded} />
 
-        {/* Pickup Marker */}
-        {(data.actualtraveledPath || endcodedPolyline) && (
-          <Marker position={pickup}>
-            <Popup>Pickup Location</Popup>
-          </Marker>
-        )}
+        {/* Show either estimated or actual markers */}
+        {data.actualtraveledPath ? (
+          <>
+            {/* Actual Pickup Marker */}
+            {actualPickup && (
+              <Marker position={actualPickup} icon={greenIcon}>
+                <Popup>
+                  <div>
+                    <strong>Actual Pickup Location</strong>
+                    <p>Started here</p>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
 
-        {/* Dropoff Marker */}
-        {(data.actualtraveledPath || endcodedPolyline) && (
-          <Marker position={dropoff}>
-            <Popup>Pickup Location</Popup>
-          </Marker>
+            {/* Actual Dropoff Marker */}
+            {actualDropoff && (
+              <Marker position={actualDropoff} icon={greenIcon}>
+                <Popup>
+                  <div>
+                    <strong>Actual Dropoff Location</strong>
+                    <p>Ended here</p>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+            {/* Estimated Pickup Marker (always show) */}
+            <Marker position={pickup}>
+              <Popup>
+                <div>
+                  <strong>Estimated Pickup Location</strong>
+                  <p>Will start here</p>
+                </div>
+              </Popup>
+            </Marker>
+
+            {/* Estimated Dropoff Marker (always show) */}
+            <Marker position={dropoff}>
+              <Popup>
+                <div>
+                  <strong>Estimated Dropoff Location</strong>
+                  <p>Will end here</p>
+                </div>
+              </Popup>
+            </Marker>
+          </>
+        ) : (
+          /* Estimated Markers when no Actual Path */
+          <>
+            {/* Estimated Pickup Marker */}
+            <Marker position={pickup}>
+              <Popup>
+                <div>
+                  <strong>Estimated Pickup Location</strong>
+                  <p>Will start here</p>
+                </div>
+              </Popup>
+            </Marker>
+
+            {/* Estimated Dropoff Marker */}
+            <Marker position={dropoff}>
+              <Popup>
+                <div>
+                  <strong>Estimated Dropoff Location</strong>
+                  <p>Will end here</p>
+                </div>
+              </Popup>
+            </Marker>
+          </>
         )}
 
         {/* Route Polyline */}
-        {/* {console.log(routeCoordinates[0], "route cordinates")} */}
         {data.actualtraveledPath ? (
-          routeCoordinates.length > 0 && (
-            <LeafletPolyline
-              positions={routeCoordinates.map((coord) => {
-                // console.log(coord.lat, coord.lng)
-                return [coord.lat, coord.lng]
-              })}
-              color="red"
-              weight={4}
-              opacity={0.7}
-            />
-          )
+          <>
+            {/* Actual Polyline (Green) */}
+            {routeCoordinates.length > 0 && (
+              <LeafletPolyline
+                positions={routeCoordinates.map((coord) => [
+                  coord.lat,
+                  coord.lng,
+                ])}
+                color="green"
+                weight={4}
+                opacity={0.7}
+              />
+            )}
+            {/* Estimated Polyline (Blue) when Actual Path exists */}
+            {endcodedPolyline && (
+              <LeafletPolyline
+                positions={decode(endcodedPolyline).map(([lat, lng]) => [
+                  lat,
+                  lng,
+                ])}
+                color="blue"
+                weight={4}
+                opacity={0.7}
+              />
+            )}
+          </>
         ) : (
+          /* Estimated Polyline (Blue) when no Actual Path */
           routeCoordinates.length > 0 && (
             <LeafletPolyline
-              positions={routeCoordinates.map((coord) => {
-                // console.log(coord.lat, coord.lng)
-                return [coord.lat, coord.lng]
-              })}
+              positions={routeCoordinates.map((coord) => [
+                coord.lat,
+                coord.lng,
+              ])}
               color="blue"
               weight={4}
               opacity={0.7}

@@ -33,6 +33,7 @@ interface IVehicleRegistrationData {
   plate_number: number;
   year: number;
   vehicleType: number;
+  vehicleTypeName?: string;
 }
 
 interface IColumnFilterProps<TData, TValue> {
@@ -85,23 +86,33 @@ const VehicleRegistration = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/vehicles?take=${pageSize}&page=${pageIndex}&sort=make=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/vehicles?take=${pageSize}&page=${pageIndex}&sort=make=${sort[0].desc ? "DESC" : "ASC"}&fields=vehicleType.*,id,color,make,model,owner,plate_number,year`;
     const { data } = await axiosInstance.get(url);
 
-    console.log(data, "data");
+    // Transform the data to include vehicleTypeName
+    const transformedData = {
+      ...data,
+      data: data.data.map((vehicle: any) => ({
+        ...vehicle,
+        vehicleTypeName: vehicle.vehicleType?.name || "N/A",
+      })),
+    };
 
     // calculating how many items are there on the current page
     const startIndex =
-      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+      (transformedData.pagination.currentPage - 1) *
+        transformedData.pagination.pageSize +
+      1;
     const endIndex = Math.min(
-      data.pagination.currentPage * data.pagination.pageSize,
-      data.pagination.totalItems
+      transformedData.pagination.currentPage *
+        transformedData.pagination.pageSize,
+      transformedData.pagination.totalItems
     );
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
-    setTotalItems(data.pagination.totalItems);
-    handleVehicleNum(data.data.length);
-    return data;
+    setTotalItems(transformedData.pagination.totalItems);
+    handleVehicleNum(transformedData.data.length);
+    return transformedData;
   }
 
   async function searchVehicle({
@@ -208,14 +219,12 @@ const VehicleRegistration = ({
         enableSorting: true,
         cell: (info) => {
           return info.row.original.make;
-          //info.row.original.make
         },
         meta: {
           headerClassName: "min-w-[180px]",
         },
       },
       {
-        // accessorFn: (row) => row.model,
         id: "model",
         header: ({ column }) => (
           <DataGridColumnHeader title="Model" column={column} />
@@ -229,7 +238,19 @@ const VehicleRegistration = ({
         },
       },
       {
-        // accessorFn: (row) => row.owner,
+        id: "vehicleType",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Vehicle Type" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.vehicleTypeName || "N/A";
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
+      {
         id: "owner",
         header: ({ column }) => (
           <DataGridColumnHeader title="Owner" column={column} />
@@ -243,7 +264,6 @@ const VehicleRegistration = ({
         },
       },
       {
-        // accessorFn: (row) => row.plate_number,
         id: "plate_number",
         header: ({ column }) => (
           <DataGridColumnHeader title="Plate Number" column={column} />
@@ -257,7 +277,6 @@ const VehicleRegistration = ({
         },
       },
       {
-        // accessorFn: (row) => row.year,
         id: "year",
         header: ({ column }) => (
           <DataGridColumnHeader title="Year" column={column} />
@@ -299,7 +318,6 @@ const VehicleRegistration = ({
         cell: (info) => {
           return (
             <button
-              // onClick={() => mutate(info.row.original.id)}
               onClick={() => handleOpen(true, info.row.original, true)}
               className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
             >
@@ -347,36 +365,6 @@ const VehicleRegistration = ({
       </div>
     );
   };
-
-  // if (isVehicleLoading) {
-  //   return (
-  //     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-  //       <div className="text-muted-foreground bg-card  flex items-center gap-2 px-4 py-2 font-medium leading-none text-sm border shadow-sm rounded-md">
-  //         <svg
-  //           className="animate-spin -ml-1 h-5 w-5 text-muted-foreground"
-  //           xmlns="http://www.w3.org/2000/svg"
-  //           fill="none"
-  //           viewBox="0 0 24 24"
-  //         >
-  //           <circle
-  //             className="opacity-25"
-  //             cx="12"
-  //             cy="12"
-  //             r="10"
-  //             stroke="currentColor"
-  //             strokeWidth="3"
-  //           ></circle>
-  //           <path
-  //             className="opacity-75"
-  //             fill="currentColor"
-  //             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-  //           ></path>
-  //         </svg>
-  //         Loading
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <>

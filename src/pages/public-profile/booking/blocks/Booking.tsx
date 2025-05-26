@@ -98,7 +98,7 @@ const Booking: React.FC<BookingProps> = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}&fields=driver.*,id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber`;
+    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}${searchInput ? `&filters=id=${searchInput}` : ""}&fields=driver.*,id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber`;
     const { data } = await axiosInstance.get(url);
 
     console.log(data, "data ke get booking");
@@ -127,7 +127,7 @@ const Booking: React.FC<BookingProps> = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/bookings?filters=pickupname=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/bookings?filters=id=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
     // calculating how many items are there on the current page
     const startIndex =
@@ -160,7 +160,7 @@ const Booking: React.FC<BookingProps> = ({
   };
 
   async function revalidateBooking() {
-    const url = `/api/v1/bookings`;
+    const url = `/api/v1/bookings${searchInput ? `?filters=id=${searchInput}` : ""}`;
     const { data } = await axiosInstance.get(url);
     return data;
   }
@@ -179,10 +179,35 @@ const Booking: React.FC<BookingProps> = ({
   }
 
   async function completeBooking(id: string) {
-    const { data } = await axiosInstance.post(
-      `/api/v1/bookings/complete/${id}`
-    );
-    return data;
+    try {
+      // First get the driver ID
+      const res = await axiosInstance.get(
+        `/api/v1/bookings/${id}?fields=driver.id`
+      );
+      const driverId = res.data.data.driver.id;
+
+      // Get the QR code
+      const qrResponse = await axiosInstance.post(
+        `/api/v1/drivers/generate-qr-code`,
+        {
+          driverId,
+        }
+      );
+      const qrCode = qrResponse.data.data; // The QR code is directly in data field
+
+      // Complete the booking with the QR code
+      const { data } = await axiosInstance.post(
+        `/api/v1/bookings/complete/${id}`,
+        {
+          qrCode,
+          driverId,
+        }
+      );
+      return data;
+    } catch (error) {
+      console.error("Error completing booking:", error);
+      throw error;
+    }
   }
 
   // async function getBookings(): Promise<IBookingData[]> {
