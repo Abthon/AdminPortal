@@ -25,7 +25,6 @@ import { DropOffInfo } from "./blocks/DropOffInfo";
 import { DistancePriceInfo } from "./blocks/DistancePriceInfo";
 import { TimingInfo } from "./blocks/TimingInfo";
 import { VehicleDetails } from "./blocks/VehicleDetails";
-import { OwnerInfo } from "./blocks/OwnerInfo";
 
 const stickySidebarClasses: Record<string, string> = {
   "demo1-layout": "top-[calc(var(--tw-header-height)+1rem)]",
@@ -96,8 +95,6 @@ const VehicleProfileContent: React.FC<VehicleProfileContentProps> = ({
         <VehicleIdInfo data={data} />
 
         <VehicleDetails data={data} />
-
-        <OwnerInfo data={data} />
 
         {/* <DistancePriceInfo data={data} />
 

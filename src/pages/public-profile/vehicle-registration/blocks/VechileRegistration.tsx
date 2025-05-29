@@ -29,7 +29,6 @@ interface IVehicleRegistrationData {
   color: string;
   make: string;
   model: string;
-  owner: string;
   plate_number: number;
   year: number;
   vehicleType: number;
@@ -86,7 +85,7 @@ const VehicleRegistration = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/vehicles?take=${pageSize}&page=${pageIndex}&sort=make=${sort[0].desc ? "DESC" : "ASC"}&fields=vehicleType.*,id,color,make,model,owner,plate_number,year`;
+    const url = `/api/v1/vehicles?take=${pageSize}&page=${pageIndex}&sort=make=${sort[0].desc ? "DESC" : "ASC"}&fields=vehicleType.*,id,color,make,model,plate_number,year`;
     const { data } = await axiosInstance.get(url);
 
     // Transform the data to include vehicleTypeName
@@ -245,19 +244,6 @@ const VehicleRegistration = ({
         enableSorting: true,
         cell: (info) => {
           return info.row.original.vehicleTypeName || "N/A";
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
-        id: "owner",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Owner" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.owner;
         },
         meta: {
           headerClassName: "min-w-[180px]",

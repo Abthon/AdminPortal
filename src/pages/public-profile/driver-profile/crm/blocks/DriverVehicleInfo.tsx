@@ -17,7 +17,6 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
   const items: IDriverVehicleInfoItems = [
     { label: "make:", info: data?.make },
     { label: "model", info: data?.model },
-    { label: "owner:", info: data?.owner },
     { label: "plate_number:", info: data?.plate_number },
     { label: "year", info: data?.year },
     {
