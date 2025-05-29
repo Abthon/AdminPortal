@@ -25,6 +25,20 @@ const bookingSchema = Yup.object().shape({
     message: "Invalid phone number.",
   }),
   driverId: Yup.number(),
+  distance: Yup.number().when("isEndBooking", {
+    is: true,
+    then: (schema) =>
+      schema
+        .required("Distance is required")
+        .min(0, "Distance must be positive"),
+  }),
+  duration: Yup.number().when("isEndBooking", {
+    is: true,
+    then: (schema) =>
+      schema
+        .required("Duration is required")
+        .min(0, "Duration must be positive"),
+  }),
 });
 
 interface IModalBookingFormProps {
@@ -61,7 +75,9 @@ const ModalBookingForm = ({
   const { mutate, isLoading } = useMutation({
     mutationFn: isEndBooking ? editBooking : addBooking,
     onSuccess: () => {
-      toast.success(`Booking ${isEndBooking ? "Completed" : "Created"}`);
+      toast.success(
+        `Booking ${isEndBooking ? "successfully Ended" : "Created"}`
+      );
       queryClient.invalidateQueries({ queryKey: ["Bookings"] });
       onOpenChange();
     },
@@ -179,43 +195,40 @@ const ModalBookingForm = ({
   async function editBooking(values: { [key: string]: any }) {
     try {
       const { id, distance, duration } = values;
-      // const updatedFields = {
-      //   status,
-      //   remark,
-      //   traveledPath,
-      //   polyline,
-      // };
-      // console.log(updatedFields, "the updated fields");
       try {
+        // Get the driver ID
         const res_primary = await axiosInstance.get(
           `/api/v1/bookings/${bookingData.id}?fields=driver.id`
         );
+        const driverId = res_primary.data.data.driver.id;
+
+        // End the booking with just the metrics
         const res = await axiosInstance.post(
           `api/v1/bookings/end/${bookingData.id}`,
           {
-            actualtraveledPath: "_p~iF~ps|U_ulLnnqC_mqNrxq1oK5bM",
-            distance: Number(distance),
-            duration: Number(duration),
-            driverId: Number(res_primary.data.data.driver.id),
+            distance: Number(distance) || bookingData.estimatedTraveledDistance,
+            duration: Number(duration) || bookingData.estimatedDuration,
+            driverId: Number(driverId),
           }
         );
+
         if (res.status !== 201) {
-          throw new Error(res.data.message || "Failed to edit the booking.");
+          throw new Error(res.data.message || "Failed to end the booking.");
         }
+
         return res.data;
       } catch (err: any) {
         const errorMessage = err?.response?.data?.message;
         const errorMessageAlt =
           (err as Error).message ||
-          "An error occurred while editing the booking.";
+          "An error occurred while ending the booking.";
         throw new Error(errorMessage || errorMessageAlt);
       }
     } catch (err: any) {
-      console.log(err, "The error");
+      console.error("Error ending booking:", err);
       const errorMessage = err?.response?.data?.message;
       const errorMessageAlt =
-        (err as Error).message ||
-        "An error occurred while editing the booking.";
+        (err as Error).message || "An error occurred while ending the booking.";
       throw new Error(errorMessage || errorMessageAlt);
     }
   }
@@ -871,30 +884,53 @@ const ModalBookingForm = ({
             ) : (
               <>
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">duration</label>
+                  <label className="form-label text-gray-900">
+                    Actual Distance (km)
+                  </label>
+                  {formik.touched.distance && formik.errors.distance ? (
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.distance === "string"
+                        ? formik.errors.distance
+                        : null}
+                    </div>
+                  ) : null}
                   <label className="input">
                     <input
-                      placeholder="Enter duration"
+                      type="number"
+                      step="0.1"
+                      placeholder={`Estimated: ${bookingData?.estimatedTraveledDistance || 0} km`}
                       autoComplete="off"
-                      {...formik.getFieldProps("duration")}
+                      {...formik.getFieldProps("distance")}
                     />
                   </label>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">distance</label>
+                  <label className="form-label text-gray-900">
+                    Actual Duration (minutes)
+                  </label>
+                  {formik.touched.duration && formik.errors.duration ? (
+                    <div className="text-red-500 text-sm">
+                      {typeof formik.errors.duration === "string"
+                        ? formik.errors.duration
+                        : null}
+                    </div>
+                  ) : null}
                   <label className="input">
                     <input
-                      placeholder="Enter distance"
+                      type="number"
+                      step="1"
+                      placeholder={`Estimated: ${bookingData?.estimatedDuration || 0} min`}
                       autoComplete="off"
-                      {...formik.getFieldProps("distance")}
+                      {...formik.getFieldProps("duration")}
                     />
                   </label>
                 </div>
                 <button
                   type="submit"
                   className="btn btn-primary flex justify-center grow"
+                  disabled={!formik.values.distance || !formik.values.duration}
                 >
-                  {isEdit ? "Edit" : "Create"}
+                  End Booking
                 </button>
               </>
             )}
