@@ -196,7 +196,7 @@ const ModalDriverTypeForm = ({
         middleName: "",
         gender: "",
         phoneNumber: "",
-        type: "",
+        type: "comission",
         drivingLicense: "",
         profilePhoto: null,
         approvalStatus: "inactive",
