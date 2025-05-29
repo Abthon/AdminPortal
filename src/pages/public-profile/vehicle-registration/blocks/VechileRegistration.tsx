@@ -93,7 +93,8 @@ const VehicleRegistration = ({
       ...data,
       data: data.data.map((vehicle: any) => ({
         ...vehicle,
-        vehicleTypeName: vehicle.vehicleType?.name || "N/A",
+        vehicleTypeName:
+          vehicle.vehicleType?.name || vehicle.vehicleType || "N/A",
       })),
     };
 
@@ -125,21 +126,34 @@ const VehicleRegistration = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/vehicles?filters=make=${search}&take=${pageSize}&page=${pageIndex}&sort=make=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/vehicles?filters=make=${search}&take=${pageSize}&page=${pageIndex}&sort=make=${sort[0].desc ? "DESC" : "ASC"}&fields=vehicleType.*,id,color,make,model,plate_number,year`;
     const { data } = await axiosInstance.get(url);
+
+    // Transform the data to include vehicleTypeName
+    const transformedData = {
+      ...data,
+      data: data.data.map((vehicle: any) => ({
+        ...vehicle,
+        vehicleTypeName:
+          vehicle.vehicleType?.name || vehicle.vehicleType || "N/A",
+      })),
+    };
 
     // calculating how many items are there on the current page
     const startIndex =
-      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+      (transformedData.pagination.currentPage - 1) *
+        transformedData.pagination.pageSize +
+      1;
     const endIndex = Math.min(
-      data.pagination.currentPage * data.pagination.pageSize,
-      data.pagination.totalItems
+      transformedData.pagination.currentPage *
+        transformedData.pagination.pageSize,
+      transformedData.pagination.totalItems
     );
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
-    setTotalItems(data.pagination.totalItems);
-    handleVehicleNum(data.data.length);
-    return data;
+    setTotalItems(transformedData.pagination.totalItems);
+    handleVehicleNum(transformedData.data.length);
+    return transformedData;
   }
 
   async function revalidateVehicle() {
