@@ -1,6 +1,5 @@
 import { User as Auth0UserModel } from "@auth0/auth0-spa-js";
 import axios from "axios";
-
 import { getData, setData } from "@/utils";
 import { getApiUrl } from "@/utils/api";
 import { type AuthModel } from "./_models";

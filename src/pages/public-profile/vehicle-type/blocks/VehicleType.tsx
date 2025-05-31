@@ -31,7 +31,6 @@ interface IVehicleTypeData {
   name: string;
   baseFare: number;
   additionalFarePerKm: number;
-  minWeightCapacity: number;
   maxWeightCapacity: number;
 }
 
@@ -263,20 +262,6 @@ const VechileType = ({
         },
       },
       {
-        // accessorFn: (row) => row.minWeightCapacity,
-        id: "minWeightCapacity",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Min Weight Capacity" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.minWeightCapacity;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
         // accessorFn: (row) => row.maxWeightCapacity,
         id: "maxWeightCapacity",
         header: ({ column }) => (
@@ -310,27 +295,27 @@ const VechileType = ({
           headerClassName: "min-w-[80px]",
         },
       },
-      {
-        id: "Delete",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Delete" column={column} />
-        ),
-        enableSorting: false,
-        cell: (info) => {
-          return (
-            <button
-              // onClick={() => mutate(info.row.original.id)}
-              onClick={() => handleOpen(true, info.row.original, true)}
-              className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-            >
-              <KeenIcon icon="trash" />
-            </button>
-          );
-        },
-        meta: {
-          headerClassName: "w-[80px]",
-        },
-      },
+      // {
+      //   id: "Delete",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Delete" column={column} />
+      //   ),
+      //   enableSorting: false,
+      //   cell: (info) => {
+      //     return (
+      //       <button
+      //         // onClick={() => mutate(info.row.original.id)}
+      //         onClick={() => handleOpen(true, info.row.original, true)}
+      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+      //       >
+      //         <KeenIcon icon="trash" />
+      //       </button>
+      //     );
+      //   },
+      //   meta: {
+      //     headerClassName: "w-[80px]",
+      //   },
+      // },
     ],
     [mutate]
   );

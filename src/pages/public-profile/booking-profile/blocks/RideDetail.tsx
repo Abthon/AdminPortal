@@ -55,28 +55,6 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
         <div className="w-full">
           <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
             <label className="form-label flex items-center gap-1 max-w-56">
-              Booking Type
-            </label>
-            <label className="form-label flex items-center gap-1 max-w-56">
-              {data?.type == "round_trip" ? "Round Trip" : "Single Trip"}
-            </label>
-          </div>
-        </div>
-
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <label className="form-label flex items-center gap-1 max-w-56">
-              Initial Distance
-            </label>
-            <label className="form-label flex items-center gap-1 max-w-56">
-              {data?.initialDistance || "-"}
-            </label>
-          </div>
-        </div>
-
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <label className="form-label flex items-center gap-1 max-w-56">
               Pickup Name
             </label>
             <label className="form-label flex items-center gap-1 max-w-56">
@@ -110,17 +88,6 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
           ""
         )}
 
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <label className="form-label flex items-center gap-1 max-w-56">
-              Coorporate Name
-            </label>
-            <label className="form-label flex items-center gap-1 max-w-56">
-              {data?.coor?.name || "-"}
-            </label>
-          </div>
-        </div>
-
         {data.driver?.firstName ? (
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
@@ -135,16 +102,6 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
         ) : (
           ""
         )}
-        <div className="w-full">
-          <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
-            <label className="form-label flex items-center gap-1 max-w-56">
-              Remark
-            </label>
-            <label className="form-label flex items-center gap-1 max-w-56">
-              {data.remark || "-"}
-            </label>
-          </div>
-        </div>
       </div>
     </div>
   );

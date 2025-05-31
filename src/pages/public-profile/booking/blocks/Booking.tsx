@@ -57,15 +57,29 @@ interface BookingProps {
 
 function getStatusColor(status: string): string {
   const statusMap: Record<string, string> = {
-    driver_not_found: "danger",
+    driver_not_found: "dark",
     requested: "warning",
     assigned: "info",
     started: "primary",
     completed: "success",
+    canceled: "danger",
+    ended: "muted",
   };
 
   return statusMap[status] || "default"; // Return "default" if the status is not found
 }
+
+// function getStatusColor(status: string): string {
+//   const statusMap: Record<string, string> = {
+//     driver_not_found: "danger",
+//     requested: "warning",
+//     assigned: "info",
+//     started: "primary",
+//     completed: "success",
+//   };
+
+//   return statusMap[status] || "default"; // Return "default" if the status is not found
+// }
 
 const Booking: React.FC<BookingProps> = ({
   isAddOpen,
@@ -519,31 +533,31 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[160px]",
         },
       },
-      {
-        id: "Delete",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Delete" column={column} />
-        ),
-        enableSorting: false,
-        cell: (info) => {
-          return (
-            <button
-              // disabled={true}
-              // onClick={() => mutate(info.row.original.id)}
-              onClick={() =>
-                handleOpen(true, info.row.original, false, false, true)
-              }
-              //onClick={() => handleOpen(true, info.row.original, false, true)}
-              className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-            >
-              <KeenIcon icon="trash" />
-            </button>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[80px]",
-        },
-      },
+      // {
+      //   id: "Delete",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Delete" column={column} />
+      //   ),
+      //   enableSorting: false,
+      //   cell: (info) => {
+      //     return (
+      //       <button
+      //         // disabled={true}
+      //         // onClick={() => mutate(info.row.original.id)}
+      //         onClick={() =>
+      //           handleOpen(true, info.row.original, false, false, true)
+      //         }
+      //         //onClick={() => handleOpen(true, info.row.original, false, true)}
+      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+      //       >
+      //         <KeenIcon icon="trash" />
+      //       </button>
+      //     );
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[80px]",
+      //   },
+      // },
     ],
     [mutate]
   );
@@ -591,7 +605,9 @@ const Booking: React.FC<BookingProps> = ({
                 <SelectItem value="requested">Requested</SelectItem>
                 <SelectItem value="assigned">Assigned</SelectItem>
                 <SelectItem value="started">Started</SelectItem>
+                <SelectItem value="ended">Ended</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="canceled">Canceled</SelectItem>
                 <SelectItem value="driver_not_found">NotFound</SelectItem>
               </SelectContent>
             </Select>
