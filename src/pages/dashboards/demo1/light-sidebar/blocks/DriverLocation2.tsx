@@ -21,10 +21,17 @@ const DriversLocationMap: React.FC<DriverLocationProps> = ({ data }) => {
 
   // State to hold the selected driver for the legend
   const [selectedDriver, setSelectedDriver] = useState<any | null>(null);
+  const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
 
   // Function to handle marker click and set selected driver
-  const handleMarkerClick = (driver: any) => {
-    setSelectedDriver(driver);
+  const handleMarkerClick = (driverId: string | null) => {
+    setSelectedMarkerId(driverId);
+    if (driverId) {
+      const driver = data.find((d: any) => d.id === driverId);
+      setSelectedDriver(driver);
+    } else {
+      setSelectedDriver(null);
+    }
   };
 
   useEffect(() => {
@@ -51,7 +58,8 @@ const DriversLocationMap: React.FC<DriverLocationProps> = ({ data }) => {
             <CustomMarker
               key={driver.id}
               driver={driver}
-              onClick={handleMarkerClick} // Pass the click handler
+              selectedMarkerId={selectedMarkerId}
+              onMarkerClick={handleMarkerClick}
             />
           ))}
         </GoogleMap>

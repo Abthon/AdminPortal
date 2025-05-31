@@ -30,6 +30,7 @@ interface ConfigProps {
   isAddOpen: boolean;
   _handleAddOpen: (open: boolean) => void;
   handleConfigNum: (num: any) => void;
+  searchInput?: string;
 }
 
 interface IConfigData {

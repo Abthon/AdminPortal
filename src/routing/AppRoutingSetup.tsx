@@ -38,7 +38,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route
             path="/drivers"
             element={
-              <RequireAuth allowedRoles={["admin"]}>
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <DriverPage />
               </RequireAuth>
             }
@@ -46,7 +46,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route
             path="/vehicle-types"
             element={
-              <RequireAuth allowedRoles={["admin"]}>
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <VehiclePage />
               </RequireAuth>
             }
@@ -54,7 +54,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route
             path="/vehicle-type/:id"
             element={
-              <RequireAuth allowedRoles={["admin"]}>
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <VechileRegistrationPage />
               </RequireAuth>
             }
@@ -62,7 +62,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route
             path="/vehicles"
             element={
-              <RequireAuth allowedRoles={["admin"]}>
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <VechileRegistrationPage />
               </RequireAuth>
             }
@@ -70,24 +70,8 @@ const AppRoutingSetup = (): ReactElement => {
           <Route
             path="/vehicle/:id"
             element={
-              <RequireAuth allowedRoles={["admin"]}>
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <VehicleProfilePage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/coorporates"
-            element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <CoorporatePage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/coorporates/:id"
-            element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <CoorProfilePage />
               </RequireAuth>
             }
           />
@@ -128,22 +112,6 @@ const AppRoutingSetup = (): ReactElement => {
             element={
               <RequireAuth allowedRoles={["admin"]}>
                 <DispatcherPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/fuels"
-            element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <FuelPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/odometer"
-            element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <OdometerPage />
               </RequireAuth>
             }
           />
