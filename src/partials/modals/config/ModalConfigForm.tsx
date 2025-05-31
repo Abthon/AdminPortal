@@ -80,24 +80,7 @@ const ModalConfigForm = ({
   async function addConfig(values: { [key: string]: any }) {
     try {
       const { name, value } = values;
-      let permissions: string[] = [];
-      let updatedvalues: {
-        name: string;
-        value: string;
-        permissions?: string[];
-      } = { name, value };
-
-      if (values.isAdmin) {
-        permissions.push("admin");
-      }
-      if (values.isUser) {
-        permissions.push("user");
-      }
-      updatedvalues = { ...updatedvalues, permissions };
-
-      console.log(updatedvalues);
-
-      const res = await axiosInstance.post(`/api/v1/params`, updatedvalues);
+      const res = await axiosInstance.post(`/api/v1/params`, { name, value });
 
       console.log("success", res.data);
     } catch (err: any) {
@@ -111,35 +94,8 @@ const ModalConfigForm = ({
 
   async function editConfig(values: { [key: string]: any }) {
     try {
-      let permissions: string[] = [];
-      const { id, value, isUser, isAdmin } = values;
-
-      let updatedvalues: { value: any; permissions?: string[] } = {
-        value,
-      };
-
-      if (isAdmin) {
-        permissions.push("admin");
-      }
-      if (isUser) {
-        permissions.push("user");
-      }
-      updatedvalues = { ...updatedvalues, permissions };
-
-      console.log(updatedvalues);
-      try {
-        const res = await axiosInstance.patch(
-          `/api/v1/params/${id}`,
-          updatedvalues
-        );
-      } catch (err: any) {
-        console.log(err, "The error");
-        const errorMessage = err?.response?.data?.message;
-        const errorMessageAlt =
-          (err as Error).message ||
-          "An error occurred while editing the config.";
-        throw new Error(errorMessage || errorMessageAlt);
-      }
+      const { id, value } = values;
+      const res = await axiosInstance.patch(`/api/v1/params/${id}`, { value });
     } catch (err: any) {
       console.log(err, "The error");
       const errorMessage = err?.response?.data?.message;
@@ -150,7 +106,11 @@ const ModalConfigForm = ({
   }
 
   const formik = useFormik({
-    initialValues,
+    initialValues: {
+      id: configData?.id || "",
+      name: configData?.name || "",
+      value: configData?.value || "",
+    },
     validationSchema: configSchema,
     onSubmit: async (values, { setStatus, setSubmitting }) => {
       try {
@@ -277,25 +237,7 @@ const ModalConfigForm = ({
               </label>
             </div> */}
             <div className="flex flex-col gap-1">
-              <label className="form-label text-gray-900">Permission</label>
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    {...formik.getFieldProps("isAdmin")}
-                    className="form-checkbox"
-                  />
-                  <span>Admin</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    {...formik.getFieldProps("isUser")}
-                    className="form-checkbox"
-                  />
-                  <span>User</span>
-                </label>
-              </div>
+              {/* Removed Permission checkboxes as requested */}
             </div>
 
             <button

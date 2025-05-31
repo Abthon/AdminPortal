@@ -30,7 +30,6 @@ interface ConfigProps {
   isAddOpen: boolean;
   _handleAddOpen: (open: boolean) => void;
   handleConfigNum: (num: any) => void;
-  searchInput?: string;
 }
 
 interface IConfigData {
@@ -44,7 +43,6 @@ const Config = ({
   isAddOpen,
   _handleAddOpen,
   handleConfigNum,
-  searchInput,
 }: ConfigProps) => {
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
@@ -53,6 +51,7 @@ const Config = ({
   const [del, setDel] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
+  const [searchInput, setSearchInput] = useState<string>("");
 
   const handleClose = () => {
     setProfileModalOpen(false);
@@ -224,24 +223,6 @@ const Config = ({
         },
       },
       {
-        id: "permission",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Permission" column={column} />
-        ),
-        cell: (info) => {
-          return (
-            <div>
-              {info.row.original.permissions?.map((perm, index: number) => (
-                <p key={index}>{perm.type}</p>
-              ))}
-            </div>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
         id: "Edit",
         header: ({ column }) => (
           <DataGridColumnHeader title="Edit" column={column} />
@@ -302,22 +283,6 @@ const Config = ({
     }
   };
 
-  const Toolbar = () => {
-    const [searchInput, setSearchInput] = useState<string>("");
-
-    return (
-      <div className="card-header flex-wrap gap-2 border-b-0 px-5">
-        <h3 className="card-title font-medium text-sm">
-          Showing {itemsOnPage} of {totalItems} configs
-        </h3>
-      </div>
-    );
-  };
-
-  // if (isConfigLoading) {
-  //   return <DataGridLoader message="Loading" />;
-  // }
-
   return (
     <>
       <ModalConfigForm
@@ -337,10 +302,51 @@ const Config = ({
         onRowSelectionChange={handleRowSelection}
         pagination={{ size: 5 }}
         sorting={[{ id: "name", desc: false }]}
-        toolbar={<Toolbar />}
+        toolbar={
+          <Toolbar
+            itemsOnPage={itemsOnPage}
+            totalItems={totalItems}
+            searchInput={searchInput}
+            setSearchInput={setSearchInput}
+          />
+        }
         layout={{ card: true }}
       />
     </>
   );
 };
+
+interface ToolbarProps {
+  itemsOnPage: number;
+  totalItems: number;
+  searchInput: string;
+  setSearchInput: (value: string) => void;
+}
+
+const Toolbar: React.FC<ToolbarProps> = ({
+  itemsOnPage,
+  totalItems,
+  searchInput,
+  setSearchInput,
+}) => {
+  return (
+    <div className="card-header flex-wrap gap-2 border-b-0 px-5 flex justify-between items-center">
+      <h3 className="card-title font-medium text-sm">
+        Showing {itemsOnPage} of {totalItems} configs
+      </h3>
+      <div className="flex items-center">
+        <label className="input input-sm">
+          <KeenIcon icon="magnifier" />
+          <input
+            type="text"
+            placeholder="Search By Name"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+        </label>
+      </div>
+    </div>
+  );
+};
+
 export { Config };

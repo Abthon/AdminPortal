@@ -17,7 +17,6 @@ import { KeenIcon } from "@/components";
 const ConfigPage = () => {
   const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
   const [configNum, setConfigNum] = useState(null);
-  const [searchInput, setSearchInput] = useState("");
   const { currentLayout } = useLayout();
 
   return (
@@ -39,25 +38,7 @@ const ConfigPage = () => {
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>
-              <div className="flex">
-                <label className="input input-sm">
-                  <KeenIcon icon="magnifier" />
-                  <input
-                    type="text"
-                    placeholder="Search By Name"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                  />
-                </label>
-              </div>
-              <button
-                onClick={() => {
-                  setIsAddOpen((open) => !open);
-                }}
-                className="btn btn-sm btn-primary"
-              >
-                Add Config
-              </button>
+              <>{/* Search input moved to table header */}</>
             </ToolbarActions>
           </Toolbar>
         </Container>
@@ -67,7 +48,6 @@ const ConfigPage = () => {
         <ConfigContent
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
-          searchInput={searchInput}
           handleConfigNum={setConfigNum}
         />
       </Container>
