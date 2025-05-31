@@ -238,6 +238,8 @@ const Booking: React.FC<BookingProps> = ({
   let { isLoading: isBookingLoading, data: BookingData } = useQuery({
     queryKey: ["Bookings", searchInput, filterInput],
     queryFn: revalidateBooking,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: true,
   });
 
   const queryClient = useQueryClient();
