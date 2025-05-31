@@ -3,6 +3,8 @@ import { CommonRating } from "@/partials/common";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import React from "react";
+import { useQuery } from "react-query";
+import axiosInstance from "@/auth/_helpers";
 
 interface IGeneralInfoItem {
   label: string;
@@ -43,29 +45,58 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
   const [showModal, setShowModal] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
 
+  // Fetch average rating using useQuery
+  const {
+    data: ratingData,
+    isLoading: isRatingLoading,
+    isError: isRatingError,
+  } = useQuery({
+    queryKey: ["driverRating", data?.id], // Query key with driver ID
+    queryFn: async () => {
+      if (!data?.id) return null; // Don't fetch if ID is not available
+      const response = await axiosInstance.get(
+        `/api/v1/drivers/rating/${data.id}`
+      );
+      return response.data.data.averageRating; // Extract the averageRating
+    },
+    enabled: !!data?.id, // Only run the query if data.id exists
+  });
+
   const items: IGeneralInfoItems = [
     { label: "Phone:", info: `+251 ${data.phoneNumber}`, type: 1 },
-    { label: "Rating:", info: <CommonRating rating={data.rating} />, type: 2 },
+    {
+      label: "Average Rating:",
+      info: isRatingLoading ? (
+        "Loading..."
+      ) : isRatingError ? (
+        "Error"
+      ) : (
+        <div className="flex items-center gap-1">
+          <span className="text-md">{ratingData?.toFixed(1) || "N/A"}</span>
+          <KeenIcon icon="star" />
+        </div>
+      ),
+      type: 2,
+    },
     {
       label: "Status:",
       info: `<span class="badge badge-sm ${data.status === "suspended" && "badge-danger"} ${data.status === "inactive" && "badge-warning"} ${data.status === "active" && "badge-success"} ${data.status === "pending" && "badge-primary"} badge-outline">${capitalizeFirstLetter(data.status)}</span>`,
     },
     { label: "Type:", info: capitalizeFirstLetter(data.type) },
     { label: "Gender:", info: capitalizeFirstLetter(data.gender) },
-    { label: "Created at:", info: timeAgo(data.createdAt) },
     {
       label: "Driver License:",
       info: data.drivingLicense,
     },
+    { label: "Created at:", info: timeAgo(data.createdAt) },
   ];
 
   const renderItems = (item: IGeneralInfoItem, index: number) => {
-    const baseUrl = "https://app.navigo.et/test/static/license/";
+    const baseUrl = "https://app.navigo.et/test/static/";
 
-    // Function to open image in modal
-    const openImageModal = async (fileName: any) => {
+    const openDriverLicenseModal = async (fileName: any) => {
       try {
-        const fileUrl = `${baseUrl}${fileName}`;
+        const fileUrl = `${baseUrl}license/${fileName}`;
         setImageUrl(fileUrl);
         setShowModal(true);
       } catch (error) {
@@ -86,7 +117,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
           ) : item.label === "Driver License:" ? (
             <div>
               <button
-                onClick={() => openImageModal(item.info)}
+                onClick={() => openDriverLicenseModal(item.info)}
                 className="btn btn-sm btn-icon btn-clear btn-primary"
               >
                 <KeenIcon icon="eye" />

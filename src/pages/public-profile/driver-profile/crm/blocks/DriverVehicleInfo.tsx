@@ -1,5 +1,6 @@
 import { timeAgo } from "@/utils/Time";
-import { Link } from "react-router-dom";
+import { KeenIcon } from "@/components";
+import { useState } from "react";
 
 interface IDriverVehicleInfoItem {
   label: string;
@@ -13,25 +14,59 @@ interface DriverVehicleInfoProps {
 
 //const DriverVehicleInfo = () => {
 const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
-  console.log(data, "DriverVehicleInfo data");
+  const [showModal, setShowModal] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+
   const items: IDriverVehicleInfoItems = [
-    { label: "make:", info: data?.make },
-    { label: "model", info: data?.model },
-    { label: "plate_number:", info: data?.plate_number },
-    { label: "year", info: data?.year },
+    { label: "Make:", info: data?.make },
+    { label: "Model", info: data?.model },
+    { label: "Plate_number:", info: data?.plate_number },
+    { label: "Year", info: data?.year },
+    { label: "Color", info: data?.color },
     {
-      label: "createdAt",
+      label: "Librae",
+      info: data.librae,
+    },
+    {
+      label: "CreatedAt",
       info: data?.createdAt ? timeAgo(data?.createdAt) : null,
     },
   ];
 
   const renderItem = (item: IDriverVehicleInfoItem, index: number) => {
+    const baseUrl = "https://app.navigo.et/test/static/";
+
+    const openVehicleLibraeModal = async (fileName: any) => {
+      try {
+        const fileUrl = `${baseUrl}librae/${fileName}`;
+        setImageUrl(fileUrl);
+        setShowModal(true);
+      } catch (error) {
+        console.error("Error opening the image:", error);
+      }
+    };
+
     return (
       <tr key={index}>
-        <td className="text-sm text-gray-600 pb-3.5 pe-4 lg:pe-6">
+        <td className="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">
           {item.label}
         </td>
-        <td className="text-sm text-gray-900 pb-3">{item.info}</td>
+        <td className="text-sm text-gray-900 pb-3">
+          {item.label === "Librae" ? (
+            <div>
+              <button
+                onClick={() => openVehicleLibraeModal(item.info)}
+                className="btn btn-sm btn-icon btn-clear btn-primary"
+              >
+                <KeenIcon icon="eye" />
+              </button>
+            </div>
+          ) : (
+            <span
+              dangerouslySetInnerHTML={{ __html: item.info as string }}
+            ></span>
+          )}
+        </td>
       </tr>
     );
   };
@@ -57,6 +92,42 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
       ) : (
         <div className="card-body pt-3.5 flex justify-center items-center">
           <p className="text-sm text-gray-600">No data available</p>
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-4 rounded-lg max-w-3xl max-h-[90vh] overflow-auto">
+            <div className="flex justify-between mb-4">
+              <h3 className="text-lg font-semibold">Driver Librae</h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <KeenIcon icon="cross" />
+              </button>
+            </div>
+            <div className="flex justify-center">
+              <img
+                src={imageUrl}
+                alt="Driver License"
+                className="max-w-full max-h-[70vh] object-contain"
+              />
+            </div>
+            <div className="flex justify-center mt-4">
+              <a
+                href={imageUrl}
+                download
+                className="btn btn-sm btn-primary"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <KeenIcon icon="folder-down" className="me-2" />
+                Download
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </div>
