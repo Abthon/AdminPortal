@@ -25,7 +25,7 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
     { label: "Color", info: data?.color },
     {
       label: "Librae",
-      info: data.librae,
+      info: data?.librae,
     },
     {
       label: "CreatedAt",

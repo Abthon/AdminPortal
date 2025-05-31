@@ -61,10 +61,9 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
     },
     enabled: !!data?.id, // Only run the query if data.id exists
   });
-
   const items: IGeneralInfoItems = [
     { label: "Phone:", info: `+251 ${data.phoneNumber}`, type: 1 },
-    {
+    ratingData && {
       label: "Average Rating:",
       info: isRatingLoading ? (
         "Loading..."
@@ -78,10 +77,6 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
       ),
       type: 2,
     },
-    {
-      label: "Status:",
-      info: `<span class="badge badge-sm ${data.status === "suspended" && "badge-danger"} ${data.status === "inactive" && "badge-warning"} ${data.status === "active" && "badge-success"} ${data.status === "pending" && "badge-primary"} badge-outline">${capitalizeFirstLetter(data.status)}</span>`,
-    },
     { label: "Type:", info: capitalizeFirstLetter(data.type) },
     { label: "Gender:", info: capitalizeFirstLetter(data.gender) },
     {
@@ -89,7 +84,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
       info: data.drivingLicense,
     },
     { label: "Created at:", info: timeAgo(data.createdAt) },
-  ];
+  ].filter(Boolean); // Filter out any falsy values (like undefined or null)
 
   const renderItems = (item: IGeneralInfoItem, index: number) => {
     const baseUrl = "https://app.navigo.et/test/static/";
