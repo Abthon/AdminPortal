@@ -385,7 +385,7 @@ const Drivers = ({
               onClick={() => handleApproval(true, info.row.original)}
               className="btn btn-sm btn-icon btn-clear btn-primary hover:text-white"
             >
-              <KeenIcon icon="double-check" />
+              <KeenIcon icon="check-circle" />
             </button>
           );
         },
