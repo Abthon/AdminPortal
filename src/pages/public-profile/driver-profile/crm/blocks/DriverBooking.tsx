@@ -14,6 +14,7 @@ interface IDriverBookingItem {
   pickupName: string;
   status: string;
   estimatedTraveledDistance: number;
+  actualPrice: number;
 }
 interface IDriverBookingItems extends Array<IDriverBookingItem> {}
 
@@ -37,6 +38,9 @@ const DriverBooking: React.FC<DriverBookingProps> = ({ data }) => {
             {item.status}
           </div>
         </td>
+        <td className="text-sm text-gray-800 min-w-[150px]">
+          {item.actualPrice} Birr
+        </td>
       </tr>
     );
   };
@@ -54,6 +58,7 @@ const DriverBooking: React.FC<DriverBookingProps> = ({ data }) => {
               <th className="text-start min-w-[100px] !text-gray-700"> To</th>
               <th className="min-w-[100px]">Distance</th>
               <th className="min-w-[110px] !text-gray-700">Status</th>
+              <th className="min-w-[120px] !text-gray-700">Actual Price</th>
             </tr>
           </thead>
           <tbody>
