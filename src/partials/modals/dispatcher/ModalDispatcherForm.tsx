@@ -69,26 +69,26 @@ const ModalDispatcherForm = ({
         email: "",
         password: "",
         gender: "",
-        type: "",
+        profilePhoto: null,
       };
 
   async function addDispatcher(values: any) {
     try {
-      const { firstName, lastName, middleName, email, password, gender, type } =
-        values;
+      const formData = new FormData();
+      formData.append("file", values.profilePhoto);
+      const res_1 = await axiosInstance.post(
+        `/api/v1/file-upload/image/profile`,
+        formData
+      );
 
-      const updatedValues: any = {
-        firstName,
-        middleName,
-        lastName,
-        email,
-        gender,
-        password,
-      };
-
-      console.log(values, "the values to be sent");
-      const res = await axiosInstance.post(`/api/v1/admin`, updatedValues);
-      return res.data;
+      if (res_1?.status === 201) {
+        const profile = res_1.data.data.filename;
+        let { profilePhoto, ...rest } = values;
+        rest = { ...rest, profilePhoto: profile };
+        console.log(rest, "result to be sent");
+        const res = await axiosInstance.post(`/api/v1/admin`, rest);
+        return res.data;
+      }
     } catch (err: any) {
       console.log(err, "The error");
       const errorMessage = err?.response?.data?.message;
@@ -125,23 +125,21 @@ const ModalDispatcherForm = ({
 
   async function editDispatcher(values: any) {
     try {
-      const { id, firstName, lastName, middleName, email, gender, type } =
-        values;
+      const { id, ...otherValues } = values;
+      let updatedValues = { ...otherValues };
 
-      let updatedValues: any = {
-        firstName,
-        lastName,
-        middleName,
-        email,
-        gender,
-        type,
-      };
-
-      updatedValues = Object.fromEntries(
-        Object.entries(updatedValues).filter(
-          ([key, value]) => value !== undefined
-        )
-      );
+      if (values.profilePhoto instanceof File) {
+        const formData = new FormData();
+        formData.append("file", values.profilePhoto);
+        const res_1 = await axiosInstance.post(
+          `/api/v1/file-upload/image/profile`,
+          formData
+        );
+        if (res_1?.status === 201) {
+          const profile = res_1.data.data.filename;
+          updatedValues = { ...updatedValues, profilePhoto: profile };
+        }
+      }
 
       try {
         const res = await axiosInstance.patch(
@@ -374,6 +372,36 @@ const ModalDispatcherForm = ({
               ) : (
                 ""
               )}
+
+              <div className="flex flex-col gap-1">
+                <label className="form-label text-gray-900">
+                  Profile Photo
+                </label>
+                {formik.touched.profilePhoto && formik.errors.profilePhoto ? (
+                  <div className="text-red-500 text-sm">
+                    {typeof formik.errors.profilePhoto === "string"
+                      ? formik.errors.profilePhoto
+                      : null}
+                  </div>
+                ) : null}
+                <label className="input  max-w-[390px] overflow-hidden">
+                  <input
+                    type="file"
+                    name="profilePhoto"
+                    onChange={(event) => {
+                      if (
+                        event.currentTarget.files &&
+                        event.currentTarget.files[0]
+                      ) {
+                        formik.setFieldValue(
+                          "profilePhoto",
+                          event.currentTarget.files[0]
+                        );
+                      }
+                    }}
+                  />
+                </label>
+              </div>
 
               <button
                 type="submit"

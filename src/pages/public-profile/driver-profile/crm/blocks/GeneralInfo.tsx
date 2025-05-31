@@ -77,6 +77,10 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
       ),
       type: 2,
     },
+    {
+      label: "Status:",
+      info: `<span class="badge badge-sm ${data.status === "suspended" && "badge-danger"} ${data.status === "inactive" && "badge-warning"} ${data.status === "active" && "badge-success"} ${data.status === "pending" && "badge-primary"} badge-outline">${capitalizeFirstLetter(data.status)}</span>`,
+    },
     { label: "Type:", info: capitalizeFirstLetter(data.type) },
     { label: "Gender:", info: capitalizeFirstLetter(data.gender) },
     {
