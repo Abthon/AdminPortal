@@ -66,7 +66,8 @@ const DriversLocationMap: React.FC<DriverLocationProps> = ({ data }) => {
       </LoadScript>
 
       {/* Driver Status Legend */}
-      {selectedDriver && (
+      {/* {
+      selectedDriver && (
         <div
           style={{
             position: "absolute",
@@ -94,9 +95,8 @@ const DriversLocationMap: React.FC<DriverLocationProps> = ({ data }) => {
                   : "Online"
               : "Offline"}
           </p>
-          {/* Add more driver info here if needed */}
         </div>
-      )}
+      )} */}
     </div>
   );
 };

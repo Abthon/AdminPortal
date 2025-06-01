@@ -44,7 +44,7 @@ const DashboardSkeleton = () => {
 const Demo1LightSidebarContent = () => {
   async function getDrivers() {
     console.log("new data");
-    const url = `/api/v1/drivers`;
+    const url = `/api/v1/drivers?page=0&filters=status:=active,inactive,pending`;
     const { data } = await axiosInstance.get(url);
     return data.data;
   }
