@@ -57,7 +57,7 @@ const ModalUserForm = ({
         lastName: "",
         phoneNumber: "",
         gender: "",
-        type: "",
+        type: "user",
       };
 
   async function addUser(values: any) {
@@ -255,7 +255,7 @@ const ModalUserForm = ({
                 )}
               </div>
 
-              <div className="flex flex-col gap-1">
+              {/* <div className="flex flex-col gap-1">
                 <label className="form-label text-gray-900">Type</label>
                 {formik.touched.Type && formik.errors.Type ? (
                   <div className="text-red-500 text-sm">
@@ -281,7 +281,7 @@ const ModalUserForm = ({
                       formik.errors.type}
                   </span>
                 )}
-              </div>
+              </div> */}
 
               {/* <div className="flex flex-col gap-1">
                 <label className="form-label text-gray-900">isApproved</label>
