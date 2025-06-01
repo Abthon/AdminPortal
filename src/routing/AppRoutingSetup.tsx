@@ -110,7 +110,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route
             path="/dispatchers"
             element={
-              <RequireAuth allowedRoles={["admin"]}>
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <DispatcherPage />
               </RequireAuth>
             }
