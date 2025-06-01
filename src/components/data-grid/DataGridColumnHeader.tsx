@@ -82,21 +82,21 @@ export function DataGridColumnHeader<TData, TValue>({
             variant="ghost"
             size="sm"
             className={cn(
-              "-ms-3 h-8 data-[state=open]:bg-accent !ring-0 !ring-offset-0",
+              // "-ms-3 h-8 data-[state=open]:bg-accent !ring-0 !ring-offset-0",
               className
             )}
           >
             <span className="text-sm">{title}</span>
-            {column.getIsSorted() === "desc" ? (
+            {/* {column.getIsSorted() === "desc" ? (
               <ArrowDown className="!size-[0.825rem]" />
             ) : column.getIsSorted() === "asc" ? (
               <ArrowUp className="!size-[0.825rem]" />
             ) : (
               <ChevronsUpDown className="!size-[0.825rem]" />
-            )}
+            )} */}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
+        {/* <DropdownMenuContent align="start">
           {filter && (
             <>
               <DropdownMenuLabel>{filter}</DropdownMenuLabel>
@@ -140,7 +140,7 @@ export function DataGridColumnHeader<TData, TValue>({
               </DropdownMenuItem>
             </>
           )}
-        </DropdownMenuContent>
+        </DropdownMenuContent> */}
       </DropdownMenu>
     </div>
   );

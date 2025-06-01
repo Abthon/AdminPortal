@@ -251,7 +251,7 @@ const Dispatcher = ({
         header: ({ column }) => (
           <DataGridColumnHeader title="First Name" column={column} />
         ),
-        enableSorting: true,
+        // enableSorting: true,
         cell: (info) => {
           return info.row.original.firstName;
         },
@@ -264,7 +264,7 @@ const Dispatcher = ({
         header: ({ column }) => (
           <DataGridColumnHeader title="Last Name" column={column} />
         ),
-        enableSorting: true,
+        // enableSorting: true,
         cell: (info) => {
           return info.row.original.lastName;
         },
