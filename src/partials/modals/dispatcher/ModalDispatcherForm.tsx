@@ -19,7 +19,7 @@ const dispatcherEditSchema = Yup.object().shape({
 
 const dispatcherPostSchema = Yup.object().shape({
   firstName: Yup.string().required("first name is required"),
-  middleName: Yup.string().required("middle name is required"),
+  middlName: Yup.string().required("middle name is required"),
   lastName: Yup.string().required("lastname is required"),
   email: Yup.string().email("invalid email").required("email is required"),
   password: Yup.string()
@@ -125,7 +125,7 @@ const ModalDispatcherForm = ({
 
   async function editDispatcher(values: any) {
     try {
-      const { id, ...otherValues } = values;
+      const { id, isEmailAuthenticated, createdAt, ...otherValues } = values;
       let updatedValues = { ...otherValues };
 
       if (values.profilePhoto instanceof File) {
