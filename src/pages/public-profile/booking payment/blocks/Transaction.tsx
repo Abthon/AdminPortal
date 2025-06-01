@@ -23,6 +23,7 @@ import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
 import { Link } from "react-router-dom";
 import { timeAgo } from "@/utils/Time";
+// import { DatePicker } from "@/components/ui/date-picker";
 
 interface ITransactionData {
   id: number;
@@ -75,11 +76,12 @@ const Transaction: React.FC<TransactionProps> = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   const handleClose = () => {
     _handleAddOpen(false);
   };
-
   async function getTransactions({
     pageIndex,
     pageSize,
@@ -90,23 +92,48 @@ const Transaction: React.FC<TransactionProps> = ({
     sort: any;
   }) {
     const sortOrder = sort[0].desc ? "DESC" : "ASC";
-    const url = `/api/v1/transactions?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}`;
-    const { data } = await axiosInstance.get(url);
 
-    console.log(data, "transaction data");
+    // Build date filter string
+    let dateFilter = "";
+    if (startDate && endDate) {
+      const startDateStr = startDate.toISOString().split("T")[0];
+      const endDateStr = endDate.toISOString().split("T")[0];
+      dateFilter = `&filters=createdAt>=${startDateStr},createdAt<=${endDateStr}`;
+    } else if (startDate) {
+      const startDateStr = startDate.toISOString().split("T")[0];
+      dateFilter = `&filters=createdAt>=${startDateStr}`;
+    } else if (endDate) {
+      const endDateStr = endDate.toISOString().split("T")[0];
+      dateFilter = `&filters=createdAt<=${endDateStr}`;
+    }
 
-    // calculating how many items are there on the current page
-    const startIndex =
-      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
-    const endIndex = Math.min(
-      data.pagination.currentPage * data.pagination.pageSize,
-      data.pagination.totalItems
-    );
-    const itemsOnPage = endIndex - startIndex + 1;
-    setItemsOnPage(itemsOnPage);
-    setTotalItems(data.pagination.totalItems);
-    handleTransactionNum(data.data.length);
-    return data;
+    const url = `/api/v1/transactions?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}${dateFilter}`;
+
+    try {
+      const { data } = await axiosInstance.get(url);
+
+      console.log(data, "transaction data");
+
+      // calculating how many items are there on the current page
+      const startIndex =
+        (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+      const endIndex = Math.min(
+        data.pagination.currentPage * data.pagination.pageSize,
+        data.pagination.totalItems
+      );
+      const itemsOnPage = endIndex - startIndex + 1;
+      setItemsOnPage(itemsOnPage);
+      setTotalItems(data.pagination.totalItems);
+      handleTransactionNum(data.data.length);
+
+      return data; // Make sure this returns the full response
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      return {
+        data: [],
+        pagination: { totalItems: 0, currentPage: 1, pageSize: pageSize },
+      };
+    }
   }
 
   async function searchTransaction({
@@ -121,21 +148,46 @@ const Transaction: React.FC<TransactionProps> = ({
     sort: any;
   }) {
     const sortOrder = sort[0].desc ? "DESC" : "ASC";
-    const url = `/api/v1/transactions?filters=description=${search}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}`;
-    const { data } = await axiosInstance.get(url);
 
-    // calculating how many items are there on the current page
-    const startIndex =
-      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
-    const endIndex = Math.min(
-      data.pagination.currentPage * data.pagination.pageSize,
-      data.pagination.totalItems
-    );
-    const itemsOnPage = endIndex - startIndex + 1;
-    setItemsOnPage(itemsOnPage);
-    setTotalItems(data.pagination.totalItems);
-    handleTransactionNum(data.data.length);
-    return data;
+    // Build date filter string
+    let dateFilter = "";
+    if (startDate && endDate) {
+      const startDateStr = startDate.toISOString().split("T")[0];
+      const endDateStr = endDate.toISOString().split("T")[0];
+      dateFilter = `,createdAt>=${startDateStr},createdAt<=${endDateStr}`;
+    } else if (startDate) {
+      const startDateStr = startDate.toISOString().split("T")[0];
+      dateFilter = `,createdAt>=${startDateStr}`;
+    } else if (endDate) {
+      const endDateStr = endDate.toISOString().split("T")[0];
+      dateFilter = `,createdAt<=${endDateStr}`;
+    }
+
+    const url = `/api/v1/transactions?filters=description=${search}${dateFilter}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}`;
+
+    try {
+      const { data } = await axiosInstance.get(url);
+
+      // calculating how many items are there on the current page
+      const startIndex =
+        (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+      const endIndex = Math.min(
+        data.pagination.currentPage * data.pagination.pageSize,
+        data.pagination.totalItems
+      );
+      const itemsOnPage = endIndex - startIndex + 1;
+      setItemsOnPage(itemsOnPage);
+      setTotalItems(data.pagination.totalItems);
+      handleTransactionNum(data.data.length);
+
+      return data; // Make sure this returns the full response
+    } catch (error) {
+      console.error("Error searching transactions:", error);
+      return {
+        data: [],
+        pagination: { totalItems: 0, currentPage: 1, pageSize: pageSize },
+      };
+    }
   }
 
   async function revalidateTransaction() {
@@ -145,7 +197,7 @@ const Transaction: React.FC<TransactionProps> = ({
   }
 
   let { isLoading: isTransactionLoading, data: TransactionData } = useQuery({
-    queryKey: ["Transactions", searchInput, activeTab],
+    queryKey: ["Transactions", searchInput, activeTab, startDate, endDate],
     queryFn: revalidateTransaction,
   });
 
@@ -387,7 +439,6 @@ const Transaction: React.FC<TransactionProps> = ({
       });
     }
   };
-
   const Toolbar = () => {
     const totalAmount = data.reduce((sum, transaction) => {
       return transaction.action === "deduct"
@@ -402,6 +453,11 @@ const Transaction: React.FC<TransactionProps> = ({
     const totalAdditions = data
       .filter((t) => t.action === "add" || t.action === "credit")
       .reduce((sum, t) => sum + t.amount, 0);
+
+    const clearDateFilters = () => {
+      setStartDate(null);
+      setEndDate(null);
+    };
 
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
@@ -432,6 +488,38 @@ const Transaction: React.FC<TransactionProps> = ({
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Date Filter Section */}
+        <div className="flex items-center gap-4 mt-3 w-full">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">From:</span>
+            <input
+              type="date"
+              value={startDate ? startDate.toISOString().split("T")[0] : ""}
+              onChange={(e) =>
+                setStartDate(e.target.value ? new Date(e.target.value) : null)
+              }
+              className="input input-sm"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">To:</span>
+            <input
+              type="date"
+              value={endDate ? endDate.toISOString().split("T")[0] : ""}
+              onChange={(e) =>
+                setEndDate(e.target.value ? new Date(e.target.value) : null)
+              }
+              className="input input-sm"
+            />
+          </div>
+          {(startDate || endDate) && (
+            <button onClick={clearDateFilters} className="btn btn-sm btn-light">
+              <KeenIcon icon="cross" className="text-sm" />
+              Clear Dates
+            </button>
+          )}
         </div>
       </div>
     );
