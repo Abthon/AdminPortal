@@ -23,9 +23,9 @@ const vehicleSchema = Yup.object().shape({
   additionalFarePerKm: Yup.number().required(
     "Additional Fare Per Km is required and should be a number"
   ),
-  minWeightCapacity: Yup.number().required(
-    "Min Weight Capacity is required and should be a number"
-  ),
+  // minWeightCapacity: Yup.number().required(
+  //   "Min Weight Capacity is required and should be a number"
+  // ),
   maxWeightCapacity: Yup.number().required(
     "Max Weight Capacity is required and should be a number"
   ),
@@ -68,7 +68,7 @@ const ModalVehicleTypeForm = ({
         name: "",
         baseFare: "",
         additionalFarePerKm: "",
-        minWeightCapacity: "",
+        // minWeightCapacity: "",
         maxWeightCapacity: "",
         file: null,
       };
@@ -196,7 +196,7 @@ const ModalVehicleTypeForm = ({
           name: vehicleData?.name || "", // Example: populating 'name'
           baseFare: vehicleData?.baseFare || "", // Example: populating 'baseFare'
           additionalFarePerKm: vehicleData?.additionalFarePerKm || "", // Example: populating 'additionalFarePerKm'
-          minWeightCapacity: vehicleData?.minWeightCapacity || "", // Example: populating 'minWeightCapacity'
+          // minWeightCapacity: vehicleData?.minWeightCapacity || "", // Example: populating 'minWeightCapacity'
           maxWeightCapacity: vehicleData?.maxWeightCapacity || "", // Example: populating 'maxWeightCapacity'
           // ... include other fields similarly
         });
@@ -312,7 +312,7 @@ const ModalVehicleTypeForm = ({
                 />
               </label>
             </div>
-            <div className="flex flex-col gap-1">
+            {/* <div className="flex flex-col gap-1">
               <label className="form-label text-gray-900">
                 Min Weight Capacity
               </label>
@@ -332,7 +332,7 @@ const ModalVehicleTypeForm = ({
                   type="number"
                 />
               </label>
-            </div>
+            </div> */}
             <div className="flex flex-col gap-1">
               <label className="form-label text-gray-900">
                 Max Weight Capacity
