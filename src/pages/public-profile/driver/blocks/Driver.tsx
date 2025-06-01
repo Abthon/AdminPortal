@@ -59,6 +59,12 @@ const Drivers = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
+  // In your parent component, add this state
+  const [selectedImage, setSelectedImage] = useState<{
+    src: string;
+    name: string;
+    phone: string;
+  } | null>(null);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -232,21 +238,41 @@ const Drivers = ({
           let img = !row.original.profilePhoto.startsWith("http")
             ? `${BASE_URL}/profile/${row.original.profilePhoto}`
             : row.original.profilePhoto;
-          // 'row' argumentini cell funksiyasiga qo'shdik
+
+          const handleImageClick = (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+
+            console.log("Image clicked!"); // Add this to debug
+
+            setSelectedImage({
+              src: img,
+              name: `${row.original.firstName} ${row.original.lastName}`,
+              phone: `+251${row.original.phoneNumber}`,
+            });
+          };
+
           return (
             <div className="flex items-center gap-4">
-              {/* <img
-                src={img}
-                className="rounded-full size-9 shrink-0"
-                // alt={`${row.original.profilePhoto}`}
-              /> */}
-              <div className="relative">
+              <div
+                className="relative group cursor-pointer"
+                onClick={handleImageClick}
+              >
                 <img
                   src={img}
-                  className="rounded-full size-9 shrink-0 object-cover"
+                  className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105"
+                  alt={`${row.original.firstName} ${row.original.lastName}`}
                 />
+
+                {/* Hover overlay with zoom icon */}
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <KeenIcon icon="eye" className="text-white text-xs" />
+                </div>
+
+                {/* Online status indicator */}
                 <div
-                  className={`flex size-2 bg-${row.original.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform`}
+                  className={`flex size-2 bg-${row.original.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform pointer-events-none`}
                 ></div>
               </div>
 
@@ -254,7 +280,6 @@ const Drivers = ({
                 <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
                   {row.original.firstName} {row.original.lastName}
                 </span>
-
                 <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
                   +251{row.original.phoneNumber}
                 </span>
@@ -267,6 +292,53 @@ const Drivers = ({
           cellClassName: "text-gray-800 font-normal",
         },
       },
+      // {
+      //   accessorFn: (row) => row.firstName,
+      //   id: "firstName",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Driver" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: ({ row }) => {
+      //     console.log(row.original.profilePhoto);
+      //     let img = !row.original.profilePhoto.startsWith("http")
+      //       ? `${BASE_URL}/profile/${row.original.profilePhoto}`
+      //       : row.original.profilePhoto;
+      //     // 'row' argumentini cell funksiyasiga qo'shdik
+      //     return (
+      //       <div className="flex items-center gap-4">
+      //         {/* <img
+      //           src={img}
+      //           className="rounded-full size-9 shrink-0"
+      //           // alt={`${row.original.profilePhoto}`}
+      //         /> */}
+      //         <div className="relative">
+      //           <img
+      //             src={img}
+      //             className="rounded-full size-9 shrink-0 object-cover"
+      //           />
+      //           <div
+      //             className={`flex size-2 bg-${row.original.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform`}
+      //           ></div>
+      //         </div>
+
+      //         <div className="flex flex-col gap-0.5">
+      //           <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+      //             {row.original.firstName} {row.original.lastName}
+      //           </span>
+
+      //           <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
+      //             +251{row.original.phoneNumber}
+      //           </span>
+      //         </div>
+      //       </div>
+      //     );
+      //   },
+      //   meta: {
+      //     className: "min-w-[300px]",
+      //     cellClassName: "text-gray-800 font-normal",
+      //   },
+      // },
 
       {
         id: "gender",
@@ -459,6 +531,40 @@ const Drivers = ({
 
   return (
     <>
+      {/* Image Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative">
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
+            >
+              <KeenIcon icon="cross" className="text-gray-600 text-sm" />
+            </button>
+
+            {/* Image with responsive fixed height */}
+            <img
+              src={selectedImage.src}
+              alt={selectedImage.name}
+              className="rounded-lg shadow-2xl h-80 sm:h-96 md:h-[500px] lg:h-[600px] w-auto object-cover bg-white"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {/* Info card */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-sm text-gray-800 px-4 py-3 rounded-lg shadow-lg min-w-[200px] text-center">
+              <p className="font-semibold text-sm">{selectedImage.name}</p>
+              <p className="text-xs text-gray-600 mt-1">
+                {selectedImage.phone}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ModalDriverTypeForm
         open={profileModalOpen}
         onOpenChange={handleClose}
