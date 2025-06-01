@@ -12,6 +12,7 @@ import {
 import { DriverLocation } from "./blocks/DriverLocation";
 import React, { useState } from "react";
 import { DriverRatings } from "./blocks/DriverRating";
+import { DriverTransaction } from "./blocks/DriverTransaction";
 
 interface DriverProfileContentProps {
   data: any;
@@ -20,9 +21,9 @@ interface DriverProfileContentProps {
 const DriverProfileContent: React.FC<DriverProfileContentProps> = ({
   data,
 }) => {
-  const [activeView, setActiveView] = useState<"bookings" | "ratings">(
-    "bookings"
-  );
+  const [activeView, setActiveView] = useState<
+    "bookings" | "ratings" | "transaction"
+  >("bookings");
 
   const handleShowBookings = () => {
     setActiveView("bookings");
@@ -30,6 +31,10 @@ const DriverProfileContent: React.FC<DriverProfileContentProps> = ({
 
   const handleShowRatings = () => {
     setActiveView("ratings");
+  };
+
+  const handleShowTransaction = () => {
+    setActiveView("transaction");
   };
 
   return (
@@ -57,12 +62,21 @@ const DriverProfileContent: React.FC<DriverProfileContentProps> = ({
               >
                 <KeenIcon icon="calendar" /> Show Bookings
               </button>
+
               <button
                 type="button"
                 className={`btn btn-sm ${activeView === "ratings" ? "btn-primary" : "btn-outline btn-primary"}`}
                 onClick={handleShowRatings}
               >
                 <KeenIcon icon="star" /> Show Ratings
+              </button>
+
+              <button
+                type="button"
+                className={`btn btn-sm ${activeView === "transaction" ? "btn-primary" : "btn-outline btn-primary"}`}
+                onClick={handleShowTransaction}
+              >
+                <KeenIcon icon="calendar" /> Show Transactions
               </button>
             </div>
 
@@ -72,6 +86,8 @@ const DriverProfileContent: React.FC<DriverProfileContentProps> = ({
             )}
 
             {activeView === "ratings" && <DriverRatings data={data.ratings} />}
+
+            {activeView === "transaction" && <DriverTransaction />}
 
             <DriverLocation data={data} />
             {/* <Activity /> */}

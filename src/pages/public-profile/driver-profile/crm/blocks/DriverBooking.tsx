@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/i18n";
 import { KeenIcon, Menu, MenuItem, MenuToggle } from "@/components";
-
 import { DropdownCrud1, DropdownCrudItem1 } from "@/partials/dropdowns/general";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface DriverBookingProps {
   data: any;
@@ -15,10 +14,14 @@ interface IDriverBookingItem {
   status: string;
   estimatedTraveledDistance: number;
   actualPrice: number;
+  deductedPrice: number;
 }
 interface IDriverBookingItems extends Array<IDriverBookingItem> {}
 
 const DriverBooking: React.FC<DriverBookingProps> = ({ data }) => {
+  useEffect(() => {
+    console.log(data, "test");
+  }, []);
   const { isRTL } = useLanguage();
   const [showAll, setShowAll] = useState(false);
 
@@ -41,6 +44,9 @@ const DriverBooking: React.FC<DriverBookingProps> = ({ data }) => {
         <td className="text-sm text-gray-800 min-w-[150px]">
           {item.actualPrice} Birr
         </td>
+        <td className="text-sm text-gray-800 min-w-[150px]">
+          {item.deductedPrice} Birr
+        </td>
       </tr>
     );
   };
@@ -59,6 +65,7 @@ const DriverBooking: React.FC<DriverBookingProps> = ({ data }) => {
               <th className="min-w-[100px]">Distance</th>
               <th className="min-w-[110px] !text-gray-700">Status</th>
               <th className="min-w-[120px] !text-gray-700">Actual Price</th>
+              <th className="min-w-[120px] !text-gray-700">Commision</th>
             </tr>
           </thead>
           <tbody>
