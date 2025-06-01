@@ -34,6 +34,7 @@ interface IDispatcherData {
   firstName: string;
   lastName: string;
   status: string;
+  profilePhoto: string;
   type: string;
 }
 
@@ -213,19 +214,6 @@ const Dispatcher = ({
     },
   });
 
-  // const ColumnInputFilter = <TData, TValue>({
-  //   column,
-  // }: IColumnFilterProps<TData, TValue>) => {
-  //   return (
-  //     <Input
-  //       placeholder="Filter..."
-  //       value={(column.getFilterValue() as string) ?? ""}
-  //       onChange={(event) => column.setFilterValue(event.target.value)}
-  //       className="h-9 w-full max-w-40"
-  //     />
-  //   );
-  // };
-
   useEffect(
     function () {
       isAddOpen && handleOpen(false);
@@ -247,31 +235,82 @@ const Dispatcher = ({
       },
       {
         accessorFn: (row) => row.firstName,
-        id: "fname",
+        id: "profile",
         header: ({ column }) => (
-          <DataGridColumnHeader title="First Name" column={column} />
+          <DataGridColumnHeader title="Dispatcher" column={column} />
         ),
-        // enableSorting: true,
-        cell: (info) => {
-          return info.row.original.firstName;
+        enableSorting: true,
+        cell: ({ row }) => {
+          // If you want to show the profile photo
+          let img = !row.original.profilePhoto?.startsWith("http")
+            ? `${BASE_URL}/profile/${row.original.profilePhoto}`
+            : row.original.profilePhoto;
+
+          return (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                {row.original.profilePhoto ? (
+                  <img
+                    src={img}
+                    alt={`${row.original.firstName} ${row.original.lastName}`}
+                    className="w-10 h-10 rounded-full object-cover"
+                    onError={(e) => {
+                      // Fallback to initials if image fails to load
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-sm font-medium text-gray-600">
+                      {row.original.firstName?.charAt(0)}
+                      {row.original.lastName?.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <div className="font-medium text-gray-900">
+                    {row.original.firstName} {row.original.lastName}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {row.original.type}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
         },
         meta: {
-          headerClassName: "min-w-[180px]",
+          className: "min-w-[150px]", // Even smaller
+          cellClassName: "text-gray-800 font-normal",
         },
       },
-      {
-        id: "lastName",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Last Name" column={column} />
-        ),
-        // enableSorting: true,
-        cell: (info) => {
-          return info.row.original.lastName;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
+      // {
+      //   accessorFn: (row) => row.firstName,
+      //   id: "fname",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="First Name" column={column} />
+      //   ),
+      //   // enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.firstName;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[180px]",
+      //   },
+      // },
+      // {
+      //   id: "lastName",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Last Name" column={column} />
+      //   ),
+      //   // enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.lastName;
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[180px]",
+      //   },
+      // },
       {
         id: "status",
         header: ({ column }) => (
@@ -292,7 +331,7 @@ const Dispatcher = ({
           );
         },
         meta: {
-          headerClassName: "min-w-[100px]",
+          headerClassName: "min-w-[200px]",
         },
       },
       {
@@ -305,7 +344,7 @@ const Dispatcher = ({
           return info.row.original.type;
         },
         meta: {
-          headerClassName: "min-w-[100px]",
+          headerClassName: "min-w-[200px]",
         },
       },
       {
@@ -325,7 +364,7 @@ const Dispatcher = ({
           );
         },
         meta: {
-          headerClassName: "min-w-[80px]",
+          headerClassName: "min-w-[100px]",
         },
       },
       // {
