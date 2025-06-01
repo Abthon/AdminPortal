@@ -1,2 +1,2 @@
-export * from "./BookingPaymentContent.tsx";
-export * from "./BookingPaymentPage.tsx";
+export * from "./TransactionPaymentContent.tsx";
+export * from "./TransactionPaymentPage.tsx";

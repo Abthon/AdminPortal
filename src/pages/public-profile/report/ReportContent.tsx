@@ -106,17 +106,17 @@ const ReportContent = () => {
     queryFn: getDeposit,
   });
 
-  const items: any = [
-    { number: depositData?.approvedDeposits, label: "Total Revenue" },
-    // { number: "369M", label: "Revenue" },
-    // { number: "27", label: "Company Rank" },
-  ];
+  // const items: any = [
+  //   { number: depositData?.approvedDeposits, label: "Total Revenue" },
+  //   // { number: "369M", label: "Revenue" },
+  //   // { number: "27", label: "Company Rank" },
+  // ];
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 lg:gap-7.5">
       <div className="col-span-1">
         <div className="grid gap-5 lg:gap-7.5">
-          <Statistics items={items} />
+          {/* <Statistics items={items} /> */}
 
           <Highlights data={stats} />
 

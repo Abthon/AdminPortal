@@ -21,6 +21,7 @@ import { CoorProfilePage } from "@/pages/public-profile/coor-profile/crm";
 import { UserProfilePage } from "@/pages/public-profile/user-profile/crm";
 import { ReportPage } from "@/pages/public-profile/report";
 import { OdometerPage } from "@/pages/public-profile/odometer";
+import { TransactionPaymentPage } from "@/pages/public-profile/booking payment";
 
 const AppRoutingSetup = (): ReactElement => {
   return (
@@ -80,6 +81,14 @@ const AppRoutingSetup = (): ReactElement => {
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <BookingPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
+                <TransactionPaymentPage />
               </RequireAuth>
             }
           />

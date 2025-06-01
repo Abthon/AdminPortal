@@ -61,6 +61,16 @@ export const getMenuSidebar = (
         },
       ],
     },
+    {
+      title: "Transactions",
+      icon: "status",
+      children: [
+        {
+          title: "Transactions",
+          path: "/transactions",
+        },
+      ],
+    },
     getUserType(authToken) === "admin"
       ? {
           title: "Config",

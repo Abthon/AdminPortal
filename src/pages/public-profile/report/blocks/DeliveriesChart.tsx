@@ -9,31 +9,16 @@ import axiosInstance from "@/auth/_helpers";
 import { useQuery } from "react-query";
 
 const DeliveriesChart = () => {
-  // Function to make a request to the API
-  // async function fetchBookings(date: string) {
-  //   const url = `api/v1/bookings?filters=status=completed,createdAt=${date}`;
-  //   try {
-  //     const response = await fetch(url);
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! status: ${response.status}`);
-  //     }
-  //     const data = await response.json();
-  //     console.log(`Data for ${date}:`, data);
-  //   } catch (error) {
-  //     console.error(`Error fetching data for ${date}:`, error);
-  //   }
-  // }
-
   const getLast7Days = (): string[] => {
     const dates: string[] = [];
 
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
-      date.setDate(date.getDate() - i); // Subtract i days from today
+      date.setDate(date.getDate() - i);
 
-      const day = String(date.getDate()).padStart(2, "0"); // Ensure two digits
-      const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is 0-based
-      const year = String(date.getFullYear()).slice(-2); // Get last 2 digits of year
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = String(date.getFullYear()).slice(-2);
 
       dates.push(`20${year}-${month}-${day}`);
     }
@@ -48,7 +33,7 @@ const DeliveriesChart = () => {
         try {
           const url = `api/v1/bookings?filters=status=completed,createdAt=${date}`;
           console.log("url", url);
-          const { data } = await axiosInstance.get(url); // Change to GET
+          const { data } = await axiosInstance.get(url);
           console.log("data 2", data.pagination.totalItems, "date 2", date);
           return data?.pagination?.totalItems;
         } catch (error) {
@@ -58,12 +43,12 @@ const DeliveriesChart = () => {
       })
     );
 
-    return driverData; // Return the data
+    return driverData;
   };
 
   const { isLoading: isDepositLoading, data: bookingData } = useQuery({
     queryKey: ["Bookings"],
-    queryFn: getBookings, // No parameters needed
+    queryFn: getBookings,
   });
 
   console.log(bookingData, "bood");
@@ -72,6 +57,22 @@ const DeliveriesChart = () => {
   const data: any[] = bookingData ?? [];
   const dates = getLast7Days();
   const categories: string[] = dates;
+
+  // Calculate dynamic max value
+  const maxDataValue = Math.max(
+    ...data.filter((val) => val !== null && val !== undefined)
+  );
+  const dynamicMax = Math.ceil(maxDataValue * 1.2); // Add 20% padding above the highest value
+  const minDynamicMax = 10; // Minimum max value to ensure chart doesn't look too cramped
+  const finalMax = Math.max(dynamicMax, minDynamicMax);
+
+  // Calculate tick amount based on the max value
+  const calculateTickAmount = (max: number) => {
+    if (max <= 10) return 5;
+    if (max <= 50) return 5;
+    if (max <= 100) return 4;
+    return 6;
+  };
 
   const options: ApexOptions = {
     series: [
@@ -132,8 +133,8 @@ const DeliveriesChart = () => {
     },
     yaxis: {
       min: 0,
-      max: 32,
-      tickAmount: 4,
+      max: finalMax, // Use dynamic max instead of fixed 32
+      tickAmount: calculateTickAmount(finalMax), // Dynamic tick amount
       axisTicks: {
         show: false,
       },
@@ -142,15 +143,13 @@ const DeliveriesChart = () => {
           colors: "var(--tw-gray-500)",
           fontSize: "12px",
         },
-        formatter: (defaultValue: number) => `  ${defaultValue}`,
+        formatter: (defaultValue: number) => `  ${Math.round(defaultValue)}`, // Round to avoid decimals
       },
     },
     tooltip: {
       enabled: true,
       custom: ({ series, seriesIndex, dataPointIndex, w }: any) => {
         const xValue = w.globals.labels[dataPointIndex];
-
-        // Get the Y value (data at the current index)
         const yValue = series[seriesIndex][dataPointIndex];
 
         return `
@@ -216,7 +215,7 @@ const DeliveriesChart = () => {
                   {
                     name: "offset",
                     options: {
-                      offset: isRTL() ? [0, -10] : [0, 10], // [skid, distance]
+                      offset: isRTL() ? [0, -10] : [0, 10],
                     },
                   },
                 ],
