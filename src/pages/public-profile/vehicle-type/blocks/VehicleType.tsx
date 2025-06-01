@@ -22,6 +22,12 @@ import { ModalVehicleTypeForm } from "@/partials/modals/vehicle-type";
 import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
 import { Link } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface IVehicleTypeData {
@@ -58,6 +64,11 @@ const VechileType = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [del, setDel] = useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{
+    src: string;
+    alt: string;
+  } | null>(null);
 
   const handleClose = () => {
     setProfileModalOpen(false);
@@ -74,6 +85,16 @@ const VechileType = ({
     console.log(rowData, "rowdata");
     setProfileModalOpen(true);
     setDel(isDelete || false);
+  };
+
+  const handleImageClick = (imageSrc: string, imageAlt: string) => {
+    setSelectedImage({ src: imageSrc, alt: imageAlt });
+    setImageModalOpen(true);
+  };
+
+  const handleImageModalClose = () => {
+    setImageModalOpen(false);
+    setSelectedImage(null);
   };
 
   async function getVehicleType({
@@ -206,13 +227,24 @@ const VechileType = ({
         ),
         enableSorting: true,
         cell: ({ row }) => {
+          const imageSrc = `${BASE_URL}/vehicle-type/${row.original.image}`;
+          const imageAlt = row.original.name;
+
           return (
             <div className="flex items-center gap-4">
-              <img
-                src={`${BASE_URL}/vehicle-type/${row.original.image}`}
-                className="rounded-full size-9 shrink-0"
-                alt={`${row.original.image}`}
-              />
+              <div className="relative group cursor-pointer">
+                <img
+                  src={imageSrc}
+                  className="rounded-full size-9 shrink-0"
+                  alt={imageAlt}
+                />
+                <div
+                  className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  onClick={() => handleImageClick(imageSrc, imageAlt)}
+                >
+                  <KeenIcon icon="eye" className="text-white text-sm" />
+                </div>
+              </div>
               <div className="flex flex-col gap-0.5">
                 {row.original.name}
                 {/* <Link
@@ -364,6 +396,31 @@ const VechileType = ({
         vehicleData={currentVehicleData}
         isDelete={del}
       />
+
+      {/* Image Preview Modal */}
+      <Dialog open={imageModalOpen} onOpenChange={handleImageModalClose}>
+        <DialogContent className="w-fit">
+          {/* <DialogHeader>
+            <DialogTitle>Vehicle Type Image</DialogTitle>
+          </DialogHeader> */}
+          <button
+            onClick={handleImageModalClose}
+            className="absolute -top-[-10px] -right-[-10px] bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
+          >
+            <KeenIcon icon="cross" className="text-gray-600 text-sm" />
+          </button>
+          {selectedImage && (
+            <div className="flex justify-center">
+              <img
+                src={selectedImage.src}
+                alt={selectedImage.alt}
+                className="max-w-full max-h-96 object-contain rounded-lg"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <DataGrid
         onFetchData={getVehicleType}
         onSearchData={searchVehicleType}
