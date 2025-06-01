@@ -41,7 +41,6 @@ interface IBookingData {
   estimatedPrice: number;
   status: string;
   createdAt: string;
-  coor: any;
   contactPhoneNumber: string;
 }
 interface IColumnFilterProps<TData, TValue> {
@@ -101,13 +100,11 @@ const Booking: React.FC<BookingProps> = ({
     sort: any;
     startDate?: any;
   }) {
-    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}&filters=user.id=${id}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}${startDate ? `,createdAt>${startDate}` : ""}&fields=coor.*,id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber`;
+    const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}&filters=user.id=${id}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}${startDate ? `,createdAt>${startDate}` : ""}&fields=id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber`;
     // const url = `/api/v1/bookings?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status=${filterInput}` : ""}`;
-    console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
     //console.log(data, "data ke get booking");
-
     // calculating how many items are there on the current page
     const startIndex =
       (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
@@ -118,6 +115,7 @@ const Booking: React.FC<BookingProps> = ({
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
+
     //handleBookingNum(data.data.length);
     return data;
   }
@@ -133,7 +131,7 @@ const Booking: React.FC<BookingProps> = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/bookings?filters=coor.id=${id},pickupname=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/bookings?filters=user.id=${id},pickupname=${search}${filterInput && filterInput !== "all" ? `,status=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
     // calculating how many items are there on the current page
@@ -163,7 +161,7 @@ const Booking: React.FC<BookingProps> = ({
   };
 
   async function revalidateBooking() {
-    const url = `/api/v1/bookings?filters=coor.id=${id}`;
+    const url = `/api/v1/bookings?filters=user.id=${id}`;
     const { data } = await axiosInstance.get(url);
     return data;
   }
@@ -216,7 +214,6 @@ const Booking: React.FC<BookingProps> = ({
       toast("Error Encountered while starting the booking");
     },
   });
-
   const ColumnInputFilter = <TData, TValue>({
     column,
   }: IColumnFilterProps<TData, TValue>) => {
@@ -287,47 +284,6 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[75px]",
         },
       },
-      // {
-      //   accessorKey: "id",
-      //   header: () => <DataGridRowSelectAll />,
-      //   cell: ({ row }) => <DataGridRowSelect row={row} />,
-      //   enableSorting: false,
-      //   enableHiding: false,
-      //   meta: {
-      //     headerClassName: "w-0",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.id,
-      //   id: "booking_ID",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader
-      //       title="ID"
-      //       column={column}
-      //       // filter={<ColumnInputFilter column={column} />}
-      //     />
-      //   ),
-      //   enableSorting: true,
-      //   cell: ({ row }) => {
-      //     return (
-      //       <div className="flex items-center">
-      //         <div className="flex flex-col gap-0.5">
-      //           <Link
-      //             to={`/booking/${row.original.id}`}
-      //             className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px"
-      //           >
-      //             {row.original.id}
-      //           </Link>
-      //         </div>
-      //       </div>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "w-0",
-      //     className: "w-0",
-      //     cellClassName: "w-0",
-      //   },
-      // },
       {
         accessorFn: (row) => row.createdAt,
         id: "createdAt",
@@ -398,34 +354,6 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[100px]",
         },
       },
-      // {
-      //   // accessorFn: (row) => row.estimatedPrice,
-      //   id: "corporatename",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="CorporateName" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.coor?.name;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[100px]",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.estimatedPrice,
-      //   id: "contactPhoneNumber",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="UserPhone" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return `${info.row.original.coor?.contactPhoneNumber ? `+251${info.row.original.coor?.contactPhoneNumber}` : ""}`;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[100px]",
-      //   },
-      // },
       {
         // accessorFn: (row) => row.status,
         id: "status",
@@ -450,95 +378,6 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[160px]",
         },
       },
-      // {
-      //   id: "Assign",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Actions" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     if (
-      //       info.row.original.status === "requested" ||
-      //       info.row.original.status === "driver_not_found"
-      //     ) {
-      //       return (
-      //         <button
-      //           onClick={() => handleOpen(true, info.row.original)}
-      //           className="btn btn-sm btn-icon btn-clear btn-primary"
-      //         >
-      //           <KeenIcon icon="user-tick" />
-      //         </button>
-      //       );
-      //     }
-
-      //     if (info.row.original.status === "assigned") {
-      //       return (
-      //         <button
-      //           onClick={() => mutateStart(info.row.original.id)}
-      //           // onClick={() => handleOpen(true, info.row.original)}
-      //           className="btn btn-sm btn-icon btn-clear btn-success"
-      //         >
-      //           <KeenIcon icon="to-right" />
-      //         </button>
-      //       );
-      //     }
-
-      //     if (info.row.original.status === "started") {
-      //       return (
-      //         <button
-      //           onClick={() => handleOpen(false, info.row.original, true)}
-      //           className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-      //         >
-      //           <KeenIcon icon="minus-circle" />
-      //         </button>
-      //       );
-      //     }
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[75px]",
-      //   },
-      // },
-      // {
-      //   id: "Start",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Start" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <button
-      //         onClick={() => mutateStart(info.row.original.id)}
-      //         // onClick={() => handleOpen(true, info.row.original)}
-      //         className="btn btn-sm btn-icon btn-clear btn-success"
-      //       >
-      //         <KeenIcon icon="to-right" />
-      //       </button>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[80px]",
-      //   },
-      // },
-      // {
-      //   id: "End",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="End" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <button
-      //         onClick={() => handleOpen(false, info.row.original, true)}
-      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-      //       >
-      //         <KeenIcon icon="minus-circle" />
-      //       </button>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[80px]",
-      //   },
-      // },
     ],
     [mutate]
   );
@@ -558,90 +397,6 @@ const Booking: React.FC<BookingProps> = ({
       });
     }
   };
-
-  // const Toolbar = () => {
-  //   const handleFilterChange = (value: any) => {
-  //     setFilterInput(value); // Update the state when the user selects an item
-  //     console.log("Filter value changed to:", value); // Optional: log for debugging
-  //   };
-
-  //   return (
-  //     <div className="card-header flex-wrap gap-2 border-b-0 px-5">
-  //       <h3 className="card-title font-medium text-sm">
-  //         Showing {itemsOnPage} of {totalItems} bookings
-  //       </h3>
-
-  //       <div className="flex flex-wrap gap-2 lg:gap-5">
-  //         <div className="flex flex-wrap gap-2.5">
-  //           <Select
-  //             value={filterInput}
-  //             onValueChange={handleFilterChange}
-  //             defaultValue="all"
-  //           >
-  //             <SelectTrigger className="w-28" size="sm">
-  //               <SelectValue />
-  //             </SelectTrigger>
-  //             <SelectContent className="w-32">
-  //               <SelectItem value="all">All</SelectItem>
-  //               <SelectItem value="requested">Requested</SelectItem>
-  //               <SelectItem value="assigned">Assigned</SelectItem>
-  //               <SelectItem value="started">Started</SelectItem>
-  //               <SelectItem value="completed">Completed</SelectItem>
-  //               <SelectItem value="driver_not_found">NotFound</SelectItem>
-  //             </SelectContent>
-  //           </Select>
-  //           <button className="btn btn-sm btn-outline btn-primary">
-  //             <KeenIcon icon="setting-4" /> Filters
-  //           </button>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // };
-  // const Toolbar = () => {
-  //   const [startDate, setStartDate] = useState(null);
-  //   const [endDate, setEndDate] = useState(null);
-
-  //   const handleStartDateChange = (date: any) => {
-  //     setStartDate(date);
-  //     console.log("Start Date changed to:", date);
-  //   };
-
-  //   const handleEndDateChange = (date: any) => {
-  //     setEndDate(date);
-  //     console.log("End Date changed to:", date);
-  //   };
-
-  //   return (
-  //     <div className="card-header flex-wrap gap-2 border-b-0 px-5">
-  //       <h3 className="card-title font-medium text-sm">
-  //         Showing {itemsOnPage} of {totalItems} bookings
-  //       </h3>
-
-  //       <div className="flex flex-wrap gap-2 lg:gap-5">
-  //         <div className="flex flex-wrap gap-2.5">
-  //           <DatePicker
-  //             selected={startDate}
-  //             onChange={handleStartDateChange}
-  //             placeholderText="Start Date"
-  //             //className="w-32"
-  //             className="btn btn-sm btn-outline btn-primary"
-  //           />
-  //           <DatePicker
-  //             selected={endDate}
-  //             onChange={handleEndDateChange}
-  //             placeholderText="End Date"
-  //             //className="w-32"
-  //             className="btn btn-sm btn-outline btn-primary"
-  //           />
-  //           <button className="btn btn-sm btn-outline btn-primary">
-  //             <KeenIcon icon="setting-4" /> Filter
-  //           </button>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // };
 
   const Toolbar = () => {
     const clearInterval = () => {
@@ -670,7 +425,7 @@ const Booking: React.FC<BookingProps> = ({
           Showing {itemsOnPage} of {totalItems} bookings
         </h3>
 
-        <div className="flex flex-wrap gap-2 lg:gap-5">
+        {/* <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex flex-wrap gap-2.5">
             <DatePicker
               selected={startDate}
@@ -678,12 +433,6 @@ const Booking: React.FC<BookingProps> = ({
               placeholderText="Start Date"
               className="btn btn-sm btn-outline btn-primary"
             />
-            {/* <DatePicker
-              selected={endDate}
-              onChange={handleEndDateChange}
-              placeholderText="End Date"
-              className="btn btn-sm btn-outline btn-primary"
-            /> */}
             <button
               onClick={() => clearInterval()}
               className="btn btn-sm btn-outline btn-primary"
@@ -691,7 +440,7 @@ const Booking: React.FC<BookingProps> = ({
               <KeenIcon icon="setting-4" /> Clear Filters
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
     );
   };
