@@ -11,10 +11,10 @@ const VehicleSidebar = () => {
       title: "Vehicle Details",
       target: "vehicle-detail",
     },
-    {
-      title: "Ownership Information",
-      target: "owner-info",
-    },
+    // {
+    //   title: "Ownership Information",
+    //   target: "owner-info",
+    // },
     // {
     //   title: "Authentication",
     //   children: [
