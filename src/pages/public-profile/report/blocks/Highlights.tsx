@@ -104,6 +104,17 @@ const Highlights = ({ data }: IHighlightsProps) => {
               +2.7%
             </span> */}
           </div>
+          <span className="text-sm font-normal text-gray-700">
+            Total Deducted
+          </span>
+          <div className="flex items-center gap-2.5">
+            <span className="text-3xl font-semibold text-gray-900">
+              {data?.totalEarnings}
+            </span>
+            {/* <span className="badge badge-outline badge-success badge-sm">
+              +2.7%
+            </span> */}
+          </div>
         </div>
 
         <div className="flex items-center gap-1 mb-1.5">
