@@ -681,7 +681,7 @@ const ModalBookingForm = ({
                             color: "#808290", // Optional: Customize selected value text color
                           }),
                         },
-                        placeholder: "Enter a dropOff location",
+                        placeholder: "Enter a pickup location",
                       }}
                       autocompletionRequest={{
                         componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
@@ -790,7 +790,7 @@ const ModalBookingForm = ({
                             color: "#808290", // Optional: Customize selected value text color
                           }),
                         },
-                        placeholder: "Enter a pickUp location",
+                        placeholder: "Enter a dropoff location",
                       }}
                       autocompletionRequest={{
                         componentRestrictions: { country: "ET" }, // Restricting to Ethiopia
