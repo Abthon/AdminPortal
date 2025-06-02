@@ -19,6 +19,7 @@ import {
   MenuIcon,
 } from "@/components/menu";
 import { useState, useRef } from "react";
+import { Dialog, DialogContent } from "@mui/material";
 
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 interface IDropdownUserProps {
@@ -28,10 +29,15 @@ interface IDropdownUserProps {
 const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
   const { settings, storeSettings } = useSettings();
   const { logout } = useAuthContext();
+  const [imageModalOpen, setImageModalOpen] = useState(false);
   const { isRTL } = useLanguage();
   const [userData, setUserData] = useState<any>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const [selectedImage, setSelectedImage] = useState<{
+    src: string;
+    alt: string;
+  } | null>(null);
 
   async function me() {
     const url = `/api/v1/admin/me`;
@@ -44,6 +50,18 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
     queryKey: ["me"],
     queryFn: me,
   });
+
+  const handleImageClick = (imageSrc: string, imageAlt: string) => {
+    const img = `${BASE_URL}/profile/${imageSrc}`;
+    console.log("img", img);
+    setSelectedImage({ src: img, alt: imageAlt });
+    setImageModalOpen(true);
+  };
+
+  const handleImageModalClose = () => {
+    setImageModalOpen(false);
+    setSelectedImage(null);
+  };
 
   // Upload profile photo mutation
   const uploadPhotoMutation = useMutation(
@@ -142,63 +160,98 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
     }
 
     return (
-      <div className="flex items-center justify-between px-5 py-1.5 gap-1.5">
-        <div className="flex items-center gap-2">
-          <div className="relative group">
-            {userData?.profilePhoto ? (
-              <img
-                className="size-9 rounded-full border-2 border-success"
-                src={`${BASE_URL}/profile/${userData?.profilePhoto}`}
-                alt=""
-              />
-            ) : (
-              <img
-                className="size-9 rounded-full border-2 border-success shrink-0"
-                src={toAbsoluteUrl("/media/avatars/300-2.png")}
-                alt=""
-              />
-            )}
-
-            {/* Edit overlay */}
-            <div
-              className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-              onClick={handleEditPhotoClick}
-            >
-              {uploadPhotoMutation.isLoading ? (
-                <div className="animate-spin">
-                  <KeenIcon icon="loading" className="text-white text-xs" />
-                </div>
+      <>
+        <div className="flex items-center justify-between px-5 py-1.5 gap-1.5">
+          <div className="flex items-center gap-2">
+            <div className="relative group">
+              {userData?.profilePhoto ? (
+                <img
+                  className="size-9 rounded-full border-2 border-success"
+                  src={`${BASE_URL}/profile/${userData?.profilePhoto}`}
+                  alt=""
+                />
               ) : (
-                <KeenIcon icon="pencil" className="text-white text-xs" />
+                <img
+                  className="size-9 rounded-full border-2 border-success shrink-0"
+                  src={toAbsoluteUrl("/media/avatars/300-2.png")}
+                  alt=""
+                />
               )}
+
+              {/* Edit overlay */}
+              <div
+                className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                onClick={handleEditPhotoClick}
+              >
+                {uploadPhotoMutation.isLoading ? (
+                  <div className="animate-spin">
+                    <KeenIcon icon="loading" className="text-white text-xs" />
+                  </div>
+                ) : (
+                  <KeenIcon icon="pencil" className="text-white text-xs" />
+                )}
+              </div>
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
             </div>
 
-            {/* Hidden file input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Link
-              to="#"
-              className="text-sm text-gray-800 hover:text-primary font-semibold leading-none"
-            >
-              {userData?.firstName || ""} {userData?.lastName || ""}
-            </Link>
-            <a
-              href={`mailto:${userData?.email || ""}`}
-              className="text-xs text-gray-600 hover:text-primary font-medium leading-none"
-            >
-              {userData?.email || "No email"}
-            </a>
+            <div className="flex flex-col gap-1.5">
+              <Link
+                to="#"
+                className="text-sm text-gray-800 hover:text-primary font-semibold leading-none"
+              >
+                {userData?.firstName || ""} {userData?.lastName || ""}
+              </Link>
+              <a
+                href={`mailto:${userData?.email || ""}`}
+                className="text-xs text-gray-600 hover:text-primary font-medium leading-none"
+              >
+                {userData?.email || "No email"}
+              </a>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <button
+                type="button"
+                className={`btn btn-sm`}
+                onClick={() =>
+                  handleImageClick(userData?.profilePhoto, "imageAlt")
+                }
+              >
+                <KeenIcon icon="eye" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+        <Dialog open={imageModalOpen} onChange={handleImageModalClose}>
+          <DialogContent className="w-fit">
+            {/* <DialogHeader>
+                    <DialogTitle>Vehicle Type Image</DialogTitle>
+                  </DialogHeader> */}
+            <button
+              onClick={handleImageModalClose}
+              className="absolute -top-[-10px] -right-[-10px] bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
+            >
+              <KeenIcon icon="cross" className="text-gray-600 text-sm" />
+            </button>
+            {selectedImage && (
+              <div className="flex justify-center">
+                <img
+                  src={selectedImage.src}
+                  alt={selectedImage.alt}
+                  className="max-w-full max-h-96 object-contain rounded-lg"
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </>
     );
   };
 
