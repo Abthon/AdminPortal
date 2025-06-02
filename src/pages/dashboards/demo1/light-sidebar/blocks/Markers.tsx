@@ -35,10 +35,8 @@ const CustomMarker: React.FC<MarkerProps> = ({
   if (driver?.is_online) {
     if (driver?.isBusy) {
       markerColor = "#ffa500"; // Orange for busy
-    } else if (driver?.is_available) {
-      markerColor = "#00ff00"; // Green for available
     } else {
-      markerColor = "#ffff00"; // Yellow for online but not available
+      markerColor = "#008000"; // Green for online regardless of availablity
     }
   }
 
@@ -79,10 +77,8 @@ const CustomMarker: React.FC<MarkerProps> = ({
               <span style={{ color: markerColor, fontSize: "16px" }}>
                 {driver.is_online
                   ? driver.isBusy
-                    ? "Busy"
-                    : driver.is_available
-                      ? "Available"
-                      : "Online"
+                    ? "Online but busy"
+                    : "Online but Not busy"
                   : "Offline"}
               </span>
             </div>
