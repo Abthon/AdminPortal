@@ -13,6 +13,7 @@ import { DriverProfileContent } from ".";
 import { useNavigate, useParams } from "react-router";
 import { useQuery, useQueryClient } from "react-query";
 import { ModalDriverTypeForm } from "@/partials/modals/driver";
+import { Dialog, DialogContent } from "@mui/material";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface IDriversData {
@@ -35,6 +36,23 @@ const DriverProfilePage = () => {
   const [isAddOpen, _handleAddOpen] = useState(false);
   const [currentDriverData, setCurrentDriverData] =
     useState<IDriversData | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{
+    src: string;
+    alt: string;
+  } | null>(null);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+
+  const handleImageClick = (imageSrc: string, imageAlt: string) => {
+    const img = `${BASE_URL}/profile/${imageSrc}`;
+    console.log("img", img);
+    setSelectedImage({ src: img, alt: imageAlt });
+    setImageModalOpen(true);
+  };
+
+  const handleImageModalClose = () => {
+    setImageModalOpen(false);
+    setSelectedImage(null);
+  };
 
   async function getDriver(id: string) {
     try {
@@ -72,10 +90,27 @@ const DriverProfilePage = () => {
   };
 
   const image = (
-    <img
-      src={`${BASE_URL}/profile/${DriverData?.profilePhoto}`}
-      className={`rounded-full border-3 ${DriverData?.is_online ? "border-success" : "border-danger"} object-cover  size-[100px] shrink-0`}
-    />
+    <div
+      className="relative group"
+      // onClick={() => {
+      //   handleImageClick(DriverData?.profilePhoto, "imageAlt");
+      // }}
+    >
+      <img
+        src={`${BASE_URL}/profile/${DriverData?.profilePhoto}`}
+        className={`rounded-full border-3 ${DriverData?.is_online ? "border-success" : "border-danger"} object-cover  size-[100px] shrink-0`}
+        // onClick={() => {}}
+      />
+
+      <div
+        className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+        onClick={() => {
+          handleImageClick(DriverData?.profilePhoto, "imageAlt");
+        }}
+      >
+        <KeenIcon icon="eye" className="text-white text-xs" />
+      </div>
+    </div>
   );
 
   useEffect(
@@ -94,6 +129,28 @@ const DriverProfilePage = () => {
 
   return (
     <>
+      <Dialog open={imageModalOpen} onChange={handleImageModalClose}>
+        <DialogContent className="w-fit">
+          {/* <DialogHeader>
+                        <DialogTitle>Vehicle Type Image</DialogTitle>
+                      </DialogHeader> */}
+          <button
+            onClick={handleImageModalClose}
+            className="absolute -top-[-10px] -right-[-10px] bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
+          >
+            <KeenIcon icon="cross" className="text-gray-600 text-sm" />
+          </button>
+          {selectedImage && (
+            <div className="flex justify-center">
+              <img
+                src={selectedImage.src}
+                alt={selectedImage.alt}
+                className="max-w-full max-h-96 object-contain rounded-lg"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       <ModalDriverTypeForm
         open={profileModalOpen}
         onOpenChange={handleClose}
