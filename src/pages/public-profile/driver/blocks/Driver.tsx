@@ -168,6 +168,7 @@ const Drivers = ({
   async function revalidateDriver() {
     const url = `/api/v1/drivers?filters=firstname=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}`;
     const { data } = await axiosInstance.get(url);
+    console.log(data, "the data");
     handleDriverNum(data.data.length);
     console.log(data.data, "driver data");
     return data;
@@ -181,6 +182,8 @@ const Drivers = ({
   const { isLoading: isDriverLoading, data: DriverData } = useQuery({
     queryKey: ["Drivers", searchInput, filterInput],
     queryFn: revalidateDriver,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: true,
   });
 
   interface DeleteResponse {
