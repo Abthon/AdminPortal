@@ -34,7 +34,7 @@ const CustomMarker: React.FC<MarkerProps> = ({
 
   if (driver?.is_online) {
     if (driver?.isBusy) {
-      markerColor = "#ffa500"; // Orange for busy
+      markerColor = "#0000FF"; // Orange for busy
     } else {
       markerColor = "#008000"; // Green for online regardless of availablity
     }
