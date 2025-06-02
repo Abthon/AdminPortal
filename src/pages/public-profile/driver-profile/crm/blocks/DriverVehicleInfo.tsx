@@ -1,7 +1,7 @@
 import { timeAgo } from "@/utils/Time";
 import { KeenIcon } from "@/components";
 import { useState } from "react";
-import { saveAs } from "file-saver";
+//import { saveAs } from "file-saver";
 
 interface IDriverVehicleInfoItem {
   label: string;
@@ -38,7 +38,7 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
     try {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
-      saveAs(blob, "NEWIMAGE"); // Triggers download with the specified filename
+      //  saveAs(blob, "NEWIMAGE"); // Triggers download with the specified filename
     } catch (error) {
       console.error("Download failed:", error);
     }
