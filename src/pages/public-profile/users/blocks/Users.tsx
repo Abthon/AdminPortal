@@ -263,7 +263,7 @@ const Users = ({
         accessorFn: (row) => row.firstName,
         id: "firstName",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Driver" column={column} />
+          <DataGridColumnHeader title="Users" column={column} />
         ),
         enableSorting: true,
         cell: ({ row }) => {
@@ -285,20 +285,6 @@ const Users = ({
         meta: {
           className: "min-w-[300px]",
           cellClassName: "text-gray-800 font-normal",
-        },
-      },
-
-      {
-        id: "balance",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Balance" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.balance;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
         },
       },
       {

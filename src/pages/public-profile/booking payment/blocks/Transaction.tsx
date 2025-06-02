@@ -322,24 +322,6 @@ const Transaction: React.FC<TransactionProps> = ({
         },
       },
       {
-        accessorFn: (row) => row.balanceAfter,
-        id: "balanceAfter",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Balance After" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return (
-            <span className="text-sm font-medium text-gray-900">
-              {info.row.original.balanceAfter} Birr
-            </span>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[120px]",
-        },
-      },
-      {
         accessorFn: (row) => row.description,
         id: "description",
         header: ({ column }) => (
