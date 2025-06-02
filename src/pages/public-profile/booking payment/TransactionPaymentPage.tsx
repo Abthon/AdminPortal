@@ -51,12 +51,12 @@ const TransactionPaymentPage = () => {
                 </label>
               </div>
 
-              <span
+              {/* <span
                 onClick={() => setActiveTab("all")}
                 className={`btn btn-sm ${activeTab === "all" ? "btn-primary" : "btn-light"}`}
               >
                 All Transactions
-              </span>
+              </span> */}
               {/* <span
                 onClick={() => setActiveTab("deduct")}
                 className={`btn btn-sm ${activeTab === "deduct" ? "btn-primary" : "btn-light"}`}

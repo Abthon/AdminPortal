@@ -190,6 +190,30 @@ const Transaction: React.FC<TransactionProps> = ({
     }
   }
 
+  async function fetchAllTransactions() {
+    let dateFilter = "";
+    if (startDate && endDate) {
+      const startDateStr = startDate.toISOString().split("T")[0];
+      const endDateStr = endDate.toISOString().split("T")[0];
+      dateFilter = `&filters=createdAt>=${startDateStr},createdAt<=${endDateStr}`;
+    } else if (startDate) {
+      const startDateStr = startDate.toISOString().split("T")[0];
+      dateFilter = `&filters=createdAt>=${startDateStr}`;
+    } else if (endDate) {
+      const endDateStr = endDate.toISOString().split("T")[0];
+      dateFilter = `&filters=createdAt<=${endDateStr}`;
+    }
+
+    const url = `/api/v1/transactions?take=0&sort=createdAt=DESC${dateFilter}`;
+    try {
+      const { data } = await axiosInstance.get(url);
+      return data.data;
+    } catch (error) {
+      console.error("Error fetching all transactions:", error);
+      return [];
+    }
+  }
+
   async function revalidateTransaction() {
     const url = `/api/v1/transactions`;
     const { data } = await axiosInstance.get(url);
@@ -199,6 +223,12 @@ const Transaction: React.FC<TransactionProps> = ({
   let { isLoading: isTransactionLoading, data: TransactionData } = useQuery({
     queryKey: ["Transactions", searchInput, activeTab, startDate, endDate],
     queryFn: revalidateTransaction,
+  });
+
+  const { data: allTransactionsData } = useQuery({
+    queryKey: ["AllTransactions", startDate, endDate],
+    queryFn: fetchAllTransactions,
+    keepPreviousData: true,
   });
 
   const queryClient = useQueryClient();
@@ -363,42 +393,6 @@ const Transaction: React.FC<TransactionProps> = ({
           headerClassName: "min-w-[100px]",
         },
       },
-      // {
-      //   id: "actions",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Actions" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <div className="flex items-center gap-2">
-      //         <button
-      //           className="btn btn-sm btn-icon btn-clear btn-primary"
-      //           title="View Details"
-      //           onClick={() => {
-      //             console.log("View transaction details:", info.row.original);
-      //           }}
-      //         >
-      //           <KeenIcon icon="eye" />
-      //         </button>
-      //         {info.row.original.receipt && (
-      //           <button
-      //             className="btn btn-sm btn-icon btn-clear btn-secondary"
-      //             title="View Receipt"
-      //             onClick={() => {
-      //               console.log("View receipt:", info.row.original.receipt);
-      //             }}
-      //           >
-      //             <KeenIcon icon="document" />
-      //           </button>
-      //         )}
-      //       </div>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[100px]",
-      //   },
-      // },
     ],
     []
   );
@@ -422,19 +416,34 @@ const Transaction: React.FC<TransactionProps> = ({
     }
   };
   const Toolbar = () => {
-    const totalAmount = data.reduce((sum, transaction) => {
-      return transaction.action === "deduct"
-        ? sum - transaction.amount
-        : sum + transaction.amount;
-    }, 0);
+    const filteredTransactions = useMemo(() => {
+      if (!allTransactionsData) return [];
+      return allTransactionsData.filter((transaction: ITransactionData) => {
+        const transactionDate = new Date(transaction.createdAt);
+        if (startDate && transactionDate < startDate) return false;
+        if (endDate && transactionDate > endDate) return false;
+        return true;
+      });
+    }, [allTransactionsData, startDate, endDate]);
 
-    const totalDeductions = data
-      .filter((t) => t.action === "deduct")
-      .reduce((sum, t) => sum + t.amount, 0);
+    const totalAmount = filteredTransactions.reduce(
+      (sum: number, transaction: ITransactionData) => {
+        return transaction.action === "deduct"
+          ? sum - transaction.amount
+          : sum + transaction.amount;
+      },
+      0
+    );
 
-    const totalAdditions = data
-      .filter((t) => t.action === "add" || t.action === "credit")
-      .reduce((sum, t) => sum + t.amount, 0);
+    const totalDeductions = filteredTransactions
+      .filter((t: ITransactionData) => t.action === "deduct")
+      .reduce((sum: number, t: ITransactionData) => sum + t.amount, 0);
+
+    const totalAdditions = filteredTransactions
+      .filter(
+        (t: ITransactionData) => t.action === "add" || t.action === "credit"
+      )
+      .reduce((sum: number, t: ITransactionData) => sum + t.amount, 0);
 
     const clearDateFilters = () => {
       setStartDate(null);
@@ -472,7 +481,6 @@ const Transaction: React.FC<TransactionProps> = ({
           </div>
         </div>
 
-        {/* Date Filter Section */}
         <div className="flex items-center gap-4 mt-3 w-full">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">From:</span>
@@ -506,6 +514,91 @@ const Transaction: React.FC<TransactionProps> = ({
       </div>
     );
   };
+  // const Toolbar = () => {
+  //   const totalAmount = data.reduce((sum, transaction) => {
+  //     return transaction.action === "deduct"
+  //       ? sum - transaction.amount
+  //       : sum + transaction.amount;
+  //   }, 0);
+
+  //   const totalDeductions = data
+  //     .filter((t) => t.action === "deduct")
+  //     .reduce((sum, t) => sum + t.amount, 0);
+
+  //   const totalAdditions = data
+  //     .filter((t) => t.action === "add" || t.action === "credit")
+  //     .reduce((sum, t) => sum + t.amount, 0);
+
+  //   const clearDateFilters = () => {
+  //     setStartDate(null);
+  //     setEndDate(null);
+  //   };
+
+  //   return (
+  //     <div className="card-header flex-wrap gap-2 border-b-0 px-5">
+  //       <div className="flex items-center justify-between w-full">
+  //         <h3 className="card-title font-medium text-sm">
+  //           Showing {itemsOnPage} of {totalItems} transactions
+  //         </h3>
+  //         <div className="flex items-center gap-6">
+  //           <div className="flex items-center gap-2">
+  //             <span className="text-sm text-gray-600">Total Deductions:</span>
+  //             <span className="text-sm font-semibold text-red-600">
+  //               -{totalDeductions} Birr
+  //             </span>
+  //           </div>
+  //           <div className="flex items-center gap-2">
+  //             <span className="text-sm text-gray-600">Total Additions:</span>
+  //             <span className="text-sm font-semibold text-green-600">
+  //               +{totalAdditions} Birr
+  //             </span>
+  //           </div>
+  //           <div className="flex items-center gap-2">
+  //             <span className="text-sm text-gray-600">Net Amount:</span>
+  //             <span
+  //               className={`text-sm font-semibold ${totalAmount >= 0 ? "text-green-600" : "text-red-600"}`}
+  //             >
+  //               {totalAmount >= 0 ? "+" : ""}
+  //               {totalAmount} Birr
+  //             </span>
+  //           </div>
+  //         </div>
+  //       </div>
+
+  //       {/* Date Filter Section */}
+  //       <div className="flex items-center gap-4 mt-3 w-full">
+  //         <div className="flex items-center gap-2">
+  //           <span className="text-sm text-gray-600">From:</span>
+  //           <input
+  //             type="date"
+  //             value={startDate ? startDate.toISOString().split("T")[0] : ""}
+  //             onChange={(e) =>
+  //               setStartDate(e.target.value ? new Date(e.target.value) : null)
+  //             }
+  //             className="input input-sm"
+  //           />
+  //         </div>
+  //         <div className="flex items-center gap-2">
+  //           <span className="text-sm text-gray-600">To:</span>
+  //           <input
+  //             type="date"
+  //             value={endDate ? endDate.toISOString().split("T")[0] : ""}
+  //             onChange={(e) =>
+  //               setEndDate(e.target.value ? new Date(e.target.value) : null)
+  //             }
+  //             className="input input-sm"
+  //           />
+  //         </div>
+  //         {(startDate || endDate) && (
+  //           <button onClick={clearDateFilters} className="btn btn-sm btn-light">
+  //             <KeenIcon icon="cross" className="text-sm" />
+  //             Clear Dates
+  //           </button>
+  //         )}
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   return (
     <>
