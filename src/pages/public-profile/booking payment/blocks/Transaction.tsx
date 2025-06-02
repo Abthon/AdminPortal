@@ -35,6 +35,7 @@ interface ITransactionData {
   isApproved: boolean;
   receipt: string | null;
   description: string;
+  driver: any;
 }
 
 interface IColumnFilterProps<TData, TValue> {
@@ -107,7 +108,7 @@ const Transaction: React.FC<TransactionProps> = ({
       dateFilter = `&filters=createdAt<=${endDateStr}`;
     }
 
-    const url = `/api/v1/transactions?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}${dateFilter}`;
+    const url = `/api/v1/transactions?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}${dateFilter}&fields=id,createdAt,action,amount,description,isApproved,driver.id`;
 
     try {
       const { data } = await axiosInstance.get(url);
@@ -266,6 +267,30 @@ const Transaction: React.FC<TransactionProps> = ({
           headerClassName: "min-w-[120px]",
         },
       },
+      {
+        accessorFn: (row) => row.id,
+        id: "DriverId",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Driver Id" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          console.log(info.row.original.driver, "The driver");
+          return (
+            <Link
+              to={`/driver/${info.row.original.driver.id}`}
+              className="text-sm font-medium text-gray-900 hover:text-primary-active hover:underline transition-colors"
+              onClick={(e) => e.stopPropagation()} // Prevent row selection when clicking the link
+            >
+              {info.row.original.driver.id}
+            </Link>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[120px]",
+        },
+      },
+
       {
         accessorFn: (row) => row.createdAt,
         id: "createdAt",
