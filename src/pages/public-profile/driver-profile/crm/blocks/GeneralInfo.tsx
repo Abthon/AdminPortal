@@ -5,6 +5,7 @@ import { useState } from "react";
 import React from "react";
 import { useQuery } from "react-query";
 import axiosInstance from "@/auth/_helpers";
+import { saveAs } from "file-saver";
 
 interface IGeneralInfoItem {
   label: string;
@@ -40,10 +41,19 @@ interface GeneralInfoProps {
 }
 
 const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
-  console.log(data, "dl");
   // Add state for modal
   const [showModal, setShowModal] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      saveAs(blob, "NEWIMAGE"); // Triggers download with the specified filename
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
 
   // Fetch average rating using useQuery
   const {
@@ -169,16 +179,13 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
               />
             </div>
             <div className="flex justify-center mt-4">
-              <a
-                href={imageUrl}
-                download
+              <button
+                onClick={handleDownload}
                 className="btn btn-sm btn-primary"
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 <KeenIcon icon="folder-down" className="me-2" />
                 Download
-              </a>
+              </button>
             </div>
           </div>
         </div>

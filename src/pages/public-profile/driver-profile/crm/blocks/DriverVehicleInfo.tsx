@@ -1,6 +1,7 @@
 import { timeAgo } from "@/utils/Time";
 import { KeenIcon } from "@/components";
 import { useState } from "react";
+import { saveAs } from "file-saver";
 
 interface IDriverVehicleInfoItem {
   label: string;
@@ -33,6 +34,15 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
       .catch((error) => console.error("Download failed:", error));
   }
 
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      saveAs(blob, "NEWIMAGE"); // Triggers download with the specified filename
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
   const items: IDriverVehicleInfoItems = [
     { label: "Make:", info: data?.make },
     { label: "Model", info: data?.model },
@@ -131,17 +141,10 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
                 className="max-w-full max-h-[70vh] object-contain"
               />
             </div>
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                downloadImage(imageUrl, "image.jpg");
-              }}
-              className="btn btn-sm btn-primary "
-            >
+            <button onClick={handleDownload} className="btn btn-sm btn-primary">
               <KeenIcon icon="folder-down" className="me-2" />
               Download
-            </a>
+            </button>
           </div>
         </div>
       )}
