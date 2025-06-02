@@ -283,21 +283,8 @@ const Users = ({
           );
         },
         meta: {
-          className: "min-w-[300px]",
+          className: "min-w-[280px]",
           cellClassName: "text-gray-800 font-normal",
-        },
-      },
-      {
-        id: "type",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Type" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.type;
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
         },
       },
       {
@@ -319,7 +306,7 @@ const Users = ({
           );
         },
         meta: {
-          headerClassName: "min-w-[100px]",
+          headerClassName: "min-w-[130px]",
         },
       },
       {
@@ -333,7 +320,7 @@ const Users = ({
           return timeAgo(info.row.original.createdAt);
         },
         meta: {
-          headerClassName: "min-w-[90px]",
+          headerClassName: "min-w-[130px]",
         },
       },
       {
