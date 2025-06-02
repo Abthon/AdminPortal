@@ -17,6 +17,22 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
   const [showModal, setShowModal] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
 
+  function downloadImage(url: any, filename: any) {
+    fetch(url, { mode: "cors" })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename || "image.jpg";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      })
+      .catch((error) => console.error("Download failed:", error));
+  }
+
   const items: IDriverVehicleInfoItems = [
     { label: "Make:", info: data?.make },
     { label: "Model", info: data?.model },
@@ -115,18 +131,17 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
                 className="max-w-full max-h-[70vh] object-contain"
               />
             </div>
-            <div className="flex justify-center mt-4">
-              <a
-                href={imageUrl}
-                download
-                className="btn btn-sm btn-primary"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <KeenIcon icon="folder-down" className="me-2" />
-                Download
-              </a>
-            </div>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                downloadImage(imageUrl, "image.jpg");
+              }}
+              className="btn btn-sm btn-primary "
+            >
+              <KeenIcon icon="folder-down" className="me-2" />
+              Download
+            </a>
           </div>
         </div>
       )}
