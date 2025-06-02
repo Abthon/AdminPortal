@@ -47,6 +47,7 @@ interface DriverTransactionProps {
   handleDriverTransactionNum: (num: any) => void;
   searchInput?: string;
   activeTab?: string;
+  driverId: string;
 }
 
 function getActionColor(action: string): string {
@@ -66,7 +67,7 @@ function getApprovalColor(isApproved: boolean): string {
   return isApproved ? "success" : "warning";
 }
 
-const DriverTransaction = ({}) => {
+const DriverTransaction = ({ driverId }: any) => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
@@ -98,12 +99,13 @@ const DriverTransaction = ({}) => {
       dateFilter = `&filters=createdAt<=${endDateStr}`;
     }
 
-    const url = `/api/v1/transactions?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}${dateFilter}`;
+    // const url = `/api/v1/transactions?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}${dateFilter}&filters=driver.id=36`;
+    const url = `/api/v1/transactions?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}${dateFilter}&filters=driver.id=${driverId}`;
 
     try {
       const { data } = await axiosInstance.get(url);
 
-      console.log(data, "transaction data");
+      console.log(data, "transaction data", driverId);
 
       // calculating how many items are there on the current page
       const startIndex =
@@ -153,7 +155,8 @@ const DriverTransaction = ({}) => {
       dateFilter = `,createdAt<=${endDateStr}`;
     }
 
-    const url = `/api/v1/transactions?filters=driver.id&description=${search}${dateFilter}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}`;
+    // const url = `/api/v1/transactions?filters=driver.id&description=${search}${dateFilter}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}&filters=driver.id=36`;
+    const url = `/api/v1/transactions?filters=driver.id&description=${search}${dateFilter}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}&filters=driver.id=${driverId}`;
 
     try {
       const { data } = await axiosInstance.get(url);
@@ -180,14 +183,14 @@ const DriverTransaction = ({}) => {
   }
 
   async function revalidateDriverTransaction() {
-    const url = `/api/v1/transactions`;
+    const url = `/api/v1/transactions?filters=driver.id=${driverId}`;
     const { data } = await axiosInstance.get(url);
     return data;
   }
 
   let { isLoading: isDriverTransactionLoading, data: DriverTransactionData } =
     useQuery({
-      queryKey: ["DriverTransactions", startDate, endDate],
+      queryKey: ["DriverTransactions", startDate, endDate, driverId],
       queryFn: revalidateDriverTransaction,
     });
 
@@ -312,24 +315,6 @@ const DriverTransaction = ({}) => {
         },
       },
       {
-        accessorFn: (row) => row.balanceAfter,
-        id: "balanceAfter",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Balance After" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return (
-            <span className="text-sm font-medium text-gray-900">
-              {info.row.original.balanceAfter} Birr
-            </span>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[120px]",
-        },
-      },
-      {
         accessorFn: (row) => row.description,
         id: "description",
         header: ({ column }) => (
@@ -393,20 +378,65 @@ const DriverTransaction = ({}) => {
       });
     }
   };
+  // Add this function outside the component or inside with useCallback
+  async function getAllDriverTransactions(
+    driverId: string,
+    startDate: Date | null,
+    endDate: Date | null
+  ) {
+    // Build date filter string
+    let dateFilter = "";
+    if (startDate && endDate) {
+      const startDateStr = startDate.toISOString().split("T")[0];
+      const endDateStr = endDate.toISOString().split("T")[0];
+      dateFilter = `&filters=createdAt>=${startDateStr},createdAt<=${endDateStr}`;
+    } else if (startDate) {
+      const startDateStr = startDate.toISOString().split("T")[0];
+      dateFilter = `&filters=createdAt>=${startDateStr}`;
+    } else if (endDate) {
+      const endDateStr = endDate.toISOString().split("T")[0];
+      dateFilter = `&filters=createdAt<=${endDateStr}`;
+    }
+
+    const url = `/api/v1/transactions?take=0${dateFilter}&filters=driver.id=${driverId}`;
+
+    try {
+      const { data } = await axiosInstance.get(url);
+      return data;
+    } catch (error) {
+      console.error("Error fetching all transactions:", error);
+      return { data: [] };
+    }
+  }
+
+  // Add this query in your component
+  const { data: AllTransactionData } = useQuery({
+    queryKey: ["AllDriverTransactions", startDate, endDate, driverId],
+    queryFn: () => getAllDriverTransactions(driverId, startDate, endDate),
+  });
+
+  // Fix the Toolbar component
   const Toolbar = () => {
-    const totalAmount = data.reduce((sum, transaction) => {
-      return transaction.action === "deduct"
-        ? sum - transaction.amount
-        : sum + transaction.amount;
-    }, 0);
+    const allData = AllTransactionData?.data ?? [];
+    const totalAmount = allData.reduce(
+      (sum: number, transaction: IDriverTransactionData) => {
+        return transaction.action === "deduct"
+          ? sum - transaction.amount
+          : sum + transaction.amount;
+      },
+      0
+    );
 
-    const totalDeductions = data
-      .filter((t) => t.action === "deduct")
-      .reduce((sum, t) => sum + t.amount, 0);
+    const totalDeductions = allData
+      .filter((t: IDriverTransactionData) => t.action === "deduct")
+      .reduce((sum: number, t: IDriverTransactionData) => sum + t.amount, 0);
 
-    const totalAdditions = data
-      .filter((t) => t.action === "add" || t.action === "credit")
-      .reduce((sum, t) => sum + t.amount, 0);
+    const totalAdditions = allData
+      .filter(
+        (t: IDriverTransactionData) =>
+          t.action === "add" || t.action === "credit"
+      )
+      .reduce((sum: number, t: IDriverTransactionData) => sum + t.amount, 0);
 
     const clearDateFilters = () => {
       setStartDate(null);
@@ -421,8 +451,39 @@ const DriverTransaction = ({}) => {
           </h3>
         </div>
 
-        {/* Date Filter Section */}
+        {/* Summary Cards */}
         <div className="flex items-center gap-4 mt-3 w-full">
+          <div className="flex items-center gap-1 bg-green-50 px-3 py-2 rounded-lg">
+            <span className="text-sm text-green-600 font-medium">
+              Total Additions:
+            </span>
+            <span className="text-sm font-bold text-green-700">
+              +{Math.round(totalAdditions)} Birr
+            </span>
+          </div>
+          <div className="flex items-center gap-1 bg-red-50 px-3 py-2 rounded-lg">
+            <span className="text-sm text-red-600 font-medium">
+              Total Deductions:
+            </span>
+            <span className="text-sm font-bold text-red-700">
+              -{Math.round(totalDeductions)} Birr
+            </span>
+          </div>
+          <div className="flex items-center gap-1 bg-blue-50 px-3 py-2 rounded-lg">
+            <span className="text-sm text-blue-600 font-medium">
+              Net Amount:
+            </span>
+            <span
+              className={`text-sm font-bold ${totalAmount >= 0 ? "text-green-700" : "text-red-700"}`}
+            >
+              {totalAmount >= 0 ? "+" : ""}
+              {Math.round(totalAmount)} Birr
+            </span>
+          </div>
+        </div>
+
+        {/* Date Filter Section */}
+        {/* <div className="flex items-center gap-4 mt-3 w-full">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">From:</span>
             <input
@@ -451,7 +512,7 @@ const DriverTransaction = ({}) => {
               Clear Dates
             </button>
           )}
-        </div>
+        </div> */}
       </div>
     );
   };

@@ -87,7 +87,9 @@ const DriverProfileContent: React.FC<DriverProfileContentProps> = ({
 
             {activeView === "ratings" && <DriverRatings data={data.ratings} />}
 
-            {activeView === "transaction" && <DriverTransaction />}
+            {activeView === "transaction" && (
+              <DriverTransaction driverId={`${data.id}`} />
+            )}
 
             <DriverLocation data={data} />
             {/* <Activity /> */}
