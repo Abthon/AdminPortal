@@ -60,6 +60,9 @@ const Dispatcher = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
+  const [selectedImage, setSelectedImage] = useState<{
+    src: string;
+  } | null>(null);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -235,55 +238,150 @@ const Dispatcher = ({
       },
       {
         accessorFn: (row) => row.firstName,
-        id: "profile",
+        id: "Profile",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Dispatcher" column={column} />
+          <DataGridColumnHeader title="Profile" column={column} />
         ),
         enableSorting: true,
         cell: ({ row }) => {
-          // If you want to show the profile photo
-          let img = !row.original.profilePhoto?.startsWith("http")
-            ? `${BASE_URL}/profile/${row.original.profilePhoto}`
-            : row.original.profilePhoto;
+          console.log(row.original.profilePhoto);
+
+          // Handle cases where profilePhoto might be null/undefined
+          const profilePhoto = row.original.profilePhoto;
+          let img = "";
+
+          if (profilePhoto) {
+            img = !profilePhoto.startsWith("http")
+              ? `${BASE_URL}/profile/${profilePhoto}`
+              : profilePhoto;
+          }
+
+          console.log(img, "the img");
+
+          const handleImageClick = (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+
+            console.log("Image clicked!"); // Add this to debug
+
+            setSelectedImage({
+              src: img,
+            });
+          };
 
           return (
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                {row.original.profilePhoto ? (
-                  <img
-                    src={img}
-                    alt={`${row.original.firstName} ${row.original.lastName}`}
-                    className="w-10 h-10 rounded-full object-cover"
-                    onError={(e) => {
-                      // Fallback to initials if image fails to load
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
+              <div
+                className="relative group cursor-pointer"
+                onClick={handleImageClick}
+              >
+                {profilePhoto ? (
+                  <>
+                    <img
+                      src={img}
+                      className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105"
+                      alt={`${row.original.firstName} ${row.original.lastName}`}
+                      onError={(e) => {
+                        // Fallback to initials if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                        const fallback =
+                          target.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = "flex";
+                      }}
+                    />
+                    {/* Fallback initials div (hidden by default) */}
+                    <div
+                      className="rounded-full size-9 shrink-0 bg-gray-200 flex items-center justify-center transition-transform hover:scale-105"
+                      style={{ display: "none" }}
+                    >
+                      <span className="text-xs font-medium text-gray-600">
+                        {row.original.firstName?.charAt(0)?.toUpperCase()}
+                        {row.original.lastName?.charAt(0)?.toUpperCase()}
+                      </span>
+                    </div>
+                    {/* Hover overlay with zoom icon */}
+                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      <KeenIcon icon="eye" className="text-white text-xs" />
+                    </div>
+                  </>
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-sm font-medium text-gray-600">
-                      {row.original.firstName?.charAt(0)}
-                      {row.original.lastName?.charAt(0)}
+                  // Show initials when no profile photo
+                  <div className="rounded-full size-9 shrink-0 bg-gray-200 flex items-center justify-center">
+                    <span className="text-xs font-medium text-gray-600">
+                      {row.original.firstName?.charAt(0)?.toUpperCase()}
+                      {row.original.lastName?.charAt(0)?.toUpperCase()}
                     </span>
                   </div>
                 )}
-                <div>
-                  <div className="font-medium text-gray-900">
-                    {row.original.firstName} {row.original.lastName}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {row.original.type}
-                  </div>
-                </div>
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+                  {row.original.firstName} {row.original.lastName}
+                </span>
               </div>
             </div>
           );
         },
         meta: {
-          className: "min-w-[150px]", // Even smaller
+          className: "min-w-[300px]",
           cellClassName: "text-gray-800 font-normal",
         },
       },
+
+      // {
+      //   accessorFn: (row) => row.firstName,
+      //   id: "profile",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Dispatcher" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: ({ row }) => {
+      //     // If you want to show the profile photo
+      //     let img = !row.original.profilePhoto?.startsWith("http")
+      //       ? `${BASE_URL}/profile/${row.original.profilePhoto}`
+      //       : row.original.profilePhoto;
+
+      //     return (
+      //       <div className="flex items-center gap-4">
+      //         <div className="flex items-center gap-3">
+      //           {row.original.profilePhoto ? (
+      //             <img
+      //               src={img}
+      //               alt={`${row.original.firstName} ${row.original.lastName}`}
+      //               className="w-10 h-10 rounded-full object-cover"
+      //               onError={(e) => {
+      //                 // Fallback to initials if image fails to load
+      //                 e.currentTarget.style.display = "none";
+      //               }}
+      //             />
+      //           ) : (
+      //             <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+      //               <span className="text-sm font-medium text-gray-600">
+      //                 {row.original.firstName?.charAt(0)}
+      //                 {row.original.lastName?.charAt(0)}
+      //               </span>
+      //             </div>
+      //           )}
+      //           <div>
+      //             <div className="font-medium text-gray-900">
+      //               {row.original.firstName} {row.original.lastName}
+      //             </div>
+      //             <div className="text-sm text-gray-500">
+      //               {row.original.type}
+      //             </div>
+      //           </div>
+      //         </div>
+      //       </div>
+      //     );
+      //   },
+      //   meta: {
+      //     className: "min-w-[150px]", // Even smaller
+      //     cellClassName: "text-gray-800 font-normal",
+      //   },
+      // },
       // {
       //   accessorFn: (row) => row.firstName,
       //   id: "fname",
@@ -489,6 +587,31 @@ const Dispatcher = ({
 
   return (
     <>
+      {/* Image Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative">
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
+            >
+              <KeenIcon icon="cross" className="text-gray-600 text-sm" />
+            </button>
+
+            {/* Image with responsive fixed height */}
+            <img
+              src={selectedImage.src}
+              className="rounded-lg shadow-2xl h-80 sm:h-96 md:h-[500px] lg:h-[600px] w-auto object-cover bg-white"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
+
       <ModalDispatcherForm
         open={profileModalOpen}
         onOpenChange={handleClose}
