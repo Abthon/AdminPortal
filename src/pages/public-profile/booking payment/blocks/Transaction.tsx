@@ -155,7 +155,8 @@ const Transaction: React.FC<TransactionProps> = ({
       dateFilter = `,createdAt<=${endDateStr}`;
     }
 
-    const url = `/api/v1/transactions?filters=description=${search}${dateFilter}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}`;
+    // const url = `/api/v1/transactions?filters=driver.id=${search}${dateFilter}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}`;
+    const url = `/api/v1/transactions?filters=driver.id:=${search}${dateFilter}&sort=createdAt=${sortOrder}`;
 
     try {
       const { data } = await axiosInstance.get(url);
@@ -270,7 +271,7 @@ const Transaction: React.FC<TransactionProps> = ({
             <Link
               to={`/driver/${info.row.original?.driver?.id}`}
               className="text-sm font-medium text-gray-900 hover:text-primary-active hover:underline transition-colors"
-              onClick={(e) => e.stopPropagation()} // Prevent row selection when clicking the link
+              onClick={(e) => e.stopPropagation()}
             >
               {info.row.original.driver?.id}
             </Link>
