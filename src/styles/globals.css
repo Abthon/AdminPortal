@@ -8,3 +8,5 @@
 
 /* Shadcn UI */
 @import "shadcn.ui";
+
+@import "react-day-picker/dist/style.css";
