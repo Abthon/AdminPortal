@@ -17,6 +17,13 @@ interface DatePickerProps {
 }
 
 export function DatePicker({ value, onChange, className }: DatePickerProps) {
+  const handleSelect = React.useCallback(
+    (date: Date | undefined) => {
+      onChange?.(date || null)
+    },
+    [onChange]
+  )
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -36,8 +43,9 @@ export function DatePicker({ value, onChange, className }: DatePickerProps) {
         <Calendar
           mode="single"
           selected={value || undefined}
-          onSelect={onChange}
+          onSelect={handleSelect}
           initialFocus
+          disabled={false}
         />
       </PopoverContent>
     </Popover>
