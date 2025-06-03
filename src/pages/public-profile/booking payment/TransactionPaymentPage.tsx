@@ -1,5 +1,4 @@
 import { Fragment, useState } from "react";
-
 import { Container } from "@/components/container";
 import {
   Toolbar,
@@ -8,7 +7,6 @@ import {
   ToolbarHeading,
   ToolbarPageTitle,
 } from "@/partials/toolbar";
-
 import { TransactionPaymentContent } from ".";
 import { useLayout } from "@/providers";
 import { KeenIcon } from "@/components";
@@ -44,47 +42,12 @@ const TransactionPaymentPage = () => {
                   <KeenIcon icon="magnifier" />
                   <input
                     type="text"
-                    placeholder="Search By Description"
+                    placeholder="Search By Driver Id"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                   />
                 </label>
               </div>
-
-              {/* <span
-                onClick={() => setActiveTab("all")}
-                className={`btn btn-sm ${activeTab === "all" ? "btn-primary" : "btn-light"}`}
-              >
-                All Transactions
-              </span> */}
-              {/* <span
-                onClick={() => setActiveTab("deduct")}
-                className={`btn btn-sm ${activeTab === "deduct" ? "btn-primary" : "btn-light"}`}
-              >
-                Deductions
-              </span>
-              <span
-                onClick={() => setActiveTab("add")}
-                className={`btn btn-sm ${activeTab === "add" ? "btn-primary" : "btn-light"}`}
-              >
-                Additions
-              </span>
-              <span
-                onClick={() => setActiveTab("pending")}
-                className={`btn btn-sm ${activeTab === "pending" ? "btn-primary" : "btn-light"}`}
-              >
-                Pending
-              </span> */}
-
-              {/* Optional: Add Transaction button */}
-              {/* <button
-                onClick={() => {
-                  setIsAddOpen((open) => !open);
-                }}
-                className="btn btn-sm btn-primary"
-              >
-                Add Transaction
-              </button> */}
             </ToolbarActions>
           </Toolbar>
         </Container>
