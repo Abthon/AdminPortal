@@ -66,7 +66,7 @@ function getApprovalColor(isApproved: boolean): string {
   return isApproved ? "success" : "warning";
 }
 
-const DriverTransaction = (driverId: any) => {
+const DriverTransaction = ({ driverId }: any) => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
@@ -98,11 +98,10 @@ const DriverTransaction = (driverId: any) => {
       dateFilter = `&filters=createdAt<=${endDateStr}`;
     }
 
-    const url = `/api/v1/transactions?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}${dateFilter}`;
+    const url = `/api/v1/transactions?filters=driver.id=${driverId}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}${dateFilter}`;
 
     try {
       const { data } = await axiosInstance.get(url);
-
       console.log(data, "transaction data");
 
       // calculating how many items are there on the current page
@@ -126,58 +125,58 @@ const DriverTransaction = (driverId: any) => {
     }
   }
 
-  async function searchDriverTransaction({
-    pageIndex,
-    pageSize,
-    search,
-    sort,
-  }: {
-    pageIndex: number;
-    pageSize: number;
-    search: any;
-    sort: any;
-  }) {
-    const sortOrder = sort[0].desc ? "DESC" : "ASC";
+  // async function searchDriverTransaction({
+  //   pageIndex,
+  //   pageSize,
+  //   search,
+  //   sort,
+  // }: {
+  //   pageIndex: number;
+  //   pageSize: number;
+  //   search: any;
+  //   sort: any;
+  // }) {
+  //   const sortOrder = sort[0].desc ? "DESC" : "ASC";
 
-    // Build date filter string
-    let dateFilter = "";
-    if (startDate && endDate) {
-      const startDateStr = startDate.toISOString().split("T")[0];
-      const endDateStr = endDate.toISOString().split("T")[0];
-      dateFilter = `,createdAt>=${startDateStr},createdAt<=${endDateStr}`;
-    } else if (startDate) {
-      const startDateStr = startDate.toISOString().split("T")[0];
-      dateFilter = `,createdAt>=${startDateStr}`;
-    } else if (endDate) {
-      const endDateStr = endDate.toISOString().split("T")[0];
-      dateFilter = `,createdAt<=${endDateStr}`;
-    }
+  //   // Build date filter string
+  //   let dateFilter = "";
+  //   if (startDate && endDate) {
+  //     const startDateStr = startDate.toISOString().split("T")[0];
+  //     const endDateStr = endDate.toISOString().split("T")[0];
+  //     dateFilter = `,createdAt>=${startDateStr},createdAt<=${endDateStr}`;
+  //   } else if (startDate) {
+  //     const startDateStr = startDate.toISOString().split("T")[0];
+  //     dateFilter = `,createdAt>=${startDateStr}`;
+  //   } else if (endDate) {
+  //     const endDateStr = endDate.toISOString().split("T")[0];
+  //     dateFilter = `,createdAt<=${endDateStr}`;
+  //   }
 
-    const url = `/api/v1/transactions?filters=driver.id&description=${search}${dateFilter}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}`;
+  //   const url = `/api/v1/transactions?filters=driver.id&description=${search}${dateFilter}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}`;
 
-    try {
-      const { data } = await axiosInstance.get(url);
+  //   try {
+  //     const { data } = await axiosInstance.get(url);
 
-      // calculating how many items are there on the current page
-      const startIndex =
-        (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
-      const endIndex = Math.min(
-        data.pagination.currentPage * data.pagination.pageSize,
-        data.pagination.totalItems
-      );
-      const itemsOnPage = endIndex - startIndex + 1;
-      setItemsOnPage(itemsOnPage);
-      setTotalItems(data.pagination.totalItems);
+  //     // calculating how many items are there on the current page
+  //     const startIndex =
+  //       (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+  //     const endIndex = Math.min(
+  //       data.pagination.currentPage * data.pagination.pageSize,
+  //       data.pagination.totalItems
+  //     );
+  //     const itemsOnPage = endIndex - startIndex + 1;
+  //     setItemsOnPage(itemsOnPage);
+  //     setTotalItems(data.pagination.totalItems);
 
-      return data; // Make sure this returns the full response
-    } catch (error) {
-      console.error("Error searching transactions:", error);
-      return {
-        data: [],
-        pagination: { totalItems: 0, currentPage: 1, pageSize: pageSize },
-      };
-    }
-  }
+  //     return data; // Make sure this returns the full response
+  //   } catch (error) {
+  //     console.error("Error searching transactions:", error);
+  //     return {
+  //       data: [],
+  //       pagination: { totalItems: 0, currentPage: 1, pageSize: pageSize },
+  //     };
+  //   }
+  // }
 
   async function revalidateDriverTransaction() {
     const url = `/api/v1/transactions`;
@@ -460,7 +459,7 @@ const DriverTransaction = (driverId: any) => {
     <>
       <DataGrid
         onFetchData={getDriverTransactions}
-        onSearchData={searchDriverTransaction}
+        // onSearchData={searchDriverTransaction}
         columns={columns}
         data={data}
         filterInput={filterInput}

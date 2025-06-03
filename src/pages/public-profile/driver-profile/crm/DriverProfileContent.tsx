@@ -10,7 +10,7 @@ import {
   Statistics,
 } from "./blocks";
 import { DriverLocation } from "./blocks/DriverLocation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DriverRatings } from "./blocks/DriverRating";
 import { DriverTransaction } from "./blocks/DriverTransaction";
 
@@ -79,18 +79,15 @@ const DriverProfileContent: React.FC<DriverProfileContentProps> = ({
                 <KeenIcon icon="calendar" /> Show Transactions
               </button>
             </div>
-
             {/* Conditional rendering based on active view */}
             {activeView === "bookings" && (
               <DriverBooking data={data.bookings} />
             )}
-
             {activeView === "ratings" && <DriverRatings data={data.ratings} />}
 
             {activeView === "transaction" && (
-              <DriverTransaction driverId={`${data.id}`} />
+              <DriverTransaction driverId={data.id} />
             )}
-
             <DriverLocation data={data} />
             {/* <Activity /> */}
             {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-7.5">
