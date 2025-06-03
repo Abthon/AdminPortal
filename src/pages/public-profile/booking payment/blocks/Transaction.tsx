@@ -3,8 +3,6 @@ import {
   DataGrid,
   DataGridColumnHeader,
   KeenIcon,
-  DataGridRowSelectAll,
-  DataGridRowSelect,
 } from "@/components";
 import { ColumnDef, Column, RowSelectionState } from "@tanstack/react-table";
 import {
@@ -112,9 +110,6 @@ const Transaction: React.FC<TransactionProps> = ({
 
     try {
       const { data } = await axiosInstance.get(url);
-
-      console.log(data, "transaction data");
-
       // calculating how many items are there on the current page
       const startIndex =
         (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
@@ -275,10 +270,9 @@ const Transaction: React.FC<TransactionProps> = ({
         ),
         enableSorting: true,
         cell: (info) => {
-          console.log(info.row.original.driver, "The driver");
           return (
             <Link
-              to={`/driver/${info.row.original.driver.id}`}
+              to={`/driver/${info.row.original?.driver?.id}`}
               className="text-sm font-medium text-gray-900 hover:text-primary-active hover:underline transition-colors"
               onClick={(e) => e.stopPropagation()} // Prevent row selection when clicking the link
             >
