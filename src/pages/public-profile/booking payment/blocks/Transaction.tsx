@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  DataGrid,
-  DataGridColumnHeader,
-  KeenIcon,
-} from "@/components";
+import { DataGrid, DataGridColumnHeader, KeenIcon } from "@/components";
 import { ColumnDef, Column, RowSelectionState } from "@tanstack/react-table";
 import {
   Select,
@@ -276,7 +272,7 @@ const Transaction: React.FC<TransactionProps> = ({
               className="text-sm font-medium text-gray-900 hover:text-primary-active hover:underline transition-colors"
               onClick={(e) => e.stopPropagation()} // Prevent row selection when clicking the link
             >
-              {info.row.original.driver.id}
+              {info.row.original.driver?.id}
             </Link>
           );
         },
