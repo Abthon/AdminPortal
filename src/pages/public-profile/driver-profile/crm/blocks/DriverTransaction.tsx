@@ -23,7 +23,7 @@ import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
 import { Link } from "react-router-dom";
 import { timeAgo } from "@/utils/Time";
-// import { DatePicker } from "@/components/ui/date-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface IDriverTransactionData {
   id: number;
@@ -89,16 +89,16 @@ const DriverTransaction = ({ driverId }: any) => {
     if (startDate && endDate) {
       const startDateStr = startDate.toISOString().split("T")[0];
       const endDateStr = endDate.toISOString().split("T")[0];
-      dateFilter = `&filters=createdAt>=${startDateStr},createdAt<=${endDateStr}`;
+      dateFilter = `,createdAt>=${startDateStr},createdAt<=${endDateStr}`;
     } else if (startDate) {
       const startDateStr = startDate.toISOString().split("T")[0];
-      dateFilter = `&filters=createdAt>=${startDateStr}`;
+      dateFilter = `,createdAt>=${startDateStr}`;
     } else if (endDate) {
       const endDateStr = endDate.toISOString().split("T")[0];
-      dateFilter = `&filters=createdAt<=${endDateStr}`;
+      dateFilter = `,createdAt<=${endDateStr}`;
     }
 
-    const url = `/api/v1/transactions?filters=driver.id=${driverId}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}${dateFilter}`;
+    const url = `/api/v1/transactions?filters=driver.id=${driverId}${dateFilter}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}`;
 
     try {
       const { data } = await axiosInstance.get(url);
@@ -424,24 +424,18 @@ const DriverTransaction = ({ driverId }: any) => {
         <div className="flex items-center gap-4 mt-3 w-full">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">From:</span>
-            <input
-              type="date"
-              value={startDate ? startDate.toISOString().split("T")[0] : ""}
-              onChange={(e) =>
-                setStartDate(e.target.value ? new Date(e.target.value) : null)
-              }
-              className="input input-sm"
+            <DatePicker
+              value={startDate}
+              onChange={(date: Date | null) => setStartDate(date)}
+              className="w-[180px]"
             />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">To:</span>
-            <input
-              type="date"
-              value={endDate ? endDate.toISOString().split("T")[0] : ""}
-              onChange={(e) =>
-                setEndDate(e.target.value ? new Date(e.target.value) : null)
-              }
-              className="input input-sm"
+            <DatePicker
+              value={endDate}
+              onChange={(date: Date | null) => setEndDate(date)}
+              className="w-[180px]"
             />
           </div>
           {(startDate || endDate) && (
