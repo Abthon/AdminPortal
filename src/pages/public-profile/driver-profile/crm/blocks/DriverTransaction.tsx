@@ -23,7 +23,7 @@ import { DataGridLoader } from "@/components/data-grid";
 import axiosInstance from "@/auth/_helpers";
 import { Link } from "react-router-dom";
 import { timeAgo } from "@/utils/Time";
-import { DatePicker } from "@/components/ui/date-picker";
+// import { DatePicker } from "@/components/ui/date-picker";
 
 interface IDriverTransactionData {
   id: number;
@@ -89,17 +89,16 @@ const DriverTransaction = ({ driverId }: any) => {
     if (startDate && endDate) {
       const startDateStr = startDate.toISOString().split("T")[0];
       const endDateStr = endDate.toISOString().split("T")[0];
-      dateFilter = `,createdAt>=${startDateStr},createdAt<=${endDateStr}`;
+      dateFilter = `&filters=createdAt>=${startDateStr},createdAt<=${endDateStr}`;
     } else if (startDate) {
       const startDateStr = startDate.toISOString().split("T")[0];
-      dateFilter = `,createdAt>=${startDateStr}`;
+      dateFilter = `&filters=createdAt>=${startDateStr}`;
     } else if (endDate) {
       const endDateStr = endDate.toISOString().split("T")[0];
-      dateFilter = `,createdAt<=${endDateStr}`;
+      dateFilter = `&filters=createdAt<=${endDateStr}`;
     }
 
-    const url = `/api/v1/transactions?filters=driver.id=${driverId}${dateFilter}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}`;
-
+    const url = `/api/v1/transactions?filters=driver.id=${driverId}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}${dateFilter}`;
     try {
       const { data } = await axiosInstance.get(url);
       console.log(data, "transaction data");
@@ -311,24 +310,6 @@ const DriverTransaction = ({ driverId }: any) => {
         },
       },
       {
-        accessorFn: (row) => row.balanceAfter,
-        id: "balanceAfter",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Balance After" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return (
-            <span className="text-sm font-medium text-gray-900">
-              {info.row.original.balanceAfter} Birr
-            </span>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[120px]",
-        },
-      },
-      {
         accessorFn: (row) => row.description,
         id: "description",
         header: ({ column }) => (
@@ -392,6 +373,7 @@ const DriverTransaction = ({ driverId }: any) => {
       });
     }
   };
+
   const Toolbar = () => {
     const totalAmount = data.reduce((sum, transaction) => {
       return transaction.action === "deduct"
@@ -424,18 +406,24 @@ const DriverTransaction = ({ driverId }: any) => {
         <div className="flex items-center gap-4 mt-3 w-full">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">From:</span>
-            <DatePicker
-              value={startDate}
-              onChange={(date: Date | null) => setStartDate(date)}
-              className="w-[180px]"
+            <input
+              type="date"
+              value={startDate ? startDate.toISOString().split("T")[0] : ""}
+              onChange={(e) =>
+                setStartDate(e.target.value ? new Date(e.target.value) : null)
+              }
+              className="input input-sm"
             />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">To:</span>
-            <DatePicker
-              value={endDate}
-              onChange={(date: Date | null) => setEndDate(date)}
-              className="w-[180px]"
+            <input
+              type="date"
+              value={endDate ? endDate.toISOString().split("T")[0] : ""}
+              onChange={(e) =>
+                setEndDate(e.target.value ? new Date(e.target.value) : null)
+              }
+              className="input input-sm"
             />
           </div>
           {(startDate || endDate) && (
