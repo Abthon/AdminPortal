@@ -102,7 +102,6 @@ const Transaction: React.FC<TransactionProps> = ({
       const endDateStr = endDate.toISOString().split("T")[0];
       dateFilter = `&filters=createdAt<=${endDateStr}`;
     }
-
     const url = `/api/v1/transactions?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sortOrder}${dateFilter}&fields=id,createdAt,action,amount,description,isApproved,driver.id`;
 
     try {
