@@ -470,7 +470,7 @@ function getApprovalColor(isApproved: boolean): string {
   return isApproved ? "success" : "warning";
 }
 
-const DriverTransaction: React.FC<TransactionProps> = ({ driverId }: any) => {
+const DriverTransaction = ({ driverId }: any) => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
