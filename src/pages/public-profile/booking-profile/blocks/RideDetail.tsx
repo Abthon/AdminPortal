@@ -10,7 +10,6 @@ interface RideDetailProps {
 }
 
 const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
-  console.log(data, "d");
   return (
     <div className="card pb-2.5">
       <div className="card-header" id="ride-detail">
@@ -96,6 +95,20 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
               </label>
               <label className="form-label flex items-center gap-1 max-w-56">
                 {data.driver?.firstName + " " + data.driver?.lastName || "-"}
+              </label>
+            </div>
+          </div>
+        ) : (
+          ""
+        )}
+        {data.driver?.firstName ? (
+          <div className="w-full">
+            <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+              <label className="form-label flex items-center gap-1 max-w-56">
+                Booking Comment
+              </label>
+              <label className="form-label flex items-center gap-1 max-w-56">
+                {data.rating?.comment || "-"}
               </label>
             </div>
           </div>
