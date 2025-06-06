@@ -65,7 +65,7 @@ const CustomMarker: React.FC<MarkerProps> = ({
               padding: "12px",
               minWidth: "200px",
               textAlign: "center",
-              fontSize: "16px", // Increased font size
+              fontSize: "16px",
             }}
           >
             <div className="mb-2">

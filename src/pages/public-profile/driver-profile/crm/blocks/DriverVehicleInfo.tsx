@@ -7,13 +7,12 @@ interface IDriverVehicleInfoItem {
   label: string;
   info: string;
 }
-interface IDriverVehicleInfoItems extends Array<IDriverVehicleInfoItem> {}
 
+interface IDriverVehicleInfoItems extends Array<IDriverVehicleInfoItem> {}
 interface DriverVehicleInfoProps {
   data: any;
 }
 
-//const DriverVehicleInfo = () => {
 const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
   const [showModal, setShowModal] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
@@ -38,7 +37,6 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
     try {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
-      //  saveAs(blob, "NEWIMAGE"); // Triggers download with the specified filename
     } catch (error) {
       console.error("Download failed:", error);
     }
