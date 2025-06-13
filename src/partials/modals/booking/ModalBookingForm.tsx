@@ -15,6 +15,15 @@ import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import axiosInstance from "@/auth/_helpers";
 import { DataGridLoader, KeenIcon } from "@/components";
 import { ModalSearchEmpty, ModalSearchNoResults } from "../search";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 const bookingSchema = Yup.object().shape({
@@ -797,6 +806,33 @@ const ModalBookingForm = ({
                       }}
                     />
                   )}
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label
+                    htmlFor="phoneNumber"
+                    className="text-gray-900 form-label"
+                  >
+                    Phone Number
+                  </label>
+                  <div className="flex">
+                    <div className="relative flex items-center">
+                      <Select defaultValue="+251">
+                        <SelectTrigger className="w-[90px] rounded-r-none border-r-0 border-gray-900 hover:border-gray-900 active:border-gray-900 focus:border-gray-900">
+                          <SelectValue placeholder="+251" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="+251">+251</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Input
+                      id="phoneNumber"
+                      type="text"
+                      placeholder="Enter a phone number"
+                      className="rounded-l-none border-gray-900 hover:border-gray-900 active:border-gray-900 focus:border-gray-900"
+                      {...formik.getFieldProps("phoneNumber")}
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">

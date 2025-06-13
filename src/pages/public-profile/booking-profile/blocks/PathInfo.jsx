@@ -5,7 +5,7 @@ import {
   Marker,
   Popup,
   Polyline as LeafletPolyline,
-  useMap,
+  useMap, // Your image path
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
