@@ -310,16 +310,24 @@ const Booking: React.FC<BookingProps> = ({
         ),
         enableSorting: false,
         cell: (info) => {
-          if (
-            info.row.original.status === "requested" ||
-            info.row.original.status === "driver_not_found"
-          ) {
+          if (info.row.original.status === "requested") {
             return (
               <button
                 onClick={() => handleOpen(true, info.row.original)}
                 className="btn btn-sm btn-icon btn-clear btn-primary"
               >
                 <KeenIcon icon="user-tick" />
+              </button>
+            );
+          }
+
+          if (info.row.original.status === "driver_not_found") {
+            return (
+              <button
+                onClick={() => handleOpen(true, info.row.original)}
+                className="btn btn-sm btn-icon btn-clear btn-primary"
+              >
+                <KeenIcon icon="arrows-loop" />
               </button>
             );
           }
