@@ -285,12 +285,7 @@ const Booking: React.FC<BookingProps> = ({
   });
 
   const { mutate: mutateComplete } = useMutation({
-    mutationFn: async (id: string) => {
-      const { data } = await axiosInstance.post(
-        `/api/v1/bookings/complete/${id}`
-      );
-      return data;
-    },
+    mutationFn: completeBooking,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["Bookings"] });
       toast.success("Booking completed successfully!");
