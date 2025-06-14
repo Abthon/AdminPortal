@@ -97,6 +97,7 @@ const Booking: React.FC<BookingProps> = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
+  const queryClient = useQueryClient();
 
   const handleClose = () => {
     setProfileModalOpen(false);
@@ -241,8 +242,6 @@ const Booking: React.FC<BookingProps> = ({
     refetchIntervalInBackground: true,
   });
 
-  const queryClient = useQueryClient();
-
   const { isLoading: isDeleting, mutate } = useMutation({
     mutationFn: deleteBooking,
     onSuccess: () => {
@@ -255,29 +254,51 @@ const Booking: React.FC<BookingProps> = ({
       toast("Error Encountered deleting the booking");
     },
   });
-  const { isLoading: isStarting, mutate: mutateStart } = useMutation({
+  const { mutate: mutateStart } = useMutation({
     mutationFn: startBooking,
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["Bookings"],
-      });
-      toast("Booking successfully Started!");
+      queryClient.invalidateQueries({ queryKey: ["Bookings"] });
+      toast.success("Booking started successfully!");
     },
-    onError: (error: unknown) => {
-      toast("Error Encountered while starting the booking");
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to start booking");
     },
   });
 
-  const { isLoading: isCompleting, mutate: mutateComplete } = useMutation({
-    mutationFn: completeBooking,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["Bookings"],
-      });
-      toast("Booking successfully Completed!");
+  const { mutate: mutateCancel } = useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await axiosInstance.post(
+        `/api/v1/bookings/cancel/${id}`,
+        {
+          userId: 1,
+        }
+      );
+      return data;
     },
-    onError: (error: unknown) => {
-      toast("Error Encountered while completing the booking");
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["Bookings"] });
+      toast.success("Booking canceled successfully!");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to cancel booking");
+    },
+  });
+
+  const { mutate: mutateComplete } = useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await axiosInstance.post(
+        `/api/v1/bookings/complete/${id}`
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["Bookings"] });
+      toast.success("Booking completed successfully!");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message || "Failed to complete booking"
+      );
     },
   });
 
@@ -334,12 +355,20 @@ const Booking: React.FC<BookingProps> = ({
 
           if (info.row.original.status === "assigned") {
             return (
-              <button
-                onClick={() => mutateStart(info.row.original.id)}
-                className="btn btn-sm btn-icon btn-clear btn-success"
-              >
-                <KeenIcon icon="to-right" />
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => mutateStart(info.row.original.id)}
+                  className="btn btn-sm btn-icon btn-clear btn-success"
+                >
+                  <KeenIcon icon="to-right" />
+                </button>
+                <button
+                  onClick={() => mutateCancel(info.row.original.id)}
+                  className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+                >
+                  <KeenIcon icon="cross-circle" />
+                </button>
+              </div>
             );
           }
 
