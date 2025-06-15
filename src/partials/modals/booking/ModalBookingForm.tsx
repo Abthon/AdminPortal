@@ -33,6 +33,9 @@ const bookingSchema = Yup.object().shape({
   phoneNumber: Yup.string().matches(/^\d{9}$/, {
     message: "Invalid phone number.",
   }),
+  pickupPhoneNumber: Yup.string().matches(/^\d{9}$/, {
+    message: "Invalid phone number.",
+  }),
   driverId: Yup.number(),
   distance: Yup.number().when("isEndBooking", {
     is: true,
@@ -109,6 +112,7 @@ const ModalBookingForm = ({
     distance: "",
     duration: "",
     phoneNumber: "",
+    pickupPhoneNumber: "",
   };
 
   const calculateEstimatedPrice = async (
@@ -169,6 +173,7 @@ const ModalBookingForm = ({
         dropOffName,
         driverId,
         phoneNumber,
+        pickupPhoneNumber,
       } = values;
 
       const finalReq = {
@@ -180,6 +185,9 @@ const ModalBookingForm = ({
         dropOffName,
         ...(driverId ? { driverId: Number(driverId) } : {}),
         ...(phoneNumber ? { contactPhoneNumber: phoneNumber } : {}),
+        ...(pickupPhoneNumber
+          ? { pickupContactPhoneNumber: pickupPhoneNumber }
+          : {}),
         estimatedPrice: Number(estimatedPrice),
         estimatedTraveledDistance: 0,
         vehicleType: Number(vehicleTypeId),
@@ -699,6 +707,33 @@ const ModalBookingForm = ({
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
+                  <label
+                    htmlFor="pickupPhoneNumber"
+                    className="text-gray-900 form-label"
+                  >
+                    Pickup Phone Number
+                  </label>
+                  <div className="flex">
+                    <div className="relative flex items-center">
+                      <Select defaultValue="+251">
+                        <SelectTrigger className="w-[90px] rounded-r-none border-r-0 border-gray-900 hover:border-gray-900 active:border-gray-900 focus:border-gray-900">
+                          <SelectValue placeholder="+251" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="+251">+251</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Input
+                      id="pickupPhoneNumber"
+                      type="text"
+                      placeholder="Enter a pickup phone number"
+                      className="rounded-l-none border-gray-900 hover:border-gray-900 active:border-gray-900 focus:border-gray-900"
+                      {...formik.getFieldProps("pickupPhoneNumber")}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
                   <label className="form-label text-gray-900">
                     DropOff Location
                   </label>
@@ -812,7 +847,7 @@ const ModalBookingForm = ({
                     htmlFor="phoneNumber"
                     className="text-gray-900 form-label"
                   >
-                    Phone Number
+                    Dropoff Phone Number
                   </label>
                   <div className="flex">
                     <div className="relative flex items-center">
@@ -828,7 +863,7 @@ const ModalBookingForm = ({
                     <Input
                       id="phoneNumber"
                       type="text"
-                      placeholder="Enter a phone number"
+                      placeholder="Enter a dropoff phone number"
                       className="rounded-l-none border-gray-900 hover:border-gray-900 active:border-gray-900 focus:border-gray-900"
                       {...formik.getFieldProps("phoneNumber")}
                     />

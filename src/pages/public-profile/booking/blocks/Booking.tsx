@@ -43,6 +43,7 @@ interface IBookingData {
   createdAt: string;
   driver: any;
   contactPhoneNumber: string;
+  pickupContactPhoneNumber: string;
 }
 interface IColumnFilterProps<TData, TValue> {
   column: Column<TData, TValue>;
@@ -430,7 +431,6 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        // accessorFn: (row) => row.pickupName,
         id: "pickupName",
         header: ({ column }) => (
           <DataGridColumnHeader title="Pickup" column={column} />
@@ -444,7 +444,21 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        // accessorFn: (row) => row.dropOffName,
+        id: "pickupContactPhoneNumber",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Pickup Phone" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          return info.row.original.pickupContactPhoneNumber
+            ? `+251${info.row.original.pickupContactPhoneNumber}`
+            : "";
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
+      },
+      {
         id: "dropOffName",
         header: ({ column }) => (
           <DataGridColumnHeader title="Drop Off" column={column} />
@@ -458,7 +472,6 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        // accessorFn: (row) => row.estimatedTraveledDistance,
         id: "estimatedTraveledDistance",
         header: ({ column }) => (
           <DataGridColumnHeader title="Est Distance" column={column} />
@@ -472,7 +485,6 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        // accessorFn: (row) => row.estimatedTraveledDistance,
         id: "actualTraveledDistance",
         header: ({ column }) => (
           <DataGridColumnHeader title="Actual Distance" column={column} />
@@ -486,7 +498,6 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        // accessorFn: (row) => row.estimatedPrice,
         id: "estimatedPrice",
         header: ({ column }) => (
           <DataGridColumnHeader title="Est Price" column={column} />
@@ -500,7 +511,6 @@ const Booking: React.FC<BookingProps> = ({
         },
       },
       {
-        // accessorFn: (row) => row.estimatedPrice,
         id: "actualPrice",
         header: ({ column }) => (
           <DataGridColumnHeader title="Actual Price" column={column} />
@@ -515,36 +525,7 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[100px]",
         },
       },
-      // {
-      //   // accessorFn: (row) => row.estimatedPrice,
-      //   id: "corporatename",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="CorporateName" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return info.row.original.coor?.name;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[100px]",
-      //   },
-      // },
-      // {
-      //   // accessorFn: (row) => row.estimatedPrice,
-      //   id: "contactPhoneNumber",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="UserPhone" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     return `${info.row.original.coor?.contactPhoneNumber ? `+251${info.row.original.coor?.contactPhoneNumber}` : ""}`;
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[100px]",
-      //   },
-      // },
       {
-        // accessorFn: (row) => row.status,
         id: "status",
         header: ({ column }) => (
           <DataGridColumnHeader title="Status" column={column} />
@@ -566,31 +547,6 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[160px]",
         },
       },
-      // {
-      //   id: "Delete",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Delete" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <button
-      //         // disabled={true}
-      //         // onClick={() => mutate(info.row.original.id)}
-      //         onClick={() =>
-      //           handleOpen(true, info.row.original, false, false, true)
-      //         }
-      //         //onClick={() => handleOpen(true, info.row.original, false, true)}
-      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-      //       >
-      //         <KeenIcon icon="trash" />
-      //       </button>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[80px]",
-      //   },
-      // },
     ],
     [mutate]
   );
