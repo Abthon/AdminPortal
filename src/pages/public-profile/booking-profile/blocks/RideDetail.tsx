@@ -1,4 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
+import { useEffect } from "react";
 
 export function timeAgo(dateISO: string): string {
   const date = new Date(dateISO);
@@ -10,6 +11,9 @@ interface RideDetailProps {
 }
 
 const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
+  useEffect(() => {
+    console.log("recieved", data);
+  }, []);
   return (
     <div className="card pb-2.5">
       <div className="card-header" id="ride-detail">
@@ -109,6 +113,20 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
               </label>
               <label className="form-label flex items-center gap-1 max-w-56">
                 {data.rating?.comment || "-"}
+              </label>
+            </div>
+          </div>
+        ) : (
+          ""
+        )}
+        {data.contactPhoneNumber ? (
+          <div className="w-full">
+            <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+              <label className="form-label flex items-center gap-1 max-w-56">
+                Dropoff Phone Number
+              </label>
+              <label className="form-label flex items-center gap-1 max-w-56">
+                +251{data.contactPhoneNumber || "-"}
               </label>
             </div>
           </div>

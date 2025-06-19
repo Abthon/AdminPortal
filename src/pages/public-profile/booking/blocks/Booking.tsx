@@ -451,21 +451,21 @@ const Booking: React.FC<BookingProps> = ({
           headerClassName: "min-w-[100px]",
         },
       },
-      {
-        id: "pickupContactPhoneNumber",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Pickup Phone" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.pickupContactPhoneNumber
-            ? `+251${info.row.original.pickupContactPhoneNumber}`
-            : "";
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
-        },
-      },
+      // {
+      //   id: "pickupContactPhoneNumber",
+      //   header: ({ column }) => (
+      //     <DataGridColumnHeader title="Pickup Phone" column={column} />
+      //   ),
+      //   enableSorting: true,
+      //   cell: (info) => {
+      //     return info.row.original.pickupContactPhoneNumber
+      //       ? `+251${info.row.original.pickupContactPhoneNumber}`
+      //       : "";
+      //   },
+      //   meta: {
+      //     headerClassName: "min-w-[100px]",
+      //   },
+      // },
       {
         id: "dropOffName",
         header: ({ column }) => (
