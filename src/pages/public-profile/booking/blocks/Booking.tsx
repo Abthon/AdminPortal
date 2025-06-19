@@ -329,12 +329,20 @@ const Booking: React.FC<BookingProps> = ({
         cell: (info) => {
           if (info.row.original.status === "requested") {
             return (
-              <button
-                onClick={() => handleOpen(true, info.row.original)}
-                className="btn btn-sm btn-icon btn-clear btn-primary"
-              >
-                <KeenIcon icon="user-tick" />
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleOpen(true, info.row.original)}
+                  className="btn btn-sm btn-icon btn-clear btn-primary"
+                >
+                  <KeenIcon icon="user-tick" />
+                </button>
+                <button
+                  onClick={() => mutateCancel(info.row.original.id)}
+                  className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
+                >
+                  <KeenIcon icon="cross-circle" />
+                </button>
+              </div>
             );
           }
 
