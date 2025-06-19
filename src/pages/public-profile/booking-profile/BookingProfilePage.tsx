@@ -29,7 +29,7 @@ const BookingProfilePage = () => {
 
   async function getBooking(id: string) {
     const { data } = await axiosInstance.get(
-      `/api/v1/bookings/${id}?fields=admin.*,driver.*,rating.*,id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber`
+      `/api/v1/bookings/${id}?fields=admin.*,driver.*,rating.*,id,createdAt,endTime,startTime,status,pickupName,pickupLat,pickupLng,dropOffName,dropOffLat,dropOffLng,polyline,estimatedTraveledPath,actualtraveledPath,estimatedTraveledDistance,actualTraveledDistance,estimatedPrice,actualPrice,estimatedDuration,actualDuration,remark,contactPhoneNumber,pickupContactPhoneNumber`
     );
     const associatedVehicle = await getVehicleType();
     const updatedData = {
@@ -57,7 +57,6 @@ const BookingProfilePage = () => {
   }
 
   const { currentLayout } = useLayout();
-
   return (
     <Fragment>
       <PageNavbar />

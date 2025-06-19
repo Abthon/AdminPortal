@@ -119,6 +119,20 @@ const RideDetail: React.FC<RideDetailProps> = ({ data }) => {
         ) : (
           ""
         )}
+        {data.pickupContactPhoneNumber ? (
+          <div className="w-full">
+            <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
+              <label className="form-label flex items-center gap-1 max-w-56">
+                Pickup Phone Number
+              </label>
+              <label className="form-label flex items-center gap-1 max-w-56">
+                +251{data.pickupContactPhoneNumber || "-"}
+              </label>
+            </div>
+          </div>
+        ) : (
+          ""
+        )}
         {data.contactPhoneNumber ? (
           <div className="w-full">
             <div className="flex items-baseline flex-wrap lg:flex-nowrap gap-2.5">
