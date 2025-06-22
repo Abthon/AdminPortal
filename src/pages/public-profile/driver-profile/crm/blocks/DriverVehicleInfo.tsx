@@ -1,6 +1,7 @@
 import { timeAgo } from "@/utils/Time";
 import { KeenIcon } from "@/components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axiosInstance from "@/auth/_helpers";
 //import { saveAs } from "file-saver";
 
 interface IDriverVehicleInfoItem {
@@ -16,6 +17,26 @@ interface DriverVehicleInfoProps {
 const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
   const [showModal, setShowModal] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  const [vehicleType, setVehicleType] = useState("");
+
+  useEffect(() => {
+    const getVehicleType = async () => {
+      if (!data) return;
+
+      try {
+        const response = await axiosInstance.get(
+          `/api/v1/vehicles/${data.id}?fields=vehicleType.* `
+        );
+        if (response.status === 200) {
+          setVehicleType(response.data.data.vehicleType.name);
+        }
+      } catch (error) {
+        console.error("Error fetching vehicle type:", error);
+      }
+    };
+
+    getVehicleType();
+  }, []);
 
   function downloadImage(url: any, filename: any) {
     fetch(url, { mode: "cors" })
@@ -47,6 +68,7 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
     { label: "Plate_number:", info: data?.plate_number },
     { label: "Year", info: data?.year },
     { label: "Color", info: data?.color },
+    { label: "Vehicle Type", info: vehicleType },
     {
       label: "Librae",
       info: data?.librae,
