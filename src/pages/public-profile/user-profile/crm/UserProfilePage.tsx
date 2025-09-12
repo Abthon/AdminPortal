@@ -1,6 +1,4 @@
 import { Fragment, useEffect, useState } from "react";
-
-import { toAbsoluteUrl } from "@/utils/Assets";
 import { ContentLoader, DataGridLoader, KeenIcon } from "@/components";
 import { Container } from "@/components/container";
 
