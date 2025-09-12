@@ -23,7 +23,7 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { ModalDriverTypeForm } from "@/partials/modals/therapist";
+import { ModalClientTypeForm } from "@/partials/modals/client";
 import axiosInstance from "@/auth/_helpers";
 import { ModalBankForm } from "@/partials/modals/bank";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;

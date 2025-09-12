@@ -12,9 +12,8 @@ import axiosInstance from "@/auth/_helpers";
 import { UserProfileContent } from ".";
 import { useNavigate, useParams } from "react-router";
 import { useQuery, useQueryClient } from "react-query";
-import { ModalDriverTypeForm } from "@/partials/modals/therapist";
-const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
+const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 interface IDriversData {
   id: string;
   firstName: string;
