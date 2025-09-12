@@ -12,7 +12,7 @@ import axiosInstance from "@/auth/_helpers";
 import { DriverProfileContent } from ".";
 import { useNavigate, useParams } from "react-router";
 import { useQuery, useQueryClient } from "react-query";
-import { ModalDriverTypeForm } from "@/partials/modals/driver";
+import { ModalTherapistTypeForm } from "@/partials/modals/therapist";
 import { Dialog, DialogContent } from "@mui/material";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
@@ -151,12 +151,12 @@ const DriverProfilePage = () => {
           )}
         </DialogContent>
       </Dialog>
-      <ModalDriverTypeForm
+      <ModalTherapistTypeForm
         open={profileModalOpen}
         onOpenChange={handleClose}
         isEdit={false}
         isApproved={approvalMode}
-        driverData={currentDriverData}
+        therapistData={currentDriverData}
       />
       <Fragment>
         <UserProfileHero

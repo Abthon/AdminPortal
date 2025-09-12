@@ -17,62 +17,74 @@ export const getMenuSidebar = (
     },
     getUserType(authToken) === "admin"
       ? {
-          title: "Driver",
+          title: "Therapist",
           icon: "profile-circle",
           children: [
             {
-              title: "Drivers",
-              path: "/drivers",
+              title: "Therapists",
+              path: "/therapists",
             },
           ],
         }
       : null, // Use null when the condition fails
     getUserType(authToken) === "admin"
       ? {
-          title: "Vehicle",
-          icon: "car",
+          title: "Client",
+          icon: "profile-circle",
           children: [
             {
-              title: "Vehicles",
-              path: "/vehicles",
-            },
-            {
-              title: "Vehicle Types",
-              path: "/vehicle-types",
-            },
-            // {
-            //   title: "Fuels",
-            //   path: "/fuels",
-            // },
-            // {
-            //   title: "Odometer",
-            //   path: "/odometer",
-            // },
-          ],
-        }
-      : null,
-    {
-      title: "Booking",
-      icon: "calendar",
-      children: [
-        {
-          title: "Bookings",
-          path: "/bookings",
-        },
-      ],
-    },
-    getUserType(authToken) === "admin"
-      ? {
-          title: "Transactions",
-          icon: "status",
-          children: [
-            {
-              title: "Transactions",
-              path: "/transactions",
+              title: "Client",
+              path: "/clients",
             },
           ],
         }
-      : null,
+      : null, // Use null when the condition fails
+    //getUserType(authToken) === "admin"
+    //  ? {
+    //      title: "Vehicle",
+    //      icon: "car",
+    //      children: [
+    //        {
+    //          title: "Vehicles",
+    //          path: "/vehicles",
+    //        },
+    //        {
+    //          title: "Vehicle Types",
+    //          path: "/vehicle-types",
+    //        },
+    //        // {
+    //        //   title: "Fuels",
+    //        //   path: "/fuels",
+    //        // },
+    //        // {
+    //        //   title: "Odometer",
+    //        //   path: "/odometer",
+    //        // },
+    //      ],
+    //    }
+    //  : null,
+    //{
+    //  title: "Booking",
+    //  icon: "calendar",
+    //  children: [
+    //    {
+    //      title: "Bookings",
+    //      path: "/bookings",
+    //    },
+    //  ],
+    //},
+    //getUserType(authToken) === "admin"
+    //  ? {
+    //      title: "Transactions",
+    //      icon: "status",
+    //      children: [
+    //        {
+    //          title: "Transactions",
+    //          path: "/transactions",
+    //        },
+    //      ],
+    //    }
+    //  : null,
     getUserType(authToken) === "admin"
       ? {
           title: "Config",
@@ -85,47 +97,47 @@ export const getMenuSidebar = (
           ],
         }
       : null,
-    getUserType(authToken) === "admin"
-      ? {
-          title: "Users",
-          icon: "people",
-          children: [
-            {
-              title: "Users",
-              path: "/users",
-            },
-          ],
-        }
-      : null,
-    getUserType(authToken) === "admin"
-      ? {
-          title: "Dispatchers",
-          icon: "user",
-          children: [
-            {
-              title: "Dispatchers",
-              path: "/dispatchers",
-            },
-          ],
-        }
-      : null,
-    getUserType(authToken) === "admin"
-      ? {
-          heading: "Report",
-        }
-      : null,
-    getUserType(authToken) === "admin"
-      ? {
-          title: "Report",
-          icon: "questionnaire-tablet",
-          children: [
-            {
-              title: "Reports",
-              path: "/report",
-            },
-          ],
-        }
-      : null,
+    //getUserType(authToken) === "admin"
+    //  ? {
+    //      title: "Users",
+    //      icon: "people",
+    //      children: [
+    //        {
+    //          title: "Users",
+    //          path: "/users",
+    //        },
+    //      ],
+    //    }
+    //  : null,
+    //getUserType(authToken) === "admin"
+    //  ? {
+    //      title: "Dispatchers",
+    //      icon: "user",
+    //      children: [
+    //        {
+    //          title: "Dispatchers",
+    //          path: "/dispatchers",
+    //        },
+    //      ],
+    //    }
+    //  : null,
+    //getUserType(authToken) === "admin"
+    //  ? {
+    //      heading: "Report",
+    //    }
+    //  : null,
+    //getUserType(authToken) === "admin"
+    //  ? {
+    //      title: "Report",
+    //      icon: "questionnaire-tablet",
+    //      children: [
+    //        {
+    //          title: "Reports",
+    //          path: "/report",
+    //        },
+    //      ],
+    //    }
+    //  : null,
   ];
 
   // Filter out null values using a type guard

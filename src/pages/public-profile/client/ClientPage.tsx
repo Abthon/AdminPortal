@@ -11,12 +11,12 @@ import {
 } from "@/partials/toolbar";
 
 //NetworkUserTableTeamCrewContent
-import { DriverContent } from ".";
+import { ClientContent } from ".";
 import { useLayout } from "@/providers";
 
-const DriverPage = () => {
+const ClientPage = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [driverNum, setDriverNum] = useState(null);
+  const [clientNum, setClientNum] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const { currentLayout } = useLayout();
 
@@ -29,9 +29,9 @@ const DriverPage = () => {
               <ToolbarPageTitle />
               <ToolbarDescription>
                 <div className="flex items-center flex-wrap gap-1.5 font-medium">
-                  <span className="text-md text-gray-700">All Drivers:</span>
+                  <span className="text-md text-gray-700">All Clients:</span>
                   <span className="text-md text-gray-800 font-medium me-2">
-                    {driverNum}
+                    {clientNum}
                   </span>
                 </div>
               </ToolbarDescription>
@@ -42,7 +42,7 @@ const DriverPage = () => {
                   <KeenIcon icon="magnifier" />
                   <input
                     type="text"
-                    placeholder="Search drivers"
+                    placeholder="Search clients"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                   />
@@ -54,7 +54,7 @@ const DriverPage = () => {
                 }}
                 className="btn btn-sm btn-primary"
               >
-                Add Driver
+                Add Client
               </button>
             </ToolbarActions>
           </Toolbar>
@@ -62,15 +62,15 @@ const DriverPage = () => {
       )}
 
       <Container>
-        <DriverContent
+        <ClientContent
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
           searchInput={searchInput}
-          handleDriverNum={setDriverNum}
+          handleClientNum={setClientNum}
         />
       </Container>
     </Fragment>
   );
 };
 
-export { DriverPage };
+export { ClientPage };

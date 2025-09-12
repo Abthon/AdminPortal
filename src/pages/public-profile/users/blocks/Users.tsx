@@ -23,7 +23,7 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { ModalDriverTypeForm } from "@/partials/modals/driver";
+import { ModalTherapistTypeForm } from "@/partials/modals/therapist";
 import axiosInstance from "@/auth/_helpers";
 import { ModalBankForm } from "@/partials/modals/bank";
 import { timeAgo } from "@/utils/Time";

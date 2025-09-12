@@ -1,7 +1,7 @@
-/* eslint-disable prettier/prettier */
 import { useEffect, useMemo, useState } from "react";
 import { toAbsoluteUrl } from "@/utils";
 import { DataGridLoader } from "@/components/data-grid";
+import avatar from "@/media/avatars/blank.png";
 
 import {
   DataGrid,
@@ -21,38 +21,40 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { ModalDriverTypeForm } from "@/partials/modals/driver";
+import { ModalTherapistTypeForm } from "@/partials/modals/therapist";
 import axiosInstance from "@/auth/_helpers";
+import ClassNameGenerator from "@mui/utils/ClassNameGenerator";
+import { Row } from "react-day-picker";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
-interface IDriversData {
+interface ITherapistsData {
   id: string;
   firstName: string;
   lastName: string;
   phoneNumber: string;
   gender: string;
   status: string;
-  profilePhoto: string;
+  profile: string;
   is_online: boolean;
 }
 
-const Drivers = ({
+const Therapists = ({
   isAddOpen,
   _handleAddOpen,
-  handleDriverNum,
+  handleTherapistNum,
   searchInput,
 }: {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
-  handleDriverNum: (num: any) => void;
+  handleTherapistNum: (num: any) => void;
   searchInput?: string;
 }) => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
   const [del, setDel] = useState(false);
-  const [currentDriverData, setCurrentDriverData] =
-    useState<IDriversData | null>(null);
+  const [currentTherapistData, setCurrentTherapistData] =
+    useState<ITherapistsData | null>(null);
   const [totalPage, setTotalPage] = useState(0);
   const [pageIndex, setPageIndex] = useState({ index: 0 });
   // const [sort, setSort] = useState<string | null>(null);
@@ -78,22 +80,22 @@ const Drivers = ({
 
   const handleOpen = (
     isEdit: boolean,
-    rowData: IDriversData | null = null,
+    rowData: ITherapistsData | null = null,
     isDelete?: boolean
   ) => {
     setApprovalMode(false);
     setEditMode(isEdit);
-    setCurrentDriverData(rowData);
+    setCurrentTherapistData(rowData);
     setProfileModalOpen(true);
     setDel(isDelete || false);
   };
 
   const handleApproval = (
     isEdit: boolean,
-    rowData: IDriversData | null = null
+    rowData: ITherapistsData | null = null
   ) => {
     setApprovalMode(isEdit);
-    setCurrentDriverData(rowData);
+    setCurrentTherapistData(rowData);
     setProfileModalOpen(true);
   };
 
@@ -104,7 +106,7 @@ const Drivers = ({
   //   handleDriverNum(data.data.length);
   //   return data.data;
   // }
-  async function getDrivers({
+  async function getTherapists({
     pageIndex,
     pageSize,
     sort,
@@ -118,10 +120,11 @@ const Drivers = ({
     //   console.log(sort, "sorting is finally here");
     // }
     // [Todo: refactor url]
-    const url = `/api/v1/drivers?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}`;
+    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
+    console.log(data, "The data");
     // calculating how many items are there on the current page
     const startIndex =
       (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
@@ -133,11 +136,11 @@ const Drivers = ({
 
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
-    handleDriverNum(data.data.length);
+    handleTherapistNum(data.data.length);
     return data;
   }
 
-  async function searchDriver({
+  async function searchTherapist({
     pageIndex,
     pageSize,
     search,
@@ -148,7 +151,7 @@ const Drivers = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/drivers?filters=firstname=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/therapist?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -161,27 +164,27 @@ const Drivers = ({
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
-    handleDriverNum(data.data.length);
+    handleTherapistNum(data.data.length);
     return data;
   }
 
-  async function revalidateDriver() {
-    const url = `/api/v1/drivers?filters=firstname=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}`;
+  async function revalidateTherapist() {
+    const url = `/api/v1/therapist?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
-    handleDriverNum(data.data.length);
-    console.log(data.data, "driver data");
+    handleTherapistNum(data.data.length);
+    console.log(data.data, "therapist data");
     return data;
   }
 
-  async function deleteDriver(id: string) {
-    const { data } = await axiosInstance.delete(`/api/v1/drivers/${id}`);
+  async function deleteTherapist(id: string) {
+    const { data } = await axiosInstance.delete(`/api/v1/therapist/${id}`);
     return data;
   }
 
-  const { isLoading: isDriverLoading, data: DriverData } = useQuery({
-    queryKey: ["Drivers", searchInput, filterInput],
-    queryFn: revalidateDriver,
+  const { isLoading: isTherapistLoading, data: TherapistData } = useQuery({
+    queryKey: ["Therapists", searchInput, filterInput],
+    queryFn: revalidateTherapist,
     refetchInterval: 5000,
     refetchIntervalInBackground: true,
   });
@@ -197,15 +200,15 @@ const Drivers = ({
     Error,
     string
   >({
-    mutationFn: deleteDriver,
+    mutationFn: deleteTherapist,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["Drivers"],
+        queryKey: ["therapist"],
       });
-      toast("Driver successfully deleted!");
+      toast("Therapist successfully deleted!");
     },
     onError: (error) => {
-      toast(error?.message || "Error Encountered deleting the driver");
+      toast(error?.message || "Error Encountered deleting the therapist");
       //toast("Error Encountered deleting the driver");
     },
   });
@@ -217,7 +220,7 @@ const Drivers = ({
     [isAddOpen]
   );
 
-  const columns = useMemo<ColumnDef<IDriversData>[]>(
+  const columns = useMemo<ColumnDef<ITherapistsData>[]>(
     () => [
       {
         accessorKey: "id",
@@ -231,16 +234,13 @@ const Drivers = ({
       },
       {
         accessorFn: (row) => row.firstName,
-        id: "firstName",
+        id: "Therapist",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Driver" column={column} />
+          <DataGridColumnHeader title="Therapist" column={column} />
         ),
         enableSorting: true,
         cell: ({ row }) => {
-          console.log(row.original.profilePhoto);
-          let img = !row.original.profilePhoto.startsWith("http")
-            ? `${BASE_URL}/profile/${row.original.profilePhoto}`
-            : row.original.profilePhoto;
+          const img = row.original.profile ? `${BASE_URL}/${row.original.profile}` : row.original.profile;
 
           const handleImageClick = (e: React.MouseEvent) => {
             e.preventDefault();
@@ -250,7 +250,7 @@ const Drivers = ({
             console.log("Image clicked!"); // Add this to debug
 
             setSelectedImage({
-              src: img,
+              src: img ? img : avatar,
               name: `${row.original.firstName} ${row.original.lastName}`,
               phone: `+251${row.original.phoneNumber}`,
             });
@@ -263,7 +263,7 @@ const Drivers = ({
                 onClick={handleImageClick}
               >
                 <img
-                  src={img}
+                  src={img ? img : avatar}
                   className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105"
                   alt={`${row.original.firstName} ${row.original.lastName}`}
                 />
@@ -295,54 +295,6 @@ const Drivers = ({
           cellClassName: "text-gray-800 font-normal",
         },
       },
-      // {
-      //   accessorFn: (row) => row.firstName,
-      //   id: "firstName",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Driver" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: ({ row }) => {
-      //     console.log(row.original.profilePhoto);
-      //     let img = !row.original.profilePhoto.startsWith("http")
-      //       ? `${BASE_URL}/profile/${row.original.profilePhoto}`
-      //       : row.original.profilePhoto;
-      //     // 'row' argumentini cell funksiyasiga qo'shdik
-      //     return (
-      //       <div className="flex items-center gap-4">
-      //         {/* <img
-      //           src={img}
-      //           className="rounded-full size-9 shrink-0"
-      //           // alt={`${row.original.profilePhoto}`}
-      //         /> */}
-      //         <div className="relative">
-      //           <img
-      //             src={img}
-      //             className="rounded-full size-9 shrink-0 object-cover"
-      //           />
-      //           <div
-      //             className={`flex size-2 bg-${row.original.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform`}
-      //           ></div>
-      //         </div>
-
-      //         <div className="flex flex-col gap-0.5">
-      //           <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-      //             {row.original.firstName} {row.original.lastName}
-      //           </span>
-
-      //           <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
-      //             +251{row.original.phoneNumber}
-      //           </span>
-      //         </div>
-      //       </div>
-      //     );
-      //   },
-      //   meta: {
-      //     className: "min-w-[300px]",
-      //     cellClassName: "text-gray-800 font-normal",
-      //   },
-      // },
-
       {
         id: "gender",
         header: ({ column }) => (
@@ -381,32 +333,6 @@ const Drivers = ({
           headerClassName: "min-w-[150px]",
         },
       },
-      // {
-      //   // accessorFn: (row) => row.status,
-      //   id: "isOnline",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Availability" column={column} />
-      //   ),
-      //   enableSorting: true,
-      //   cell: (info) => {
-      //     console.log(info.row.original, "original");
-      //     return (
-      //       <div className="flex justify-between relative">
-      //         <span
-      //           className={`badge ${info.row.original.is_online ? "badge-success" : "badge-danger"} shrink-0 badge-outline rounded-[30px]`}
-      //         >
-      //           <span
-      //             className={`size-1.5 rounded-full ${info.row.original.is_online ? "bg-success" : "bg-danger"}  me-1.5`}
-      //           ></span>
-      //           {info.row.original.is_online ? "Online" : "Offline"}
-      //         </span>
-      //       </div>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[150px]",
-      //   },
-      // },
       {
         id: "Edit",
         header: ({ column }) => (
@@ -427,27 +353,6 @@ const Drivers = ({
           headerClassName: "min-w-[80px]",
         },
       },
-      // {
-      //   id: "Delete",
-      //   header: ({ column }) => (
-      //     <DataGridColumnHeader title="Delete" column={column} />
-      //   ),
-      //   enableSorting: false,
-      //   cell: (info) => {
-      //     return (
-      //       <button
-      //         //onClick={() => mutate(info.row.original.id)}
-      //         onClick={() => handleOpen(true, info.row.original, true)}
-      //         className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white"
-      //       >
-      //         <KeenIcon icon="trash" />
-      //       </button>
-      //     );
-      //   },
-      //   meta: {
-      //     headerClassName: "min-w-[80px]",
-      //   },
-      // },
       {
         id: "Approve",
         header: ({ column }) => (
@@ -472,7 +377,7 @@ const Drivers = ({
     [mutate]
   );
 
-  const data: IDriversData[] = useMemo(() => DriverData ?? [], [DriverData]);
+  const data: ITherapistsData[] = useMemo(() => TherapistData ?? [], [TherapistData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -497,7 +402,7 @@ const Drivers = ({
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
-          Showing {itemsOnPage} of {totalItems} drivers
+          Showing {itemsOnPage} of {totalItems} therapists
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
@@ -568,19 +473,19 @@ const Drivers = ({
         </div>
       )}
 
-      <ModalDriverTypeForm
+      <ModalTherapistTypeForm
         open={profileModalOpen}
         onOpenChange={handleClose}
         isEdit={editMode}
         isApproved={approvalMode}
-        driverData={currentDriverData}
+        therapistData={currentTherapistData}
         isDelete={del}
       />
       <DataGrid
-        onFetchData={getDrivers}
-        onSearchData={searchDriver}
+        onFetchData={getTherapists}
+        onSearchData={searchTherapist}
         data={data}
-        link={"driver"}
+        link={"therapist"}
         columns={columns}
         filterInput={filterInput}
         rowSelection={true}
@@ -595,4 +500,4 @@ const Drivers = ({
   );
 };
 
-export { Drivers };
+export { Therapists };

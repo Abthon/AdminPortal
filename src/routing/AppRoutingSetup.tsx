@@ -9,7 +9,8 @@ import { VehiclePage } from "@/pages/public-profile/vehicle-type";
 import { VechileRegistrationPage } from "@/pages/public-profile/vehicle-registration";
 import { BookingPage } from "@/pages/public-profile/booking";
 import { ConfigPage } from "@/pages/public-profile/config-table";
-import { DriverPage } from "@/pages/public-profile/driver";
+import { TherapistPage } from "@/pages/public-profile/therapist";
+import { ClientPage } from "@/pages/public-profile/client";
 import { CoorporatePage } from "@/pages/public-profile/coorporate";
 import { DriverProfilePage } from "@/pages/public-profile/driver-profile/crm";
 import { BookingProfilePage } from "@/pages/public-profile/booking-profile";
@@ -37,10 +38,18 @@ const AppRoutingSetup = (): ReactElement => {
             }
           />
           <Route
-            path="/drivers"
+            path="/therapists"
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
-                <DriverPage />
+                <TherapistPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/clients"
+            element={
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
+                <ClientPage />
               </RequireAuth>
             }
           />

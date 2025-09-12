@@ -12,11 +12,15 @@ import { toast } from "sonner";
 import { setAuth } from "@/auth/_helpers"; // Import setAuth function
 
 const loginSchema = Yup.object().shape({
-  email: Yup.string()
-    .email("Wrong email format")
+  phoneNumber: Yup.string()
     .min(3, "Minimum 3 symbols")
     .max(50, "Maximum 50 symbols")
-    .required("Email is required"),
+    .required("Phone number is required"),
+  //email: Yup.string()
+  //  .email("Wrong email format")
+  //  .min(3, "Minimum 3 symbols")
+  //  .max(50, "Maximum 50 symbols")
+  //  .required("Email is required"),
   password: Yup.string()
     .min(3, "Minimum 3 symbols")
     .max(50, "Maximum 50 symbols")
@@ -25,7 +29,8 @@ const loginSchema = Yup.object().shape({
 });
 
 const initialValues = {
-  email: "",
+  phoneNumber: "",
+  //email: "",
   password: "",
   remember: false,
 };
@@ -62,7 +67,7 @@ const Login = () => {
           throw new Error("JWTProvider is required for this form.");
         }
 
-        const response = await login(values.email, values.password);
+        const response = await login(values.phoneNumber, values.password);
         console.log(response, "the response");
         const { accessToken, refreshToken } = response;
         setAuth({ accessToken, refreshToken }); // Store the token and user data
@@ -104,6 +109,24 @@ const Login = () => {
         {formik.status && <Alert variant="danger">{formik.status}</Alert>}
 
         <div className="flex flex-col gap-1">
+          <label className="form-label text-gray-900">Phone Number</label>
+          <label className="input">
+            <input
+              placeholder="Enter phone number"
+              autoComplete="off"
+              {...formik.getFieldProps("phoneNumber")}
+              className={clsx("form-control", {
+                "is-invalid": formik.touched.phoneNumber && formik.errors.phoneNumber,
+              })}
+            />
+          </label>
+          {formik.touched.phoneNumber && formik.errors.phoneNumber && (
+            <span role="alert" className="text-danger text-xs mt-1">
+              {formik.errors.phoneNumber}
+            </span>
+          )}
+        </div>
+        {/*<div className="flex flex-col gap-1">
           <label className="form-label text-gray-900">Email</label>
           <label className="input">
             <input
@@ -120,7 +143,7 @@ const Login = () => {
               {formik.errors.email}
             </span>
           )}
-        </div>
+        </div>*/}
 
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between gap-1">
