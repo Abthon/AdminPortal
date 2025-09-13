@@ -39,4 +39,7 @@ jobs:
           password: ${{ secrets.ftp_password }}
           server-dir: /
           local-dir: ./dist/                        # Deploy contents of dist folder
-          delete: true                              # Delete old files on server
+          delete: true 
+          state-name: react-admin-deploy
+          
+          # Delete old files on server
