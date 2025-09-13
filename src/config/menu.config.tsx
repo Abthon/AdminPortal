@@ -18,7 +18,7 @@ export const getMenuSidebar = (
     getUserType(authToken) === "admin"
       ? {
           title: "Therapist",
-          icon: "profile-circle",
+          icon: "user-tick",
           children: [
             {
               title: "Therapists",
@@ -30,7 +30,7 @@ export const getMenuSidebar = (
     getUserType(authToken) === "admin"
       ? {
           title: "Client",
-          icon: "profile-circle",
+          icon: "people",
           children: [
             {
               title: "Client",
@@ -42,7 +42,7 @@ export const getMenuSidebar = (
     getUserType(authToken) === "admin"
       ? {
           title: "Session",
-          icon: "profile-circle",
+          icon: "calendar-tick",
           children: [
             {
               title: "Session",
@@ -51,18 +51,18 @@ export const getMenuSidebar = (
           ],
         }
       : null, // Use null when the condition fails
-    //getUserType(authToken) === "admin"
-    //  ? {
-    //      title: "Daily Qoutes",
-    //      icon: "profile-circle",
-    //      children: [
-    //        {
-    //          title: "Daily Qoutes",
-    //          path: "/daily-qoutes",
-    //        },
-    //      ],
-    //    }
-    //  : null, // Use null when the condition fails
+    getUserType(authToken) === "admin"
+      ? {
+          title: "Daily Quotes",
+          icon: "message-text",
+          children: [
+            {
+              title: "Daily Quotes",
+              path: "/daily-qoutes",
+            },
+          ],
+        }
+      : null, // Use null when the condition fails
     //getUserType(authToken) === "admin"
     //  ? {
     //      title: "Vehicle",

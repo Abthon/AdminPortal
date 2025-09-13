@@ -170,6 +170,7 @@ const GroupTherapy = ({
       note: "Group therapy session",
       type: "video",
       duration: 45,
+      modal: "62a98ae2-2f02-4c67-9b66-eb0e4afeeeaf",
     };
     const { data } = await axiosInstance.post('/api/v1/session/group', payload);
     return data;

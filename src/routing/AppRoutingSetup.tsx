@@ -24,7 +24,7 @@ import { ReportPage } from "@/pages/public-profile/report";
 import { OdometerPage } from "@/pages/public-profile/odometer";
 import { TransactionPaymentPage } from "@/pages/public-profile/booking payment";
 import { SessionPage } from "@/pages/public-profile/session";
-// import { DailyQoutesPage } from "@/pages/public-profile/daily-qoutes";
+import { QuotePage } from "@/pages/public-profile/daily-quotes";
 
 const AppRoutingSetup = (): ReactElement => {
   return (
@@ -71,14 +71,14 @@ const AppRoutingSetup = (): ReactElement => {
               </RequireAuth>
             }
           />
-          {/* <Route
+          <Route
             path="/daily-qoutes"
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
-                <DailyQoutesPage />
+                <QuotePage />
               </RequireAuth>
             }
-          /> */}
+          />
         </Route>
       </Route>
       <Route path="error/*" element={<ErrorsRouting />} />
