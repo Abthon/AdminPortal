@@ -39,6 +39,30 @@ export const getMenuSidebar = (
           ],
         }
       : null, // Use null when the condition fails
+    getUserType(authToken) === "admin"
+      ? {
+          title: "Session",
+          icon: "profile-circle",
+          children: [
+            {
+              title: "Session",
+              path: "/sessions",
+            },
+          ],
+        }
+      : null, // Use null when the condition fails
+    //getUserType(authToken) === "admin"
+    //  ? {
+    //      title: "Daily Qoutes",
+    //      icon: "profile-circle",
+    //      children: [
+    //        {
+    //          title: "Daily Qoutes",
+    //          path: "/daily-qoutes",
+    //        },
+    //      ],
+    //    }
+    //  : null, // Use null when the condition fails
     //getUserType(authToken) === "admin"
     //  ? {
     //      title: "Vehicle",
@@ -85,18 +109,18 @@ export const getMenuSidebar = (
     //      ],
     //    }
     //  : null,
-    getUserType(authToken) === "admin"
-      ? {
-          title: "Config",
-          icon: "setting-2",
-          children: [
-            {
-              title: "Configs",
-              path: "/configs",
-            },
-          ],
-        }
-      : null,
+    // getUserType(authToken) === "admin"
+    //   ? {
+    //       title: "Config",
+    //       icon: "setting-2",
+    //       children: [
+    //         {
+    //           title: "Configs",
+    //           path: "/configs",
+    //         },
+    //       ],
+    //     }
+    //   : null,
     //getUserType(authToken) === "admin"
     //  ? {
     //      title: "Users",

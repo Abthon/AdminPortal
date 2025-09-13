@@ -23,6 +23,8 @@ import { UserProfilePage } from "@/pages/public-profile/user-profile/crm";
 import { ReportPage } from "@/pages/public-profile/report";
 import { OdometerPage } from "@/pages/public-profile/odometer";
 import { TransactionPaymentPage } from "@/pages/public-profile/booking payment";
+import { SessionPage } from "@/pages/public-profile/session";
+// import { DailyQoutesPage } from "@/pages/public-profile/daily-qoutes";
 
 const AppRoutingSetup = (): ReactElement => {
   return (
@@ -54,78 +56,6 @@ const AppRoutingSetup = (): ReactElement => {
             }
           />
           <Route
-            path="/vehicle-types"
-            element={
-              <RequireAuth allowedRoles={["admin", "dispatch"]}>
-                <VehiclePage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/vehicle-type/:id"
-            element={
-              <RequireAuth allowedRoles={["admin", "dispatch"]}>
-                <VechileRegistrationPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/vehicles"
-            element={
-              <RequireAuth allowedRoles={["admin", "dispatch"]}>
-                <VechileRegistrationPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/vehicle/:id"
-            element={
-              <RequireAuth allowedRoles={["admin", "dispatch"]}>
-                <VehicleProfilePage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/bookings"
-            element={
-              <RequireAuth allowedRoles={["admin", "dispatch"]}>
-                <BookingPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/transactions"
-            element={
-              <RequireAuth allowedRoles={["admin", "dispatch"]}>
-                <TransactionPaymentPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/configs"
-            element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <ConfigPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <UserPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/users/:id"
-            element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <UserProfilePage />
-              </RequireAuth>
-            }
-          />
-          <Route
             path="/dispatchers"
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
@@ -134,29 +64,21 @@ const AppRoutingSetup = (): ReactElement => {
             }
           />
           <Route
-            path="/driver/:id"
-            element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <DriverProfilePage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/booking/:id"
+            path="/sessions"
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
-                <BookingProfilePage />
+                <SessionPage />
               </RequireAuth>
             }
           />
-          <Route
-            path="/report"
+          {/* <Route
+            path="/daily-qoutes"
             element={
-              <RequireAuth allowedRoles={["admin"]}>
-                <ReportPage />
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
+                <DailyQoutesPage />
               </RequireAuth>
             }
-          />
+          /> */}
         </Route>
       </Route>
       <Route path="error/*" element={<ErrorsRouting />} />
