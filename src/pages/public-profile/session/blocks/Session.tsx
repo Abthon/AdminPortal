@@ -20,6 +20,13 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalClientTypeForm } from "@/partials/modals/client";
 import axiosInstance from "@/auth/_helpers";
@@ -34,6 +41,15 @@ interface ISessionsData {
   schedule: string;
   duration: number;
   therapist: any;
+  client: any;
+  modal?: {
+    id: string;
+    name: string;
+    description: string;
+    order: number;
+    updatedAt: string;
+    createdAt: string;
+  };
 }
 
 const Sessions = ({
@@ -60,6 +76,18 @@ const Sessions = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
+  const [dateFilter, setDateFilter] = useState({
+    startDate: "",
+    endDate: ""
+  });
+  const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
+  const [sessionForm, setSessionForm] = useState({
+    schedule: "",
+    duration: 60,
+    modalId: "",
+    therapistId: "",
+  });
+  const [therapistSearch, setTherapistSearch] = useState("");
   // In your parent component, add this state
   const [selectedImage, setSelectedImage] = useState<{
     src: string;
@@ -119,7 +147,9 @@ const Sessions = ({
     //   console.log(sort, "sorting is finally here");
     // }
     // [Todo: refactor url]
-    const url = `/api/v1/session?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=hasclientAttended:=${filterInput}` : ""}&fields=therapist.*,id,hasclientAttended,schedule,duration`;
+    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
+      `${filterInput && filterInput !== "all" ? "," : ""}${dateFilter.startDate ? `schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? `schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}` : "";
+    const url = `/api/v1/session?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" || dateFilter.startDate || dateFilter.endDate ? `&filters=` : ""}${filterInput && filterInput !== "all" ? `hasclientAttended:=${filterInput}` : ""}${dateFilterParam}&fields=therapist.*,modal.*,client.*,id,hasclientAttended,schedule,duration`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -150,7 +180,9 @@ const Sessions = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/session?filters=therapist.firstName=${search}${filterInput && filterInput !== "all" ? `,hasclientAttended:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=therapist.*,id,hasclientAttended,schedule,duration`;
+    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
+      `,${dateFilter.startDate ? `schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? `schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}` : "";
+    const url = `/api/v1/session?filters=therapist.firstName=${search}${filterInput && filterInput !== "all" ? `,hasclientAttended:=${filterInput}` : ""}${dateFilterParam}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=therapist.*,modal.*,client.*,id,hasclientAttended,schedule,duration`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -168,7 +200,9 @@ const Sessions = ({
   }
 
   async function revalidateSession() {
-    const url = `/api/v1/session?filters=therapist.firstName=${searchInput}${filterInput && filterInput !== "all" ? `,hasclientAttended:=${filterInput}` : ""}&fields=therapist.*,id,hasclientAttended,schedule,duration`;
+    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
+      `,${dateFilter.startDate ? `schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? `schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}` : "";
+    const url = `/api/v1/session?filters=therapist.firstName=${searchInput}${filterInput && filterInput !== "all" ? `,hasclientAttended:=${filterInput}` : ""}${dateFilterParam}&fields=therapist.*,modal.*,client.*,id,hasclientAttended,schedule,duration`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleSessionNum(data.data.length);
@@ -181,11 +215,45 @@ const Sessions = ({
     return data;
   }
 
+  // Fetch modals for session creation
+  async function fetchModals() {
+    const { data } = await axiosInstance.get("/api/v1/modal");
+    return data;
+  }
+
+  // Fetch therapists for session creation
+  async function fetchTherapists(search: string = "") {
+    const url = search 
+      ? `/api/v1/therapist?filters=firstName=${search}&fields=id,firstName,lastName,profile`
+      : `/api/v1/therapist?fields=id,firstName,lastName,profile`;
+    const { data } = await axiosInstance.get(url);
+    return data;
+  }
+
+  // Create session
+  async function createSession(sessionData: any) {
+    const { data } = await axiosInstance.post("/api/v1/session", sessionData);
+    return data;
+  }
+
   const { isLoading: isSessionLoading, data: SessionData } = useQuery({
-    queryKey: ["Sessions", searchInput, filterInput],
+    queryKey: ["Sessions", searchInput, filterInput, dateFilter],
     queryFn: revalidateSession,
-    refetchInterval: 5000,
+    refetchInterval: 50000,
     refetchIntervalInBackground: true,
+  });
+
+  // Fetch modals query
+  const { data: modalsData } = useQuery({
+    queryKey: ["modals"],
+    queryFn: fetchModals,
+  });
+
+  // Fetch therapists query
+  const { data: therapistsData } = useQuery({
+    queryKey: ["therapists", therapistSearch],
+    queryFn: () => fetchTherapists(therapistSearch),
+    enabled: isAddSessionOpen,
   });
 
   interface DeleteResponse {
@@ -212,12 +280,50 @@ const Sessions = ({
     },
   });
 
+  // Create session mutation
+  const { isLoading: isCreatingSession, mutate: createSessionMutation } = useMutation({
+    mutationFn: createSession,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["Sessions"],
+      });
+      toast("Session created successfully!");
+      setIsAddSessionOpen(false);
+      setSessionForm({
+        schedule: "",
+        duration: 60,
+        modalId: "",
+        therapistId: "",
+      });
+      setTherapistSearch("");
+    },
+    onError: (error: any) => {
+      toast(error?.message || "Error creating session");
+    },
+  }); 
+
   useEffect(
     function () {
-      isAddOpen && handleOpen(false);
+      isAddOpen && setIsAddSessionOpen(true);
     },
     [isAddOpen]
   );
+
+  const handleCreateSession = () => {
+    if (!sessionForm.schedule || !sessionForm.modalId || !sessionForm.therapistId) {
+      toast("Please fill in all required fields");
+      return;
+    }
+
+    const sessionData = {
+      schedule: sessionForm.schedule,
+      duration: sessionForm.duration,
+      modalId: sessionForm.modalId,
+      therapistId: sessionForm.therapistId,
+    };
+
+    createSessionMutation(sessionData);
+  };
 
   const columns = useMemo<ColumnDef<ISessionsData>[]>(
     () => [
@@ -295,6 +401,119 @@ const Sessions = ({
         },
       },
       {
+        accessorFn: (row) => row.therapist?.firstName,
+        id: "Client",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Client" column={column} />
+        ),
+        enableSorting: true,
+        cell: ({ row }) => {
+          const img = row.original.client?.profile ? `${BASE_URL}/${row.original.client?.profile}` : row.original.client?.profile;
+
+          const handleImageClick = (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+
+            console.log("Image clicked!"); // Add this to debug
+
+            setSelectedImage({
+              src: img ? img : avatar,
+              name: `${row.original.client?.firstName} ${row.original.client?.lastName}`,
+              phone: `+251${row.original.client?.phoneNumber}`,
+            });
+          };
+
+          return (
+            <div className="flex items-center gap-4">
+              <div
+                className="relative group cursor-pointer"
+                onClick={handleImageClick}
+              >
+                <img
+                  src={img ? img : avatar}
+                  className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105"
+                  alt={`${row.original.client?.firstName} ${row.original.client?.lastName}`}
+                />
+
+                {/* Hover overlay with zoom icon */}
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <KeenIcon icon="eye" className="text-white text-xs" />
+                </div>
+
+                {/* Online status indicator */}
+                <div
+                  className={`flex size-2 bg-${row.original.client?.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform pointer-events-none`}
+                ></div>
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+                  {row.original.client?.firstName} {row.original.client?.lastName}
+                </span>
+                <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
+                  +251{row.original.client?.phoneNumber}
+                </span>
+              </div>
+            </div>
+          );
+        },
+        meta: {
+          className: "min-w-[300px]",
+          cellClassName: "text-gray-800 font-normal",
+        },
+      },
+      //{
+      //  accessorFn: (row) => row.client?.firstName,
+      //  id: "Client",
+      //  header: ({ column }) => (
+      //    <DataGridColumnHeader title="Client" column={column} />
+      //  ),
+      //  enableSorting: true,
+      //  cell: ({ row }) => {
+      //    const img = row.original.client?.profile ? `${BASE_URL}/${row.original.client?.profile}` : row.original.client?.profile;
+
+      //    const handleImageClick = (e: React.MouseEvent) => {
+      //      e.preventDefault();
+      //      e.stopPropagation();
+      //      e.nativeEvent.stopImmediatePropagation();
+
+      //      console.log("Client Image clicked!"); // Add this to debug
+      //      if (row.original.client) {
+      //        setSelectedImage({
+      //          src: img || avatar,
+      //          name: `${row.original.client.firstName || ""} ${row.original.client.lastName || ""}`.trim(),
+      //          phone: row.original.client.phone || "N/A",
+      //        });
+      //      }
+      //    };
+
+      //    return (
+      //      <div className="flex items-center gap-2.5">
+      //        <div className="flex items-center justify-center shrink-0 rounded-full bg-gray-100 size-9">
+      //          <img
+      //            className="size-7 rounded-full cursor-pointer"
+      //            src={img || avatar}
+      //            alt=""
+      //            onClick={handleImageClick}
+      //          />
+      //        </div>
+      //        <div className="flex flex-col gap-0.5">
+      //          <span className="leading-none font-medium text-sm text-gray-900">
+      //            {row.original.client?.firstName} {row.original.client?.lastName}
+      //          </span>
+      //          <span className="text-2sm text-gray-700 font-normal">
+      //            {row.original.client?.phone}
+      //          </span>
+      //        </div>
+      //      </div>
+      //    );
+      //  },
+      //  meta: {
+      //    headerClassName: "min-w-[165px]",
+      //  },
+      //},
+      {
         id: "duration",
         header: ({ column }) => (
           <DataGridColumnHeader title="Duration" column={column} />
@@ -336,6 +555,21 @@ const Sessions = ({
         },
         meta: {
           headerClassName: "min-w-[150px]",
+        },
+      },
+      {
+        id: "therapyType",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Therapy Type" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          const modalName = info.row.original.modal?.name;
+          console.log("Modal data:", info.row.original.modal); // Debug log
+          return modalName || "N/A";
+        },
+        meta: {
+          headerClassName: "min-w-[120px]",
         },
       },
       {
@@ -384,9 +618,21 @@ const Sessions = ({
   };
 
   const Toolbar = () => {
-    const handleFilterChange = (value: any) => {
-      setFilterInput(value); // Update the state when the user selects an item
-      console.log("Filter value changed to:", value); // Optional: log for debugging
+    //const handleFilterChange = (value: any) => {
+    //  setFilterInput(value); // Update the state when the user selects an item
+    //  console.log("Filter value changed to:", value); // Optional: log for debugging
+    //};
+
+    const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setDateFilter(prev => ({ ...prev, startDate: e.target.value }));
+    };
+
+    const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setDateFilter(prev => ({ ...prev, endDate: e.target.value }));
+    };
+
+    const clearDateFilter = () => {
+      setDateFilter({ startDate: "", endDate: "" });
     };
 
     return (
@@ -397,7 +643,7 @@ const Sessions = ({
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex flex-wrap gap-2.5">
-            <Select
+            {/*<Select
               value={filterInput}
               onValueChange={handleFilterChange}
               defaultValue="all"
@@ -412,11 +658,34 @@ const Sessions = ({
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="suspended">Suspended</SelectItem>
               </SelectContent>
-            </Select>
+            </Select>*/}
 
-            <button className="btn btn-sm btn-outline btn-primary">
-              <KeenIcon icon="setting-4" /> Filters
-            </button>
+            <div className="flex items-center gap-2">
+              <Input
+                type="date"
+                value={dateFilter.startDate}
+                onChange={handleStartDateChange}
+                placeholder="Start date"
+                className="w-36"
+              />
+              <span className="text-gray-500 text-sm">to</span>
+              <Input
+                type="date"
+                value={dateFilter.endDate}
+                onChange={handleEndDateChange}
+                placeholder="End date"
+                className="w-36"
+              />
+              {(dateFilter.startDate || dateFilter.endDate) && (
+                <button
+                  onClick={clearDateFilter}
+                  className="btn btn-sm btn-outline btn-secondary"
+                  title="Clear date filter"
+                >
+                  <KeenIcon icon="cross" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -500,6 +769,104 @@ const Sessions = ({
         isDelete={del}
       />
 
+      {/* Add Session Modal */}
+      <Dialog open={isAddSessionOpen} onOpenChange={setIsAddSessionOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Session</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Therapy Type Selection */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Therapy Type</label>
+              <Select
+                value={sessionForm.modalId}
+                onValueChange={(value) => setSessionForm(prev => ({ ...prev, modalId: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select therapy type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {modalsData?.data?.map((modal: any) => (
+                    <SelectItem key={modal.id} value={modal.id}>
+                      {modal.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Therapist Search and Selection */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Therapist</label>
+              <Input
+                type="text"
+                placeholder="Search therapist..."
+                value={therapistSearch}
+                onChange={(e) => setTherapistSearch(e.target.value)}
+                className="mb-2"
+              />
+              <Select
+                value={sessionForm.therapistId}
+                onValueChange={(value) => setSessionForm(prev => ({ ...prev, therapistId: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select therapist" />
+                </SelectTrigger>
+                <SelectContent>
+                  {therapistsData?.data?.map((therapist: any) => (
+                    <SelectItem key={therapist.id} value={therapist.id}>
+                      {therapist.firstName} {therapist.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Schedule */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Schedule</label>
+              <Input
+                type="datetime-local"
+                value={sessionForm.schedule}
+                onChange={(e) => setSessionForm(prev => ({ ...prev, schedule: e.target.value }))}
+              />
+            </div>
+
+            {/* Duration */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Duration (minutes)</label>
+              <Input
+                type="number"
+                value={sessionForm.duration}
+                onChange={(e) => setSessionForm(prev => ({ ...prev, duration: parseInt(e.target.value) || 60 }))}
+                min="15"
+                max="180"
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4">
+              <Button
+                onClick={() => setIsAddSessionOpen(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateSession}
+                disabled={isCreatingSession}
+                className="flex-1"
+              >
+                {isCreatingSession ? "Creating..." : "Create Session"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Conditional Content Based on Active Tab */}
       {activeTab === "sessions" ? (
         <DataGrid
@@ -508,7 +875,7 @@ const Sessions = ({
           data={data}
           link={"session"}
           columns={columns}
-          filterInput={filterInput}
+          //filterInput={filterInput}
           rowSelection={true}
           onRowSelectionChange={handleRowSelection}
           searchInput={searchInput}
