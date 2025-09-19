@@ -38,7 +38,15 @@ const ConfigPage = () => {
               </ToolbarDescription>
             </ToolbarHeading>
             <ToolbarActions>
-              <>{/* Search input moved to table header */}</>
+              <button
+                onClick={() => {
+                  setIsAddOpen((open) => !open);
+                }}
+                className="btn btn-sm btn-primary"
+              >
+                <KeenIcon icon="plus" />
+                Add Params
+              </button>
             </ToolbarActions>
           </Toolbar>
         </Container>

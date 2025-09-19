@@ -79,6 +79,14 @@ const AppRoutingSetup = (): ReactElement => {
               </RequireAuth>
             }
           />
+          <Route
+            path="/configs"
+            element={
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
+                <ConfigPage />
+              </RequireAuth>
+            }
+          />
         </Route>
       </Route>
       <Route path="error/*" element={<ErrorsRouting />} />

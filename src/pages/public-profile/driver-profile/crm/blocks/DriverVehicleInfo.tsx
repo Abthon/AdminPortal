@@ -80,7 +80,7 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
   ];
 
   const renderItem = (item: IDriverVehicleInfoItem, index: number) => {
-    const baseUrl = "https://app.navigo.et/test/static/";
+    const baseUrl = "https://app.navigo.et/dev/static/";
 
     const openVehicleLibraeModal = async (fileName: any) => {
       try {

@@ -109,18 +109,18 @@ export const getMenuSidebar = (
     //      ],
     //    }
     //  : null,
-    // getUserType(authToken) === "admin"
-    //   ? {
-    //       title: "Config",
-    //       icon: "setting-2",
-    //       children: [
-    //         {
-    //           title: "Configs",
-    //           path: "/configs",
-    //         },
-    //       ],
-    //     }
-    //   : null,
+     getUserType(authToken) === "admin"
+       ? {
+           title: "Config",
+           icon: "setting-2",
+           children: [
+             {
+               title: "Configs",
+               path: "/configs",
+             },
+           ],
+         }
+       : null,
     //getUserType(authToken) === "admin"
     //  ? {
     //      title: "Users",
