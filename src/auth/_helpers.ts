@@ -47,7 +47,7 @@ export function setupAxios(axiosInstance: any) {
       }
 
       // Add /test prefix to all API requests
-      if (config.url && !config.url.includes("/dev/")) {
+      if (config.url && !config.url.includes("/test/")) {
         config.url = getApiUrl(config.url);
       }
 

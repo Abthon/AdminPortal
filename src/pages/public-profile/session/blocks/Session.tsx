@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toAbsoluteUrl } from "@/utils";
+import { cn } from "@/lib/utils";
 import { DataGridLoader } from "@/components/data-grid";
 import avatar from "@/media/avatars/blank.png";
 
@@ -27,11 +28,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { parseDate } from "chrono-node";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalClientTypeForm } from "@/partials/modals/client";
 import axiosInstance from "@/auth/_helpers";
 import ClassNameGenerator from "@mui/utils/ClassNameGenerator";
-import { Row } from "react-day-picker";
 import { GroupTherapy } from "./GroupTherapy";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
@@ -82,11 +86,14 @@ const Sessions = ({
   });
   const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
   const [sessionForm, setSessionForm] = useState({
-    schedule: "",
-    duration: 60,
+    scheduleText: "",
+    scheduleDate: undefined as Date | undefined,
+    time: "",
     modalId: "",
     therapistId: "",
   });
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [scheduleMonth, setScheduleMonth] = useState<Date | undefined>(new Date());
   const [therapistSearch, setTherapistSearch] = useState("");
   // In your parent component, add this state
   const [selectedImage, setSelectedImage] = useState<{
@@ -290,8 +297,9 @@ const Sessions = ({
       toast("Session created successfully!");
       setIsAddSessionOpen(false);
       setSessionForm({
-        schedule: "",
-        duration: 60,
+        scheduleText: "",
+        scheduleDate: undefined,
+        time: "",
         modalId: "",
         therapistId: "",
       });
@@ -310,19 +318,34 @@ const Sessions = ({
   );
 
   const handleCreateSession = () => {
-    if (!sessionForm.schedule || !sessionForm.modalId || !sessionForm.therapistId) {
+    if (!sessionForm.scheduleDate || !sessionForm.time || !sessionForm.modalId || !sessionForm.therapistId) {
       toast("Please fill in all required fields");
       return;
     }
 
+    const [hours, minutes] = sessionForm.time.split(":").map(Number);
+    const schedule = new Date(sessionForm.scheduleDate);
+    schedule.setHours(hours);
+    schedule.setMinutes(minutes);
+
     const sessionData = {
-      schedule: sessionForm.schedule,
-      duration: sessionForm.duration,
+      schedule: schedule.toISOString(),
       modalId: sessionForm.modalId,
       therapistId: sessionForm.therapistId,
     };
 
     createSessionMutation(sessionData);
+  };
+
+  const formatDate = (date: Date | undefined) => {
+    if (!date) {
+      return "";
+    }
+    return date.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
   };
 
   const columns = useMemo<ColumnDef<ISessionsData>[]>(
@@ -776,7 +799,7 @@ const Sessions = ({
             <DialogTitle>Create New Session</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-4 p-4">
             {/* Therapy Type Selection */}
             <div>
               <label className="block text-sm font-medium mb-2">Therapy Type</label>
@@ -807,43 +830,103 @@ const Sessions = ({
                 onChange={(e) => setTherapistSearch(e.target.value)}
                 className="mb-2"
               />
-              <Select
-                value={sessionForm.therapistId}
-                onValueChange={(value) => setSessionForm(prev => ({ ...prev, therapistId: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select therapist" />
-                </SelectTrigger>
-                <SelectContent>
-                  {therapistsData?.data?.map((therapist: any) => (
-                    <SelectItem key={therapist.id} value={therapist.id}>
-                      {therapist.firstName} {therapist.lastName}
-                    </SelectItem>
+              {therapistsData?.data && therapistsData.data.length > 0 && (
+                <div className="max-h-40 overflow-y-auto border rounded-md">
+                  {therapistsData.data.map((therapist: any) => (
+                    <div
+                      key={therapist.id}
+                      onClick={() => {
+                        setSessionForm(prev => ({ ...prev, therapistId: therapist.id }));
+                        setTherapistSearch(`${therapist.firstName} ${therapist.lastName}`);
+                      }}
+                      className={`p-3 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3 ${
+                        sessionForm.therapistId === therapist.id ? 'bg-blue-50 border-blue-200' : ''
+                      }`}
+                    >
+                      <img
+                        src={therapist.profile ? `${BASE_URL}/${therapist.profile}` : avatar}
+                        alt={`${therapist.firstName} ${therapist.lastName}`}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="font-medium text-sm">{therapist.firstName} {therapist.lastName}</p>
+                        <p className="text-xs text-gray-500">Therapist</p>
+                      </div>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              )}
             </div>
 
             {/* Schedule */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Schedule</label>
+            <div className="flex flex-col gap-3">
+              <label htmlFor="schedule-date" className="px-1">
+                Schedule Date & Time
+              </label>
+              <div className="relative flex gap-2">
+                <Input
+                  id="schedule-date"
+                  value={sessionForm.scheduleText}
+                  placeholder="Tomorrow, next week, or specific date"
+                  className="bg-background pr-10"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSessionForm(prev => ({ ...prev, scheduleText: value }));
+                    const date = parseDate(value);
+                    if (date) {
+                      setSessionForm(prev => ({ ...prev, scheduleDate: date }));
+                      setScheduleMonth(date);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setScheduleOpen(true);
+                    }
+                  }}
+                />
+                <Popover open={scheduleOpen} onOpenChange={setScheduleOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="date-picker"
+                      variant="ghost"
+                      className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                    >
+                      <CalendarIcon className="size-3.5" />
+                      <span className="sr-only">Select date</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto overflow-hidden p-0" align="end">
+                    <Calendar
+                      mode="single"
+                      selected={sessionForm.scheduleDate}
+                      captionLayout="dropdown"
+                      month={scheduleMonth}
+                      onMonthChange={setScheduleMonth}
+                      onSelect={(date) => {
+                        setSessionForm(prev => ({ ...prev, scheduleDate: date, scheduleText: formatDate(date) }));
+                        setScheduleOpen(false);
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
               <Input
-                type="datetime-local"
-                value={sessionForm.schedule}
-                onChange={(e) => setSessionForm(prev => ({ ...prev, schedule: e.target.value }))}
+                type="time"
+                value={sessionForm.time}
+                onChange={(e) => setSessionForm(prev => ({ ...prev, time: e.target.value }))}
+                placeholder="Select time"
+                className="w-full"
               />
-            </div>
-
-            {/* Duration */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Duration (minutes)</label>
-              <Input
-                type="number"
-                value={sessionForm.duration}
-                onChange={(e) => setSessionForm(prev => ({ ...prev, duration: parseInt(e.target.value) || 60 }))}
-                min="15"
-                max="180"
-              />
+              {sessionForm.scheduleDate && (
+                <div className="text-muted-foreground px-1 text-sm">
+                  Session scheduled for{" "}
+                  <span className="font-medium">
+                    {formatDate(sessionForm.scheduleDate)}
+                    {sessionForm.time && ` at ${sessionForm.time}`}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
