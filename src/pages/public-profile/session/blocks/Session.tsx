@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { toAbsoluteUrl } from "@/utils";
 import { cn } from "@/lib/utils";
 import { DataGridLoader } from "@/components/data-grid";
@@ -82,8 +82,16 @@ const Sessions = ({
   const [filterInput, setFilterInput] = useState("all");
   const [dateFilter, setDateFilter] = useState({
     startDate: "",
-    endDate: ""
+    endDate: "",
+    startDateText: "",
+    endDateText: "",
+    startDateObj: undefined as Date | undefined,
+    endDateObj: undefined as Date | undefined
   });
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
+  const [startDateMonth, setStartDateMonth] = useState<Date | undefined>(new Date());
+  const [endDateMonth, setEndDateMonth] = useState<Date | undefined>(new Date());
   const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
   const [sessionForm, setSessionForm] = useState({
     scheduleText: "",
@@ -640,23 +648,46 @@ const Sessions = ({
     }
   };
 
-  const Toolbar = () => {
+  const handleStartDateTextChange = useCallback((value: string) => {
+    setDateFilter(prev => {
+      const date = parseDate(value);
+      if (date) {
+        const dateStr = date.toISOString().split('T')[0];
+        setStartDateMonth(date);
+        return { ...prev, startDateText: value, startDate: dateStr, startDateObj: date };
+      }
+      return { ...prev, startDateText: value };
+    });
+  }, []);
+
+  const handleEndDateTextChange = useCallback((value: string) => {
+    setDateFilter(prev => {
+      const date = parseDate(value);
+      if (date) {
+        const dateStr = date.toISOString().split('T')[0];
+        setEndDateMonth(date);
+        return { ...prev, endDateText: value, endDate: dateStr, endDateObj: date };
+      }
+      return { ...prev, endDateText: value };
+    });
+  }, []);
+
+  const clearDateFilter = useCallback(() => {
+    setDateFilter({ 
+      startDate: "", 
+      endDate: "",
+      startDateText: "",
+      endDateText: "",
+      startDateObj: undefined,
+      endDateObj: undefined
+    });
+  }, []);
+
+  const Toolbar = useMemo(() => {
     //const handleFilterChange = (value: any) => {
     //  setFilterInput(value); // Update the state when the user selects an item
     //  console.log("Filter value changed to:", value); // Optional: log for debugging
     //};
-
-    const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setDateFilter(prev => ({ ...prev, startDate: e.target.value }));
-    };
-
-    const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setDateFilter(prev => ({ ...prev, endDate: e.target.value }));
-    };
-
-    const clearDateFilter = () => {
-      setDateFilter({ startDate: "", endDate: "" });
-    };
 
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
@@ -684,21 +715,104 @@ const Sessions = ({
             </Select>*/}
 
             <div className="flex items-center gap-2">
-              <Input
-                type="date"
-                value={dateFilter.startDate}
-                onChange={handleStartDateChange}
-                placeholder="Start date"
-                className="w-36"
-              />
+              {/* Start Date Filter */}
+              <div className="relative">
+                <Input
+                  value={dateFilter.startDateText}
+                  placeholder="From: today..."
+                  className="w-48 pr-8"
+                  onChange={(e) => handleStartDateTextChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setStartDateOpen(true);
+                    }
+                  }}
+                />
+                <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="absolute top-1/2 right-1 size-6 -translate-y-1/2"
+                    >
+                      <CalendarIcon className="size-3.5" />
+                      <span className="sr-only">Select start date</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateFilter.startDateObj}
+                      captionLayout="dropdown"
+                      month={startDateMonth}
+                      onMonthChange={setStartDateMonth}
+                      onSelect={(date) => {
+                        if (date) {
+                          const dateStr = date.toISOString().split('T')[0];
+                          setDateFilter(prev => ({ 
+                            ...prev, 
+                            startDate: dateStr, 
+                            startDateObj: date,
+                            startDateText: formatDate(date)
+                          }));
+                        }
+                        setStartDateOpen(false);
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
               <span className="text-gray-500 text-sm">to</span>
-              <Input
-                type="date"
-                value={dateFilter.endDate}
-                onChange={handleEndDateChange}
-                placeholder="End date"
-                className="w-36"
-              />
+              
+              {/* End Date Filter */}
+              <div className="relative">
+                <Input
+                  value={dateFilter.endDateText}
+                  placeholder="To: next week..."
+                  className="w-48 pr-8"
+                  onChange={(e) => handleEndDateTextChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setEndDateOpen(true);
+                    }
+                  }}
+                />
+                <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="absolute top-1/2 right-1 size-6 -translate-y-1/2"
+                    >
+                      <CalendarIcon className="size-3.5" />
+                      <span className="sr-only">Select end date</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateFilter.endDateObj}
+                      captionLayout="dropdown"
+                      month={endDateMonth}
+                      onMonthChange={setEndDateMonth}
+                      onSelect={(date) => {
+                        if (date) {
+                          const dateStr = date.toISOString().split('T')[0];
+                          setDateFilter(prev => ({ 
+                            ...prev, 
+                            endDate: dateStr, 
+                            endDateObj: date,
+                            endDateText: formatDate(date)
+                          }));
+                        }
+                        setEndDateOpen(false);
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
               {(dateFilter.startDate || dateFilter.endDate) && (
                 <button
                   onClick={clearDateFilter}
@@ -713,7 +827,7 @@ const Sessions = ({
         </div>
       </div>
     );
-  };
+  }, [dateFilter.startDateText, dateFilter.endDateText, dateFilter.startDate, dateFilter.endDate, itemsOnPage, totalItems, startDateOpen, endDateOpen, startDateMonth, endDateMonth, handleStartDateTextChange, handleEndDateTextChange, clearDateFilter]);
 
   // if (isDriverLoading) {
   //   return <DataGridLoader message="Loading" />;
@@ -964,7 +1078,7 @@ const Sessions = ({
           searchInput={searchInput}
           pagination={{ size: 5 }}
           sorting={[{ id: "id", desc: false }]}
-          toolbar={<Toolbar />}
+          toolbar={Toolbar}
           layout={{ card: true }}
         />
       ) : (
