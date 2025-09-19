@@ -53,6 +53,7 @@ const SessionPage = () => {
                   setIsAddOpen((open) => !open);
                 }}
                 className="btn btn-sm btn-primary"
+                disabled={true}
               >
                 Add Session
               </button>
