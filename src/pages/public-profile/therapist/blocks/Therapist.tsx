@@ -25,6 +25,13 @@ import { ModalTherapistTypeForm } from "@/partials/modals/therapist";
 import axiosInstance from "@/auth/_helpers";
 import ClassNameGenerator from "@mui/utils/ClassNameGenerator";
 import { Row } from "react-day-picker";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface ITherapistsData {
@@ -35,7 +42,12 @@ interface ITherapistsData {
   gender: string;
   status: string;
   profile: string;
-  is_online: boolean;
+  //is_online: boolean;
+  license?: {
+    id: string;
+    modalId?: string;
+    [key: string]: any;
+  };
 }
 
 const Therapists = ({
@@ -67,6 +79,9 @@ const Therapists = ({
     name: string;
     phone: string;
   } | null>(null);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedTherapist, setSelectedTherapist] = useState<ITherapistsData | null>(null);
+  const [selectedModalId, setSelectedModalId] = useState("");
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -99,13 +114,6 @@ const Therapists = ({
     setProfileModalOpen(true);
   };
 
-  // async function getDrivers() {
-  //   const { data } = await axiosInstance.get("/api/v1/drivers");
-  //   console.log(data);
-  //   console.log(data.data.length, "length");
-  //   handleDriverNum(data.data.length);
-  //   return data.data;
-  // }
   async function getTherapists({
     pageIndex,
     pageSize,
@@ -120,7 +128,7 @@ const Therapists = ({
     //   console.log(sort, "sorting is finally here");
     // }
     // [Todo: refactor url]
-    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}`;
+    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,license.*`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -151,7 +159,7 @@ const Therapists = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/therapist?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/therapist?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,license.*`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -169,11 +177,24 @@ const Therapists = ({
   }
 
   async function revalidateTherapist() {
-    const url = `/api/v1/therapist?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}`;
+    const url = `/api/v1/therapist?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,license.*`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleTherapistNum(data.data.length);
     console.log(data.data, "therapist data");
+    return data;
+  }
+
+  async function fetchTherapists(search: string = "") {
+    const url = search 
+      ? `/api/v1/therapist?filters=firstName=${search}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,license.*`
+      : `/api/v1/therapist?fields=id,firstName,lastName,phoneNumber,gender,status,profile,license.*`;
+    const { data } = await axiosInstance.get(url);
+    return data;
+  }
+
+  async function fetchModals() {
+    const { data } = await axiosInstance.get("/api/v1/modal");
     return data;
   }
 
@@ -185,8 +206,8 @@ const Therapists = ({
   const { isLoading: isTherapistLoading, data: TherapistData } = useQuery({
     queryKey: ["Therapists", searchInput, filterInput],
     queryFn: revalidateTherapist,
-    refetchInterval: 5000,
-    refetchIntervalInBackground: true,
+    //refetchInterval: 5000,
+    //refetchIntervalInBackground: true,
   });
 
   interface DeleteResponse {
@@ -210,6 +231,34 @@ const Therapists = ({
     onError: (error) => {
       toast(error?.message || "Error Encountered deleting the therapist");
       //toast("Error Encountered deleting the driver");
+    },
+  });
+
+  // Fetch modals query
+  const { data: modalsData } = useQuery({
+    queryKey: ["modals"],
+    queryFn: fetchModals,
+  });
+
+  // Assign modal to therapist mutation
+  const { isLoading: isAssigning, mutate: assignModalMutation } = useMutation({
+    mutationFn: async ({ licenseId, modalId }: { licenseId: string; modalId: string }) => {
+      const { data } = await axiosInstance.patch(`/api/v1/license/${licenseId}`, {
+        modalId: modalId
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["Therapists"],
+      });
+      toast("Modal assigned successfully!");
+      setAssignModalOpen(false);
+      setSelectedTherapist(null);
+      setSelectedModalId("");
+    },
+    onError: (error: any) => {
+      toast(error?.message || "Error assigning modal");
     },
   });
 
@@ -274,9 +323,9 @@ const Therapists = ({
                 </div>
 
                 {/* Online status indicator */}
-                <div
+                {/*<div
                   className={`flex size-2 bg-${row.original.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform pointer-events-none`}
-                ></div>
+                ></div>*/}
               </div>
 
               <div className="flex flex-col gap-0.5">
@@ -373,9 +422,62 @@ const Therapists = ({
           headerClassName: "min-w-[80px]",
         },
       },
+      {
+        accessorKey: "assign",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Assign Modal" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const therapist = row.original;
+          const currentModal = therapist.license?.[0]?.id;
+          console.log(currentModal, "currentModal");
+          console.log(therapist.license, "the license");
+
+          return (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSelectedTherapist(therapist);
+                setSelectedModalId(currentModal || "");
+                setAssignModalOpen(true);
+              }}
+            >
+              {currentModal ? "Reassign" : "Assign"}
+            </Button>
+          );
+        },
+        meta: {
+          headerClassName: "w-32",
+        },
+      },
     ],
-    [mutate]
+    []
   );
+
+  const handleAssignModal = () => {
+    console.log("Selected therapist:", selectedTherapist);
+    console.log("Selected modal ID:", selectedModalId);
+    console.log("License ID:", selectedTherapist?.license?.[0]?.id);
+    
+    if (!selectedModalId) {
+      toast("Please select a therapy type");
+      return;
+    }
+    
+    if (!selectedTherapist?.license?.[0]?.id) {
+      toast("Therapist license information not found. Please contact support.");
+      return;
+    }
+
+    assignModalMutation({
+      licenseId: selectedTherapist?.license?.[0]?.id,
+      modalId: selectedModalId
+    });
+  };
 
   const data: ITherapistsData[] = useMemo(() => TherapistData ?? [], [TherapistData]);
 
@@ -439,6 +541,55 @@ const Therapists = ({
 
   return (
     <>
+      {/* Assign Modal Dialog */}
+      <Dialog open={assignModalOpen} onOpenChange={setAssignModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Assign Therapy Type to {selectedTherapist?.firstName} {selectedTherapist?.lastName}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 p-6">
+            <div>
+              <label className="block text-sm font-medium mb-2">Select Therapy Type</label>
+              <Select
+                value={selectedModalId}
+                onValueChange={setSelectedModalId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a modal type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {modalsData?.data?.map((modal: any) => (
+                    <SelectItem key={modal.id} value={modal.id}>
+                      {modal.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex gap-2 pt-4">
+              <Button
+                onClick={() => setAssignModalOpen(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAssignModal}
+                disabled={isAssigning || !selectedModalId}
+                className="flex-1"
+              >
+                {isAssigning ? "Assigning..." : "Assign Modal"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Image Modal */}
       {selectedImage && (
         <div
