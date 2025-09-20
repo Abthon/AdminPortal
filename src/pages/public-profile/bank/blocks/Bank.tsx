@@ -102,7 +102,7 @@ const Bank = ({
     sort: any;
   }) {
     console.log(filterInput, "right");
-    const url = `/api/v1/banks?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=optional=${filterInput === "optional" ? "true" : "false"}` : ""}`;
+    const url = `/api/v1/banks?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=optional=${filterInput === "optional" ? 1 : 0}` : ""}`;
     console.log("url", url);
     const { data } = await axiosInstance.get(url);
 
