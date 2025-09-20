@@ -40,14 +40,6 @@ const createTherapistSchema = Yup.object().shape({
 const editTherapistSchema = Yup.object().shape({
   firstName: Yup.string().required("First name is required."),
   lastName: Yup.string().required("Last name is required."),
-  email: Yup.string()
-    .email()
-    .min(3, "Minimum 3 symbols")
-    .max(50, "Maximum 50 symbols")
-    .required("Email is required"),
-  phoneNumber: Yup.string()
-    .required("Phone number is required.")
-    .matches(/^\d{9}$/, { message: "Invalid phone number." }),
   gender: Yup.string().required("Gender is required."),
   dob: Yup.date()
     .max(new Date(), "Date of birth cannot be in the future")
@@ -147,9 +139,15 @@ const ModalTherapistTypeForm = ({
   async function addTherapist(values: any) {
     try {
       console.log("Adding therapist with values:", values);
+      // Convert dob string to Date object if it exists
+      const updatedValues = {
+        ...values,
+        dob: values.dob ? new Date(values.dob) : null,
+      };
+      
       const res = await axiosInstance.post(
         `/api/v1/auth/signup/therapist`,
-        values
+        updatedValues
       );
       return res.data;
     } catch (err: any) {
@@ -163,16 +161,14 @@ const ModalTherapistTypeForm = ({
 
   async function editTherapist(values: any) {
     try {
-      const { id, firstName, lastName, email, phoneNumber, gender, dob } =
+      const { id, firstName, lastName, gender, dob } =
         values;
       console.log("The values of the edit form are:", values);
       const updatedValues = {
         firstName,
         lastName,
-        email,
-        phoneNumber,
         gender,
-        dob,
+        dob: dob ? new Date(dob) : null, // Convert string to Date object
       };
 
       console.log("Sending patch request with values:", updatedValues);
@@ -195,11 +191,10 @@ const ModalTherapistTypeForm = ({
     : isEdit
       ? {
           ...therapistData,
-          password: "", // Keep password empty for security
-          phoneNumber: therapistData.phoneNumber || "",
           gender: therapistData.gender || "",
-          dob: therapistData.dob || "",
-          email: therapistData.email || "",
+          dob: therapistData.dob
+            ? new Date(therapistData.dob).toISOString().split("T")[0]
+            : "",
         } // Ensure all fields are present
       : {
           firstName: "",
@@ -210,6 +205,10 @@ const ModalTherapistTypeForm = ({
           gender: "",
           dob: "",
         };
+
+  console.log("Initial values:", initialValues);
+  console.log("Is edit mode:", isEdit);
+  console.log("Therapist data:", therapistData);
 
   const formik = useFormik({
     initialValues,
@@ -246,16 +245,21 @@ const ModalTherapistTypeForm = ({
         });
       } else if (isEdit) {
         console.log("Setting form values for edit:", therapistData);
+        console.log("Original dob:", therapistData.dob);
+        const formattedDob = therapistData.dob
+          ? new Date(therapistData.dob).toISOString().split("T")[0]
+          : "";
+        console.log("Formatted dob:", formattedDob);
+        
         formik.setValues({
           ...therapistData,
-          password: "", // Keep password empty for security
-          phoneNumber: therapistData.phoneNumber || "",
           gender: therapistData.gender || "",
-          email: therapistData.email || "",
-          dob: therapistData.dob
-            ? new Date(therapistData.dob).toISOString().split("T")[0]
-            : "",
+          dob: formattedDob,
         });
+        
+        // Clear any validation errors
+        formik.setErrors({});
+        formik.setTouched({});
       } else {
         formik.resetForm();
       }
@@ -381,58 +385,89 @@ const ModalTherapistTypeForm = ({
                   </label>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">Email</label>
-                  {formik.touched.email && formik.errors.email ? (
-                    <div className="text-red-500 text-xs">
-                      {typeof formik.errors.email === "string"
-                        ? formik.errors.email
-                        : null}
-                    </div>
-                  ) : null}
-                  <label className="input">
-                    <input
-                      placeholder="Enter your Email"
-                      autoComplete="off"
-                      {...formik.getFieldProps("email")}
-                    />
-                  </label>
-                </div>
-
                 {!isEdit && (
-                  <div className="flex flex-col gap-1">
-                    <label className="form-label text-gray-900">Password</label>
-                    {formik.touched.password && formik.errors.password ? (
-                      <div className="text-red-500 text-xs">
-                        {typeof formik.errors.password === "string"
-                          ? formik.errors.password
-                          : null}
+                  <>
+                    <div className="flex flex-col gap-1">
+                      <label className="form-label text-gray-900">Email</label>
+                      {formik.touched.email && formik.errors.email ? (
+                        <div className="text-red-500 text-xs">
+                          {typeof formik.errors.email === "string"
+                            ? formik.errors.email
+                            : null}
+                        </div>
+                      ) : null}
+                      <label className="input">
+                        <input
+                          placeholder="Enter your Email"
+                          autoComplete="off"
+                          {...formik.getFieldProps("email")}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="form-label text-gray-900">Password</label>
+                      {formik.touched.password && formik.errors.password ? (
+                        <div className="text-red-500 text-xs">
+                          {typeof formik.errors.password === "string"
+                            ? formik.errors.password
+                            : null}
+                        </div>
+                      ) : null}
+                      <label className="input">
+                        <input
+                          placeholder="Enter your password"
+                          type={showPassword ? "text" : "password"}
+                          {...formik.getFieldProps("password")}
+                        />
+                        <button type="button" onClick={() => togglePassword()}>
+                          <KeenIcon
+                            icon="eye"
+                            className={clsx(
+                              "text-gray-500",
+                              showPassword ? "hidden" : ""
+                            )}
+                          />
+                          <KeenIcon
+                            icon="eye-slash"
+                            className={clsx(
+                              "text-gray-500",
+                              !showPassword ? "hidden" : ""
+                            )}
+                          />
+                        </button>
+                      </label>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="form-label text-gray-900">
+                        Phone Number
+                      </label>
+                      {formik.touched.phoneNumber && formik.errors.phoneNumber ? (
+                        <div className="text-red-500 text-xs">
+                          {typeof formik.errors.phoneNumber === "string"
+                            ? formik.errors.phoneNumber
+                            : null}
+                        </div>
+                      ) : null}
+                      <div className="flex items-center gap-2">
+                        <select
+                          className="border border-gray-300 rounded px-2 py-2 text-gray-900"
+                          disabled
+                          defaultValue="+251"
+                        >
+                          <option value="+251">+251</option>
+                        </select>
+                        <label className="input flex-1">
+                          <input
+                            placeholder="Enter phone number"
+                            autoComplete="off"
+                            {...formik.getFieldProps("phoneNumber")}
+                          />
+                        </label>
                       </div>
-                    ) : null}
-                    <label className="input">
-                      <input
-                        placeholder="Enter your password"
-                        type={showPassword ? "text" : "password"}
-                        {...formik.getFieldProps("password")}
-                      />
-                      <button onClick={() => togglePassword()}>
-                        <KeenIcon
-                          icon="eye"
-                          className={clsx(
-                            "text-gray-500",
-                            showPassword ? "hidden" : ""
-                          )}
-                        />
-                        <KeenIcon
-                          icon="eye-slash"
-                          className={clsx(
-                            "text-gray-500",
-                            !showPassword ? "hidden" : ""
-                          )}
-                        />
-                      </button>
-                    </label>
-                  </div>
+                    </div>
+                  </>
                 )}
 
                 <div className="flex flex-col gap-1">
@@ -440,17 +475,7 @@ const ModalTherapistTypeForm = ({
                   <label className="input">
                     <select
                       {...formik.getFieldProps("gender")}
-                      className={clsx(
-                        "form-control form-select w-full outline-none",
-                        {
-                          "is-invalid":
-                            formik.touched.gender && formik.errors.gender,
-                        },
-                        {
-                          "is-valid":
-                            formik.touched.gender && !formik.errors.gender,
-                        }
-                      )}
+                      className="form-control form-select w-full outline-none"
                     >
                       <option value="">Select gender</option>
                       <option value="male">Male</option>
@@ -465,34 +490,6 @@ const ModalTherapistTypeForm = ({
                   )}
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="form-label text-gray-900">
-                    Phone Number
-                  </label>
-                  {formik.touched.phoneNumber && formik.errors.phoneNumber ? (
-                    <div className="text-red-500 text-xs">
-                      {typeof formik.errors.phoneNumber === "string"
-                        ? formik.errors.phoneNumber
-                        : null}
-                    </div>
-                  ) : null}
-                  <div className="flex items-center gap-2">
-                    <select
-                      className="border border-gray-300 rounded px-2 py-2 text-gray-900"
-                      disabled
-                      defaultValue="+251"
-                    >
-                      <option value="+251">+251</option>
-                    </select>
-                    <label className="input flex-1">
-                      <input
-                        placeholder="Enter phone number"
-                        autoComplete="off"
-                        {...formik.getFieldProps("phoneNumber")}
-                      />
-                    </label>
-                  </div>
-                </div>
 
                 <div className="flex flex-col gap-1">
                   <label htmlFor="dob" className="form-label text-gray-900">
