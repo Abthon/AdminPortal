@@ -97,18 +97,18 @@ export const getMenuSidebar = (
     //    },
     //  ],
     //},
-    //getUserType(authToken) === "admin"
-    //  ? {
-    //      title: "Transactions",
-    //      icon: "status",
-    //      children: [
-    //        {
-    //          title: "Transactions",
-    //          path: "/transactions",
-    //        },
-    //      ],
-    //    }
-    //  : null,
+    getUserType(authToken) === "admin"
+      ? {
+          title: "Banks",
+          icon: "bank",
+          children: [
+            {
+              title: "Banks",
+              path: "/banks",
+            },
+          ],
+        }
+      : null,
      getUserType(authToken) === "admin"
        ? {
            title: "Config",

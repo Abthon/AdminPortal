@@ -31,9 +31,9 @@ const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 interface IBankData {
   id: string;
   name: string;
-  accountNumber: string;
-  accountName: string;
-  isApproved: boolean;
+  optional: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const Bank = ({
@@ -102,7 +102,7 @@ const Bank = ({
     sort: any;
   }) {
     console.log(filterInput, "right");
-    const url = `/api/v1/banks?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=isApproved=${filterInput == "approved" ? "1" : "0"}` : ""}`;
+    const url = `/api/v1/banks?take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=optional=${filterInput === "optional" ? "true" : "false"}` : ""}`;
     console.log("url", url);
     const { data } = await axiosInstance.get(url);
 
@@ -131,7 +131,7 @@ const Bank = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/banks?filters=name=${search}${filterInput && filterInput !== "all" ? `,isApproved=${filterInput == "approved" ? "1" : "0"}` : ""}&take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/banks?filters=name=${search}${filterInput && filterInput !== "all" ? `,optional=${filterInput === "optional" ? "true" : "false"}` : ""}&take=${pageSize}&page=${pageIndex}&sort=name=${sort[0].desc ? "DESC" : "ASC"}`;
 
     const { data } = await axiosInstance.get(url);
 
@@ -158,7 +158,7 @@ const Bank = ({
   }
 
   async function deleteBank(id: string) {
-    const { data } = await axiosInstance.delete(`/api/v1/drivers/${id}`);
+    const { data } = await axiosInstance.delete(`/api/v1/banks/${id}`);
     return data;
   }
 
@@ -237,47 +237,21 @@ const Bank = ({
         },
       },
       {
-        id: "accountNumber",
+        id: "optional",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Account Number" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.accountNumber;
-        },
-        meta: {
-          headerClassName: "min-w-[180px]",
-        },
-      },
-      {
-        id: "accountName",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Account Name" column={column} />
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          return info.row.original.accountName;
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
-        },
-      },
-      {
-        id: "isApproved",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Bank Status" column={column} />
+          <DataGridColumnHeader title="Status" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
           return (
             <div className="flex justify-between relative">
               <span
-                className={`badge ${info.row.original.isApproved === false && "badge-danger"} ${info.row.original.isApproved === true && "badge-success"} shrink-0 badge-outline rounded-[30px]`}
+                className={`badge ${info.row.original.optional ? "badge-warning" : "badge-primary"} shrink-0 badge-outline rounded-[30px]`}
               >
                 <span
-                  className={`size-1.5 rounded-full ${info.row.original.isApproved === false && "bg-danger"} ${info.row.original.isApproved === true && "bg-success"} me-1.5`}
+                  className={`size-1.5 rounded-full ${info.row.original.optional ? "bg-warning" : "bg-primary"} me-1.5`}
                 ></span>
-                {info.row.original.isApproved ? "Approved" : "Rejected"}
+                {info.row.original.optional ? "Optional" : "Required"}
               </span>
             </div>
           );
@@ -350,8 +324,8 @@ const Bank = ({
               </SelectTrigger>
               <SelectContent className="w-32">
                 <SelectItem value="all">All</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="required">Required</SelectItem>
+                <SelectItem value="optional">Optional</SelectItem>
               </SelectContent>
             </Select>
 

@@ -15,9 +15,7 @@ import axiosInstance from "@/auth/_helpers";
 
 const bankSchema = Yup.object().shape({
   name: Yup.string().required("name is required."),
-  accountNumber: Yup.string().required("accountNumber is required."),
-  accountName: Yup.string().required("accountName is required."),
-  isApproved: Yup.string().required("Status is required."),
+  optional: Yup.string().required("Status is required."),
 });
 
 interface IModalBankFormProps {
@@ -48,25 +46,29 @@ const ModalBankForm = ({
   });
 
   const initialValues = isEdit
-    ? bankData
+    ? {
+        id: bankData?.id || "",
+        name: bankData?.name || "",
+        optional: bankData?.optional?.toString() || "false",
+      }
     : {
         name: "",
-        accountNumber: "",
-        accountName: "",
-        isApproved: "true",
+        optional: "false",
       };
 
   async function addBank(values: any) {
     try {
-      console.log(values.isApproved, "values isApproved");
-      // Convert `isapproved` to a boolean if it exists in `values`
-      if (values.isApproved !== undefined) {
-        values.isApproved = values.isApproved === "true";
-      }
+      console.log(values.optional, "values optional");
+      
+      // Only send the fields we need
+      const bankData = {
+        name: values.name,
+        optional: values.optional === "true",
+      };
 
-      console.log(values, "values");
+      console.log(bankData, "bank data to send");
 
-      const res = await axiosInstance.post(`/api/v1/banks`, values);
+      const res = await axiosInstance.post(`/api/v1/banks`, bankData);
       return res.data;
     } catch (err: any) {
       console.log(err, "The error");
@@ -79,14 +81,12 @@ const ModalBankForm = ({
 
   async function editBank(values: any) {
     try {
-      const { id, name, accountName, accountNumber, isApproved } = values;
+      const { id, name, optional } = values;
 
-      // Convert `isApproved` to a boolean if it exists
+      // Convert `optional` to a boolean if it exists
       const updatedValues: any = {
         name,
-        accountName,
-        accountNumber,
-        isApproved: isApproved === "true",
+        optional: optional === "true",
       };
 
       try {
@@ -167,52 +167,22 @@ const ModalBankForm = ({
                   />
                 </label>
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="form-label text-gray-900">
-                  Account Number
-                </label>
-                {formik.touched.accountNumber && formik.errors.accountNumber ? (
-                  <div className="text-red-500 text-sm">
-                    {typeof formik.errors.accountNumber === "string"
-                      ? formik.errors.accountNumber
-                      : null}
-                  </div>
-                ) : null}
-                <label className="input">
-                  <input
-                    placeholder="Enter accountNumber"
-                    autoComplete="off"
-                    {...formik.getFieldProps("accountNumber")}
-                  />
-                </label>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="form-label text-gray-900">Account Name</label>
-                {formik.touched.accountName && formik.errors.accountName ? (
-                  <div className="text-red-500 text-sm">
-                    {typeof formik.errors.accountName === "string"
-                      ? formik.errors.accountName
-                      : null}
-                  </div>
-                ) : null}
-                <label className="input">
-                  <input
-                    placeholder="Enter accountName"
-                    autoComplete="off"
-                    {...formik.getFieldProps("accountName")}
-                  />
-                </label>
-              </div>
 
               <div className="flex flex-col gap-1">
                 <label className="form-label text-gray-900">Status</label>
-
+                {formik.touched.optional && formik.errors.optional ? (
+                  <div className="text-red-500 text-sm">
+                    {typeof formik.errors.optional === "string"
+                      ? formik.errors.optional
+                      : null}
+                  </div>
+                ) : null}
                 <select
-                  {...formik.getFieldProps("isApproved")}
+                  {...formik.getFieldProps("optional")}
                   className="w-full p-2 border border-gray-300 rounded bg-white"
                 >
-                  <option value="true">Accept</option>
-                  <option value="false">Reject</option>
+                  <option value="false">Required</option>
+                  <option value="true">Optional</option>
                 </select>
               </div>
 
