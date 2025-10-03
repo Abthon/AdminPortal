@@ -53,6 +53,18 @@ export const getMenuSidebar = (
       : null, // Use null when the condition fails
     getUserType(authToken) === "admin"
       ? {
+          title: "Question",
+          icon: "questionnaire-tablet",
+          children: [
+            {
+              title: "Questions",
+              path: "/questions",
+            },
+          ],
+        }
+      : null,
+    getUserType(authToken) === "admin"
+      ? {
           title: "Daily Quotes",
           icon: "message-text",
           children: [
@@ -121,18 +133,6 @@ export const getMenuSidebar = (
            ],
          }
        : null,
-    //getUserType(authToken) === "admin"
-    //  ? {
-    //      title: "Users",
-    //      icon: "people",
-    //      children: [
-    //        {
-    //          title: "Users",
-    //          path: "/users",
-    //        },
-    //      ],
-    //    }
-    //  : null,
     //getUserType(authToken) === "admin"
     //  ? {
     //      title: "Dispatchers",

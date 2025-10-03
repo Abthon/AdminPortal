@@ -114,6 +114,7 @@ export const DataGridProvider = <TData extends object>(
   }, [defaultValues.filterInput_2]);
 
   const fetchServerSideData = useCallback(async () => {
+  const currentGroupEnd = 5; 
     if (loading || !mergedProps.onFetchData) return;
 
     setLoading(true);

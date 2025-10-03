@@ -1,0 +1,1 @@
+export { ModalQuestion } from './ModalQuestion';

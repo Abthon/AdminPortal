@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { toAbsoluteUrl } from "@/utils";
 import { DataGridLoader } from "@/components/data-grid";
 import avatar from "@/media/avatars/blank.png";
@@ -49,6 +50,7 @@ const Clients = ({
   handleClientNum: (num: any) => void;
   searchInput?: string;
 }) => {
+  const navigate = useNavigate();
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
@@ -280,9 +282,12 @@ const Clients = ({
               </div>
 
               <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+                <Link 
+                  to={`/clients/${row.original.id}`}
+                  className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px text-left"
+                >
                   {row.original.firstName} {row.original.lastName}
-                </span>
+                </Link>
                 <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
                   +251{row.original.phoneNumber}
                 </span>
@@ -485,7 +490,7 @@ const Clients = ({
         onFetchData={getClients}
         onSearchData={searchClient}
         data={data}
-        link={"client"}
+        link={"clients"}
         columns={columns}
         filterInput={filterInput}
         rowSelection={true}

@@ -11,12 +11,12 @@ import {
 } from "@/partials/toolbar";
 
 //NetworkUserTableTeamCrewContent
-import { FuelPageContent } from ".";
+import { QuestionPageContent } from ".";
 import { useLayout } from "@/providers";
 
-const FuelPage = () => {
+const QuestionPage = () => {
   const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
-  const [vehicleNum, setVehicleNum] = useState(null);
+  const [questionNum, setQuestionNum] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const { currentLayout } = useLayout();
 
@@ -29,9 +29,9 @@ const FuelPage = () => {
               <ToolbarPageTitle />
               <ToolbarDescription>
                 <div className="flex items-center flex-wrap gap-1.5 font-medium">
-                  <span className="text-md text-gray-700">All Fuels:</span>
+                  <span className="text-md text-gray-700">All Questions:</span>
                   <span className="text-md text-gray-800 font-medium me-2">
-                    {vehicleNum}
+                    {questionNum}
                   </span>
                 </div>
               </ToolbarDescription>
@@ -42,7 +42,7 @@ const FuelPage = () => {
                   <KeenIcon icon="magnifier" />
                   <input
                     type="text"
-                    placeholder="Search By Plate Number"
+                    placeholder="Search Questions"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                   />
@@ -54,7 +54,7 @@ const FuelPage = () => {
                 }}
                 className="btn btn-sm btn-primary"
               >
-                Add Fuel
+                Add Question
               </button>
             </ToolbarActions>
           </Toolbar>
@@ -62,15 +62,15 @@ const FuelPage = () => {
       )}
 
       <Container>
-        <FuelPageContent
+        <QuestionPageContent
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
           searchInput={searchInput}
-          handleVehicleNum={setVehicleNum}
+          handleQuestionNum={setQuestionNum}
         />
       </Container>
     </Fragment>
   );
 };
 
-export { FuelPage };
+export { QuestionPage };

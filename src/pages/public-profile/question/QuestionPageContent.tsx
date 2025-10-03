@@ -1,29 +1,29 @@
-import { Fuel } from "./blocks";
+import { Question } from "./blocks";
 import { MiscFaq, MiscHelp2 } from "@/partials/misc";
 
-interface FuelPageContentProps {
+interface QuestionPageContentProps {
   isAddOpen: boolean;
   _handleAddOpen: (open: boolean) => void;
-  handleVehicleNum: (num: any) => void;
+  handleQuestionNum: (num: any) => void;
   searchInput?: string;
 }
 
-const FuelPageContent = ({
+const QuestionPageContent = ({
   isAddOpen,
   _handleAddOpen,
-  handleVehicleNum,
+  handleQuestionNum,
   searchInput,
-}: FuelPageContentProps) => {
+}: QuestionPageContentProps) => {
   return (
     <div className="grid gap-5 lg:gap-7.5">
-      <Fuel
+      <Question
         _handleAddOpen={_handleAddOpen}
         isAddOpen={isAddOpen}
         searchInput={searchInput}
-        handleVehicleNum={handleVehicleNum}
+        handleQuestionNum={handleQuestionNum}
       />
     </div>
   );
 };
 
-export { FuelPageContent };
+export { QuestionPageContent };

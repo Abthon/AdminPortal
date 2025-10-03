@@ -1,31 +1,18 @@
 import { ReactElement } from "react";
 import { Navigate, Route, Routes } from "react-router";
-import { DefaultPage, Demo1DarkSidebarPage } from "@/pages/dashboards";
+import { DefaultPage } from "@/pages/dashboards";
 import { AuthPage } from "@/auth";
 import { RequireAuth } from "@/auth/RequireAuth";
 import { Demo1Layout } from "@/layouts/demo1";
 import { ErrorsRouting } from "@/errors";
-import { VehiclePage } from "@/pages/public-profile/vehicle-type";
-import { VechileRegistrationPage } from "@/pages/public-profile/vehicle-registration";
-import { BookingPage } from "@/pages/public-profile/booking";
 import { ConfigPage } from "@/pages/public-profile/config-table";
-import { TherapistPage } from "@/pages/public-profile/therapist";
-import { ClientPage } from "@/pages/public-profile/client";
-import { CoorporatePage } from "@/pages/public-profile/coorporate";
-import { DriverProfilePage } from "@/pages/public-profile/driver-profile/crm";
-import { BookingProfilePage } from "@/pages/public-profile/booking-profile";
-import { VehicleProfilePage } from "@/pages/public-profile/vehicle-profile";
-import { FuelPage } from "@/pages/public-profile/fuel";
-import { UserPage } from "@/pages/public-profile/users";
+import { TherapistPage, TherapistDetailPage } from "@/pages/public-profile/therapist";
+import { ClientPage, ClientDetailPage } from "@/pages/public-profile/client";
 import { DispatcherPage } from "@/pages/public-profile/dispatchers";
-import { CoorProfilePage } from "@/pages/public-profile/coor-profile/crm";
-import { UserProfilePage } from "@/pages/public-profile/user-profile/crm";
-import { ReportPage } from "@/pages/public-profile/report";
-import { OdometerPage } from "@/pages/public-profile/odometer";
-import { TransactionPaymentPage } from "@/pages/public-profile/booking payment";
 import { SessionPage } from "@/pages/public-profile/session";
 import { QuotePage } from "@/pages/public-profile/daily-quotes";
 import { BankPage } from "@/pages/public-profile/bank";
+import { QuestionPage } from "@/pages/public-profile/question";
 
 const AppRoutingSetup = (): ReactElement => {
   return (
@@ -49,10 +36,26 @@ const AppRoutingSetup = (): ReactElement => {
             }
           />
           <Route
+            path="/therapists/:id"
+            element={
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
+                <TherapistDetailPage />
+              </RequireAuth>
+            }
+          />
+          <Route
             path="/clients"
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <ClientPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/clients/:id"
+            element={
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
+                <ClientDetailPage />
               </RequireAuth>
             }
           />
@@ -77,6 +80,14 @@ const AppRoutingSetup = (): ReactElement => {
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <BankPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/questions"
+            element={
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
+                <QuestionPage />
               </RequireAuth>
             }
           />
