@@ -41,3 +41,39 @@ export interface ITherapistDetailResponse {
   path: string;
   timestamp: string;
 }
+
+export interface IModalData {
+  id: string;
+  name: string;
+  order: number;
+  description: string;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export interface ILicenseData {
+  id: string;
+  license_number?: string;
+  region?: string;
+  expiration_date?: string;
+  verified: boolean;
+  filename?: string;
+  degree_certificate?: string;
+  government_id?: string;
+  professional_license?: string;
+  work_experience?: string;
+  special_training?: string;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export interface ITherapistsData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  gender: string;
+  status: string;
+  profile: string;
+  license?: ILicenseData[];
+}

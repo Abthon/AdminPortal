@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toAbsoluteUrl } from "@/utils";
 import { DataGridLoader } from "@/components/data-grid";
 import avatar from "@/media/avatars/blank.png";
+import { ITherapistsData } from "@/types/therapist";
 
 import {
   DataGrid,
@@ -34,21 +35,6 @@ import {
 import { Button } from "@/components/ui/button";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
-interface ITherapistsData {
-  id: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  gender: string;
-  status: string;
-  profile: string;
-  //is_online: boolean;
-  license?: {
-    id: string;
-    modalId?: string;
-    [key: string]: any;
-  };
-}
 
 const Therapists = ({
   isAddOpen,
@@ -235,6 +221,9 @@ const Therapists = ({
   // Assign modal to therapist mutation
   const { isLoading: isAssigning, mutate: assignModalMutation } = useMutation({
     mutationFn: async ({ licenseId, modalId }: { licenseId: string; modalId: string }) => {
+      console.log(selectedTherapist, "selected therapist");
+      console.log(licenseId, "selected license");
+      console.log(modalId, "selected modal");
       const { data } = await axiosInstance.patch(`/api/v1/license/${licenseId}`, {
         modalId: modalId
       });
@@ -422,9 +411,8 @@ const Therapists = ({
         enableSorting: false,
         cell: ({ row }) => {
           const therapist = row.original;
-          const currentModal = therapist.license?.[0]?.id;
-          console.log(currentModal, "currentModal");
-          console.log(therapist.license, "the license");
+          const hasLicense = therapist.license && therapist.license.length > 0;
+          console.log("License data:", therapist.license);
 
           return (
             <Button
@@ -434,11 +422,12 @@ const Therapists = ({
                 e.preventDefault();
                 e.stopPropagation();
                 setSelectedTherapist(therapist);
-                setSelectedModalId(currentModal || "");
+                setSelectedModalId("");
                 setAssignModalOpen(true);
               }}
+              disabled={!hasLicense}
             >
-              {currentModal ? "Reassign" : "Assign"}
+              {!hasLicense ? "No License" : "Assign Modal"}
             </Button>
           );
         },
@@ -453,20 +442,23 @@ const Therapists = ({
   const handleAssignModal = () => {
     console.log("Selected therapist:", selectedTherapist);
     console.log("Selected modal ID:", selectedModalId);
-    console.log("License ID:", selectedTherapist?.license?.[0]?.id);
+    console.log("License data:", selectedTherapist?.license);
     
     if (!selectedModalId) {
       toast("Please select a therapy type");
       return;
     }
     
-    if (!selectedTherapist?.license?.[0]?.id) {
+    if (!selectedTherapist?.license || selectedTherapist.license.length === 0) {
       toast("Therapist license information not found. Please contact support.");
       return;
     }
 
+    const licenseId = selectedTherapist.license[0].id;
+    console.log("Using license ID:", licenseId);
+
     assignModalMutation({
-      licenseId: selectedTherapist?.license?.[0]?.id,
+      licenseId: licenseId,
       modalId: selectedModalId
     });
   };
@@ -543,6 +535,7 @@ const Therapists = ({
           </DialogHeader>
           
           <div className="space-y-4 p-6">
+            
             <div>
               <label className="block text-sm font-medium mb-2">Select Therapy Type</label>
               <Select

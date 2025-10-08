@@ -26,6 +26,14 @@ import { ModalClientTypeForm } from "@/partials/modals/client";
 import axiosInstance from "@/auth/_helpers";
 import ClassNameGenerator from "@mui/utils/ClassNameGenerator";
 import { Row } from "react-day-picker";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ISubscriptionData, IClientSubscriptionResponse } from "@/types/client";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface IClientsData {
@@ -69,6 +77,10 @@ const Clients = ({
     name: string;
     phone: string;
   } | null>(null);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<IClientsData | null>(null);
+  const [selectedSubscription, setSelectedSubscription] = useState<ISubscriptionData | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -184,6 +196,66 @@ const Clients = ({
     return data;
   }
 
+  async function fetchClientSubscription(clientId: string): Promise<IClientSubscriptionResponse> {
+    const { data } = await axiosInstance.get(`/api/v1/client/${clientId}?fields=activeSubscription.*`);
+    return data;
+  }
+
+  async function updateSubscriptionStatus(subscriptionId: string, status: string) {
+    const { data } = await axiosInstance.patch(`/api/v1/subscription/${subscriptionId}`, {
+      status: status
+    });
+    return data;
+  }
+
+  const getReadablePeriod = (startDate: string, endDate: string): string => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) {
+      return "1 day";
+    } else if (diffDays < 7) {
+      return `${diffDays} days`;
+    } else if (diffDays === 7) {
+      return "1 week";
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      const remainingDays = diffDays % 7;
+      if (remainingDays === 0) {
+        return weeks === 1 ? "1 week" : `${weeks} weeks`;
+      } else {
+        return weeks === 1 ? `1 week ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : `${weeks} weeks ${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
+      }
+    } else if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      const remainingDays = diffDays % 30;
+      if (remainingDays === 0) {
+        return months === 1 ? "1 month" : `${months} months`;
+      } else if (remainingDays < 7) {
+        return months === 1 ? `1 month ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : `${months} months ${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
+      } else {
+        const weeks = Math.floor(remainingDays / 7);
+        const days = remainingDays % 7;
+        if (days === 0) {
+          return months === 1 ? `1 month ${weeks} week${weeks > 1 ? 's' : ''}` : `${months} months ${weeks} week${weeks > 1 ? 's' : ''}`;
+        } else {
+          return months === 1 ? `1 month ${weeks} week${weeks > 1 ? 's' : ''} ${days} day${days > 1 ? 's' : ''}` : `${months} months ${weeks} week${weeks > 1 ? 's' : ''} ${days} day${days > 1 ? 's' : ''}`;
+        }
+      }
+    } else {
+      const years = Math.floor(diffDays / 365);
+      const remainingDays = diffDays % 365;
+      const months = Math.floor(remainingDays / 30);
+      if (months === 0) {
+        return years === 1 ? "1 year" : `${years} years`;
+      } else {
+        return years === 1 ? `1 year ${months} month${months > 1 ? 's' : ''}` : `${years} years ${months} month${months > 1 ? 's' : ''}`;
+      }
+    }
+  };
+
   const { isLoading: isClientLoading, data: ClientData } = useQuery({
     queryKey: ["Clients", searchInput, filterInput],
     queryFn: revalidateClient,
@@ -214,6 +286,45 @@ const Clients = ({
       //toast("Error Encountered deleting the driver");
     },
   });
+
+  // Update subscription status mutation
+  const { isLoading: isUpdatingStatus, mutate: updateStatusMutation } = useMutation({
+    mutationFn: async ({ subscriptionId, status }: { subscriptionId: string; status: string }) => {
+      console.log("Updating subscription:", subscriptionId, "to status:", status);
+      const data = await updateSubscriptionStatus(subscriptionId, status);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["Clients"],
+      });
+      toast("Subscription status updated successfully!");
+      setPaymentModalOpen(false);
+      setSelectedClient(null);
+      setSelectedSubscription(null);
+      setSelectedStatus("");
+    },
+    onError: (error: any) => {
+      toast(error?.message || "Error updating subscription status");
+    },
+  });
+
+  const handleUpdatePaymentStatus = () => {
+    if (!selectedStatus) {
+      toast("Please select a status");
+      return;
+    }
+    
+    if (!selectedSubscription?.id) {
+      toast("Subscription information not found");
+      return;
+    }
+
+    updateStatusMutation({
+      subscriptionId: selectedSubscription.id,
+      status: selectedStatus
+    });
+  };
 
   useEffect(
     function () {
@@ -339,6 +450,82 @@ const Clients = ({
         },
       },
       {
+        id: "subscriptionStatus",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Subscription Status" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const client = row.original;
+          const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
+          const [isLoading, setIsLoading] = useState(false);
+
+          useEffect(() => {
+            const fetchStatus = async () => {
+              setIsLoading(true);
+              try {
+                const subscriptionData = await fetchClientSubscription(client.id);
+                if (subscriptionData.data.activeSubscription) {
+                  setSubscriptionStatus(subscriptionData.data.activeSubscription.status);
+                } else {
+                  setSubscriptionStatus(null);
+                }
+              } catch (error) {
+                console.error("Error fetching subscription:", error);
+                setSubscriptionStatus(null);
+              } finally {
+                setIsLoading(false);
+              }
+            };
+
+            fetchStatus();
+          }, [client.id]);
+
+          if (isLoading) {
+            return (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              </div>
+            );
+          }
+
+          if (!subscriptionStatus) {
+            return (
+              <span className="badge badge-gray shrink-0 badge-outline rounded-[30px]">
+                <span className="size-1.5 rounded-full bg-gray-400 me-1.5"></span>
+                No Subscription
+              </span>
+            );
+          }
+
+          return (
+            <span
+              className={`badge ${
+                subscriptionStatus === "active" ? "badge-success" :
+                subscriptionStatus === "pending" ? "badge-warning" :
+                subscriptionStatus === "canceled" ? "badge-danger" :
+                subscriptionStatus === "paused" ? "badge-info" :
+                "badge-secondary"
+              } shrink-0 badge-outline rounded-[30px]`}
+            >
+              <span
+                className={`size-1.5 rounded-full ${
+                  subscriptionStatus === "active" ? "bg-success" :
+                  subscriptionStatus === "pending" ? "bg-warning" :
+                  subscriptionStatus === "canceled" ? "bg-danger" :
+                  subscriptionStatus === "paused" ? "bg-info" :
+                  "bg-secondary"
+                } me-1.5`}
+              ></span>
+              {subscriptionStatus}
+            </span>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[160px]",
+        },
+      },
+      {
         id: "Edit",
         header: ({ column }) => (
           <DataGridColumnHeader title="Edit" column={column} />
@@ -376,6 +563,51 @@ const Clients = ({
         },
         meta: {
           headerClassName: "min-w-[80px]",
+        },
+      },
+      {
+        id: "approvePayment",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Approve Payment" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const client = row.original;
+          
+          const handlePaymentClick = async (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            try {
+              // Fetch client subscription data
+              const subscriptionData = await fetchClientSubscription(client.id);
+              
+              if (subscriptionData.data.activeSubscription) {
+                setSelectedClient(client);
+                setSelectedSubscription(subscriptionData.data.activeSubscription);
+                setSelectedStatus(subscriptionData.data.activeSubscription.status);
+                setPaymentModalOpen(true);
+              } else {
+                toast("No active subscription found for this client");
+              }
+            } catch (error) {
+              toast("Error fetching subscription data");
+              console.error("Error:", error);
+            }
+          };
+
+          return (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePaymentClick}
+            >
+              Manage Payment
+            </Button>
+          );
+        },
+        meta: {
+          headerClassName: "w-32",
         },
       },
     ],
@@ -444,6 +676,79 @@ const Clients = ({
 
   return (
     <>
+      {/* Payment Approval Modal */}
+      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Manage Payment for {selectedClient?.firstName} {selectedClient?.lastName}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 p-6">
+            {/* Show current subscription info */}
+            {selectedSubscription && (
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  <strong>Current Status:</strong> 
+                  <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                    selectedSubscription.status === 'active' ? 'bg-green-100 text-green-800' :
+                    selectedSubscription.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    selectedSubscription.status === 'canceled' ? 'bg-red-100 text-red-800' :
+                    selectedSubscription.status === 'paused' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {selectedSubscription.status}
+                  </span>
+                </p>
+                <p className="text-sm text-gray-700 mt-1">
+                  <strong>Period:</strong> {getReadablePeriod(selectedSubscription.start_date, selectedSubscription.end_date)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  ({selectedSubscription.start_date} to {selectedSubscription.end_date})
+                </p>
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Update Status</label>
+              <Select
+                value={selectedStatus}
+                onValueChange={setSelectedStatus}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="paused">Paused</SelectItem>
+                  <SelectItem value="canceled">Canceled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex gap-2 pt-4">
+              <Button
+                onClick={() => setPaymentModalOpen(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdatePaymentStatus}
+                disabled={isUpdatingStatus || !selectedStatus}
+                className="flex-1"
+              >
+                {isUpdatingStatus ? "Updating..." : "Update Status"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Image Modal */}
       {selectedImage && (
         <div

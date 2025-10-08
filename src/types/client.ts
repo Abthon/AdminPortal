@@ -40,3 +40,24 @@ export interface IClientDetailResponse {
   path: string;
   timestamp: string;
 }
+
+export interface ISubscriptionData {
+  id: string;
+  updatedAt: string;
+  createdAt: string;
+  status: "pending" | "inactive" | "active" | "paused" | "canceled";
+  start_date: string;
+  end_date: string;
+}
+
+export interface IClientSubscriptionResponse {
+  data: {
+    id: string;
+    activeSubscription: ISubscriptionData;
+  };
+  message: string;
+  statusCode: number;
+  method: string;
+  path: string;
+  timestamp: string;
+}
