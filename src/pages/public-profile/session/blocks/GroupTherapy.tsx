@@ -66,6 +66,7 @@ interface ITherapist {
 interface ISessionForm {
   schedule: string;
   therapist: string;
+  groupName: string;
 }
 
 const GroupTherapy = ({
@@ -86,6 +87,7 @@ const GroupTherapy = ({
   const [sessionForm, setSessionForm] = useState<ISessionForm>({
     schedule: "",
     therapist: "",
+    groupName: "",
   });
 
   async function getGroupTherapyCandidates({
@@ -97,11 +99,8 @@ const GroupTherapy = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/answer?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}&filters=modal.name=Group Therapy,client.isInGroup=0&fields=id,text,modal.*,client.*`;
-    console.log(url, "group therapy url");
+    const url = `/api/v1/answer?take=${pageSize}&page=${pageIndex}&filters=modal.name=Group Therapy,client.isInGroup=0&fields=id,text,modal.*,client.*`;
     const { data } = await axiosInstance.get(url);
-
-    console.log(data, "Group therapy data");
     
     // calculating how many items are there on the current page
     const startIndex =
@@ -128,7 +127,7 @@ const GroupTherapy = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/answer?filters=modal.name=Group Therapy,client.isInGroup=0,client.firstName=${search}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}&fields=id,text,modal.*,client.*`;
+    const url = `/api/v1/answer?filters=modal.name=Group Therapy,client.isInGroup=0,client.firstName=${search}&take=${pageSize}&page=${pageIndex}&fields=id,text,modal.*,client.*`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -154,8 +153,8 @@ const GroupTherapy = ({
   const { isLoading: isGroupTherapyLoading, data: groupTherapyData } = useQuery({
     queryKey: ["GroupTherapyCandidates", searchInput],
     queryFn: revalidateGroupTherapyCandidates,
-    refetchInterval: 5000,
-    refetchIntervalInBackground: true,
+    //refetchInterval: 5000,
+    //refetchIntervalInBackground: true,
   });
 
   async function getTherapists(search?: string) {
@@ -165,12 +164,24 @@ const GroupTherapy = ({
   }
 
   async function createGroupSession(sessionData: ISessionForm & { groupClients: string[] }) {
+    // Parse the datetime-local input to extract day and time
+    const scheduleDate = new Date(sessionData.schedule);
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayName = dayNames[scheduleDate.getDay()];
+    const startTime = scheduleDate.toTimeString().slice(0, 5); // Format: "HH:MM"
+
     const payload = {
-      ...sessionData,
       note: "Group therapy session",
+      groupName: sessionData.groupName,
+      duration: 60,
       type: "video",
-      duration: 45,
-      modal: "62a98ae2-2f02-4c67-9b66-eb0e4afeeeaf",
+      modal: "d724ce6f-4f28-4406-8e67-d8f52afab561",
+      groupClients: sessionData.groupClients,
+      therapist: sessionData.therapist,
+      date: {
+        date: dayName,
+        startTime: startTime
+      }
     };
     const { data } = await axiosInstance.post('/api/v1/session/group', payload);
     return data;
@@ -194,6 +205,7 @@ const GroupTherapy = ({
       setSessionForm({
         schedule: "",
         therapist: "",
+        groupName: "",
       });
       toast("Group session successfully created!");
     },
@@ -327,7 +339,14 @@ const GroupTherapy = ({
     []
   );
 
-  const data: IGroupTherapyCandidate[] = useMemo(() => groupTherapyData?.data ?? [], [groupTherapyData]);
+  const data: IGroupTherapyCandidate[] = useMemo(() => {
+    const rawData = groupTherapyData?.data ?? [];
+    // Filter out duplicates based on client.id
+    const uniqueData = rawData.filter((item: IGroupTherapyCandidate, index: number, self: IGroupTherapyCandidate[]) => 
+      index === self.findIndex((t: IGroupTherapyCandidate) => t.client?.id === item.client?.id)
+    );
+    return uniqueData;
+  }, [groupTherapyData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -355,8 +374,8 @@ const GroupTherapy = ({
   };
 
   const handleCreateSession = () => {
-    if (!sessionForm.therapist || !sessionForm.schedule) {
-      toast("Please select a therapist and schedule.");
+    if (!sessionForm.therapist || !sessionForm.schedule || !sessionForm.groupName) {
+      toast("Please select a therapist, schedule, and provide a group name.");
       return;
     }
 
@@ -458,6 +477,19 @@ const GroupTherapy = ({
               )}
             </div>
 
+            {/* Group Name */}
+            <div className="space-y-4">
+              <label className="text-base font-semibold text-gray-900 block">
+                Group Name
+              </label>
+              <Input
+                placeholder="Enter group name (e.g., Anxiety Support Group)"
+                value={sessionForm.groupName}
+                onChange={(e) => setSessionForm(prev => ({ ...prev, groupName: e.target.value }))}
+                className="h-12 text-base"
+              />
+            </div>
+
             {/* Schedule */}
             <div className="space-y-4">
               <label className="text-base font-semibold text-gray-900 block">
@@ -482,7 +514,7 @@ const GroupTherapy = ({
               </Button>
               <Button
                 onClick={handleCreateSession}
-                disabled={isCreatingSession || !sessionForm.therapist || !sessionForm.schedule}
+                disabled={isCreatingSession || !sessionForm.therapist || !sessionForm.schedule || !sessionForm.groupName}
                 className="px-6 py-3 text-base bg-blue-600 hover:bg-blue-700"
               >
                 {isCreatingSession ? (
@@ -545,7 +577,7 @@ const GroupTherapy = ({
         onRowSelectionChange={handleRowSelection}
         searchInput={searchInput}
         pagination={{ size: 5 }}
-        sorting={[{ id: "createdAt", desc: false }]}
+        sorting={[]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />

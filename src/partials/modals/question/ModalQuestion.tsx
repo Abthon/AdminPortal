@@ -18,12 +18,22 @@ const QuestionSchema = Yup.object().shape({
   text: Yup.string().required("Question text is required."),
   type: Yup.string().oneOf(["single", "multiple", "open"]).required("Question type is required."),
   modalId: Yup.string().required("Therapy type is required."),
+  options: Yup.array().when('type', {
+    is: (val: string) => val === 'single' || val === 'multiple',
+    then: (schema) => schema.of(Yup.string().required("Option cannot be empty")).min(2, "At least 2 options are required"),
+    otherwise: (schema) => schema.notRequired()
+  })
 });
 
 const QuestionSchemaForEdit = Yup.object().shape({
   text: Yup.string().required("Question text is required."),
   type: Yup.string().oneOf(["single", "multiple", "open"]).required("Question type is required."),
   modalId: Yup.string().required("Therapy type is required."),
+  options: Yup.array().when('type', {
+    is: (val: string) => val === 'single' || val === 'multiple',
+    then: (schema) => schema.of(Yup.string().required("Option cannot be empty")).min(2, "At least 2 options are required"),
+    otherwise: (schema) => schema.notRequired()
+  })
 });
 
 interface IModalQuestionProps {
@@ -59,26 +69,52 @@ const ModalQuestion = ({
         id: questionData?.id || "",
         text: questionData?.text || "",
         type: questionData?.type || "single",
-        modalId: questionData?.modalId || "",
+        modalId: questionData?.modalId || questionData?.modal?.id || "",
+        options: questionData?.option ? 
+          questionData.option.sort((a: any, b: any) => a.order - b.order).map((opt: any) => opt.text) : 
+          questionData?.options || ["", ""],
       }
     : {
         text: "",
         type: "single",
         modalId: "",
+        options: ["", ""],
       };
 
   async function addQuestion(values: { [key: string]: any }) {
     try {
       console.log(values, "values");
 
+      // Step 1: Create the question first
       const questionPayload = {
         text: values.text,
         type: values.type,
         modalId: values.modalId,
       };
 
-      const res = await axiosInstance.post(`/api/v1/question`, questionPayload);
-      return res.data;
+      const questionRes = await axiosInstance.post(`/api/v1/question`, questionPayload);
+      const createdQuestion = questionRes.data;
+      console.log(createdQuestion, "created question");
+
+      // Step 2: Create options if question type is single or multiple
+      if (values.type !== 'open' && values.options && values.options.length > 0) {
+        const validOptions = values.options.filter((opt: string) => opt.trim() !== '');
+        
+        // Create each option separately
+        const optionPromises = validOptions.map((optionText: string) => {
+          const optionPayload = {
+            text: optionText,
+            questionId: createdQuestion.data.id, // Use the created question's ID
+          };
+          return axiosInstance.post(`/api/v1/option`, optionPayload);
+        });
+
+        // Wait for all options to be created
+        await Promise.all(optionPromises);
+        console.log(`Created ${validOptions.length} options for question`);
+      }
+
+      return createdQuestion;
     } catch (err: any) {
       console.log(err, "The error");
       const errorMessage = err?.response?.data?.message;
@@ -91,15 +127,34 @@ const ModalQuestion = ({
 
   async function deleteQuestion(id: any) {
     try {
+      // Step 1: Delete all options first to avoid orphaned data
+      const existingOptions = questionData?.option || [];
+      
+      if (existingOptions.length > 0) {
+        console.log(`Deleting ${existingOptions.length} options first...`);
+        
+        const deleteOptionPromises = existingOptions.map((option: any) => {
+          return axiosInstance.delete(`/api/v1/option/${option.id}`);
+        });
+        
+        // Wait for all options to be deleted
+        await Promise.all(deleteOptionPromises);
+        console.log(`Successfully deleted ${existingOptions.length} options`);
+      }
+
+      // Step 2: Delete the question
       const res = await axiosInstance.delete(`/api/v1/question/${id}`);
-      console.log(res, "result");
+      console.log(res, "question deleted");
+      
       if (res.status !== 200) {
         throw new Error(res.data.message || "Failed to delete the question.");
       }
-      toast.success(`Question Deleted!`);
+      
+      toast.success(`Question and all its options deleted successfully!`);
       queryClient.invalidateQueries({ queryKey: ["Question"] });
       onOpenChange();
     } catch (err: any) {
+      console.log(err, "Delete error");
       const errorMessage = err?.response?.data?.message;
       const errorMessageAlt =
         (err as Error).message || "An error occurred while deleting the question.";
@@ -111,6 +166,7 @@ const ModalQuestion = ({
     try {
       const { id, text, type, modalId } = values;
 
+      // Step 1: Update the question
       const updatedValues: any = {
         text,
         type,
@@ -121,6 +177,40 @@ const ModalQuestion = ({
         `/api/v1/question/${id}`,
         updatedValues
       );
+
+      // Step 2: Handle options for single/multiple choice questions
+      if (type !== 'open' && values.options && values.options.length > 0) {
+        const validOptions = values.options.filter((opt: string) => opt.trim() !== '');
+        
+        try {
+          // Get existing options from questionData to update them
+          const existingOptions = questionData?.option || [];
+          
+          const optionPromises = validOptions.map((optionText: string, index: number) => {
+            if (existingOptions[index]) {
+              // Update existing option using PATCH /api/v1/option/{id}
+              const optionPayload = {
+                text: optionText,
+              };
+              return axiosInstance.patch(`/api/v1/option/${existingOptions[index].id}`, optionPayload);
+            } else {
+              // Create new option if it doesn't exist
+              const optionPayload = {
+                text: optionText,
+                questionId: id,
+              };
+              return axiosInstance.post(`/api/v1/option`, optionPayload);
+            }
+          });
+
+          await Promise.all(optionPromises);
+          console.log(`Updated ${validOptions.length} options for question`);
+        } catch (optionError) {
+          console.log("Error updating options:", optionError);
+          // Continue even if options update fails
+        }
+      }
+
       return res.data;
     } catch (err: any) {
       console.log(err, "The error");
@@ -138,7 +228,8 @@ const ModalQuestion = ({
     isLoading: isTherapyTypesLoading,
     error: therapyTypesError,
   } = useQuery("therapy-types", async () => {
-    const res = await axiosInstance.get("/api/v1/therapy-type");
+    const res = await axiosInstance.get("/api/v1/modal");
+    console.log(res.data.data, "the modallllllllllllll");
     if (res.status !== 200) {
       throw new Error("Failed to fetch therapy types");
     }
@@ -160,10 +251,26 @@ const ModalQuestion = ({
 
   useEffect(() => {
     if (open) {
-      if (isEdit) {
-        formik.setValues(initialValues); // Populate form with edit data
+      if (isEdit && questionData) {
+        const editValues = {
+          id: questionData.id || "",
+          text: questionData.text || "",
+          type: questionData.type || "single",
+          modalId: questionData.modalId || questionData.modal?.id || "",
+          options: questionData.option ? 
+            questionData.option.sort((a: any, b: any) => a.order - b.order).map((opt: any) => opt.text) : 
+            questionData.options || ["", ""],
+        };
+        formik.setValues(editValues);
       } else {
-        formik.resetForm(); // Reset form for add mode
+        formik.resetForm({
+          values: {
+            text: "",
+            type: "single",
+            modalId: "",
+            options: ["", ""],
+          }
+        });
       }
     }
   }, [isEdit, open, questionData]);
@@ -219,12 +326,12 @@ const ModalQuestion = ({
             <div className="flex flex-col gap-1">
               <label className="form-label text-gray-900">Question Text</label>
               <label className="input">
-                <textarea
+                <input
                   placeholder="Enter question text"
-                  rows={3}
+                  //rows={3}
                   {...formik.getFieldProps("text")}
                   className={clsx(
-                    "form-control bg-transparent resize-none",
+                    "form-control bg-transparent resize-none w-full",
                     {
                       "is-invalid":
                         formik.touched.text && formik.errors.text,
@@ -314,6 +421,73 @@ const ModalQuestion = ({
                 </span>
               )}
             </div>
+
+            {/* Options for Single/Multiple Choice */}
+            {(formik.values.type === "single" || formik.values.type === "multiple") && (
+              <div className="flex flex-col gap-1">
+                <label className="form-label text-gray-900">
+                  Answer Options
+                  <span className="text-sm text-gray-500 ml-2">
+                    (Add at least 2 options)
+                  </span>
+                </label>
+                <div className="space-y-2">
+                  {formik.values.options.map((option: string, index: number) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <label className="input flex-1">
+                        <input
+                          type="text"
+                          placeholder={`Enter option ${index + 1}`}
+                          value={option}
+                          onChange={(e) => {
+                            const newOptions = [...formik.values.options];
+                            newOptions[index] = e.target.value;
+                            formik.setFieldValue("options", newOptions);
+                          }}
+                          className={clsx(
+                            "form-control bg-transparent w-full",
+                            {
+                              "is-invalid":
+                                formik.touched.options && 
+                                formik.errors.options && 
+                                Array.isArray(formik.errors.options) && 
+                                formik.errors.options[index],
+                            }
+                          )}
+                        />
+                      </label>
+                      {formik.values.options.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newOptions = formik.values.options.filter((_: any, i: number) => i !== index);
+                            formik.setFieldValue("options", newOptions);
+                          }}
+                          className="btn btn-sm btn-icon btn-outline btn-danger"
+                          title="Remove option"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      formik.setFieldValue("options", [...formik.values.options, ""]);
+                    }}
+                    className="btn btn-sm btn-outline btn-primary"
+                  >
+                    + Add Option
+                  </button>
+                </div>
+                {formik.touched.options && formik.errors.options && typeof formik.errors.options === 'string' && (
+                  <span role="alert" className="text-danger text-xs mt-1">
+                    {formik.errors.options}
+                  </span>
+                )}
+              </div>
+            )}
 
             <button
               type="submit"

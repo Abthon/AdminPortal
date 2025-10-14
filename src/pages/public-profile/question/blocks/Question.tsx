@@ -91,7 +91,15 @@ const Question = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/question?take=${pageSize}&page=${pageIndex}&sort=order=${sort[0].desc ? "DESC" : "ASC"}${therapyTypeFilter && therapyTypeFilter !== "all" ? `&filters=modalId=${therapyTypeFilter}` : ""}${searchInput ? `${therapyTypeFilter && therapyTypeFilter !== "all" ? "," : "&filters="}text=${searchInput}` : ""}&fields=modal.*,id,text,type,order,modalId,createdAt,updatedAt`;
+    const filterParams = [];
+    if (therapyTypeFilter && therapyTypeFilter !== "all") {
+      filterParams.push(`modalId=${therapyTypeFilter}`);
+    }
+    if (searchInput) {
+      filterParams.push(`text~=${searchInput}`);
+    }
+    const filterString = filterParams.length > 0 ? `&filters=${filterParams.join(",")}` : "";
+    const url = `/api/v1/question?take=${pageSize}&page=${pageIndex}&sort=order=${sort[0].desc ? "DESC" : "ASC"}${filterString}&fields=modal.*,id,text,type,order,modalId,createdAt,updatedAt`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -111,8 +119,55 @@ const Question = ({
     return data;
   }
 
+  async function searchQuestions({
+    pageIndex,
+    pageSize,
+    search,
+    sort,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    search: any;
+    sort: any;
+  }) {
+    const filterParams = [];
+    if (therapyTypeFilter && therapyTypeFilter !== "all") {
+      filterParams.push(`modalId=${therapyTypeFilter}`);
+    }
+    if (search) {
+      filterParams.push(`text=${search}`);
+    }
+    const filterString = filterParams.length > 0 ? `&filters=${filterParams.join(",")}` : "";
+    const url = `/api/v1/question?take=${pageSize}&page=${pageIndex}&sort=order=${sort[0].desc ? "DESC" : "ASC"}${filterString}&fields=modal.*,id,text,type,order,modalId,createdAt,updatedAt`;
+    console.log(url, "search url");
+    const { data } = await axiosInstance.get(url);
+
+    console.log(data, "search data");
+
+    // calculating how many items are there on the current page
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
+    handleQuestionNum(data.data.length);
+    return data;
+  }
+
   async function revalidateQuestion() {
-    const url = `/api/v1/question?${therapyTypeFilter && therapyTypeFilter !== "all" ? `filters=modalId=${therapyTypeFilter}` : ""}${searchInput ? `${therapyTypeFilter && therapyTypeFilter !== "all" ? "," : "filters="}text=${searchInput}` : ""}&fields=modal.*,id,text,type,order,modalId,createdAt,updatedAt`;
+    const filterParams = [];
+    if (therapyTypeFilter && therapyTypeFilter !== "all") {
+      filterParams.push(`modalId=${therapyTypeFilter}`);
+    }
+    if (searchInput) {
+      filterParams.push(`text=${searchInput}`);
+    }
+    const filterString = filterParams.length > 0 ? `filters=${filterParams.join(",")}&` : "";
+    const url = `/api/v1/question?${filterString}fields=modal.*,id,text,type,order,modalId,createdAt,updatedAt`;
     const { data } = await axiosInstance.get(url);
     handleQuestionNum(data.data.length);
     console.log(data.data, "question data");
@@ -401,6 +456,7 @@ const Question = ({
       />
       <DataGrid
         onFetchData={getQuestions}
+        onSearchData={searchQuestions}
         columns={columns}
         data={data}
         rowSelection={true}

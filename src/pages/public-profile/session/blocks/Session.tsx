@@ -42,10 +42,12 @@ const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 interface ISessionsData {
   id: string;
   hasclientAttended: boolean;
+  hasTherapistAttended: boolean;
   schedule: string;
   duration: number;
   therapist: any;
   client: any;
+  group?: any[];
   modal?: {
     id: string;
     name: string;
@@ -112,6 +114,12 @@ const Sessions = ({
     name: string;
     phone: string;
   } | null>(null);
+  const [sessionDetailModalOpen, setSessionDetailModalOpen] = useState(false);
+  const [selectedSessionDetail, setSelectedSessionDetail] = useState<ISessionsData | null>(null);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [isAddToSessionModalOpen, setIsAddToSessionModalOpen] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -121,6 +129,11 @@ const Sessions = ({
     setApprovalMode(false);
     setProfileModalOpen(false);
     _handleAddOpen(false);
+  };
+
+  const handleSessionDetailClick = (sessionData: ISessionsData) => {
+    setSelectedSessionDetail(sessionData);
+    setSessionDetailModalOpen(true);
   };
 
   const handleOpen = (
@@ -166,10 +179,10 @@ const Sessions = ({
     // }
     // [Todo: refactor url]
     const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
-      `${filterInput && filterInput !== "all" ? "," : ""}${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`  : "";
+      `${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`  : "";
     const modalFilterParam = (modalFilter && modalFilter !== "all") ? 
-      `${filterInput && filterInput !== "all" || dateFilter.startDate || dateFilter.endDate ? "," : ""}modal.id:=${modalFilter}` : "";
-    const url = `/api/v1/session?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" || dateFilter.startDate || dateFilter.endDate || modalFilter && modalFilter !== "all" ? ` &filters=` : ""}${filterInput && filterInput !== "all" ? ` hasclientAttended:=${filterInput}` : ""}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,id,hasclientAttended,schedule,duration`;
+      `${dateFilter.startDate || dateFilter.endDate ? "," : ""}modal.id:=${modalFilter}` : "";
+    const url = `/api/v1/session?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || modalFilter && modalFilter !== "all" ? ` &filters=` : ""}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -203,7 +216,7 @@ const Sessions = ({
     const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
       `,${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`  : "";
     const modalFilterParam = (modalFilter && modalFilter !== "all") ? `,modal.id:=${modalFilter}` : "";
-    const url = `/api/v1/session?filters=therapist.firstName=${search}${filterInput && filterInput !== "all" ? ` ,hasclientAttended:=${filterInput}` : ""}${dateFilterParam}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=therapist.*,modal.*,client.*,id,hasclientAttended,schedule,duration`;
+    const url = `/api/v1/session?filters=therapist.firstName=${search}${dateFilterParam}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -224,7 +237,7 @@ const Sessions = ({
     const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
       `,${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`  : "";
     const modalFilterParam = (modalFilter && modalFilter !== "all") ? `,modal.id:=${modalFilter}` : "";
-    const url = `/api/v1/session?filters=therapist.firstName=${searchInput}${filterInput && filterInput !== "all" ? ` ,hasclientAttended:=${filterInput}` : ""}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,id,hasclientAttended,schedule,duration`;
+    const url = `/api/v1/session?filters=therapist.firstName=${searchInput}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleSessionNum(data.data.length);
@@ -258,8 +271,25 @@ const Sessions = ({
     return data;
   }
 
+  // Add users to session
+  async function addUsersToSession(sessionId: string, userIds: string[]) {
+    const { data } = await axiosInstance.post(`/api/v1/session/${sessionId}/add-to-session`, {
+      groupClients: userIds
+    });
+    return data;
+  }
+
+  // Fetch users for adding to session
+  async function fetchUsers(search: string = "") {
+    const url = search 
+      ? `/api/v1/client?filters=firstName=${search}&fields=id,firstName,lastName,profile,email`
+      : `/api/v1/client?fields=id,firstName,lastName,profile,email`;
+    const { data } = await axiosInstance.get(url);
+    return data;
+  }
+
   const { isLoading: isSessionLoading, data: SessionData } = useQuery({
-    queryKey: ["Sessions", searchInput, filterInput, dateFilter, modalFilter],
+    queryKey: ["Sessions", searchInput, dateFilter, modalFilter],
     queryFn: revalidateSession,
     refetchInterval: 50000,
     refetchIntervalInBackground: true,
@@ -292,6 +322,13 @@ const Sessions = ({
     queryKey: ["clients", clientSearch],
     queryFn: () => fetchClients(clientSearch),
     enabled: isAddSessionOpen,
+  });
+
+  // Fetch users for adding to session
+  const { data: usersData } = useQuery({
+    queryKey: ["users", userSearch],
+    queryFn: () => fetchUsers(userSearch),
+    enabled: isAddToSessionModalOpen,
   });
 
   interface DeleteResponse {
@@ -341,6 +378,25 @@ const Sessions = ({
     onError: (error: any) => {
       toast(error?.message || "Error creating session");
     },
+  });
+
+  // Add users to session mutation
+  const { isLoading: isAddingUsers, mutate: addUsersToSessionMutation } = useMutation({
+    mutationFn: ({ sessionId, userIds }: { sessionId: string; userIds: string[] }) => 
+      addUsersToSession(sessionId, userIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["Sessions"],
+      });
+      toast(`Successfully added ${selectedUsers.length} user(s) to session!`);
+      setIsAddToSessionModalOpen(false);
+      setSelectedUsers([]);
+      setUserSearch("");
+      setCurrentSessionId(null);
+    },
+    onError: (error: any) => {
+      toast(error?.message || "Error adding users to session");
+    },
   }); 
 
   useEffect(
@@ -384,6 +440,31 @@ const Sessions = ({
     createSessionMutation(sessionData);
   };
 
+  const handleOpenAddToSession = (sessionId: string) => {
+    setCurrentSessionId(sessionId);
+    setIsAddToSessionModalOpen(true);
+  };
+
+  const handleAddUsersToSession = () => {
+    if (!currentSessionId || selectedUsers.length === 0) {
+      toast("Please select at least one user to add to the session.");
+      return;
+    }
+
+    addUsersToSessionMutation({
+      sessionId: currentSessionId,
+      userIds: selectedUsers
+    });
+  };
+
+  const handleUserToggle = (userId: string) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
   const formatDate = (date: Date | undefined) => {
     if (!date) {
       return "";
@@ -411,7 +492,7 @@ const Sessions = ({
         accessorFn: (row) => row.therapist?.firstName,
         id: "Therapist",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Therapist" column={column} />
+          <DataGridColumnHeader title="Therapist" column={column} className="min-w-[180px]"/>
         ),
         enableSorting: true,
         cell: ({ row }) => {
@@ -466,7 +547,7 @@ const Sessions = ({
           );
         },
         meta: {
-          className: "min-w-[300px]",
+          className: "min-w-[280px]",
           cellClassName: "text-gray-800 font-normal",
         },
       },
@@ -474,62 +555,135 @@ const Sessions = ({
         accessorFn: (row) => row.therapist?.firstName,
         id: "Client",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Client" column={column}   />
+          <DataGridColumnHeader title="Client" column={column} className="min-w-[200px]"/>
         ),
         enableSorting: true,
         cell: ({ row }) => {
-          const img = row.original.client?.profile ? `${BASE_URL}/${row.original.client?.profile}` : row.original.client?.profile;
+          // Check if this is a group therapy session
+          const isGroupTherapy = row.original.group && row.original.group.length > 0;
+          const client = row.original.client;
+          const group = row.original.group;
 
-          const handleImageClick = (e: React.MouseEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
-            e.nativeEvent.stopImmediatePropagation();
+          if (isGroupTherapy && group) {
+            // Display group therapy clients
+            const firstClient = group[0];
+            const remainingCount = group.length - 1;
+            const img = firstClient?.profile ? `${BASE_URL}/${firstClient.profile}` : null;
 
-            console.log("Image clicked!"); // Add this to debug
+            const handleGroupImageClick = (e: React.MouseEvent) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.nativeEvent.stopImmediatePropagation();
 
-            setSelectedImage({
-              src: img ? img : avatar,
-              name: `${row.original.client?.firstName} ${row.original.client?.lastName}`,
-              phone: `+251${row.original.client?.phoneNumber}`,
-            });
-          };
+              setSelectedImage({
+                src: img ? img : avatar,
+                name: `${firstClient?.firstName} ${firstClient?.lastName}`,
+                phone: `+251${firstClient?.phoneNumber}`,
+              });
+            };
 
-          return (
-            <div className="flex items-center gap-4">
-              <div
-                className="relative group cursor-pointer"
-                onClick={handleImageClick}
-              >
-                <img
-                  src={img ? img : avatar}
-                  className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105"
-                  alt={`${row.original.client?.firstName} ${row.original.client?.lastName}`}
-                />
-
-                {/* Hover overlay with zoom icon */}
-                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  <KeenIcon icon="eye" className="text-white text-xs" />
+            return (
+              <div className="flex items-center gap-4">
+                <div className="relative flex">
+                  {/* First client avatar */}
+                  <div
+                    className="relative group cursor-pointer"
+                    onClick={handleGroupImageClick}
+                  >
+                    <img
+                      src={img ? img : avatar}
+                      className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105 border-2 border-white"
+                      alt={`${firstClient?.firstName} ${firstClient?.lastName}`}
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      <KeenIcon icon="eye" className="text-white text-xs" />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Online status indicator */}
-                <div
-                  className={`flex size-2 bg-${row.original.client?.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform pointer-events-none`}
-                ></div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+                    {firstClient?.firstName} {firstClient?.lastName}
+                    {remainingCount > 0 && (
+                      <span className="text-xs text-blue-600 ml-1">
+                        & {remainingCount} other{remainingCount > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-2sm text-gray-700 font-normal">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">
+                      <KeenIcon icon="users" className="text-xs" />
+                      Group ({group.length} members)
+                    </span>
+                  </span>
+                </div>
               </div>
+            );
+          } else if (client) {
+            // Display individual client
+            const img = client?.profile ? `${BASE_URL}/${client.profile}` : null;
 
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-                  {row.original.client?.firstName} {row.original.client?.lastName}
-                </span>
-                <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
-                  +251{row.original.client?.phoneNumber}
-                </span>
+            const handleImageClick = (e: React.MouseEvent) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.nativeEvent.stopImmediatePropagation();
+
+              setSelectedImage({
+                src: img ? img : avatar,
+                name: `${client?.firstName} ${client?.lastName}`,
+                phone: `+251${client?.phoneNumber}`,
+              });
+            };
+
+            return (
+              <div className="flex items-center gap-4">
+                <div
+                  className="relative group cursor-pointer"
+                  onClick={handleImageClick}
+                >
+                  <img
+                    src={img ? img : avatar}
+                    className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105"
+                    alt={`${client?.firstName} ${client?.lastName}`}
+                  />
+
+                  {/* Hover overlay with zoom icon */}
+                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    <KeenIcon icon="eye" className="text-white text-xs" />
+                  </div>
+
+                  {/* Online status indicator */}
+                  <div
+                    className={`flex size-2 bg-${client?.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform pointer-events-none`}
+                  ></div>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+                    {client?.firstName} {client?.lastName}
+                  </span>
+                  <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
+                    +251{client?.phoneNumber}
+                  </span>
+                </div>
               </div>
-            </div>
-          );
+            );
+          } else {
+            // No client data available
+            return (
+              <div className="flex items-center gap-4">
+                <div className="size-9 rounded-full bg-gray-200 flex items-center justify-center">
+                  <KeenIcon icon="user" className="text-gray-400 text-sm" />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm text-gray-500">No client assigned</span>
+                </div>
+              </div>
+            );
+          }
         },
         meta: {
-          className: "min-w-[300px]",
+          className: "min-w-[280px]",
           cellClassName: "text-gray-800 font-normal",
         },
       },
@@ -583,19 +737,19 @@ const Sessions = ({
       //    headerClassName: "min-w-[165px]",
       //  },
       //},
-      {
-        id: "duration",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Duration" column={column} />
-        ),
-        enableSorting: false,
-        cell: (info) => {
-          return info.row.original.duration + " minutes";
-        },
-        meta: {
-          headerClassName: "min-w-[80px]",
-        },
-      },
+      //{
+      //  id: "duration",
+      //  header: ({ column }) => (
+      //    <DataGridColumnHeader title="Duration" column={column} />
+      //  ),
+      //  enableSorting: false,
+      //  cell: (info) => {
+      //    return info.row.original.duration + " minutes";
+      //  },
+      //  meta: {
+      //    headerClassName: "min-w-[80px]",
+      //  },
+      //},
       {
         id: "schedule",
         header: ({ column }) => (
@@ -642,13 +796,13 @@ const Sessions = ({
         },
       },
       {
-        id: "hasClientAttended",
+        id: "hasTherapistAttended",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Client Attended" column={column} />
+          <DataGridColumnHeader title="Attended" column={column}/>
         ),
         enableSorting: true,
         cell: (info) => {
-          const hasAttended = info.row.original.hasclientAttended;
+          const hasAttended = info.row.original.hasTherapistAttended;
           return (
             <div className="flex justify-start relative">
               <span
@@ -663,7 +817,35 @@ const Sessions = ({
           );
         },
         meta: {
-          headerClassName: "min-w-[150px]",
+          headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        id: "addToSession",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Add to Session" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          return (
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
+                handleOpenAddToSession(row.original.id);
+              }}
+              size="sm"
+              variant="outline"
+              className="h-8 px-3"
+            >
+              <KeenIcon icon="plus" className="mr-1" />
+              Add Users
+            </Button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[140px]",
         },
       },
     ],
@@ -1162,6 +1344,261 @@ const Sessions = ({
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add to Session Modal */}
+      <Dialog open={isAddToSessionModalOpen} onOpenChange={setIsAddToSessionModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-6">
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Add Users to Session
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 px-1 m-4">
+            {/* User Search */}
+            <div className="space-y-4">
+              <Input
+                placeholder="Search users by name..."
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                className="h-12 text-base"
+              />
+              
+              {usersData?.data && usersData.data.length > 0 ? (
+                <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-xl bg-white">
+                  {usersData.data.map((user: any) => (
+                    <div
+                      key={user.id}
+                      className={`p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 transition-colors ${
+                        selectedUsers.includes(user.id) 
+                          ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
+                          : ''
+                      }`}
+                      onClick={() => handleUserToggle(user.id)}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <img
+                            src={user.profile ? `${BASE_URL}/${user.profile}` : avatar}
+                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                            alt={`${user.firstName} ${user.lastName}`}
+                          />
+                          {selectedUsers.includes(user.id) && (
+                            <div className="absolute -top-1 -right-1 bg-blue-600 rounded-full w-5 h-5 flex">
+                              <KeenIcon icon="check" className="text-white text-xs m-1" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-base font-medium text-gray-900">
+                            {user.firstName} {user.lastName}
+                          </p>
+                          <p className="text-sm text-gray-500">{user.email}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedUsers.includes(user.id)}
+                            onChange={() => handleUserToggle(user.id)}
+                            className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-gray-500 border border-gray-200 rounded-xl">
+                  {userSearch ? 'No users found matching your search' : 'No users available'}
+                </div>
+              )}
+            </div>
+
+            {/* Selected Users Summary */}
+            {/*{selectedUsers.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-blue-900 mb-2">
+                  Selected Users ({selectedUsers.length})
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {selectedUsers.map(userId => {
+                    const user = usersData?.data?.find((u: any) => u.id === userId);
+                    return user ? (
+                      <span
+                        key={userId}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                      >
+                        {user.firstName} {user.lastName}
+                        <button
+                          onClick={() => handleUserToggle(userId)}
+                          className="ml-1 hover:bg-blue-200 rounded-full p-0.5"
+                        >
+                          <KeenIcon icon="cross" className="text-xs" />
+                        </button>
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}*/}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+              <Button
+                variant="outline"
+                onClick={() => setIsAddToSessionModalOpen(false)}
+                className="px-6 py-3 text-base"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddUsersToSession}
+                disabled={isAddingUsers || selectedUsers.length === 0}
+                className="px-6 py-3 text-base bg-blue-600 hover:bg-blue-700"
+              >
+                {isAddingUsers ? (
+                  <>
+                    <KeenIcon icon="loading" className="animate-spin mr-2" />
+                    Adding Users...
+                  </>
+                ) : (
+                  <>
+                    <KeenIcon icon="plus" className="mr-2" />
+                    Add {selectedUsers.length} User{selectedUsers.length !== 1 ? 's' : ''}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Session Detail Modal */}
+      <Dialog open={sessionDetailModalOpen} onOpenChange={setSessionDetailModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-6">
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Session Details
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedSessionDetail && (
+            <div className="space-y-6 px-1">
+              {/* Session Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900">Session Information</h3>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Session ID</label>
+                      <p className="text-sm text-gray-900">{selectedSessionDetail.id}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Schedule</label>
+                      <p className="text-sm text-gray-900">
+                        {new Date(selectedSessionDetail.schedule).toLocaleString()}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Duration</label>
+                      <p className="text-sm text-gray-900">{selectedSessionDetail.duration} minutes</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Therapy Type</label>
+                      <p className="text-sm text-gray-900">{selectedSessionDetail.modal?.name || "N/A"}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Client Attended</label>
+                      <span className={`badge ${selectedSessionDetail.hasclientAttended ? "badge-success" : "badge-danger"} badge-outline`}>
+                        {selectedSessionDetail.hasclientAttended ? "Yes" : "No"}
+                      </span>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Therapist Attended</label>
+                      <span className={`badge ${selectedSessionDetail.hasTherapistAttended ? "badge-success" : "badge-danger"} badge-outline`}>
+                        {selectedSessionDetail.hasTherapistAttended ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Therapist Info */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900">Therapist</h3>
+                  
+                  {selectedSessionDetail.therapist && (
+                    <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                      <img
+                        src={selectedSessionDetail.therapist.profile ? `${BASE_URL}/${selectedSessionDetail.therapist.profile}` : avatar}
+                        className="rounded-full size-12 object-cover"
+                        alt={`${selectedSessionDetail.therapist.firstName} ${selectedSessionDetail.therapist.lastName}`}
+                      />
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {selectedSessionDetail.therapist.firstName} {selectedSessionDetail.therapist.lastName}
+                        </p>
+                        <p className="text-sm text-gray-500">{selectedSessionDetail.therapist.email}</p>
+                        <p className="text-sm text-gray-500">+251{selectedSessionDetail.therapist.phoneNumber}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Client(s) Info */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  {selectedSessionDetail.group && selectedSessionDetail.group.length > 0 ? "Group Clients" : "Client"}
+                </h3>
+                
+                {selectedSessionDetail.group && selectedSessionDetail.group.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedSessionDetail.group.map((client: any, index: number) => (
+                      <div key={client.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                        <img
+                          src={client.profile ? `${BASE_URL}/${client.profile}` : avatar}
+                          className="rounded-full size-12 object-cover"
+                          alt={`${client.firstName} ${client.lastName}`}
+                        />
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {client.firstName} {client.lastName}
+                          </p>
+                          <p className="text-sm text-gray-500">{client.email}</p>
+                          <p className="text-sm text-gray-500">+251{client.phoneNumber}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : selectedSessionDetail.client ? (
+                  <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg max-w-md">
+                    <img
+                      src={selectedSessionDetail.client.profile ? `${BASE_URL}/${selectedSessionDetail.client.profile}` : avatar}
+                      className="rounded-full size-12 object-cover"
+                      alt={`${selectedSessionDetail.client.firstName} ${selectedSessionDetail.client.lastName}`}
+                    />
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {selectedSessionDetail.client.firstName} {selectedSessionDetail.client.lastName}
+                      </p>
+                      <p className="text-sm text-gray-500">{selectedSessionDetail.client.email}</p>
+                      <p className="text-sm text-gray-500">+251{selectedSessionDetail.client.phoneNumber}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No client information available</p>
+                )}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
