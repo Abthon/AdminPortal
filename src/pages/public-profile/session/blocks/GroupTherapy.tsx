@@ -35,23 +35,24 @@ const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface IGroupTherapyCandidate {
   id: string;
-  text: string;
-  modal: {
-    id: string;
-    name: string;
-    description: string;
-  };
-  client: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phoneNumber: string;
-    gender: string;
-    status: string;
-    profile: string | null;
-    isInGroup: boolean;
-  };
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  gender: string;
+  status: string;
+  profile: string | null;
+  isInGroup: boolean;
+  avatar: number;
+  username: string;
+  dob: string;
+  isLinked: boolean;
+  isOnline: boolean;
+  lastSeenAt: string | null;
+  emergencyContact: string | null;
+  isVisible: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface ITherapist {
@@ -99,7 +100,7 @@ const GroupTherapy = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/answer?take=${pageSize}&page=${pageIndex}&filters=modal.name=Group Therapy,client.isInGroup=0&fields=id,text,modal.*,client.*`;
+    const url = `/api/v1/answer/user-ans?take=${pageSize}&page=${pageIndex}&filters=isInGroup=0`;
     const { data } = await axiosInstance.get(url);
     
     // calculating how many items are there on the current page
@@ -127,7 +128,7 @@ const GroupTherapy = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/answer?filters=modal.name=Group Therapy,client.isInGroup=0,client.firstName=${search}&take=${pageSize}&page=${pageIndex}&fields=id,text,modal.*,client.*`;
+    const url = `/api/v1/answer/user-ans?filters=isInGroup=0,firstName=${search}&take=${pageSize}&page=${pageIndex}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -144,7 +145,7 @@ const GroupTherapy = ({
   }
 
   async function revalidateGroupTherapyCandidates() {
-    const url = `/api/v1/answer?filters=modal.name=Group Therapy,client.isInGroup=0${searchInput ? `,client.firstName=${searchInput}` : ""}&fields=id,text,modal.*,client.*`;
+    const url = `/api/v1/answer/user-ans?filters=isInGroup=0${searchInput ? `,firstName=${searchInput}` : ""}`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "revalidated group therapy data");
     return data;
@@ -227,16 +228,16 @@ const GroupTherapy = ({
         },
       },
       {
-        accessorFn: (row) => row.client?.firstName,
+        accessorFn: (row) => row.firstName,
         id: "Client",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Client" column={column} />
+          <DataGridColumnHeader title="Client" column={column} className="min-w-[250px]"/>
         ),
         enableSorting: true,
         cell: ({ row }) => {
-          const img = row.original.client?.profile
-            ? `${BASE_URL}/${row.original.client?.profile}`
-            : row.original.client?.profile;
+          const img = row.original.profile
+            ? `${BASE_URL}/${row.original.profile}`
+            : row.original.profile;
 
           const handleImageClick = (e: React.MouseEvent) => {
             e.preventDefault();
@@ -245,8 +246,8 @@ const GroupTherapy = ({
 
             setSelectedImage({
               src: img ? img : avatar,
-              name: `${row.original.client?.firstName} ${row.original.client?.lastName}`,
-              phone: `+251${row.original.client?.phoneNumber}`,
+              name: `${row.original.firstName} ${row.original.lastName}`,
+              phone: `+251${row.original.phoneNumber}`,
             });
           };
 
@@ -259,7 +260,7 @@ const GroupTherapy = ({
                 <img
                   src={img ? img : avatar}
                   className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105"
-                  alt={`${row.original.client?.firstName} ${row.original.client?.lastName}`}
+                  alt={`${row.original.firstName} ${row.original.lastName}`}
                 />
 
                 {/* Hover overlay with zoom icon */}
@@ -270,10 +271,10 @@ const GroupTherapy = ({
 
               <div className="flex flex-col gap-0.5">
                 <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-                  {row.original.client?.firstName} {row.original.client?.lastName}
+                  {row.original.firstName} {row.original.lastName}
                 </span>
                 <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
-                  +251{row.original.client?.phoneNumber}
+                  +251{row.original.phoneNumber}
                 </span>
               </div>
             </div>
@@ -291,7 +292,7 @@ const GroupTherapy = ({
         ),
         enableSorting: false,
         cell: (info) => {
-          return info.row.original.client?.email;
+          return info.row.original.email;
         },
         meta: {
           headerClassName: "min-w-[200px]",
@@ -304,7 +305,7 @@ const GroupTherapy = ({
         ),
         enableSorting: false,
         cell: (info) => {
-          return info.row.original.client?.gender;
+          return info.row.original.gender;
         },
         meta: {
           headerClassName: "min-w-[100px]",
@@ -313,11 +314,11 @@ const GroupTherapy = ({
       {
         id: "status",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Status" column={column} />
+          <DataGridColumnHeader title="Account Status" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
-          const status = info.row.original.client?.status;
+          const status = info.row.original.status;
           return (
             <div className="flex justify-start relative">
               <span
@@ -341,9 +342,9 @@ const GroupTherapy = ({
 
   const data: IGroupTherapyCandidate[] = useMemo(() => {
     const rawData = groupTherapyData?.data ?? [];
-    // Filter out duplicates based on client.id
+    // Filter out duplicates based on id
     const uniqueData = rawData.filter((item: IGroupTherapyCandidate, index: number, self: IGroupTherapyCandidate[]) => 
-      index === self.findIndex((t: IGroupTherapyCandidate) => t.client?.id === item.client?.id)
+      index === self.findIndex((t: IGroupTherapyCandidate) => t.id === item.id)
     );
     return uniqueData;
   }, [groupTherapyData]);
@@ -352,7 +353,7 @@ const GroupTherapy = ({
     const selectedRowIds = Object.keys(state);
     const selectedClientIds = selectedRowIds.map(rowId => {
       const rowIndex = parseInt(rowId);
-      return data[rowIndex]?.client?.id;
+      return data[rowIndex]?.id;
     }).filter(Boolean);
     
     setSelectedClients(selectedClientIds);

@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { toAbsoluteUrl } from "@/utils";
-import { DataGridLoader } from "@/components/data-grid";
 import avatar from "@/media/avatars/blank.png";
 import { ITherapistsData } from "@/types/therapist";
 
@@ -11,7 +9,7 @@ import {
   DataGridRowSelectAll,
   DataGridRowSelect,
 } from "@/components";
-import { ColumnDef, Column, RowSelectionState } from "@tanstack/react-table";
+import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
 import {
   Select,
   SelectContent,
@@ -20,12 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalTherapistTypeForm } from "@/partials/modals/therapist";
 import axiosInstance from "@/auth/_helpers";
-import ClassNameGenerator from "@mui/utils/ClassNameGenerator";
-import { Row } from "react-day-picker";
 import {
   Dialog,
   DialogContent,
