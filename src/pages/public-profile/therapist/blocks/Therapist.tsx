@@ -30,7 +30,6 @@ import {
 import { Button } from "@/components/ui/button";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
-
 const Therapists = ({
   isAddOpen,
   _handleAddOpen,
@@ -61,7 +60,8 @@ const Therapists = ({
     phone: string;
   } | null>(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
-  const [selectedTherapist, setSelectedTherapist] = useState<ITherapistsData | null>(null);
+  const [selectedTherapist, setSelectedTherapist] =
+    useState<ITherapistsData | null>(null);
   const [selectedModalId, setSelectedModalId] = useState("");
 
   useEffect(() => {
@@ -215,13 +215,22 @@ const Therapists = ({
 
   // Assign modal to therapist mutation
   const { isLoading: isAssigning, mutate: assignModalMutation } = useMutation({
-    mutationFn: async ({ licenseId, modalId }: { licenseId: string; modalId: string }) => {
+    mutationFn: async ({
+      licenseId,
+      modalId,
+    }: {
+      licenseId: string;
+      modalId: string;
+    }) => {
       console.log(selectedTherapist, "selected therapist");
       console.log(licenseId, "selected license");
       console.log(modalId, "selected modal");
-      const { data } = await axiosInstance.patch(`/api/v1/license/${licenseId}`, {
-        modalId: modalId
-      });
+      const { data } = await axiosInstance.patch(
+        `/api/v1/license/${licenseId}`,
+        {
+          modalId: modalId,
+        }
+      );
       return data;
     },
     onSuccess: () => {
@@ -265,7 +274,9 @@ const Therapists = ({
         ),
         enableSorting: true,
         cell: ({ row }) => {
-          const img = row.original.profile ? `${BASE_URL}/${row.original.profile}` : row.original.profile;
+          const img = row.original.profile
+            ? `${BASE_URL}/${row.original.profile}`
+            : row.original.profile;
 
           const handleImageClick = (e: React.MouseEvent) => {
             e.preventDefault();
@@ -438,12 +449,12 @@ const Therapists = ({
     console.log("Selected therapist:", selectedTherapist);
     console.log("Selected modal ID:", selectedModalId);
     console.log("License data:", selectedTherapist?.license);
-    
+
     if (!selectedModalId) {
       toast("Please select a therapy type");
       return;
     }
-    
+
     if (!selectedTherapist?.license || selectedTherapist.license.length === 0) {
       toast("Therapist license information not found. Please contact support.");
       return;
@@ -454,11 +465,14 @@ const Therapists = ({
 
     assignModalMutation({
       licenseId: licenseId,
-      modalId: selectedModalId
+      modalId: selectedModalId,
     });
   };
 
-  const data: ITherapistsData[] = useMemo(() => TherapistData ?? [], [TherapistData]);
+  const data: ITherapistsData[] = useMemo(
+    () => TherapistData ?? [],
+    [TherapistData]
+  );
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
@@ -525,14 +539,16 @@ const Therapists = ({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              Assign Therapy Type to {selectedTherapist?.firstName} {selectedTherapist?.lastName}
+              Assign Therapy Type to {selectedTherapist?.firstName}{" "}
+              {selectedTherapist?.lastName}
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4 p-6">
-            
             <div>
-              <label className="block text-sm font-medium mb-2">Select Therapy Type</label>
+              <label className="block text-sm font-medium mb-2">
+                Select Therapy Type
+              </label>
               <Select
                 value={selectedModalId}
                 onValueChange={setSelectedModalId}
@@ -549,7 +565,7 @@ const Therapists = ({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex gap-2 pt-4">
               <Button
                 onClick={() => setAssignModalOpen(false)}

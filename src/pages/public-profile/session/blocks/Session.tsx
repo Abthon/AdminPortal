@@ -30,7 +30,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { parseDate } from "chrono-node";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalClientTypeForm } from "@/partials/modals/client";
@@ -69,7 +73,9 @@ const Sessions = ({
   handleSessionNum: (num: any) => void;
   searchInput?: string;
 }) => {
-  const [activeTab, setActiveTab] = useState<"sessions" | "group-therapy">("sessions");
+  const [activeTab, setActiveTab] = useState<"sessions" | "group-therapy">(
+    "sessions"
+  );
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [approvalMode, setApprovalMode] = useState(false);
@@ -89,12 +95,16 @@ const Sessions = ({
     startDateText: "",
     endDateText: "",
     startDateObj: undefined as Date | undefined,
-    endDateObj: undefined as Date | undefined
+    endDateObj: undefined as Date | undefined,
   });
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
-  const [startDateMonth, setStartDateMonth] = useState<Date | undefined>(new Date());
-  const [endDateMonth, setEndDateMonth] = useState<Date | undefined>(new Date());
+  const [startDateMonth, setStartDateMonth] = useState<Date | undefined>(
+    new Date()
+  );
+  const [endDateMonth, setEndDateMonth] = useState<Date | undefined>(
+    new Date()
+  );
   const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
   const [sessionForm, setSessionForm] = useState({
     scheduleText: "",
@@ -105,7 +115,9 @@ const Sessions = ({
     clientId: "",
   });
   const [scheduleOpen, setScheduleOpen] = useState(false);
-  const [scheduleMonth, setScheduleMonth] = useState<Date | undefined>(new Date());
+  const [scheduleMonth, setScheduleMonth] = useState<Date | undefined>(
+    new Date()
+  );
   const [therapistSearch, setTherapistSearch] = useState("");
   const [clientSearch, setClientSearch] = useState("");
   // In your parent component, add this state
@@ -115,7 +127,8 @@ const Sessions = ({
     phone: string;
   } | null>(null);
   const [sessionDetailModalOpen, setSessionDetailModalOpen] = useState(false);
-  const [selectedSessionDetail, setSelectedSessionDetail] = useState<ISessionsData | null>(null);
+  const [selectedSessionDetail, setSelectedSessionDetail] =
+    useState<ISessionsData | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [isAddToSessionModalOpen, setIsAddToSessionModalOpen] = useState(false);
@@ -178,11 +191,15 @@ const Sessions = ({
     //   console.log(sort, "sorting is finally here");
     // }
     // [Todo: refactor url]
-    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
-      `${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`  : "";
-    const modalFilterParam = (modalFilter && modalFilter !== "all") ? 
-      `${dateFilter.startDate || dateFilter.endDate ? "," : ""}modal.id:=${modalFilter}` : "";
-    const url = `/api/v1/session?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || modalFilter && modalFilter !== "all" ? ` &filters=` : ""}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
+    const dateFilterParam =
+      dateFilter.startDate || dateFilter.endDate
+        ? `${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`
+        : "";
+    const modalFilterParam =
+      modalFilter && modalFilter !== "all"
+        ? `${dateFilter.startDate || dateFilter.endDate ? "," : ""}modal.id:=${modalFilter}`
+        : "";
+    const url = `/api/v1/session?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || (modalFilter && modalFilter !== "all") ? ` &filters=` : ""}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -213,9 +230,12 @@ const Sessions = ({
     search: any;
     sort: any;
   }) {
-    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
-      `,${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`  : "";
-    const modalFilterParam = (modalFilter && modalFilter !== "all") ? `,modal.id:=${modalFilter}` : "";
+    const dateFilterParam =
+      dateFilter.startDate || dateFilter.endDate
+        ? `,${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`
+        : "";
+    const modalFilterParam =
+      modalFilter && modalFilter !== "all" ? `,modal.id:=${modalFilter}` : "";
     const url = `/api/v1/session?filters=therapist.firstName=${search}${dateFilterParam}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
     const { data } = await axiosInstance.get(url);
 
@@ -234,9 +254,12 @@ const Sessions = ({
   }
 
   async function revalidateSession() {
-    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
-      `,${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`  : "";
-    const modalFilterParam = (modalFilter && modalFilter !== "all") ? `,modal.id:=${modalFilter}` : "";
+    const dateFilterParam =
+      dateFilter.startDate || dateFilter.endDate
+        ? `,${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`
+        : "";
+    const modalFilterParam =
+      modalFilter && modalFilter !== "all" ? `,modal.id:=${modalFilter}` : "";
     const url = `/api/v1/session?filters=therapist.firstName=${searchInput}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
@@ -258,7 +281,7 @@ const Sessions = ({
 
   // Fetch therapists for session creation
   async function fetchTherapists(search: string = "") {
-    const url = search 
+    const url = search
       ? `/api/v1/therapist?filters=firstName=${search}&fields=id,firstName,lastName,profile`
       : `/api/v1/therapist?fields=id,firstName,lastName,profile`;
     const { data } = await axiosInstance.get(url);
@@ -273,15 +296,18 @@ const Sessions = ({
 
   // Add users to session
   async function addUsersToSession(sessionId: string, userIds: string[]) {
-    const { data } = await axiosInstance.post(`/api/v1/session/${sessionId}/add-to-session`, {
-      groupClients: userIds
-    });
+    const { data } = await axiosInstance.post(
+      `/api/v1/session/${sessionId}/add-to-session`,
+      {
+        groupClients: userIds,
+      }
+    );
     return data;
   }
 
   // Fetch users for adding to session
   async function fetchUsers(search: string = "") {
-    const url = search 
+    const url = search
       ? `/api/v1/client?filters=firstName=${search}&fields=id,firstName,lastName,profile,email`
       : `/api/v1/client?fields=id,firstName,lastName,profile,email`;
     const { data } = await axiosInstance.get(url);
@@ -310,7 +336,7 @@ const Sessions = ({
 
   // Fetch clients for session creation
   async function fetchClients(search: string = "") {
-    const url = search 
+    const url = search
       ? `/api/v1/client?filters=firstName=${search}&fields=id,firstName,lastName,profile`
       : `/api/v1/client?fields=id,firstName,lastName,profile`;
     const { data } = await axiosInstance.get(url);
@@ -356,48 +382,55 @@ const Sessions = ({
   });
 
   // Create session mutation
-  const { isLoading: isCreatingSession, mutate: createSessionMutation } = useMutation({
-    mutationFn: createSession,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["Sessions"],
-      });
-      toast("Session created successfully!");
-      setIsAddSessionOpen(false);
-      setSessionForm({
-        scheduleText: "",
-        scheduleDate: undefined,
-        time: "",
-        modalId: "",
-        therapistId: "",
-        clientId: "",
-      });
-      setTherapistSearch("");
-      setClientSearch("");
-    },
-    onError: (error: any) => {
-      toast(error?.message || "Error creating session");
-    },
-  });
+  const { isLoading: isCreatingSession, mutate: createSessionMutation } =
+    useMutation({
+      mutationFn: createSession,
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["Sessions"],
+        });
+        toast("Session created successfully!");
+        setIsAddSessionOpen(false);
+        setSessionForm({
+          scheduleText: "",
+          scheduleDate: undefined,
+          time: "",
+          modalId: "",
+          therapistId: "",
+          clientId: "",
+        });
+        setTherapistSearch("");
+        setClientSearch("");
+      },
+      onError: (error: any) => {
+        toast(error?.message || "Error creating session");
+      },
+    });
 
   // Add users to session mutation
-  const { isLoading: isAddingUsers, mutate: addUsersToSessionMutation } = useMutation({
-    mutationFn: ({ sessionId, userIds }: { sessionId: string; userIds: string[] }) => 
-      addUsersToSession(sessionId, userIds),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["Sessions"],
-      });
-      toast(`Successfully added ${selectedUsers.length} user(s) to session!`);
-      setIsAddToSessionModalOpen(false);
-      setSelectedUsers([]);
-      setUserSearch("");
-      setCurrentSessionId(null);
-    },
-    onError: (error: any) => {
-      toast(error?.message || "Error adding users to session");
-    },
-  }); 
+  const { isLoading: isAddingUsers, mutate: addUsersToSessionMutation } =
+    useMutation({
+      mutationFn: ({
+        sessionId,
+        userIds,
+      }: {
+        sessionId: string;
+        userIds: string[];
+      }) => addUsersToSession(sessionId, userIds),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["Sessions"],
+        });
+        toast(`Successfully added ${selectedUsers.length} user(s) to session!`);
+        setIsAddToSessionModalOpen(false);
+        setSelectedUsers([]);
+        setUserSearch("");
+        setCurrentSessionId(null);
+      },
+      onError: (error: any) => {
+        toast(error?.message || "Error adding users to session");
+      },
+    });
 
   useEffect(
     function () {
@@ -408,7 +441,7 @@ const Sessions = ({
 
   const handleCreateSession = () => {
     console.log("Session form data:", sessionForm);
-    
+
     // Check each field individually for better debugging
     const missingFields = [];
     if (!sessionForm.scheduleDate) missingFields.push("Schedule Date");
@@ -416,7 +449,7 @@ const Sessions = ({
     if (!sessionForm.modalId) missingFields.push("Therapy Type");
     if (!sessionForm.therapistId) missingFields.push("Therapist");
     if (!sessionForm.clientId) missingFields.push("Client");
-    
+
     if (missingFields.length > 0) {
       toast(`Please fill in: ${missingFields.join(", ")}`);
       return;
@@ -428,7 +461,7 @@ const Sessions = ({
     schedule.setMinutes(minutes);
 
     const sessionData = {
-      date: schedule.toISOString().split('T')[0], // Format as YYYY-MM-DD
+      date: schedule.toISOString().split("T")[0], // Format as YYYY-MM-DD
       therapist: sessionForm.therapistId,
       duration: 60, // Hardcoded
       type: "video", // Hardcoded
@@ -453,14 +486,14 @@ const Sessions = ({
 
     addUsersToSessionMutation({
       sessionId: currentSessionId,
-      userIds: selectedUsers
+      userIds: selectedUsers,
     });
   };
 
   const handleUserToggle = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
+    setSelectedUsers((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
         : [...prev, userId]
     );
   };
@@ -492,11 +525,17 @@ const Sessions = ({
         accessorFn: (row) => row.therapist?.firstName,
         id: "Therapist",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Therapist" column={column} className="min-w-[180px]"/>
+          <DataGridColumnHeader
+            title="Therapist"
+            column={column}
+            className="min-w-[180px]"
+          />
         ),
         enableSorting: true,
         cell: ({ row }) => {
-          const img = row.original.therapist?.profile ? `${BASE_URL}/${row.original.therapist?.profile}` : row.original.therapist?.profile;
+          const img = row.original.therapist?.profile
+            ? `${BASE_URL}/${row.original.therapist?.profile}`
+            : row.original.therapist?.profile;
 
           const handleImageClick = (e: React.MouseEvent) => {
             e.preventDefault();
@@ -537,7 +576,8 @@ const Sessions = ({
 
               <div className="flex flex-col gap-0.5">
                 <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-                  {row.original.therapist?.firstName} {row.original.therapist?.lastName}
+                  {row.original.therapist?.firstName}{" "}
+                  {row.original.therapist?.lastName}
                 </span>
                 <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
                   +251{row.original.therapist?.phoneNumber}
@@ -555,12 +595,17 @@ const Sessions = ({
         accessorFn: (row) => row.therapist?.firstName,
         id: "Client",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Client" column={column} className="min-w-[200px]"/>
+          <DataGridColumnHeader
+            title="Client"
+            column={column}
+            className="min-w-[200px]"
+          />
         ),
         enableSorting: true,
         cell: ({ row }) => {
           // Check if this is a group therapy session
-          const isGroupTherapy = row.original.group && row.original.group.length > 0;
+          const isGroupTherapy =
+            row.original.group && row.original.group.length > 0;
           const client = row.original.client;
           const group = row.original.group;
 
@@ -568,7 +613,9 @@ const Sessions = ({
             // Display group therapy clients
             const firstClient = group[0];
             const remainingCount = group.length - 1;
-            const img = firstClient?.profile ? `${BASE_URL}/${firstClient.profile}` : null;
+            const img = firstClient?.profile
+              ? `${BASE_URL}/${firstClient.profile}`
+              : null;
 
             const handleGroupImageClick = (e: React.MouseEvent) => {
               e.preventDefault();
@@ -606,7 +653,7 @@ const Sessions = ({
                     {firstClient?.firstName} {firstClient?.lastName}
                     {remainingCount > 0 && (
                       <span className="text-xs text-blue-600 ml-1">
-                        & {remainingCount} other{remainingCount > 1 ? 's' : ''}
+                        & {remainingCount} other{remainingCount > 1 ? "s" : ""}
                       </span>
                     )}
                   </span>
@@ -621,7 +668,9 @@ const Sessions = ({
             );
           } else if (client) {
             // Display individual client
-            const img = client?.profile ? `${BASE_URL}/${client.profile}` : null;
+            const img = client?.profile
+              ? `${BASE_URL}/${client.profile}`
+              : null;
 
             const handleImageClick = (e: React.MouseEvent) => {
               e.preventDefault();
@@ -676,7 +725,9 @@ const Sessions = ({
                   <KeenIcon icon="user" className="text-gray-400 text-sm" />
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm text-gray-500">No client assigned</span>
+                  <span className="text-sm text-gray-500">
+                    No client assigned
+                  </span>
                 </div>
               </div>
             );
@@ -763,16 +814,16 @@ const Sessions = ({
             try {
               const date = new Date(dateTimeString);
               const options: Intl.DateTimeFormatOptions = {
-                month: 'long',
-                weekday: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
+                month: "long",
+                weekday: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
               };
-              return date.toLocaleDateString('en-US', options);
+              return date.toLocaleDateString("en-US", options);
             } catch {
-              return dateTimeString?.toString() || 'N/A';
+              return dateTimeString?.toString() || "N/A";
             }
           };
           return formatSchedule(schedule);
@@ -798,7 +849,7 @@ const Sessions = ({
       {
         id: "hasTherapistAttended",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Attended" column={column}/>
+          <DataGridColumnHeader title="Attended" column={column} />
         ),
         enableSorting: true,
         cell: (info) => {
@@ -869,37 +920,47 @@ const Sessions = ({
   };
 
   const handleStartDateTextChange = useCallback((value: string) => {
-    setDateFilter(prev => {
+    setDateFilter((prev) => {
       const date = parseDate(value);
       if (date) {
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = date.toISOString().split("T")[0];
         setStartDateMonth(date);
-        return { ...prev, startDateText: value, startDate: dateStr, startDateObj: date };
+        return {
+          ...prev,
+          startDateText: value,
+          startDate: dateStr,
+          startDateObj: date,
+        };
       }
       return { ...prev, startDateText: value };
     });
   }, []);
 
   const handleEndDateTextChange = useCallback((value: string) => {
-    setDateFilter(prev => {
+    setDateFilter((prev) => {
       const date = parseDate(value);
       if (date) {
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = date.toISOString().split("T")[0];
         setEndDateMonth(date);
-        return { ...prev, endDateText: value, endDate: dateStr, endDateObj: date };
+        return {
+          ...prev,
+          endDateText: value,
+          endDate: dateStr,
+          endDateObj: date,
+        };
       }
       return { ...prev, endDateText: value };
     });
   }, []);
 
   const clearDateFilter = useCallback(() => {
-    setDateFilter({ 
-      startDate: "", 
+    setDateFilter({
+      startDate: "",
       endDate: "",
       startDateText: "",
       endDateText: "",
       startDateObj: undefined,
-      endDateObj: undefined
+      endDateObj: undefined,
     });
   }, []);
 
@@ -963,7 +1024,10 @@ const Sessions = ({
                       <span className="sr-only">Select start date</span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                  <PopoverContent
+                    className="w-auto overflow-hidden p-0"
+                    align="start"
+                  >
                     <Calendar
                       mode="single"
                       selected={dateFilter.startDateObj}
@@ -972,12 +1036,12 @@ const Sessions = ({
                       onMonthChange={setStartDateMonth}
                       onSelect={(date) => {
                         if (date) {
-                          const dateStr = date.toISOString().split('T')[0];
-                          setDateFilter(prev => ({ 
-                            ...prev, 
-                            startDate: dateStr, 
+                          const dateStr = date.toISOString().split("T")[0];
+                          setDateFilter((prev) => ({
+                            ...prev,
+                            startDate: dateStr,
                             startDateObj: date,
-                            startDateText: formatDate(date)
+                            startDateText: formatDate(date),
                           }));
                         }
                         setStartDateOpen(false);
@@ -986,9 +1050,9 @@ const Sessions = ({
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               <span className="text-gray-500 text-sm">to</span>
-              
+
               {/* End Date Filter */}
               <div className="relative">
                 <Input
@@ -1013,7 +1077,10 @@ const Sessions = ({
                       <span className="sr-only">Select end date</span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                  <PopoverContent
+                    className="w-auto overflow-hidden p-0"
+                    align="start"
+                  >
                     <Calendar
                       mode="single"
                       selected={dateFilter.endDateObj}
@@ -1022,12 +1089,12 @@ const Sessions = ({
                       onMonthChange={setEndDateMonth}
                       onSelect={(date) => {
                         if (date) {
-                          const dateStr = date.toISOString().split('T')[0];
-                          setDateFilter(prev => ({ 
-                            ...prev, 
-                            endDate: dateStr, 
+                          const dateStr = date.toISOString().split("T")[0];
+                          setDateFilter((prev) => ({
+                            ...prev,
+                            endDate: dateStr,
                             endDateObj: date,
-                            endDateText: formatDate(date)
+                            endDateText: formatDate(date),
                           }));
                         }
                         setEndDateOpen(false);
@@ -1036,7 +1103,7 @@ const Sessions = ({
                   </PopoverContent>
                 </Popover>
               </div>
-              
+
               {(dateFilter.startDate || dateFilter.endDate) && (
                 <button
                   onClick={clearDateFilter}
@@ -1047,10 +1114,12 @@ const Sessions = ({
                 </button>
               )}
             </div>
-            
+
             {/* Modal Type Filter */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Therapy Type:</label>
+              <label className="text-sm font-medium text-gray-700">
+                Therapy Type:
+              </label>
               <Select
                 value={modalFilter}
                 onValueChange={handleModalFilterChange}
@@ -1072,7 +1141,24 @@ const Sessions = ({
         </div>
       </div>
     );
-  }, [dateFilter.startDateText, dateFilter.endDateText, dateFilter.startDate, dateFilter.endDate, itemsOnPage, totalItems, startDateOpen, endDateOpen, startDateMonth, endDateMonth, handleStartDateTextChange, handleEndDateTextChange, clearDateFilter, modalFilter, handleModalFilterChange, modalsData]);
+  }, [
+    dateFilter.startDateText,
+    dateFilter.endDateText,
+    dateFilter.startDate,
+    dateFilter.endDate,
+    itemsOnPage,
+    totalItems,
+    startDateOpen,
+    endDateOpen,
+    startDateMonth,
+    endDateMonth,
+    handleStartDateTextChange,
+    handleEndDateTextChange,
+    clearDateFilter,
+    modalFilter,
+    handleModalFilterChange,
+    modalsData,
+  ]);
 
   // if (isDriverLoading) {
   //   return <DataGridLoader message="Loading" />;
@@ -1086,9 +1172,7 @@ const Sessions = ({
           <button
             onClick={() => setActiveTab("sessions")}
             className={`btn btn-sm ${
-              activeTab === "sessions" 
-                ? "btn-primary" 
-                : "btn-light btn-outline"
+              activeTab === "sessions" ? "btn-primary" : "btn-light btn-outline"
             }`}
           >
             <KeenIcon icon="calendar" />
@@ -1097,8 +1181,8 @@ const Sessions = ({
           <button
             onClick={() => setActiveTab("group-therapy")}
             className={`btn btn-sm ${
-              activeTab === "group-therapy" 
-                ? "btn-primary" 
+              activeTab === "group-therapy"
+                ? "btn-primary"
                 : "btn-light btn-outline"
             }`}
           >
@@ -1157,14 +1241,18 @@ const Sessions = ({
           <DialogHeader>
             <DialogTitle>Create New Session</DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4 p-4">
             {/* Therapy Type Selection */}
             <div>
-              <label className="block text-sm font-medium mb-2">Therapy Type</label>
+              <label className="block text-sm font-medium mb-2">
+                Therapy Type
+              </label>
               <Select
                 value={sessionForm.modalId}
-                onValueChange={(value) => setSessionForm(prev => ({ ...prev, modalId: value }))}
+                onValueChange={(value) =>
+                  setSessionForm((prev) => ({ ...prev, modalId: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select therapy type" />
@@ -1181,7 +1269,9 @@ const Sessions = ({
 
             {/* Therapist Search and Selection */}
             <div>
-              <label className="block text-sm font-medium mb-2">Therapist</label>
+              <label className="block text-sm font-medium mb-2">
+                Therapist
+              </label>
               <Input
                 type="text"
                 placeholder="Search therapist..."
@@ -1195,20 +1285,33 @@ const Sessions = ({
                     <div
                       key={therapist.id}
                       onClick={() => {
-                        setSessionForm(prev => ({ ...prev, therapistId: therapist.id }));
-                        setTherapistSearch(`${therapist.firstName} ${therapist.lastName}`);
+                        setSessionForm((prev) => ({
+                          ...prev,
+                          therapistId: therapist.id,
+                        }));
+                        setTherapistSearch(
+                          `${therapist.firstName} ${therapist.lastName}`
+                        );
                       }}
                       className={`p-3 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3 ${
-                        sessionForm.therapistId === therapist.id ? 'bg-blue-50 border-blue-200' : ''
+                        sessionForm.therapistId === therapist.id
+                          ? "bg-blue-50 border-blue-200"
+                          : ""
                       }`}
                     >
                       <img
-                        src={therapist.profile ? `${BASE_URL}/${therapist.profile}` : avatar}
+                        src={
+                          therapist.profile
+                            ? `${BASE_URL}/${therapist.profile}`
+                            : avatar
+                        }
                         alt={`${therapist.firstName} ${therapist.lastName}`}
                         className="w-8 h-8 rounded-full object-cover"
                       />
                       <div>
-                        <p className="font-medium text-sm">{therapist.firstName} {therapist.lastName}</p>
+                        <p className="font-medium text-sm">
+                          {therapist.firstName} {therapist.lastName}
+                        </p>
                         <p className="text-xs text-gray-500">Therapist</p>
                       </div>
                     </div>
@@ -1233,20 +1336,33 @@ const Sessions = ({
                     <div
                       key={client.id}
                       onClick={() => {
-                        setSessionForm(prev => ({ ...prev, clientId: client.id }));
-                        setClientSearch(`${client.firstName} ${client.lastName}`);
+                        setSessionForm((prev) => ({
+                          ...prev,
+                          clientId: client.id,
+                        }));
+                        setClientSearch(
+                          `${client.firstName} ${client.lastName}`
+                        );
                       }}
                       className={`p-3 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3 ${
-                        sessionForm.clientId === client.id ? 'bg-blue-50 border-blue-200' : ''
+                        sessionForm.clientId === client.id
+                          ? "bg-blue-50 border-blue-200"
+                          : ""
                       }`}
                     >
                       <img
-                        src={client.profile ? `${BASE_URL}/${client.profile}` : avatar}
+                        src={
+                          client.profile
+                            ? `${BASE_URL}/${client.profile}`
+                            : avatar
+                        }
                         alt={`${client.firstName} ${client.lastName}`}
                         className="w-8 h-8 rounded-full object-cover"
                       />
                       <div>
-                        <p className="font-medium text-sm">{client.firstName} {client.lastName}</p>
+                        <p className="font-medium text-sm">
+                          {client.firstName} {client.lastName}
+                        </p>
                         <p className="text-xs text-gray-500">Client</p>
                       </div>
                     </div>
@@ -1268,10 +1384,16 @@ const Sessions = ({
                   className="bg-background pr-10"
                   onChange={(e) => {
                     const value = e.target.value;
-                    setSessionForm(prev => ({ ...prev, scheduleText: value }));
+                    setSessionForm((prev) => ({
+                      ...prev,
+                      scheduleText: value,
+                    }));
                     const date = parseDate(value);
                     if (date) {
-                      setSessionForm(prev => ({ ...prev, scheduleDate: date }));
+                      setSessionForm((prev) => ({
+                        ...prev,
+                        scheduleDate: date,
+                      }));
                       setScheduleMonth(date);
                     }
                   }}
@@ -1293,7 +1415,10 @@ const Sessions = ({
                       <span className="sr-only">Select date</span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto overflow-hidden p-0" align="end">
+                  <PopoverContent
+                    className="w-auto overflow-hidden p-0"
+                    align="end"
+                  >
                     <Calendar
                       mode="single"
                       selected={sessionForm.scheduleDate}
@@ -1301,7 +1426,11 @@ const Sessions = ({
                       month={scheduleMonth}
                       onMonthChange={setScheduleMonth}
                       onSelect={(date) => {
-                        setSessionForm(prev => ({ ...prev, scheduleDate: date, scheduleText: formatDate(date) }));
+                        setSessionForm((prev) => ({
+                          ...prev,
+                          scheduleDate: date,
+                          scheduleText: formatDate(date),
+                        }));
                         setScheduleOpen(false);
                       }}
                     />
@@ -1311,7 +1440,9 @@ const Sessions = ({
               <Input
                 type="time"
                 value={sessionForm.time}
-                onChange={(e) => setSessionForm(prev => ({ ...prev, time: e.target.value }))}
+                onChange={(e) =>
+                  setSessionForm((prev) => ({ ...prev, time: e.target.value }))
+                }
                 placeholder="Select time"
                 className="w-full"
               />
@@ -1348,14 +1479,17 @@ const Sessions = ({
       </Dialog>
 
       {/* Add to Session Modal */}
-      <Dialog open={isAddToSessionModalOpen} onOpenChange={setIsAddToSessionModalOpen}>
+      <Dialog
+        open={isAddToSessionModalOpen}
+        onOpenChange={setIsAddToSessionModalOpen}
+      >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-6">
             <DialogTitle className="text-xl font-semibold text-gray-900">
               Add Users to Session
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-6 px-1 m-4">
             {/* User Search */}
             <div className="space-y-4">
@@ -1365,29 +1499,36 @@ const Sessions = ({
                 onChange={(e) => setUserSearch(e.target.value)}
                 className="h-12 text-base"
               />
-              
+
               {usersData?.data && usersData.data.length > 0 ? (
                 <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-xl bg-white">
                   {usersData.data.map((user: any) => (
                     <div
                       key={user.id}
                       className={`p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 transition-colors ${
-                        selectedUsers.includes(user.id) 
-                          ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
-                          : ''
+                        selectedUsers.includes(user.id)
+                          ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                          : ""
                       }`}
                       onClick={() => handleUserToggle(user.id)}
                     >
                       <div className="flex items-center gap-4">
                         <div className="relative">
                           <img
-                            src={user.profile ? `${BASE_URL}/${user.profile}` : avatar}
+                            src={
+                              user.profile
+                                ? `${BASE_URL}/${user.profile}`
+                                : avatar
+                            }
                             className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
                             alt={`${user.firstName} ${user.lastName}`}
                           />
                           {selectedUsers.includes(user.id) && (
                             <div className="absolute -top-1 -right-1 bg-blue-600 rounded-full w-5 h-5 flex">
-                              <KeenIcon icon="check" className="text-white text-xs m-1" />
+                              <KeenIcon
+                                icon="check"
+                                className="text-white text-xs m-1"
+                              />
                             </div>
                           )}
                         </div>
@@ -1411,7 +1552,9 @@ const Sessions = ({
                 </div>
               ) : (
                 <div className="p-8 text-center text-gray-500 border border-gray-200 rounded-xl">
-                  {userSearch ? 'No users found matching your search' : 'No users available'}
+                  {userSearch
+                    ? "No users found matching your search"
+                    : "No users available"}
                 </div>
               )}
             </div>
@@ -1466,7 +1609,8 @@ const Sessions = ({
                 ) : (
                   <>
                     <KeenIcon icon="plus" className="mr-2" />
-                    Add {selectedUsers.length} User{selectedUsers.length !== 1 ? 's' : ''}
+                    Add {selectedUsers.length} User
+                    {selectedUsers.length !== 1 ? "s" : ""}
                   </>
                 )}
               </Button>
@@ -1476,125 +1620,195 @@ const Sessions = ({
       </Dialog>
 
       {/* Session Detail Modal */}
-      <Dialog open={sessionDetailModalOpen} onOpenChange={setSessionDetailModalOpen}>
+      <Dialog
+        open={sessionDetailModalOpen}
+        onOpenChange={setSessionDetailModalOpen}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-6">
             <DialogTitle className="text-xl font-semibold text-gray-900">
               Session Details
             </DialogTitle>
           </DialogHeader>
-          
+
           {selectedSessionDetail && (
             <div className="space-y-6 px-1">
               {/* Session Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900">Session Information</h3>
-                  
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Session Information
+                  </h3>
+
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Session ID</label>
-                      <p className="text-sm text-gray-900">{selectedSessionDetail.id}</p>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Schedule</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Session ID
+                      </label>
                       <p className="text-sm text-gray-900">
-                        {new Date(selectedSessionDetail.schedule).toLocaleString()}
+                        {selectedSessionDetail.id}
                       </p>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Duration</label>
-                      <p className="text-sm text-gray-900">{selectedSessionDetail.duration} minutes</p>
+                      <label className="text-sm font-medium text-gray-500">
+                        Schedule
+                      </label>
+                      <p className="text-sm text-gray-900">
+                        {new Date(
+                          selectedSessionDetail.schedule
+                        ).toLocaleString()}
+                      </p>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Therapy Type</label>
-                      <p className="text-sm text-gray-900">{selectedSessionDetail.modal?.name || "N/A"}</p>
+                      <label className="text-sm font-medium text-gray-500">
+                        Duration
+                      </label>
+                      <p className="text-sm text-gray-900">
+                        {selectedSessionDetail.duration} minutes
+                      </p>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Client Attended</label>
-                      <span className={`badge ${selectedSessionDetail.hasclientAttended ? "badge-success" : "badge-danger"} badge-outline`}>
+                      <label className="text-sm font-medium text-gray-500">
+                        Therapy Type
+                      </label>
+                      <p className="text-sm text-gray-900">
+                        {selectedSessionDetail.modal?.name || "N/A"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Client Attended
+                      </label>
+                      <span
+                        className={`badge ${selectedSessionDetail.hasclientAttended ? "badge-success" : "badge-danger"} badge-outline`}
+                      >
                         {selectedSessionDetail.hasclientAttended ? "Yes" : "No"}
                       </span>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Therapist Attended</label>
-                      <span className={`badge ${selectedSessionDetail.hasTherapistAttended ? "badge-success" : "badge-danger"} badge-outline`}>
-                        {selectedSessionDetail.hasTherapistAttended ? "Yes" : "No"}
+                      <label className="text-sm font-medium text-gray-500">
+                        Therapist Attended
+                      </label>
+                      <span
+                        className={`badge ${selectedSessionDetail.hasTherapistAttended ? "badge-success" : "badge-danger"} badge-outline`}
+                      >
+                        {selectedSessionDetail.hasTherapistAttended
+                          ? "Yes"
+                          : "No"}
                       </span>
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Therapist Info */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900">Therapist</h3>
-                  
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Therapist
+                  </h3>
+
                   {selectedSessionDetail.therapist && (
                     <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                       <img
-                        src={selectedSessionDetail.therapist.profile ? `${BASE_URL}/${selectedSessionDetail.therapist.profile}` : avatar}
+                        src={
+                          selectedSessionDetail.therapist.profile
+                            ? `${BASE_URL}/${selectedSessionDetail.therapist.profile}`
+                            : avatar
+                        }
                         className="rounded-full size-12 object-cover"
                         alt={`${selectedSessionDetail.therapist.firstName} ${selectedSessionDetail.therapist.lastName}`}
                       />
                       <div>
                         <p className="font-medium text-gray-900">
-                          {selectedSessionDetail.therapist.firstName} {selectedSessionDetail.therapist.lastName}
+                          {selectedSessionDetail.therapist.firstName}{" "}
+                          {selectedSessionDetail.therapist.lastName}
                         </p>
-                        <p className="text-sm text-gray-500">{selectedSessionDetail.therapist.email}</p>
-                        <p className="text-sm text-gray-500">+251{selectedSessionDetail.therapist.phoneNumber}</p>
+                        <p className="text-sm text-gray-500">
+                          {selectedSessionDetail.therapist.email}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          +251{selectedSessionDetail.therapist.phoneNumber}
+                        </p>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-              
+
               {/* Client(s) Info */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-gray-900">
-                  {selectedSessionDetail.group && selectedSessionDetail.group.length > 0 ? "Group Clients" : "Client"}
+                  {selectedSessionDetail.group &&
+                  selectedSessionDetail.group.length > 0
+                    ? "Group Clients"
+                    : "Client"}
                 </h3>
-                
-                {selectedSessionDetail.group && selectedSessionDetail.group.length > 0 ? (
+
+                {selectedSessionDetail.group &&
+                selectedSessionDetail.group.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedSessionDetail.group.map((client: any, index: number) => (
-                      <div key={client.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                        <img
-                          src={client.profile ? `${BASE_URL}/${client.profile}` : avatar}
-                          className="rounded-full size-12 object-cover"
-                          alt={`${client.firstName} ${client.lastName}`}
-                        />
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {client.firstName} {client.lastName}
-                          </p>
-                          <p className="text-sm text-gray-500">{client.email}</p>
-                          <p className="text-sm text-gray-500">+251{client.phoneNumber}</p>
+                    {selectedSessionDetail.group.map(
+                      (client: any, index: number) => (
+                        <div
+                          key={client.id}
+                          className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                        >
+                          <img
+                            src={
+                              client.profile
+                                ? `${BASE_URL}/${client.profile}`
+                                : avatar
+                            }
+                            className="rounded-full size-12 object-cover"
+                            alt={`${client.firstName} ${client.lastName}`}
+                          />
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {client.firstName} {client.lastName}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {client.email}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              +251{client.phoneNumber}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 ) : selectedSessionDetail.client ? (
                   <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg max-w-md">
                     <img
-                      src={selectedSessionDetail.client.profile ? `${BASE_URL}/${selectedSessionDetail.client.profile}` : avatar}
+                      src={
+                        selectedSessionDetail.client.profile
+                          ? `${BASE_URL}/${selectedSessionDetail.client.profile}`
+                          : avatar
+                      }
                       className="rounded-full size-12 object-cover"
                       alt={`${selectedSessionDetail.client.firstName} ${selectedSessionDetail.client.lastName}`}
                     />
                     <div>
                       <p className="font-medium text-gray-900">
-                        {selectedSessionDetail.client.firstName} {selectedSessionDetail.client.lastName}
+                        {selectedSessionDetail.client.firstName}{" "}
+                        {selectedSessionDetail.client.lastName}
                       </p>
-                      <p className="text-sm text-gray-500">{selectedSessionDetail.client.email}</p>
-                      <p className="text-sm text-gray-500">+251{selectedSessionDetail.client.phoneNumber}</p>
+                      <p className="text-sm text-gray-500">
+                        {selectedSessionDetail.client.email}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        +251{selectedSessionDetail.client.phoneNumber}
+                      </p>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-gray-500">No client information available</p>
+                  <p className="text-gray-500">
+                    No client information available
+                  </p>
                 )}
               </div>
             </div>
@@ -1608,7 +1822,7 @@ const Sessions = ({
           onFetchData={getSessions}
           onSearchData={searchSession}
           data={data}
-          link={"session"}
+          link={"sessions"}
           columns={columns}
           //filterInput={filterInput}
           rowSelection={true}

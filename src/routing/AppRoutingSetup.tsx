@@ -6,13 +6,17 @@ import { RequireAuth } from "@/auth/RequireAuth";
 import { Demo1Layout } from "@/layouts/demo1";
 import { ErrorsRouting } from "@/errors";
 import { ConfigPage } from "@/pages/public-profile/config-table";
-import { TherapistPage, TherapistDetailPage } from "@/pages/public-profile/therapist";
+import {
+  TherapistPage,
+  TherapistDetailPage,
+} from "@/pages/public-profile/therapist";
 import { ClientPage, ClientDetailPage } from "@/pages/public-profile/client";
 import { DispatcherPage } from "@/pages/public-profile/dispatchers";
 import { SessionPage } from "@/pages/public-profile/session";
 import { QuotePage } from "@/pages/public-profile/daily-quotes";
 import { BankPage } from "@/pages/public-profile/bank";
 import { QuestionPage } from "@/pages/public-profile/question";
+import { SessionContent } from "@/pages/public-profile/session/blocks/SessionDetailContent";
 
 const AppRoutingSetup = (): ReactElement => {
   return (
@@ -40,6 +44,14 @@ const AppRoutingSetup = (): ReactElement => {
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <TherapistDetailPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/sessions/:id"
+            element={
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
+                <SessionContent sessionData={""} />
               </RequireAuth>
             }
           />
