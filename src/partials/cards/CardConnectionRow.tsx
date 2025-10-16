@@ -1,7 +1,7 @@
-import { KeenIcon } from '@/components';
+import { KeenIcon } from "@/components";
 
-import { CommonAvatar, CommonAvatars } from '../common';
-import { IConnectionItem, IConnectionProps } from './CardConnection';
+import { CommonAvatar, CommonAvatars } from "../common";
+import { IConnectionItem, IConnectionProps } from "./CardConnection";
 
 const CardConnectionRow = ({
   name,
@@ -9,16 +9,19 @@ const CardConnectionRow = ({
   avatar,
   email,
   team,
-  statistics,
-  connected
+  //statistics,
+  //connected
 }: IConnectionProps) => {
+  console.log(`image,${avatar}`);
   const renderItem = (statistic: IConnectionItem, index: number) => {
     return (
       <div
         key={index}
         className="grid grid-cols-1 gap-1.5 border-[0.5px] border-dashed border-gray-400 shrink-0 rounded-md px-2.5 py-2"
       >
-        <span className="text-gray-900 text-sm leading-none font-medium">{statistic.total}</span>
+        <span className="text-gray-900 text-sm leading-none font-medium">
+          {statistic.total}
+        </span>
         <span className="text-gray-700 text-xs">{statistic.description}</span>
       </div>
     );
@@ -81,13 +84,13 @@ const CardConnectionRow = ({
         </div>
 
         <div className="flex items-center flex-wrap gap-5 lg:gap-11">
-          <div className="flex items-center  flex-wrap gap-2 lg:gap-5">
+          {/* <div className="flex items-center  flex-wrap gap-2 lg:gap-5">
             {statistics.map((statistic, index) => {
               return renderItem(statistic, index);
             })}
-          </div>
+          </div> */}
 
-          <div className="">
+          {/* <div className="">
             <CommonAvatars group={team.group} more={team.more} size={team.size} />
           </div>
 
@@ -101,7 +104,7 @@ const CardConnectionRow = ({
                 <KeenIcon icon="users" /> Connect
               </a>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
-import { KeenIcon } from '@/components';
+import { KeenIcon } from "@/components";
 
-import { CommonAvatar, CommonAvatars } from '../common';
+import { CommonAvatar, CommonAvatars } from "../common";
+import localAvatar from "@/media/avatars/blank.png";
 
 interface IConnectionItem {
   total: string;
@@ -19,7 +20,7 @@ interface IConnectionProps {
     badgeClass: string;
   };
   email: string;
-  team: {
+  team?: {
     size?: string;
     group: Array<{ filename?: string; variant?: string; fallback?: string }>;
     more?: {
@@ -27,8 +28,8 @@ interface IConnectionProps {
       variant: string;
     };
   };
-  statistics: IConnectionItem[];
-  connected: boolean;
+  //statistics: IConnectionItem[];
+  // connected: boolean;
 }
 
 const CardConnection = ({
@@ -37,16 +38,19 @@ const CardConnection = ({
   avatar,
   email,
   team,
-  statistics,
-  connected
+  //statistics,
+  // connected,
 }: IConnectionProps) => {
+  // console.log(`image2,${avatar.image}`);
   const renderItem = (statistic: IConnectionItem, index: number) => {
     return (
       <div
         key={index}
         className="grid grid-cols-1 gap-1.5 border-[0.5px] border-dashed border-gray-400 rounded-md px-2.5 py-2 shrink-0 min-w-24 max-w-auto"
       >
-        <span className="text-gray-900 text-2sm leading-none font-medium">{statistic.total}</span>
+        <span className="text-gray-900 text-2sm leading-none font-medium">
+          {statistic.total}
+        </span>
         <span className="text-gray-700 text-xs">{statistic.description}</span>
       </div>
     );
@@ -56,10 +60,10 @@ const CardConnection = ({
     <div className="card">
       <div className="card-body lg:pt-9 lg:pb-7.5">
         <div className="flex justify-center mb-2.5">
-          {avatar && (
+          {avatar.image && (
             <CommonAvatar
-              image={avatar.image}
-              fallback={avatar.fallback}
+              image={"blank.png"}
+              fallback={"blank.png"}
               badgeClass={avatar.badgeClass}
               className={avatar.className}
               imageClass={avatar.imageClass}
@@ -104,19 +108,21 @@ const CardConnection = ({
           </div>
         </div>
 
-        <div className="grid justify-center gap-1.5 mb-7.5">
-          <span className="text-2xs uppercase text-gray-600 text-center">team</span>
+        {/* <div className="grid justify-center gap-1.5 mb-7.5">
+          <span className="text-2xs uppercase text-gray-600 text-center">
+            team
+          </span>
           <CommonAvatars group={team.group} more={team.more} size={team.size} />
-        </div>
+        </div> */}
 
-        <div className="flex items-center justify-center flex-wrap gap-2 lg:gap-5">
+        {/* <div className="flex items-center justify-center flex-wrap gap-2 lg:gap-5">
           {statistics.map((statistic, index) => {
             return renderItem(statistic, index);
           })}
-        </div>
+        </div> */}
       </div>
 
-      <div className="card-footer justify-center">
+      {/* <div className="card-footer justify-center">
         {connected ? (
           <a className="btn btn-light btn-sm">
             <KeenIcon icon="check-circle" /> Connected
@@ -126,9 +132,14 @@ const CardConnection = ({
             <KeenIcon icon="users" /> Connect
           </a>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };
 
-export { CardConnection, type IConnectionItem, type IConnectionItems, type IConnectionProps };
+export {
+  CardConnection,
+  type IConnectionItem,
+  type IConnectionItems,
+  type IConnectionProps,
+};

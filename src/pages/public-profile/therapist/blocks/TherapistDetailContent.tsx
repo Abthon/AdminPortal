@@ -15,13 +15,21 @@ import {
 import { useQuery } from "react-query";
 import axiosInstance from "@/auth/_helpers";
 import avatar from "@/media/avatars/blank.png";
-import { GeneralInfo } from "./GeneralInfo";
+import { LicenseInfo } from "./GeneralInfo";
 //gov_id,licence,degree
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface TherapistDetailContentProps {
   therapistData: ITherapistDetailData;
 }
+
+// Add this query function to fetch license data in the parent component
+const fetchTherapistLicense = async (therapistId: string) => {
+  const { data } = await axiosInstance.get(
+    `/api/v1/license?filters=therapist.id=${therapistId}`
+  );
+  return data;
+};
 
 const timeAgo = (dateString: string | null) => {
   if (!dateString) return "N/A";
@@ -59,10 +67,16 @@ const TherapistDetailContent = ({
     ? `${BASE_URL}/${therapistData.profile}`
     : avatar;
 
+  const { data: licenseData, isLoading: licenseLoading } = useQuery({
+    queryKey: ["therapist-license-details", therapistData.id],
+    queryFn: () => fetchTherapistLicense(therapistData.id),
+  });
+
+  // Get the first license record (assuming one therapist has one license record)
+  const licenseRecord = licenseData?.data?.[0];
   console.log(therapistData, "gow gow therapist");
 
   return (
-    //<div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5">
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5 mb-4">
       {/* Statistics Header - Full Width */}
       <div className="col-span-1 lg:col-span-3 translate-y-[-70px]">
@@ -73,8 +87,31 @@ const TherapistDetailContent = ({
       <div className="col-span-1 w-full">
         <div className="w-full">
           <TherapistGeneralInfo therapistData={therapistData} />
-          <GeneralInfo data={therapistData} />
-          {/*<TherapistAccountInfo therapistData={therapistData} />*/}
+          {/* <LicenseInfo data={therapistData} /> */}
+
+          {/* License Information */}
+          {licenseLoading ? (
+            <div className="card mt-4">
+              <div className="card-body">
+                <div className="flex justify-center items-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  <span className="ml-2 text-gray-600">
+                    Loading documents...
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : licenseRecord ? (
+            <LicenseInfo data={licenseRecord} />
+          ) : (
+            <div className="card mt-4">
+              <div className="card-body">
+                <div className="text-center py-4 text-gray-600">
+                  No professional documents found
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

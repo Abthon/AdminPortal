@@ -16,7 +16,8 @@ import { SessionPage } from "@/pages/public-profile/session";
 import { QuotePage } from "@/pages/public-profile/daily-quotes";
 import { BankPage } from "@/pages/public-profile/bank";
 import { QuestionPage } from "@/pages/public-profile/question";
-import { SessionContent } from "@/pages/public-profile/session/blocks/SessionDetailContent";
+import { SessionDetailContent } from "@/pages/public-profile/session/blocks/SessionDetailContent";
+import { SessionDetailPage } from "@/pages/public-profile/session/SessionDetailPage";
 
 const AppRoutingSetup = (): ReactElement => {
   return (
@@ -51,7 +52,7 @@ const AppRoutingSetup = (): ReactElement => {
             path="/sessions/:id"
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
-                <SessionContent sessionData={""} />
+                <SessionDetailPage />
               </RequireAuth>
             }
           />

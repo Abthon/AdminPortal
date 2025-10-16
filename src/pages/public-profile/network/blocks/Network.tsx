@@ -267,7 +267,7 @@ const Network = () => {
         email={item.email}
         team={item.team}
         statistics={item.statistics}
-        connected={item.connected}
+        // connected={item.connected}
         key={index}
       />
     );
@@ -282,7 +282,7 @@ const Network = () => {
         email={data.email}
         team={data.team}
         statistics={data.statistics}
-        connected={data.connected}
+        // connected={data.connected}
         key={index}
       />
     );
