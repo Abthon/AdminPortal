@@ -25,7 +25,7 @@ const TherapistDetailContent = ({ therapistData }: TherapistDetailContentProps) 
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'Invalid date';
-    return format(date, "MMM dd, yyyy 'at' hh:mm a");
+    return format(date, "MMM dd, yyyy 'at' HH:mm");
   };
 
 
@@ -857,7 +857,7 @@ const TherapistSessionDetailCard = ({
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Scheduled Time</label>
-              <p className="text-sm text-gray-900">{format(new Date(session.schedule), 'hh:mm a')}</p>
+              <p className="text-sm text-gray-900">{format(new Date(session.schedule), 'HH:mm')}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Client Last Seen</label>

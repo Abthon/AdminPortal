@@ -44,7 +44,35 @@ interface IClientsData {
   gender: string;
   status: string;
   profile: string;
-  is_online: boolean;
+  email: string;
+  avatar: number;
+  isEmailAuthenticated: boolean;
+  isPhoneNumberAuthenticated: boolean;
+  firebaseToken: string | null;
+  dob: string;
+  isLinked: boolean;
+  isOnline: boolean;
+  lastSeenAt: string | null;
+  username: string;
+  emergencyContact: string | null;
+  isVisible: boolean;
+  isInGroup: boolean;
+  createdAt: string;
+  updatedAt: string;
+  activeSubscription: {
+    id: string;
+    status: "pending" | "inactive" | "active" | "paused" | "canceled";
+    start_date: string;
+    end_date: string;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
+  sessions?: {
+    modal?: {
+      id: string;
+      name: string;
+    };
+  }[];
 }
 
 const Clients = ({
@@ -134,7 +162,7 @@ const Clients = ({
     //   console.log(sort, "sorting is finally here");
     // }
     // [Todo: refactor url]
-    const url = `/api/v1/client?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}`;
+    const url = `/api/v1/client?take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC,firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,username,emergencyContact,isVisible,isInGroup,createdAt,updatedAt,activeSubscription.*,sessions.modal.*${filterInput && filterInput !== "all" ? `&filters=activeSubscription.status:=${filterInput}` : ""}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -165,7 +193,7 @@ const Clients = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/client?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    const url = `/api/v1/client?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,activeSubscription.status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC,firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,username,emergencyContact,isVisible,isInGroup,createdAt,updatedAt,activeSubscription.*,sessions.modal.*;`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -183,7 +211,7 @@ const Clients = ({
   }
 
   async function revalidateClient() {
-    const url = `/api/v1/client?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}`;
+    const url = `/api/v1/client?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,activeSubscription.status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,username,emergencyContact,isVisible,isInGroup,createdAt,updatedAt,activeSubscription.*,sessions.modal.*&sort=createdAt=DESC`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleClientNum(data.data.length);
@@ -202,7 +230,7 @@ const Clients = ({
   }
 
   async function updateSubscriptionStatus(subscriptionId: string, status: string) {
-    const { data } = await axiosInstance.patch(`/api/v1/subscription/${subscriptionId}`, {
+    const { data } = await axiosInstance.patch(`/api/v1/active-subscription/${subscriptionId}`, {
       status: status
     });
     return data;
@@ -388,7 +416,7 @@ const Clients = ({
 
                 {/* Online status indicator */}
                 <div
-                  className={`flex size-2 bg-${row.original.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform pointer-events-none`}
+                  className={`flex size-2 bg-${row.original.isOnline ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform pointer-events-none`}
                 ></div>
               </div>
 
@@ -457,37 +485,7 @@ const Clients = ({
         enableSorting: false,
         cell: ({ row }) => {
           const client = row.original;
-          const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
-          const [isLoading, setIsLoading] = useState(false);
-
-          useEffect(() => {
-            const fetchStatus = async () => {
-              setIsLoading(true);
-              try {
-                const subscriptionData = await fetchClientSubscription(client.id);
-                if (subscriptionData.data.activeSubscription) {
-                  setSubscriptionStatus(subscriptionData.data.activeSubscription.status);
-                } else {
-                  setSubscriptionStatus(null);
-                }
-              } catch (error) {
-                console.error("Error fetching subscription:", error);
-                setSubscriptionStatus(null);
-              } finally {
-                setIsLoading(false);
-              }
-            };
-
-            fetchStatus();
-          }, [client.id]);
-
-          if (isLoading) {
-            return (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              </div>
-            );
-          }
+          const subscriptionStatus = client.activeSubscription?.status;
 
           if (!subscriptionStatus) {
             return (
@@ -505,6 +503,7 @@ const Clients = ({
                 subscriptionStatus === "pending" ? "badge-warning" :
                 subscriptionStatus === "canceled" ? "badge-danger" :
                 subscriptionStatus === "paused" ? "badge-info" :
+                subscriptionStatus === "inactive" ? "badge-secondary" :
                 "badge-secondary"
               } shrink-0 badge-outline rounded-[30px]`}
             >
@@ -514,6 +513,7 @@ const Clients = ({
                   subscriptionStatus === "pending" ? "bg-warning" :
                   subscriptionStatus === "canceled" ? "bg-danger" :
                   subscriptionStatus === "paused" ? "bg-info" :
+                  subscriptionStatus === "inactive" ? "bg-secondary" :
                   "bg-secondary"
                 } me-1.5`}
               ></span>
@@ -523,6 +523,34 @@ const Clients = ({
         },
         meta: {
           headerClassName: "min-w-[160px]",
+        },
+      },
+      {
+        id: "modalType",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Therapy Type" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const client = row.original;
+          const hasSession = client.sessions && client.sessions.length > 0;
+          const modalName = hasSession && client.sessions?.[0]?.modal ? client.sessions[0].modal.name : null;
+          
+          return (
+            <div className="flex items-center">
+              {modalName ? (
+                <span className="badge badge-primary badge-outline rounded-[30px]">
+                  <span className="size-1.5 rounded-full bg-primary me-1.5"></span>
+                  {modalName}
+                </span>
+              ) : (
+                <span className="text-gray-400 text-sm">Not Assigned</span>
+              )}
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[140px]",
         },
       },
       {
@@ -578,21 +606,13 @@ const Clients = ({
             e.preventDefault();
             e.stopPropagation();
             
-            try {
-              // Fetch client subscription data
-              const subscriptionData = await fetchClientSubscription(client.id);
-              
-              if (subscriptionData.data.activeSubscription) {
-                setSelectedClient(client);
-                setSelectedSubscription(subscriptionData.data.activeSubscription);
-                setSelectedStatus(subscriptionData.data.activeSubscription.status);
-                setPaymentModalOpen(true);
-              } else {
-                toast("No active subscription found for this client");
-              }
-            } catch (error) {
-              toast("Error fetching subscription data");
-              console.error("Error:", error);
+            if (client.activeSubscription) {
+              setSelectedClient(client);
+              setSelectedSubscription(client.activeSubscription);
+              setSelectedStatus(client.activeSubscription.status);
+              setPaymentModalOpen(true);
+            } else {
+              toast("No active subscription found for this client");
             }
           };
 
@@ -657,7 +677,8 @@ const Clients = ({
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
+                <SelectItem value="paused">Paused</SelectItem>
+                <SelectItem value="canceled">Canceled</SelectItem>
               </SelectContent>
             </Select>
 

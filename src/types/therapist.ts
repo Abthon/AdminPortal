@@ -63,6 +63,7 @@ export interface ILicenseData {
   professional_license?: string;
   work_experience?: string;
   special_training?: string;
+  modal?: IModalData;
   updatedAt: string;
   createdAt: string;
 }

@@ -109,7 +109,7 @@ const Therapists = ({
     //   console.log(sort, "sorting is finally here");
     // }
     // [Todo: refactor url]
-    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
+    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,license.modal.*`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -140,7 +140,7 @@ const Therapists = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/therapist?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
+    const url = `/api/v1/therapist?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,license.modal.*`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -158,7 +158,7 @@ const Therapists = ({
   }
 
   async function revalidateTherapist() {
-    const url = `/api/v1/therapist?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
+    const url = `/api/v1/therapist?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,license.modal.*`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleTherapistNum(data.data.length);
@@ -356,6 +356,34 @@ const Therapists = ({
         },
         meta: {
           headerClassName: "min-w-[150px]",
+        },
+      },
+      {
+        id: "modalType",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Therapy Type" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const therapist = row.original;
+          const hasLicense = therapist.license && therapist.license.length > 0;
+          const modalName = hasLicense && therapist.license[0] && (therapist.license[0] as any).modal ? (therapist.license[0] as any).modal.name : null;
+          
+          return (
+            <div className="flex items-center">
+              {modalName ? (
+                <span className="badge badge-primary badge-outline rounded-[30px]">
+                  <span className="size-1.5 rounded-full bg-primary me-1.5"></span>
+                  {modalName}
+                </span>
+              ) : (
+                <span className="text-gray-400 text-sm">Not Assigned</span>
+              )}
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[140px]",
         },
       },
       {

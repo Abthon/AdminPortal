@@ -490,6 +490,69 @@ const Sessions = ({
       },
       {
         accessorFn: (row) => row.therapist?.firstName,
+        id: "Therapist",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Therapist" column={column} className="min-w-[180px]"/>
+        ),
+        enableSorting: true,
+        cell: ({ row }) => {
+          const img = row.original.therapist?.profile ? `${BASE_URL}/${row.original.therapist?.profile}` : row.original.therapist?.profile;
+
+          const handleImageClick = (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+
+            console.log("Image clicked!"); // Add this to debug
+
+            setSelectedImage({
+              src: img ? img : avatar,
+              name: `${row.original.therapist?.firstName} ${row.original.therapist?.lastName}`,
+              phone: `+251${row.original.therapist?.phoneNumber}`,
+            });
+          };
+
+          return (
+            <div className="flex items-center gap-4">
+              <div
+                className="relative group cursor-pointer"
+                onClick={handleImageClick}
+              >
+                <img
+                  src={img ? img : avatar}
+                  className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105"
+                  alt={`${row.original.therapist?.firstName} ${row.original.therapist?.lastName}`}
+                />
+
+                {/* Hover overlay with zoom icon */}
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <KeenIcon icon="eye" className="text-white text-xs" />
+                </div>
+
+                {/* Online status indicator */}
+                <div
+                  className={`flex size-2 bg-${row.original.therapist?.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform pointer-events-none`}
+                ></div>
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+                  {row.original.therapist?.firstName} {row.original.therapist?.lastName}
+                </span>
+                <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
+                  +251{row.original.therapist?.phoneNumber}
+                </span>
+              </div>
+            </div>
+          );
+        },
+        meta: {
+          className: "min-w-[280px]",
+          cellClassName: "text-gray-800 font-normal",
+        },
+      },
+      {
+        accessorFn: (row) => row.therapist?.firstName,
         id: "Client",
         header: ({ column }) => (
           <DataGridColumnHeader title="Client" column={column} className="min-w-[200px]"/>
@@ -618,69 +681,6 @@ const Sessions = ({
               </div>
             );
           }
-        },
-        meta: {
-          className: "min-w-[280px]",
-          cellClassName: "text-gray-800 font-normal",
-        },
-      },
-      {
-        accessorFn: (row) => row.therapist?.firstName,
-        id: "Therapist",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Therapist" column={column} className="min-w-[180px]"/>
-        ),
-        enableSorting: true,
-        cell: ({ row }) => {
-          const img = row.original.therapist?.profile ? `${BASE_URL}/${row.original.therapist?.profile}` : row.original.therapist?.profile;
-
-          const handleImageClick = (e: React.MouseEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
-            e.nativeEvent.stopImmediatePropagation();
-
-            console.log("Image clicked!"); // Add this to debug
-
-            setSelectedImage({
-              src: img ? img : avatar,
-              name: `${row.original.therapist?.firstName} ${row.original.therapist?.lastName}`,
-              phone: `+251${row.original.therapist?.phoneNumber}`,
-            });
-          };
-
-          return (
-            <div className="flex items-center gap-4">
-              <div
-                className="relative group cursor-pointer"
-                onClick={handleImageClick}
-              >
-                <img
-                  src={img ? img : avatar}
-                  className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105"
-                  alt={`${row.original.therapist?.firstName} ${row.original.therapist?.lastName}`}
-                />
-
-                {/* Hover overlay with zoom icon */}
-                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  <KeenIcon icon="eye" className="text-white text-xs" />
-                </div>
-
-                {/* Online status indicator */}
-                <div
-                  className={`flex size-2 bg-${row.original.therapist?.is_online ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform pointer-events-none`}
-                ></div>
-              </div>
-
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-                  {row.original.therapist?.firstName} {row.original.therapist?.lastName}
-                </span>
-                <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
-                  +251{row.original.therapist?.phoneNumber}
-                </span>
-              </div>
-            </div>
-          );
         },
         meta: {
           className: "min-w-[280px]",

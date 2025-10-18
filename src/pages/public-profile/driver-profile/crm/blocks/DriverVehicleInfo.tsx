@@ -58,6 +58,20 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
     try {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `vehicle-document-${Date.now()}.jpg`; // Generate filename with timestamp
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Download failed:", error);
     }
