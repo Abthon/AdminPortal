@@ -164,6 +164,12 @@ const Clients = ({
   const [selectedClient, setSelectedClient] = useState<IClientsData | null>(null);
   const [selectedSubscription, setSelectedSubscription] = useState<ISubscriptionData | null>(null);
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState<{
+    url: string;
+    filename: string;
+    clientName: string;
+  } | null>(null);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -294,6 +300,12 @@ const Clients = ({
 
   async function fetchClientSubscription(clientId: string): Promise<IClientSubscriptionResponse> {
     const { data } = await axiosInstance.get(`/api/v1/client/${clientId}?fields=activeSubscription.*`);
+    return data;
+  }
+
+  // Fetch payment receipt data
+  async function fetchPaymentReceipt(subscriptionId: string) {
+    const { data } = await axiosInstance.get(`/api/v1/subscription/user-sub?fields=payment.*&ids=${subscriptionId}`);
     return data;
   }
 
@@ -689,6 +701,73 @@ const Clients = ({
           headerClassName: "w-32",
         },
       },
+      {
+        id: "receipt",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Receipt" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const handleReceiptClick = async (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+
+            const activeSubscription = row.original.activeSubscription;
+            if (!activeSubscription?.id) {
+              toast.error("No active subscription found");
+              return;
+            }
+
+            try {
+              const receiptData = await fetchPaymentReceipt(activeSubscription.id);
+              const payment = receiptData?.data?.[0]?.payment?.[0];
+              
+              if (!payment?.filename) {
+                toast.error("No receipt found for this client");
+                return;
+              }
+
+              const receiptUrl = `${BASE_URL}/payment/${payment.filename}`;
+              setSelectedReceipt({
+                url: receiptUrl,
+                filename: payment.filename,
+                clientName: `${row.original.firstName} ${row.original.lastName}`,
+              });
+              setReceiptModalOpen(true);
+            } catch (error) {
+              console.error("Error fetching receipt:", error);
+              toast.error("Failed to load receipt");
+            }
+          };
+
+          // Check if client has active subscription
+          const hasActiveSubscription = row.original.activeSubscription?.id;
+
+          if (!hasActiveSubscription) {
+            return (
+              <span className="text-xs text-gray-400 italic">
+                No Subscription
+              </span>
+            );
+          }
+
+          return (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReceiptClick}
+              className="h-8 px-3"
+            >
+              <KeenIcon icon="file-down" className="mr-1" />
+              View Receipt
+            </Button>
+          );
+        },
+        meta: {
+          headerClassName: "w-32",
+        },
+      },
     ],
     [mutate]
   );
@@ -881,6 +960,48 @@ const Clients = ({
               <p className="font-semibold text-sm">{selectedImage.name}</p>
               <p className="text-xs text-gray-600 mt-1">
                 {selectedImage.phone}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt Modal */}
+      {selectedReceipt && (
+        <div
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6"
+          onClick={() => setSelectedReceipt(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] overflow-auto">
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedReceipt(null)}
+              className="absolute -top-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
+            >
+              <KeenIcon icon="cross" className="text-gray-600 text-sm" />
+            </button>
+
+            {/* Receipt Image */}
+            <img
+              src={selectedReceipt.url}
+              alt={`Receipt for ${selectedReceipt.clientName}`}
+              className="rounded-lg shadow-2xl max-h-[80vh] w-auto object-contain bg-white"
+              onClick={(e) => e.stopPropagation()}
+              onError={(e) => {
+                console.error("Failed to load receipt image");
+                toast.error("Failed to load receipt image");
+                setSelectedReceipt(null);
+              }}
+            />
+
+            {/* Info card */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-sm text-gray-800 px-4 py-3 rounded-lg shadow-lg min-w-[200px] text-center">
+              <p className="font-semibold text-sm">Payment Receipt</p>
+              <p className="text-xs text-gray-600 mt-1">
+                {selectedReceipt.clientName}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {selectedReceipt.filename}
               </p>
             </div>
           </div>
