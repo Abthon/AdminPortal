@@ -463,7 +463,7 @@ const Clients = ({
         accessorFn: (row) => row.firstName,
         id: "Client",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Client" column={column} />
+          <DataGridColumnHeader title="Client" column={column} className="min-w-[180px]"/>
         ),
         enableSorting: true,
         cell: ({ row }) => {
