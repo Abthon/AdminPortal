@@ -14,6 +14,7 @@ export interface ITherapistDetailData {
   lastName: string;
   email: string;
   avatar: number;
+  group: ITherapistsData[];
   hoursDedicatedPerWeek: number;
   phoneNumber: string;
   isEmailAuthenticated: boolean;

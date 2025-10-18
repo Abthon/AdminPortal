@@ -1,0 +1,125 @@
+import { Fragment, useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "react-query";
+import { Container } from "@/components/container";
+import { KeenIcon } from "@/components";
+import {
+  Toolbar,
+  ToolbarActions,
+  ToolbarDescription,
+  ToolbarHeading,
+  ToolbarPageTitle,
+} from "@/partials/toolbar";
+//import { TherapistDetailContent } from "./blocks";
+import { useLayout } from "@/providers";
+import axiosInstance from "@/auth/_helpers";
+import { ITherapistDetailResponse } from "@/types/therapist";
+import { DataGridLoader } from "@/components/data-grid";
+import { toast } from "sonner";
+import { SessionDetailContent } from "./blocks/SessionDetailContent";
+import { SessionGroupDetailContent } from "./blocks/SessionGroupDetailContent";
+
+const SessionDetailPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { currentLayout } = useLayout();
+
+  const fetchTherapistDetail = async (
+    sessionId: string
+  ): Promise<ITherapistDetailResponse> => {
+    try {
+      const { data } = await axiosInstance.get(
+        `/api/v1/session/${sessionId}?fields=therapist.*,client.*,hasTherapistAttended,group.*`
+      );
+      console.log("here", data);
+      return data;
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Failed to fetch session details"
+      );
+      throw error;
+    }
+  };
+
+  const {
+    data: sessionData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["session-detail", id],
+    queryFn: () => fetchTherapistDetail(id!),
+    enabled: !!id,
+    retry: 1,
+  });
+
+  const handleBackToSession = () => {
+    navigate("/sessions");
+  };
+
+  if (isLoading) {
+    return (
+      <Container>
+        <DataGridLoader message="Loading session details..." />
+      </Container>
+    );
+  }
+
+  if (error || !sessionData) {
+    return (
+      <Container>
+        <div className="card">
+          <div className="card-body text-center py-10">
+            <KeenIcon
+              icon="information-2"
+              className="text-danger text-3xl mb-4"
+            />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Session Not Found
+            </h3>
+            <p className="text-gray-600 mb-6">
+              The session you're looking for doesn't exist or has been removed.
+            </p>
+            <button onClick={handleBackToSession} className="btn btn-primary">
+              <KeenIcon icon="arrow-left" />
+              Back to Sessions
+            </button>
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
+  return (
+    <Fragment>
+      {/* {currentLayout?.name === "demo1-layout" && (
+        <Container>
+          <Toolbar>
+            <ToolbarActions>
+              <div className="flex items-center gap-2">
+                {sessionData.data.isOnline && (
+                  <span className="badge badge-success badge-outline">
+                    <span className="size-1.5 rounded-full bg-success me-1.5"></span>
+                    Online
+                  </span>
+                )}
+              </div>
+            </ToolbarActions>
+          </Toolbar>
+        </Container>
+      )} */}
+
+      {sessionData.data.group.length == 0 && (
+        <Container>
+          <SessionDetailContent sessionData={sessionData.data} />
+        </Container>
+      )}
+      {sessionData.data.group.length != 0 && (
+        <Container>
+          <SessionGroupDetailContent sessionData={sessionData.data} />
+        </Container>
+      )}
+    </Fragment>
+  );
+};
+
+export { SessionDetailPage };
