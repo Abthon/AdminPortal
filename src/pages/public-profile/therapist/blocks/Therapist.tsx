@@ -110,6 +110,7 @@ const Therapists = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
+  const [modalFilter, setModalFilter] = useState("all");
   // In your parent component, add this state
   const [selectedImage, setSelectedImage] = useState<{
     src: string;
@@ -166,7 +167,10 @@ const Therapists = ({
     //   console.log(sort, "sorting is finally here");
     // }
     // [Todo: refactor url]
-    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
+    const statusFilter = filterInput && filterInput !== "all" ? `status:=${filterInput}` : "";
+    const modalFilterParam = modalFilter && modalFilter !== "all" ? `license.modal.id:=${modalFilter}` : "";
+    const filters = [statusFilter, modalFilterParam].filter(Boolean).join(",");
+    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filters ? `&filters=${filters}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -197,7 +201,9 @@ const Therapists = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/therapist?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
+    const statusFilter = filterInput && filterInput !== "all" ? `,status:=${filterInput}` : "";
+    const modalFilterParam = modalFilter && modalFilter !== "all" ? `,license.modal.id:=${modalFilter}` : "";
+    const url = `/api/v1/therapist?filters=firstName=${search}${statusFilter}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -215,7 +221,9 @@ const Therapists = ({
   }
 
   async function revalidateTherapist() {
-    const url = `/api/v1/therapist?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
+    const statusFilter = filterInput && filterInput !== "all" ? `,status:=${filterInput}` : "";
+    const modalFilterParam = modalFilter && modalFilter !== "all" ? `,license.modal.id:=${modalFilter}` : "";
+    const url = `/api/v1/therapist?filters=firstName=${searchInput}${statusFilter}${modalFilterParam}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleTherapistNum(data.data.length);
@@ -247,7 +255,7 @@ const Therapists = ({
   }
 
   const { isLoading: isTherapistLoading, data: TherapistData } = useQuery({
-    queryKey: ["Therapists", searchInput, filterInput],
+    queryKey: ["Therapists", searchInput, filterInput, modalFilter],
     queryFn: revalidateTherapist,
     //refetchInterval: 5000,
     //refetchIntervalInBackground: true,
@@ -577,6 +585,11 @@ const Therapists = ({
       console.log("Filter value changed to:", value); // Optional: log for debugging
     };
 
+    const handleModalFilterChange = (value: any) => {
+      setModalFilter(value);
+      console.log("Modal filter changed to:", value);
+    };
+
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
@@ -591,14 +604,33 @@ const Therapists = ({
               defaultValue="all"
             >
               <SelectTrigger className="w-28" size="sm">
-                <SelectValue placeholder="Select" />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="w-32">
-                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="suspended">Suspended</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Modal Type Filter */}
+            <Select
+              value={modalFilter}
+              onValueChange={handleModalFilterChange}
+              defaultValue="all"
+            >
+              <SelectTrigger className="w-40" size="sm">
+                <SelectValue placeholder="Therapy Type" />
+              </SelectTrigger>
+              <SelectContent className="w-48">
+                <SelectItem value="all">All Types</SelectItem>
+                {modalsData?.data?.map((modal: any) => (
+                  <SelectItem key={modal.id} value={modal.id}>
+                    {modal.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
