@@ -473,10 +473,10 @@ const Sessions = ({
     createSessionMutation(sessionData);
   };
 
-  const handleOpenAddToSession = (sessionId: string) => {
+  const handleOpenAddToSession = useCallback((sessionId: string) => {
     setCurrentSessionId(sessionId);
     setIsAddToSessionModalOpen(true);
-  };
+  }, []);
 
   const handleAddUsersToSession = () => {
     if (!currentSessionId || selectedUsers.length === 0) {

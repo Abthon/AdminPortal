@@ -53,6 +53,18 @@ export const getMenuSidebar = (
       : null, // Use null when the condition fails
     getUserType(authToken) === "admin"
       ? {
+          title: "Transaction",
+          icon: "dollar",
+          children: [
+            { 
+              title: "Transactions",
+              path: "/transactions",
+            },
+          ],
+        }
+      : null, // Use null when the condition fails
+    getUserType(authToken) === "admin"
+      ? {
           title: "Question",
           icon: "questionnaire-tablet",
           children: [

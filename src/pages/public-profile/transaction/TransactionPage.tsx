@@ -11,12 +11,12 @@ import {
 } from "@/partials/toolbar";
 
 //NetworkUserTableTeamCrewContent
-import { SessionContent } from ".";
+import { TransactionContent } from ".";
 import { useLayout } from "@/providers";
 
-const SessionPage = () => {
+const TransactionPage = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [sessionNum, setSessionNum] = useState(null);
+  const [transactionNum, setTransactionNum] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const { currentLayout } = useLayout();
 
@@ -29,9 +29,9 @@ const SessionPage = () => {
               <ToolbarPageTitle />
               <ToolbarDescription>
                 <div className="flex items-center flex-wrap gap-1.5 font-medium">
-                  <span className="text-md text-gray-700">All Sessions:</span>
+                  <span className="text-md text-gray-700">All Transactions:</span>
                   <span className="text-md text-gray-800 font-medium me-2">
-                    {sessionNum}
+                    {transactionNum}
                   </span>
                 </div>
               </ToolbarDescription>
@@ -42,7 +42,7 @@ const SessionPage = () => {
                   <KeenIcon icon="magnifier" />
                   <input
                     type="text"
-                    placeholder="Search sessions"
+                    placeholder="Search transactions"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                   />
@@ -55,7 +55,7 @@ const SessionPage = () => {
                 className="btn btn-sm btn-primary"
                 disabled={true}
               >
-                Add Session
+Export Data
               </button>
             </ToolbarActions>
           </Toolbar>
@@ -63,15 +63,15 @@ const SessionPage = () => {
       )}
 
       <Container>
-        <SessionContent
+        <TransactionContent
           _handleAddOpen={setIsAddOpen}
           isAddOpen={isAddOpen}
           searchInput={searchInput}
-          handleSessionNum={setSessionNum}
+          handleTransactionNum={setTransactionNum}
         />
       </Container>
     </Fragment>
   );
 };
 
-export { SessionPage };
+export { TransactionPage };

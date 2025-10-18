@@ -139,10 +139,10 @@ const TherapistStatistics = ({
     ? `${BASE_URL}/${therapistData.profile}`
     : avatar;
 
-  // Fetch therapist license data to get modal type
+  // Fetch therapist license data first, then get modal info
   const fetchTherapistLicense = async () => {
     const { data } = await axiosInstance.get(
-      `/api/v1/license?fields=modal.name&filters=therapist.id=${therapistData.id}`
+      `/api/v1/license?filters=therapist.id=${therapistData.id}`
     );
     return data;
   };
@@ -152,9 +152,32 @@ const TherapistStatistics = ({
     queryFn: fetchTherapistLicense,
   });
 
-  // Get modal names from license data
-  const modalNames =
-    licenseData?.data?.map((license: any) => license.modal.name) || [];
+  // Fetch modal data for each license
+  const fetchLicenseModals = async () => {
+    if (!licenseData?.data || licenseData.data.length === 0) return [];
+    
+    const modalPromises = licenseData.data.map(async (license: any) => {
+      try {
+        const { data } = await axiosInstance.get(
+          `/api/v1/license/${license.id}?fields=modal.*`
+        );
+        return data?.data?.modal?.name || null;
+      } catch (error) {
+        console.error("Error fetching license modal:", error);
+        return null;
+      }
+    });
+    
+    const modalNames = await Promise.all(modalPromises);
+    return modalNames.filter(name => name !== null);
+  };
+
+  const { data: modalNames = [], isLoading: modalLoading } = useQuery({
+    queryKey: ["therapist-license-modals", therapistData.id, licenseData],
+    queryFn: fetchLicenseModals,
+    enabled: !!licenseData?.data && licenseData.data.length > 0,
+  });
+
   const uniqueModalNames = [...new Set(modalNames)]; // Remove duplicates
   const displayModal =
     uniqueModalNames.length > 0 ? uniqueModalNames.join(", ") : "N/A";
@@ -235,7 +258,7 @@ const TherapistStatistics = ({
           {/* Replace Age with Modal Type */}
           <div className="text-center">
             <div className="text-3xl font-bold text-gray-900 mb-1">
-              {licenseLoading ? (
+              {licenseLoading || modalLoading ? (
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
               ) : (
                 removeTherapy(displayModal)

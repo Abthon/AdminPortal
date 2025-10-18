@@ -1,6 +1,7 @@
 import { KeenIcon } from "@/components";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface ILicenseInfoItem {
   label: string;
@@ -71,22 +72,57 @@ const LicenseInfo: React.FC<LicenseInfoProps> = ({ data }) => {
   // Function to handle download
   const handleDownload = async () => {
     try {
-      const response = await fetch(imageUrl);
+      // First try to fetch with credentials and proper headers
+      const response = await fetch(imageUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'image/*,*/*',
+        },
+        credentials: 'same-origin', // Include cookies if same origin
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
 
-      // Extract filename from URL
-      const filename = imageUrl.split("/").pop() || "document";
+      // Extract filename from URL and ensure it has proper extension
+      let filename = imageUrl.split("/").pop() || "document";
+      if (!filename.includes('.')) {
+        // If no extension, try to determine from blob type
+        const extension = blob.type.split('/')[1] || 'jpg';
+        filename = `${filename}.${extension}`;
+      }
       a.download = filename;
 
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
+      
+      toast.success("Download started successfully!");
     } catch (error) {
       console.error("Download failed:", error);
+      
+      // Fallback: Open in new tab if fetch fails (CORS issues)
+      try {
+        const a = document.createElement("a");
+        a.href = imageUrl;
+        a.target = "_blank";
+        a.download = imageUrl.split("/").pop() || "document";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        toast.info("Download opened in new tab. Please save the file manually if needed.");
+      } catch (fallbackError) {
+        console.error("Fallback download also failed:", fallbackError);
+        toast.error("Download failed. Please try right-clicking the image and selecting 'Save image as...'");
+      }
     }
   };
 

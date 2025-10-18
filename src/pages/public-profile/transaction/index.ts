@@ -1,2 +1,2 @@
-export * from "./SessionContent";
-export * from "./SessionPage";
+export * from "./TransactionContent";
+export * from "./TransactionPage";

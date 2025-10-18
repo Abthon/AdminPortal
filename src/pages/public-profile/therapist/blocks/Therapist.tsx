@@ -30,6 +30,63 @@ import {
 import { Button } from "@/components/ui/button";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
+// Component to handle async modal fetching for therapist
+const TherapistModalCell = ({ therapist }: { therapist: ITherapistsData }) => {
+  const [modalName, setModalName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchModal = async () => {
+      if (!therapist.license || therapist.license.length === 0) {
+        setModalName(null);
+        return;
+      }
+
+      const licenseId = therapist.license[0].id;
+      if (!licenseId) {
+        setModalName(null);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const { data } = await axiosInstance.get(
+          `/api/v1/license/${licenseId}?fields=modal.*`
+        );
+        setModalName(data?.data?.modal?.name || null);
+      } catch (error) {
+        console.error("Error fetching license modal:", error);
+        setModalName(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModal();
+  }, [therapist.license]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center">
+      {modalName ? (
+        <span className="badge badge-primary badge-outline rounded-[30px]">
+          <span className="size-1.5 rounded-full bg-primary me-1.5"></span>
+          {modalName}
+        </span>
+      ) : (
+        <span className="text-gray-400 text-sm">Not Assigned</span>
+      )}
+    </div>
+  );
+};
+
 const Therapists = ({
   isAddOpen,
   _handleAddOpen,
@@ -109,7 +166,7 @@ const Therapists = ({
     //   console.log(sort, "sorting is finally here");
     // }
     // [Todo: refactor url]
-    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,license.modal.*`;
+    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filterInput && filterInput !== "all" ? `&filters=status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -140,7 +197,7 @@ const Therapists = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/therapist?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,license.modal.*`;
+    const url = `/api/v1/therapist?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -158,7 +215,7 @@ const Therapists = ({
   }
 
   async function revalidateTherapist() {
-    const url = `/api/v1/therapist?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,license.modal.*`;
+    const url = `/api/v1/therapist?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleTherapistNum(data.data.length);
@@ -169,6 +226,19 @@ const Therapists = ({
   async function fetchModals() {
     const { data } = await axiosInstance.get("/api/v1/modal");
     return data;
+  }
+
+  // Fetch license details with modal information
+  async function fetchLicenseWithModal(licenseId: string) {
+    try {
+      const { data } = await axiosInstance.get(
+        `/api/v1/license/${licenseId}?fields=modal.*`
+      );
+      return data;
+    } catch (error) {
+      console.error("Error fetching license modal:", error);
+      return null;
+    }
   }
 
   async function deleteTherapist(id: string) {
@@ -376,22 +446,7 @@ const Therapists = ({
         ),
         enableSorting: false,
         cell: ({ row }) => {
-          const therapist = row.original;
-          const hasLicense = therapist.license && therapist.license.length > 0;
-          const modalName = hasLicense && therapist.license[0] && (therapist.license[0] as any).modal ? (therapist.license[0] as any).modal.name : null;
-          
-          return (
-            <div className="flex items-center">
-              {modalName ? (
-                <span className="badge badge-primary badge-outline rounded-[30px]">
-                  <span className="size-1.5 rounded-full bg-primary me-1.5"></span>
-                  {modalName}
-                </span>
-              ) : (
-                <span className="text-gray-400 text-sm">Not Assigned</span>
-              )}
-            </div>
-          );
+          return <TherapistModalCell therapist={row.original} />;
         },
         meta: {
           headerClassName: "min-w-[140px]",

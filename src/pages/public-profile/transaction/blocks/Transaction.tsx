@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { toAbsoluteUrl } from "@/utils";
+import { cn } from "@/lib/utils";
 import { DataGridLoader } from "@/components/data-grid";
 import avatar from "@/media/avatars/blank.png";
 
@@ -10,19 +11,7 @@ import {
   DataGridRowSelectAll,
   DataGridRowSelect,
 } from "@/components";
-import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
-import { toast } from "sonner";
-import { useMutation, useQuery, useQueryClient } from "react-query";
-import axiosInstance from "@/auth/_helpers";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { ColumnDef, Column, RowSelectionState } from "@tanstack/react-table";
 import {
   Select,
   SelectContent,
@@ -30,68 +19,153 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { parseDate } from "chrono-node";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import axiosInstance from "@/auth/_helpers";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
-interface IGroupTherapyCandidate {
+interface ITransactionData {
   id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  gender: string;
-  status: string;
-  profile: string | null;
-  isInGroup: boolean;
-  avatar: number;
-  username: string;
-  dob: string;
-  isLinked: boolean;
-  isOnline: boolean;
-  lastSeenAt: string | null;
-  emergencyContact: string | null;
-  isVisible: boolean;
-  createdAt: string;
-  updatedAt: string;
+  client: {
+    id: string;
+    updatedAt: string;
+    createdAt: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatar: number;
+    phoneNumber: string;
+    isEmailAuthenticated: boolean;
+    isPhoneNumberAuthenticated: boolean;
+    firebaseToken: string | null;
+    status: string;
+    gender: string;
+    dob: string;
+    isLinked: boolean;
+    isOnline: boolean;
+    lastSeenAt: string;
+    profile: string | null;
+    username: string;
+    emergencyContact: string | null;
+    isVisible: boolean;
+    isInGroup: boolean;
+  };
+  subscription: {
+    id: string;
+    updatedAt: string;
+    createdAt: string;
+    type: number;
+    status: string;
+    start_date: string;
+    end_date: string;
+    old_price: number;
+    price: number;
+    level: {
+      id: string;
+      updatedAt: string;
+      createdAt: string;
+      type: string;
+      minXP: number;
+      maxXP: number | null;
+      price: number;
+    };
+  };
 }
 
-interface ITherapist {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  profile: string | null;
-}
-
-interface ISessionForm {
-  schedule: string;
-  therapist: string;
-  groupName: string;
-}
-
-const GroupTherapy = ({
+const Transactions = ({
+  isAddOpen,
+  _handleAddOpen,
+  handleTransactionNum,
   searchInput,
 }: {
+  isAddOpen: boolean;
+  _handleAddOpen: (isOpen: boolean) => void;
+  handleTransactionNum: (num: any) => void;
   searchInput?: string;
 }) => {
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [approvalMode, setApprovalMode] = useState(false);
+  const [del, setDel] = useState(false);
+  const [currentTransactionData, setCurrentTransactionData] =
+    useState<ITransactionData | null>(null);
+  const [totalPage, setTotalPage] = useState(0);
+  const [pageIndex, setPageIndex] = useState({ index: 0 });
+  // const [sort, setSort] = useState<string | null>(null);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
-  const [selectedClients, setSelectedClients] = useState<string[]>([]);
+  const [filterInput, setFilterInput] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState({
+    startDate: "",
+    endDate: "",
+    startDateText: "",
+    endDateText: "",
+    startDateObj: undefined as Date | undefined,
+    endDateObj: undefined as Date | undefined
+  });
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
+  const [startDateMonth, setStartDateMonth] = useState<Date | undefined>(new Date());
+  const [endDateMonth, setEndDateMonth] = useState<Date | undefined>(new Date());
+  // In your parent component, add this state
   const [selectedImage, setSelectedImage] = useState<{
     src: string;
     name: string;
     phone: string;
   } | null>(null);
-  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
-  const [therapistSearch, setTherapistSearch] = useState("");
-  const [sessionForm, setSessionForm] = useState<ISessionForm>({
-    schedule: "",
-    therapist: "",
-    groupName: "",
-  });
+  const [transactionDetailModalOpen, setTransactionDetailModalOpen] = useState(false);
+  const [selectedTransactionDetail, setSelectedTransactionDetail] = useState<ITransactionData | null>(null);
 
-  async function getGroupTherapyCandidates({
+  useEffect(() => {
+    console.log(pageIndex, "current page Index is: ");
+  }, [pageIndex]);
+
+  const handleClose = () => {
+    setApprovalMode(false);
+    setProfileModalOpen(false);
+    _handleAddOpen(false);
+  };
+
+  const handleTransactionDetailClick = (transactionData: ITransactionData) => {
+    setSelectedTransactionDetail(transactionData);
+    setTransactionDetailModalOpen(true);
+  };
+
+  const handleOpen = (
+    isEdit: boolean,
+    rowData: ITransactionData | null = null,
+    isDelete?: boolean
+  ) => {
+    setApprovalMode(false);
+    setEditMode(isEdit);
+    setCurrentTransactionData(rowData);
+    setProfileModalOpen(true);
+    setDel(isDelete || false);
+  };
+
+  const handleApproval = (
+    isEdit: boolean,
+    rowData: ITransactionData | null = null
+  ) => {
+    setApprovalMode(isEdit);
+    setCurrentTransactionData(rowData);
+    setProfileModalOpen(true);
+  };
+
+  async function getTransactions({
     pageIndex,
     pageSize,
     sort,
@@ -100,9 +174,15 @@ const GroupTherapy = ({
     pageSize: number;
     sort: any;
   }) {
-    const url = `/api/v1/answer/user-ans?take=${pageSize}&page=${pageIndex}&filters=isInGroup=0`;
+    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
+      `${dateFilter.startDate ? ` subscription.start_date>=${dateFilter.startDate}` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` subscription.end_date<=${dateFilter.endDate}` : ""}`  : "";
+    const statusFilterParam = (statusFilter && statusFilter !== "all") ? 
+      `${dateFilter.startDate || dateFilter.endDate ? "," : ""}subscription.status:=${statusFilter}` : "";
+    const url = `/api/v1/subscription/user-sub?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || statusFilter && statusFilter !== "all" ? ` &filters=` : ""}${dateFilterParam}${statusFilterParam}&fields=client.*`;
+    console.log(url, "url");
     const { data } = await axiosInstance.get(url);
-    
+
+    console.log(data, "The data");
     // calculating how many items are there on the current page
     const startIndex =
       (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
@@ -114,10 +194,11 @@ const GroupTherapy = ({
 
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
+    handleTransactionNum(data.data.length);
     return data;
   }
 
-  async function searchGroupTherapyCandidates({
+  async function searchTransaction({
     pageIndex,
     pageSize,
     search,
@@ -128,7 +209,10 @@ const GroupTherapy = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/answer/user-ans?filters=isInGroup=0,firstName=${search}&take=${pageSize}&page=${pageIndex}`;
+    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
+      `,${dateFilter.startDate ? ` subscription.start_date>=${dateFilter.startDate}` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` subscription.end_date<=${dateFilter.endDate}` : ""}`  : "";
+    const statusFilterParam = (statusFilter && statusFilter !== "all") ? `,subscription.status:=${statusFilter}` : "";
+    const url = `/api/v1/subscription/user-sub?filters=client.firstName=${search}${dateFilterParam}${statusFilterParam}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=client.*`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -141,81 +225,70 @@ const GroupTherapy = ({
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
+    handleTransactionNum(data.data.length);
     return data;
   }
 
-  async function revalidateGroupTherapyCandidates() {
-    const url = `/api/v1/answer/user-ans?filters=isInGroup=0${searchInput ? `,firstName=${searchInput}` : ""}`;
+  async function revalidateTransaction() {
+    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
+      `,${dateFilter.startDate ? ` subscription.start_date>=${dateFilter.startDate}` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` subscription.end_date<=${dateFilter.endDate}` : ""}`  : "";
+    const statusFilterParam = (statusFilter && statusFilter !== "all") ? `,subscription.status:=${statusFilter}` : "";
+    const url = `/api/v1/subscription/user-sub?filters=client.firstName=${searchInput}${dateFilterParam}${statusFilterParam}&fields=client.*`;
     const { data } = await axiosInstance.get(url);
-    console.log(data, "revalidated group therapy data");
+    console.log(data, "the data");
+    handleTransactionNum(data.data.length);
+    console.log(data.data, "transaction data");
     return data;
   }
 
-  const { isLoading: isGroupTherapyLoading, data: groupTherapyData } = useQuery({
-    queryKey: ["GroupTherapyCandidates", searchInput],
-    queryFn: revalidateGroupTherapyCandidates,
-    //refetchInterval: 5000,
-    //refetchIntervalInBackground: true,
+  async function deleteTransaction(id: string) {
+    const { data } = await axiosInstance.delete(`/api/v1/subscription/${id}`);
+    return data;
+  }
+
+  const { isLoading: isTransactionLoading, data: TransactionData } = useQuery({
+    queryKey: ["Transactions", searchInput, dateFilter, statusFilter],
+    queryFn: revalidateTransaction,
+    refetchInterval: 50000,
+    refetchIntervalInBackground: true,
   });
 
-  async function getTherapists(search?: string) {
-    const url = `/api/v1/therapist${search ? `?filters=firstName=${search}` : ""}`;
-    const { data } = await axiosInstance.get(url);
-    return data;
+  interface DeleteResponse {
+    // Add your API response structure here
+    data: any;
   }
-
-  async function createGroupSession(sessionData: ISessionForm & { groupClients: string[] }) {
-    // Parse the datetime-local input to extract day and time
-    const scheduleDate = new Date(sessionData.schedule);
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const dayName = dayNames[scheduleDate.getDay()];
-    const startTime = scheduleDate.toTimeString().slice(0, 5); // Format: "HH:MM"
-
-    const payload = {
-      note: "Group therapy session",
-      groupName: sessionData.groupName,
-      duration: 60,
-      type: "video",
-      modal: "d724ce6f-4f28-4406-8e67-d8f52afab561",
-      groupClients: sessionData.groupClients,
-      therapist: sessionData.therapist,
-      date: {
-        date: dayName,
-        startTime: startTime
-      }
-    };
-    const { data } = await axiosInstance.post('/api/v1/session/group', payload);
-    return data;
-  }
-
-  const { data: therapistsData, isLoading: isLoadingTherapists } = useQuery({
-    queryKey: ["Therapists", therapistSearch],
-    queryFn: () => getTherapists(therapistSearch),
-    enabled: isSessionModalOpen,
-  });
 
   const queryClient = useQueryClient();
-  const { isLoading: isCreatingSession, mutate: createSession } = useMutation({
-    mutationFn: createGroupSession,
+  const { isLoading: isDeleting, mutate } = useMutation<
+    DeleteResponse,
+    Error,
+    string
+  >({
+    mutationFn: deleteTransaction,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["GroupTherapyCandidates"],
+        queryKey: ["Transactions"],
       });
-      setSelectedClients([]);
-      setIsSessionModalOpen(false);
-      setSessionForm({
-        schedule: "",
-        therapist: "",
-        groupName: "",
-      });
-      toast("Group session successfully created!");
+      toast("Transaction successfully deleted!");
     },
-    onError: (error: any) => {
-      toast(error?.message || "Error creating group session");
+    onError: (error) => {
+      toast(error?.message || "Error Encountered deleting the transaction");
     },
-  });
+  }); 
 
-  const columns = useMemo<ColumnDef<IGroupTherapyCandidate>[]>(
+
+  const formatDate = (date: Date | undefined) => {
+    if (!date) {
+      return "";
+    }
+    return date.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const columns = useMemo<ColumnDef<ITransactionData>[]>(
     () => [
       {
         accessorKey: "id",
@@ -228,16 +301,14 @@ const GroupTherapy = ({
         },
       },
       {
-        accessorFn: (row) => row.firstName,
+        accessorFn: (row) => row.client?.firstName,
         id: "Client",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Client" column={column} className="min-w-[250px]"/>
+          <DataGridColumnHeader title="Client" column={column} className="min-w-[180px]"/>
         ),
         enableSorting: true,
         cell: ({ row }) => {
-          const img = row.original.profile
-            ? `${BASE_URL}/${row.original.profile}`
-            : row.original.profile;
+          const img = row.original.client?.profile ? `${BASE_URL}/${row.original.client?.profile}` : null;
 
           const handleImageClick = (e: React.MouseEvent) => {
             e.preventDefault();
@@ -246,8 +317,8 @@ const GroupTherapy = ({
 
             setSelectedImage({
               src: img ? img : avatar,
-              name: `${row.original.firstName} ${row.original.lastName}`,
-              phone: `+251${row.original.phoneNumber}`,
+              name: `${row.original.client?.firstName} ${row.original.client?.lastName}`,
+              phone: `+251${row.original.client?.phoneNumber}`,
             });
           };
 
@@ -260,72 +331,71 @@ const GroupTherapy = ({
                 <img
                   src={img ? img : avatar}
                   className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105"
-                  alt={`${row.original.firstName} ${row.original.lastName}`}
+                  alt={`${row.original.client?.firstName} ${row.original.client?.lastName}`}
                 />
 
                 {/* Hover overlay with zoom icon */}
                 <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                   <KeenIcon icon="eye" className="text-white text-xs" />
                 </div>
+
+                {/* Online status indicator */}
+                <div
+                  className={`flex size-2 bg-${row.original.client?.isOnline ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform pointer-events-none`}
+                ></div>
               </div>
 
               <div className="flex flex-col gap-0.5">
                 <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-                  {row.original.firstName} {row.original.lastName}
+                  {row.original.client?.firstName} {row.original.client?.lastName}
                 </span>
                 <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
-                  +251{row.original.phoneNumber}
+                  +251{row.original.client?.phoneNumber}
                 </span>
               </div>
             </div>
           );
         },
         meta: {
-          className: "min-w-[300px]",
+          className: "min-w-[280px]",
           cellClassName: "text-gray-800 font-normal",
         },
       },
       {
-        id: "email",
+        id: "subscriptionType",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Email" column={column} />
+          <DataGridColumnHeader title="Subscription Type" column={column} />
         ),
         enableSorting: false,
         cell: (info) => {
-          return info.row.original.email;
+          const subscriptionType = info.row.original.subscription?.type;
+          const typeLabels = {
+            0: "Free",
+            1: "Basic",
+            2: "Premium", 
+            3: "Enterprise"
+          };
+          return typeLabels[subscriptionType as keyof typeof typeLabels] || "Unknown";
         },
         meta: {
-          headerClassName: "min-w-[200px]",
+          headerClassName: "min-w-[120px]",
         },
       },
       {
-        id: "gender",
+        id: "subscriptionStatus",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Gender" column={column} />
-        ),
-        enableSorting: false,
-        cell: (info) => {
-          return info.row.original.gender;
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
-        },
-      },
-      {
-        id: "status",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Account Status" column={column} />
+          <DataGridColumnHeader title="Status" column={column}/>
         ),
         enableSorting: true,
         cell: (info) => {
-          const status = info.row.original.status;
+          const status = info.row.original.subscription?.status;
           return (
             <div className="flex justify-start relative">
               <span
-                className={`badge ${status === "suspended" && "badge-danger"} ${status === "inactive" && "badge-warning"} ${status === "active" && "badge-success"} ${status === "pending" && "badge-primary"} shrink-0 badge-outline rounded-[30px]`}
+                className={`badge ${status === "active" ? "badge-success" : status === "inactive" ? "badge-danger" : "badge-warning"} shrink-0 badge-outline rounded-[30px]`}
               >
                 <span
-                  className={`size-1.5 rounded-full ${status === "suspended" && "bg-danger"} ${status === "inactive" && "bg-warning"} ${status === "active" && "bg-success"} ${status === "pending" && "bg-primary"} me-1.5`}
+                  className={`size-1.5 rounded-full ${status === "active" ? "bg-success" : status === "inactive" ? "bg-danger" : "bg-warning"} me-1.5`}
                 ></span>
                 {status}
               </span>
@@ -333,257 +403,315 @@ const GroupTherapy = ({
           );
         },
         meta: {
+          headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        id: "price",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Price" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          const price = info.row.original.subscription?.price;
+          const oldPrice = info.row.original.subscription?.old_price;
+          return (
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900">
+                ${price?.toFixed(2) || "0.00"}
+              </span>
+              {oldPrice && oldPrice !== price && (
+                <span className="text-xs text-gray-500 line-through">
+                  ${oldPrice.toFixed(2)}
+                </span>
+              )}
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        id: "dates",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Subscription Period" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          const startDate = info.row.original.subscription?.start_date;
+          const endDate = info.row.original.subscription?.end_date;
+          const formatDate = (dateString: string) => {
+            try {
+              const date = new Date(dateString);
+              return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              });
+            } catch {
+              return dateString;
+            }
+          };
+          return (
+            <div className="flex flex-col text-xs">
+              <span>From: {startDate ? formatDate(startDate) : "N/A"}</span>
+              <span>To: {endDate ? formatDate(endDate) : "N/A"}</span>
+            </div>
+          );
+        },
+        meta: {
           headerClassName: "min-w-[150px]",
         },
       },
+      {
+        id: "level",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Level" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          const level = info.row.original.subscription?.level;
+          return (
+            <div className="flex flex-col text-xs">
+              <span className="font-medium capitalize">{level?.type || "N/A"}</span>
+              <span className="text-gray-500">
+                XP: {level?.minXP}-{level?.maxXP || "∞"}
+              </span>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
+      },
     ],
-    []
+    [mutate]
   );
 
-  const data: IGroupTherapyCandidate[] = useMemo(() => {
-    const rawData = groupTherapyData?.data ?? [];
-    // Filter out duplicates based on id
-    const uniqueData = rawData.filter((item: IGroupTherapyCandidate, index: number, self: IGroupTherapyCandidate[]) => 
-      index === self.findIndex((t: IGroupTherapyCandidate) => t.id === item.id)
-    );
-    return uniqueData;
-  }, [groupTherapyData]);
+  const data: ITransactionData[] = useMemo(() => TransactionData ?? [], [TransactionData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
-    const selectedClientIds = selectedRowIds.map(rowId => {
-      const rowIndex = parseInt(rowId);
-      return data[rowIndex]?.id;
-    }).filter(Boolean);
-    
-    setSelectedClients(selectedClientIds);
 
     if (selectedRowIds.length > 0) {
-      toast(`Total ${selectedRowIds.length} clients selected.`, {
-        description: `Selected clients: ${selectedClientIds.length}`,
+      toast(`Total ${selectedRowIds.length} are selected.`, {
+        description: `Selected transaction IDs: ${selectedRowIds}`,
+        action: {
+          label: "Undo",
+          onClick: () => console.log("Undo"),
+        },
       });
     }
   };
 
-  const handleAddToGroup = () => {
-    if (selectedClients.length === 0) {
-      toast("Please select at least one client to add to the group session.");
-      return;
-    }
-
-    setIsSessionModalOpen(true);
-  };
-
-  const handleCreateSession = () => {
-    if (!sessionForm.therapist || !sessionForm.schedule || !sessionForm.groupName) {
-      toast("Please select a therapist, schedule, and provide a group name.");
-      return;
-    }
-
-    createSession({
-      ...sessionForm,
-      groupClients: selectedClients,
+  const handleStartDateTextChange = useCallback((value: string) => {
+    setDateFilter(prev => {
+      const date = parseDate(value);
+      if (date) {
+        const dateStr = date.toISOString().split('T')[0];
+        setStartDateMonth(date);
+        return { ...prev, startDateText: value, startDate: dateStr, startDateObj: date };
+      }
+      return { ...prev, startDateText: value };
     });
-  };
+  }, []);
 
-  const Toolbar = () => {
+  const handleEndDateTextChange = useCallback((value: string) => {
+    setDateFilter(prev => {
+      const date = parseDate(value);
+      if (date) {
+        const dateStr = date.toISOString().split('T')[0];
+        setEndDateMonth(date);
+        return { ...prev, endDateText: value, endDate: dateStr, endDateObj: date };
+      }
+      return { ...prev, endDateText: value };
+    });
+  }, []);
+
+  const clearDateFilter = useCallback(() => {
+    setDateFilter({ 
+      startDate: "", 
+      endDate: "",
+      startDateText: "",
+      endDateText: "",
+      startDateObj: undefined,
+      endDateObj: undefined
+    });
+  }, []);
+
+  const handleStatusFilterChange = useCallback((value: string) => {
+    setStatusFilter(value);
+  }, []);
+
+  const Toolbar = useMemo(() => {
+    //const handleFilterChange = (value: any) => {
+    //  setFilterInput(value); // Update the state when the user selects an item
+    //  console.log("Filter value changed to:", value); // Optional: log for debugging
+    //};
+
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
-          Showing {itemsOnPage} of {totalItems} group therapy candidates
+          Showing {itemsOnPage} of {totalItems} transactions
         </h3>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex flex-wrap gap-2.5">
-            <button 
-              className="btn btn-sm btn-primary"
-              onClick={handleAddToGroup}
-              disabled={selectedClients.length === 0}
+            {/*<Select
+              value={filterInput}
+              onValueChange={handleFilterChange}
+              defaultValue="all"
             >
-              <KeenIcon icon="users" /> Create Group Session ({selectedClients.length})
-            </button>
+              <SelectTrigger className="w-28" size="sm">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent className="w-32">
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
+              </SelectContent>
+            </Select>*/}
+
+            <div className="flex items-center gap-2">
+              {/* Start Date Filter */}
+              <div className="relative">
+                <Input
+                  value={dateFilter.startDateText}
+                  placeholder="From: today..."
+                  className="w-48 pr-8"
+                  onChange={(e) => handleStartDateTextChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setStartDateOpen(true);
+                    }
+                  }}
+                />
+                <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="absolute top-1/2 right-1 size-6 -translate-y-1/2"
+                    >
+                      <CalendarIcon className="size-3.5" />
+                      <span className="sr-only">Select start date</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateFilter.startDateObj}
+                      captionLayout="dropdown"
+                      month={startDateMonth}
+                      onMonthChange={setStartDateMonth}
+                      onSelect={(date) => {
+                        if (date) {
+                          const dateStr = date.toISOString().split('T')[0];
+                          setDateFilter(prev => ({ 
+                            ...prev, 
+                            startDate: dateStr, 
+                            startDateObj: date,
+                            startDateText: formatDate(date)
+                          }));
+                        }
+                        setStartDateOpen(false);
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
+              <span className="text-gray-500 text-sm">to</span>
+              
+              {/* End Date Filter */}
+              <div className="relative">
+                <Input
+                  value={dateFilter.endDateText}
+                  placeholder="To: next week..."
+                  className="w-48 pr-8"
+                  onChange={(e) => handleEndDateTextChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setEndDateOpen(true);
+                    }
+                  }}
+                />
+                <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="absolute top-1/2 right-1 size-6 -translate-y-1/2"
+                    >
+                      <CalendarIcon className="size-3.5" />
+                      <span className="sr-only">Select end date</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateFilter.endDateObj}
+                      captionLayout="dropdown"
+                      month={endDateMonth}
+                      onMonthChange={setEndDateMonth}
+                      onSelect={(date) => {
+                        if (date) {
+                          const dateStr = date.toISOString().split('T')[0];
+                          setDateFilter(prev => ({ 
+                            ...prev, 
+                            endDate: dateStr, 
+                            endDateObj: date,
+                            endDateText: formatDate(date)
+                          }));
+                        }
+                        setEndDateOpen(false);
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
+              {(dateFilter.startDate || dateFilter.endDate) && (
+                <button
+                  onClick={clearDateFilter}
+                  className="btn btn-sm btn-outline btn-secondary"
+                  title="Clear date filter"
+                >
+                  <KeenIcon icon="cross" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
     );
-  };
+  }, [dateFilter.startDateText, dateFilter.endDateText, dateFilter.startDate, dateFilter.endDate, itemsOnPage, totalItems, startDateOpen, endDateOpen, startDateMonth, endDateMonth, handleStartDateTextChange, handleEndDateTextChange, clearDateFilter, statusFilter, handleStatusFilterChange]);
 
-  if (isGroupTherapyLoading) {
-    return <DataGridLoader message="Loading group therapy candidates..." />;
-  }
+  // if (isDriverLoading) {
+  //   return <DataGridLoader message="Loading" />;
+  // }
 
   return (
     <>
-      {/* Session Creation Modal */}
-      <Dialog open={isSessionModalOpen} onOpenChange={setIsSessionModalOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="pb-6">
-            <DialogTitle className="text-xl font-semibold text-gray-900">
-              Create Group Session
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-8 px-1 m-4">
-            {/* Therapist Selection */}
-            <div className="space-y-4">
-              <Input
-                placeholder="Search therapists by name..."
-                value={therapistSearch}
-                onChange={(e) => setTherapistSearch(e.target.value)}
-                className="h-12 text-base"
-              />
-              
-              {isLoadingTherapists ? (
-                <div className="flex items-center justify-center p-8 bg-gray-50 rounded-xl">
-                  <KeenIcon icon="loading" className="animate-spin text-gray-400" />
-                  <span className="ml-3 text-gray-600">Loading therapists...</span>
-                </div>
-              ) : (
-                <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-xl bg-white">
-                  {therapistsData?.data?.length > 0 ? (
-                    therapistsData.data.map((therapist: ITherapist) => (
-                      <div
-                        key={therapist.id}
-                        className={`p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 transition-colors ${
-                          sessionForm.therapist === therapist.id 
-                            ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
-                            : ''
-                        }`}
-                        onClick={() => setSessionForm(prev => ({ ...prev, therapist: therapist.id }))}
-                      >
-                        <div className="flex items-center gap-4">
-                          <img
-                            src={therapist.profile ? `${BASE_URL}/${therapist.profile}` : avatar}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                            alt={`${therapist.firstName} ${therapist.lastName}`}
-                          />
-                          <div className="flex-1">
-                            <p className="text-base font-medium text-gray-900">
-                              {therapist.firstName} {therapist.lastName}
-                            </p>
-                            <p className="text-sm text-gray-500">{therapist.email}</p>
-                          </div>
-                          {sessionForm.therapist === therapist.id && (
-                            <KeenIcon icon="check-circle" className="text-blue-600 text-xl" />
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-8 text-center text-gray-500">
-                      No therapists found
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Group Name */}
-            <div className="space-y-4">
-              <label className="text-base font-semibold text-gray-900 block">
-                Group Name
-              </label>
-              <Input
-                placeholder="Enter group name (e.g., Anxiety Support Group)"
-                value={sessionForm.groupName}
-                onChange={(e) => setSessionForm(prev => ({ ...prev, groupName: e.target.value }))}
-                className="h-12 text-base"
-              />
-            </div>
-
-            {/* Schedule */}
-            <div className="space-y-4">
-              <label className="text-base font-semibold text-gray-900 block">
-                Schedule Date & Time
-              </label>
-              <Input
-                type="datetime-local"
-                value={sessionForm.schedule}
-                onChange={(e) => setSessionForm(prev => ({ ...prev, schedule: e.target.value }))}
-                className="h-12 text-base"
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
-              <Button
-                variant="outline"
-                onClick={() => setIsSessionModalOpen(false)}
-                className="px-6 py-3 text-base"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCreateSession}
-                disabled={isCreatingSession || !sessionForm.therapist || !sessionForm.schedule || !sessionForm.groupName}
-                className="px-6 py-3 text-base bg-blue-600 hover:bg-blue-700"
-              >
-                {isCreatingSession ? (
-                  <>
-                    <KeenIcon icon="loading" className="animate-spin mr-2" />
-                    Creating Session...
-                  </>
-                ) : (
-                  <>
-                    <KeenIcon icon="plus" className="mr-2" />
-                    Create Session
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Image Modal */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6"
-          onClick={() => setSelectedImage(null)}
-        >
-          <div className="relative">
-            {/* Close button */}
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="absolute -top-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
-            >
-              <KeenIcon icon="cross" className="text-gray-600 text-sm" />
-            </button>
-
-            {/* Image with responsive fixed height */}
-            <img
-              src={selectedImage.src}
-              alt={selectedImage.name}
-              className="rounded-lg shadow-2xl h-80 sm:h-96 md:h-[500px] lg:h-[600px] w-auto object-cover bg-white"
-              onClick={(e) => e.stopPropagation()}
-            />
-
-            {/* Info card */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-sm text-gray-800 px-4 py-3 rounded-lg shadow-lg min-w-[200px] text-center">
-              <p className="font-semibold text-sm">{selectedImage.name}</p>
-              <p className="text-xs text-gray-600 mt-1">
-                {selectedImage.phone}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <DataGrid
-        onFetchData={getGroupTherapyCandidates}
-        onSearchData={searchGroupTherapyCandidates}
+        onFetchData={getTransactions}
+        onSearchData={searchTransaction}
         data={data}
+        link={"transactions"}
         columns={columns}
         rowSelection={true}
         onRowSelectionChange={handleRowSelection}
         searchInput={searchInput}
         pagination={{ size: 5 }}
-        sorting={[]}
-        toolbar={<Toolbar />}
+        sorting={[{ id: "id", desc: false }]}
+        toolbar={Toolbar}
         layout={{ card: true }}
       />
     </>
   );
 };
 
-export { GroupTherapy };
+export { Transactions };

@@ -1,28 +1,28 @@
-import { Sessions } from "./blocks";
+import { Transactions } from "./blocks";
 
-interface SessionContentProps {
+interface TransactionContentProps {
   isAddOpen: boolean;
   _handleAddOpen: (isOpen: boolean) => void;
-  handleSessionNum: (num: any) => void;
+  handleTransactionNum: (num: any) => void;
   searchInput?: string;
 }
 
-const SessionContent = ({
+const TransactionContent = ({
   isAddOpen,
   _handleAddOpen,
-  handleSessionNum,
+  handleTransactionNum,
   searchInput,
-}: SessionContentProps) => {
+}: TransactionContentProps) => {
   return (
     <div className="grid gap-5 lg:gap-7.5">
-      <Sessions
+      <Transactions
         _handleAddOpen={_handleAddOpen}
         isAddOpen={isAddOpen}
         searchInput={searchInput}
-        handleSessionNum={handleSessionNum}
+        handleTransactionNum={handleTransactionNum}
       />
     </div>
   );
 };
 
-export { SessionContent };
+export { TransactionContent };

@@ -36,6 +36,63 @@ import { Button } from "@/components/ui/button";
 import { ISubscriptionData, IClientSubscriptionResponse } from "@/types/client";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
+// Component to handle async modal fetching for client
+const ClientModalCell = ({ client }: { client: IClientsData }) => {
+  const [modalName, setModalName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchModal = async () => {
+      if (!client.preference || client.preference.length === 0) {
+        setModalName(null);
+        return;
+      }
+
+      const preferenceId = client.preference[0].id;
+      if (!preferenceId) {
+        setModalName(null);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const { data } = await axiosInstance.get(
+          `/api/v1/preference/${preferenceId}?fields=modal.*`
+        );
+        setModalName(data?.data?.modal?.name || null);
+      } catch (error) {
+        console.error("Error fetching preference modal:", error);
+        setModalName(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModal();
+  }, [client.preference]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center">
+      {modalName ? (
+        <span className="badge badge-primary badge-outline rounded-[30px]">
+          <span className="size-1.5 rounded-full bg-primary me-1.5"></span>
+          {modalName}
+        </span>
+      ) : (
+        <span className="text-gray-400 text-sm">Not Assigned</span>
+      )}
+    </div>
+  );
+};
+
 interface IClientsData {
   id: string;
   firstName: string;
@@ -67,11 +124,8 @@ interface IClientsData {
     createdAt: string;
     updatedAt: string;
   } | null;
-  sessions?: {
-    modal?: {
-      id: string;
-      name: string;
-    };
+  preference?: {
+    id: string;
   }[];
 }
 
@@ -162,7 +216,7 @@ const Clients = ({
     //   console.log(sort, "sorting is finally here");
     // }
     // [Todo: refactor url]
-    const url = `/api/v1/client?take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC,firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,username,emergencyContact,isVisible,isInGroup,createdAt,updatedAt,activeSubscription.*,sessions.modal.*${filterInput && filterInput !== "all" ? `&filters=activeSubscription.status:=${filterInput}` : ""}`;
+    const url = `/api/v1/client?take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC,firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,username,emergencyContact,isVisible,isInGroup,createdAt,updatedAt,activeSubscription.*,preference.*${filterInput && filterInput !== "all" ? `&filters=activeSubscription.status:=${filterInput}` : ""}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -193,7 +247,7 @@ const Clients = ({
     search: any;
     sort: any;
   }) {
-    const url = `/api/v1/client?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,activeSubscription.status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC,firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,username,emergencyContact,isVisible,isInGroup,createdAt,updatedAt,activeSubscription.*,sessions.modal.*;`;
+    const url = `/api/v1/client?filters=firstName=${search}${filterInput && filterInput !== "all" ? `,activeSubscription.status:=${filterInput}` : ""}&take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC,firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,username,emergencyContact,isVisible,isInGroup,createdAt,updatedAt,activeSubscription.*,preference.*;`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -211,7 +265,7 @@ const Clients = ({
   }
 
   async function revalidateClient() {
-    const url = `/api/v1/client?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,activeSubscription.status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,username,emergencyContact,isVisible,isInGroup,createdAt,updatedAt,activeSubscription.*,sessions.modal.*&sort=createdAt=DESC`;
+    const url = `/api/v1/client?filters=firstName=${searchInput}${filterInput && filterInput !== "all" ? `,activeSubscription.status:=${filterInput}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,username,emergencyContact,isVisible,isInGroup,createdAt,updatedAt,activeSubscription.*,preference.*&sort=createdAt=DESC`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleClientNum(data.data.length);
@@ -532,22 +586,7 @@ const Clients = ({
         ),
         enableSorting: false,
         cell: ({ row }) => {
-          const client = row.original;
-          const hasSession = client.sessions && client.sessions.length > 0;
-          const modalName = hasSession && client.sessions?.[0]?.modal ? client.sessions[0].modal.name : null;
-          
-          return (
-            <div className="flex items-center">
-              {modalName ? (
-                <span className="badge badge-primary badge-outline rounded-[30px]">
-                  <span className="size-1.5 rounded-full bg-primary me-1.5"></span>
-                  {modalName}
-                </span>
-              ) : (
-                <span className="text-gray-400 text-sm">Not Assigned</span>
-              )}
-            </div>
-          );
+          return <ClientModalCell client={row.original} />;
         },
         meta: {
           headerClassName: "min-w-[140px]",

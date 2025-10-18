@@ -13,10 +13,10 @@ import {
 import { ClientPage, ClientDetailPage } from "@/pages/public-profile/client";
 import { DispatcherPage } from "@/pages/public-profile/dispatchers";
 import { SessionPage } from "@/pages/public-profile/session";
+import { TransactionPage } from "@/pages/public-profile/transaction";
 import { QuotePage } from "@/pages/public-profile/daily-quotes";
 import { BankPage } from "@/pages/public-profile/bank";
 import { QuestionPage } from "@/pages/public-profile/question";
-import { SessionDetailContent } from "@/pages/public-profile/session/blocks/SessionDetailContent";
 import { SessionDetailPage } from "@/pages/public-profile/session/SessionDetailPage";
 
 const AppRoutingSetup = (): ReactElement => {
@@ -85,6 +85,14 @@ const AppRoutingSetup = (): ReactElement => {
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <SessionPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
+                <TransactionPage />
               </RequireAuth>
             }
           />
