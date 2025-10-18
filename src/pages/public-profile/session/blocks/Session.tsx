@@ -871,6 +871,18 @@ const Sessions = ({
         ),
         enableSorting: false,
         cell: ({ row }) => {
+          // Check if this is a group therapy session
+          const isGroupTherapy = row.original.group && row.original.group.length > 0;
+          
+          // Only show the button for group therapy sessions
+          if (!isGroupTherapy) {
+            return (
+              <span className="text-xs text-gray-400 italic">
+                Individual Session
+              </span>
+            );
+          }
+
           return (
             <Button
               onClick={(e) => {
