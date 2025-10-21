@@ -7,6 +7,7 @@ import { type TMenuConfig, type IMenuItemConfig } from "@/components/menu";
  * @param getUserType - A function that returns the user type given an access token.
  * @returns The filtered menu configuration.
  */
+
 export const getMenuSidebar = (
   authToken: string,
   getUserType: (token: string) => string

@@ -203,7 +203,24 @@ const Therapists = ({
   }) {
     const statusFilter = filterInput && filterInput !== "all" ? `,status:=${filterInput}` : "";
     const modalFilterParam = modalFilter && modalFilter !== "all" ? `,license.modal.id:=${modalFilter}` : "";
-    const url = `/api/v1/therapist?filters=firstName=${search}${statusFilter}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
+    
+    // Handle search input - API supports comma separation
+    const searchTerm = search.trim();
+    let searchFilters = "";
+    
+    if (searchTerm) {
+      // Check if search contains space (likely full name)
+      if (searchTerm.includes(' ')) {
+        const searchParts = searchTerm.split(/\s+/);
+        // Search for first name and last name matching the parts
+        searchFilters = `firstName=${searchParts[0]},lastName=${searchParts[1]}`;
+      } else {
+        // Single word - search only firstName
+        searchFilters = `firstName=${searchTerm}`;
+      }
+    }
+    
+    const url = `/api/v1/therapist?filters=${searchFilters}${statusFilter}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -223,7 +240,23 @@ const Therapists = ({
   async function revalidateTherapist() {
     const statusFilter = filterInput && filterInput !== "all" ? `,status:=${filterInput}` : "";
     const modalFilterParam = modalFilter && modalFilter !== "all" ? `,license.modal.id:=${modalFilter}` : "";
-    const url = `/api/v1/therapist?filters=firstName=${searchInput}${statusFilter}${modalFilterParam}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
+    
+    // Handle search input - API supports comma separation
+    let searchFilters = "";
+    if (searchInput && searchInput.trim()) {
+      const searchTerm = searchInput.trim();
+      // Check if search contains space (likely full name)
+      if (searchTerm.includes(' ')) {
+        const searchParts = searchTerm.split(/\s+/);
+        // Search for first name and last name matching the parts
+        searchFilters = `firstName=${searchParts[0]},lastName=${searchParts[1]}`;
+      } else {
+        // Single word - search only firstName
+        searchFilters = `firstName=${searchTerm}`;
+      }
+    }
+    
+    const url = `/api/v1/therapist?${searchFilters ? `filters=${searchFilters}${statusFilter}${modalFilterParam}` : `${statusFilter || modalFilterParam ? `filters=${statusFilter}${modalFilterParam}`.replace(/^,/, '') : ''}`}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleTherapistNum(data.data.length);

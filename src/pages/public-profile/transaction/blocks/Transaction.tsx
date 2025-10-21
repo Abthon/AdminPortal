@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+            
 import {
   Dialog,
   DialogContent,
@@ -418,11 +419,11 @@ const Transactions = ({
           return (
             <div className="flex flex-col">
               <span className="text-sm font-medium text-gray-900">
-                ${price?.toFixed(2) || "0.00"}
+                {price?.toFixed(2) || "0.00"} Birr
               </span>
               {oldPrice && oldPrice !== price && (
                 <span className="text-xs text-gray-500 line-through">
-                  ${oldPrice.toFixed(2)}
+                  {oldPrice.toFixed(2)} Birr
                 </span>
               )}
             </div>

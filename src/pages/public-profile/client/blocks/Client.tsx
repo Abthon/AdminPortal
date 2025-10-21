@@ -48,6 +48,7 @@ const ClientModalCell = ({ client }: { client: IClientsData }) => {
         return;
       }
 
+      console.log(client, "client.preferenceeeee");
       const preferenceId = client.preference[0].id;
       if (!preferenceId) {
         setModalName(null);
@@ -71,13 +72,13 @@ const ClientModalCell = ({ client }: { client: IClientsData }) => {
     fetchModal();
   }, [client.preference]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center">
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  //if (loading) {
+  //  return (
+  //    <div className="flex items-center">
+  //      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+  //    </div>
+  //  );
+  //}
 
   return (
     <div className="flex items-center">
@@ -298,11 +299,6 @@ const Clients = ({
     return data;
   }
 
-  async function fetchClientSubscription(clientId: string): Promise<IClientSubscriptionResponse> {
-    const { data } = await axiosInstance.get(`/api/v1/client/${clientId}?fields=activeSubscription.*`);
-    return data;
-  }
-
   // Fetch payment receipt data
   async function fetchPaymentReceipt(subscriptionId: string) {
     const { data } = await axiosInstance.get(`/api/v1/subscription/user-sub?fields=payment.*&ids=${subscriptionId}`);
@@ -310,7 +306,8 @@ const Clients = ({
   }
 
   async function updateSubscriptionStatus(subscriptionId: string, status: string) {
-    const { data } = await axiosInstance.patch(`/api/v1/active-subscription/${subscriptionId}`, {
+    console.log(subscriptionId, "subscriptionId, check it!!");
+    const { data } = await axiosInstance.patch(`/api/v1/subscription/${subscriptionId}`, {
       status: status
     });
     return data;

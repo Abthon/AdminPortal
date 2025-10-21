@@ -192,17 +192,17 @@ const Config = ({
       ),
       meta: { headerClassName: "min-w-[80px]" },
     },
-    {
-      id: "Delete",
-      header: ({ column }) => <DataGridColumnHeader title="Delete" column={column} />,
-      enableSorting: false,
-      cell: (info) => (
-        <button onClick={() => handleOpen(true, info.row.original, true)} className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white">
-          <KeenIcon icon="trash" />
-        </button>
-      ),
-      meta: { headerClassName: "w-[80px]" },
-    },
+    //{
+    //  id: "Delete",
+    //  header: ({ column }) => <DataGridColumnHeader title="Delete" column={column} />,
+    //  enableSorting: false,
+    //  cell: (info) => (
+    //    <button onClick={() => handleOpen(true, info.row.original, true)} className="btn btn-sm btn-icon btn-clear text-red-600 hover:bg-red-500 hover:text-white">
+    //      <KeenIcon icon="trash" />
+    //    </button>
+    //  ),
+    //  meta: { headerClassName: "w-[80px]" },
+    //},
   ], []);
 
   const data: IConfigData[] = useMemo(() => configData || [], [configData]);

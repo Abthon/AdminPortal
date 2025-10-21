@@ -89,6 +89,7 @@ const Sessions = ({
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
   const [modalFilter, setModalFilter] = useState("all");
+  const [searchType, setSearchType] = useState<"therapist" | "client">("therapist");
   const [dateFilter, setDateFilter] = useState({
     startDate: "",
     endDate: "",
@@ -199,7 +200,7 @@ const Sessions = ({
       modalFilter && modalFilter !== "all"
         ? `${dateFilter.startDate || dateFilter.endDate ? "," : ""}modal.id:=${modalFilter}`
         : "";
-    const url = `/api/v1/session?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || (modalFilter && modalFilter !== "all") ? ` &filters=` : ""}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
+    const url = `/api/v1/session?take=${pageSize}&page=${pageIndex}&sort=schedule=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || (modalFilter && modalFilter !== "all") ? ` &filters=` : ""}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -236,7 +237,24 @@ const Sessions = ({
         : "";
     const modalFilterParam =
       modalFilter && modalFilter !== "all" ? `,modal.id:=${modalFilter}` : "";
-    const url = `/api/v1/session?filters=therapist.firstName=${search}${dateFilterParam}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
+    // Handle search input based on search type (therapist or client)
+    const searchTerm = search.trim();
+    let searchFilters = "";
+    
+    if (searchTerm) {
+      const searchPrefix = searchType === "therapist" ? "therapist" : "client";
+      
+      if (searchTerm.includes(' ')) {
+        const searchParts = searchTerm.split(/\s+/);
+        // Search for first name and last name matching the parts
+        searchFilters = `${searchPrefix}.firstName=${searchParts[0]},${searchPrefix}.lastName=${searchParts[1]}`;
+      } else {
+        // Single word - search only firstName
+        searchFilters = `${searchPrefix}.firstName=${searchTerm}`;
+      }
+    }
+    
+    const url = `/api/v1/session?filters=${searchFilters}${dateFilterParam}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=schedule=${sort[0].desc ? "DESC" : "ASC"}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -260,7 +278,23 @@ const Sessions = ({
         : "";
     const modalFilterParam =
       modalFilter && modalFilter !== "all" ? `,modal.id:=${modalFilter}` : "";
-    const url = `/api/v1/session?filters=therapist.firstName=${searchInput}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
+    // Handle search input based on search type (therapist or client)
+    let searchFilters = "";
+    if (searchInput && searchInput.trim()) {
+      const searchTerm = searchInput.trim();
+      const searchPrefix = searchType === "therapist" ? "therapist" : "client";
+      
+      if (searchTerm.includes(' ')) {
+        const searchParts = searchTerm.split(/\s+/);
+        // Search for first name and last name matching the parts
+        searchFilters = `${searchPrefix}.firstName=${searchParts[0]},${searchPrefix}.lastName=${searchParts[1]}`;
+      } else {
+        // Single word - search only firstName
+        searchFilters = `${searchPrefix}.firstName=${searchTerm}`;
+      }
+    }
+    
+    const url = `/api/v1/session?${searchFilters ? `filters=${searchFilters}${dateFilterParam}${modalFilterParam}` : `${dateFilterParam || modalFilterParam ? `filters=${dateFilterParam}${modalFilterParam}`.replace(/^,/, '') : ''}`}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration&sort=schedule=DESC`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleSessionNum(data.data.length);
@@ -315,7 +349,7 @@ const Sessions = ({
   }
 
   const { isLoading: isSessionLoading, data: SessionData } = useQuery({
-    queryKey: ["Sessions", searchInput, dateFilter, modalFilter],
+    queryKey: ["Sessions", searchInput, dateFilter, modalFilter, searchType],
     queryFn: revalidateSession,
     refetchInterval: 50000,
     refetchIntervalInBackground: true,
@@ -799,7 +833,7 @@ const Sessions = ({
         header: ({ column }) => (
           <DataGridColumnHeader title="Schedule" column={column} />
         ),
-        enableSorting: false,
+        enableSorting: true,
         cell: (info) => {
           // Format schedule (datetime string) for display
           const schedule = info.row.original.schedule;
@@ -1142,6 +1176,25 @@ const Sessions = ({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Search Type Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">
+                Search By:
+              </label>
+              <Select
+                value={searchType}
+                onValueChange={(value: "therapist" | "client") => setSearchType(value)}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="therapist">Therapist</SelectItem>
+                  <SelectItem value="client">Client</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>
@@ -1163,6 +1216,7 @@ const Sessions = ({
     modalFilter,
     handleModalFilterChange,
     modalsData,
+    searchType,
   ]);
 
   // if (isDriverLoading) {
@@ -1834,7 +1888,7 @@ const Sessions = ({
           onRowSelectionChange={handleRowSelection}
           searchInput={searchInput}
           pagination={{ size: 5 }}
-          sorting={[{ id: "id", desc: false }]}
+          sorting={[{ id: "schedule", desc: true }]}
           toolbar={Toolbar}
           layout={{ card: true }}
         />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ITherapistDetailData, ITherapistRating } from "@/types/therapist";
 import { ISessionData, ISessionResponse } from "@/types/session";
 import { KeenIcon } from "@/components";
@@ -45,7 +45,7 @@ const TherapistDetailContent = ({
     if (!dateString) return "N/A";
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "Invalid date";
-    return format(date, "MMM dd, yyyy 'at' hh:mm a");
+    return format(date, "MMM dd, yyyy 'at' HH:mm");
   };
 
   const getStatusColor = (status: string) => {
@@ -807,6 +807,18 @@ const TherapistRatings = ({
   );
 };
 
+// Enhanced Rating interface with client data
+interface IEnhancedRating extends ITherapistRating {
+  client?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar: number;
+    email: string;
+    username: string;
+  };
+}
+
 // Ratings Table Component with Pagination
 const RatingsTable = ({
   ratings,
@@ -818,12 +830,52 @@ const RatingsTable = ({
   timeAgo: (dateString: string | null) => string;
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [enhancedRatings, setEnhancedRatings] = useState<IEnhancedRating[]>([]);
+  const [loading, setLoading] = useState(true);
   const itemsPerPage = 5;
 
-  const totalPages = Math.ceil(ratings.length / itemsPerPage);
+  // Fetch enhanced ratings with client data
+  useEffect(() => {
+    const fetchEnhancedRatings = async () => {
+      setLoading(true);
+      try {
+        const enhancedData = await Promise.all(
+          ratings.map(async (rating) => {
+            try {
+              const { data } = await axiosInstance.get(
+                `/api/v1/ratings/${rating.id}?fields=client.*`
+              );
+              return {
+                ...rating,
+                client: data.data.client,
+              };
+            } catch (error) {
+              console.error(`Error fetching rating ${rating.id}:`, error);
+              return rating;
+            }
+          })
+        );
+        setEnhancedRatings(enhancedData);
+      } catch (error) {
+        console.error("Error fetching enhanced ratings:", error);
+        setEnhancedRatings(ratings);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (ratings.length > 0) {
+      fetchEnhancedRatings();
+    } else {
+      setEnhancedRatings([]);
+      setLoading(false);
+    }
+  }, [ratings]);
+
+  const totalPages = Math.ceil(enhancedRatings.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentRatings = ratings.slice(startIndex, endIndex);
+  const currentRatings = enhancedRatings.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -877,39 +929,65 @@ const RatingsTable = ({
       <div className="flex justify-between items-center">
         <h4 className="font-medium text-gray-900">Individual Ratings</h4>
         <span className="text-sm text-gray-600">
-          Showing {startIndex + 1}-{Math.min(endIndex, ratings.length)} of{" "}
-          {ratings.length} ratings
+          Showing {startIndex + 1}-{Math.min(endIndex, enhancedRatings.length)} of{" "}
+          {enhancedRatings.length} ratings
         </span>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-200 rounded-lg">
-          <thead>
-            <tr className="bg-gray-50">
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-900">
-                Rating
-              </th>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-900">
-                Comment
-              </th>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-900">
-                Date
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentRatings.map((rating, index) => (
-              <tr
-                key={rating.id}
-                className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
-                <td className="border border-gray-200 px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex">{renderStars(rating.value)}</div>
-                    <span className="text-sm font-medium">
-                      {rating.value}/5
-                    </span>
-                  </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <span className="ml-2 text-gray-600">Loading client information...</span>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-200 rounded-lg">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-900">
+                  Client
+                </th>
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-900">
+                  Rating
+                </th>
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-900">
+                  Comment
+                </th>
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-900">
+                  Date
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentRatings.map((rating, index) => (
+                <tr
+                  key={rating.id}
+                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                >
+                  <td className="border border-gray-200 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={rating.client?.avatar ? `${BASE_URL}/avatars/${rating.client.avatar}.png` : avatar}
+                        alt={rating.client ? `${rating.client.firstName} ${rating.client.lastName}` : "Client"}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">
+                          {rating.client ? `${rating.client.firstName} ${rating.client.lastName}` : "Unknown Client"}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {rating.client?.username ? `@${rating.client.username}` : ""}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="border border-gray-200 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex">{renderStars(rating.value)}</div>
+                      <span className="text-sm font-medium">
+                        {rating.value}/5
+                      </span>
+                    </div>
                 </td>
                 <td className="border border-gray-200 px-4 py-3">
                   <div className="text-sm text-gray-700 max-w-xs">
@@ -922,14 +1000,15 @@ const RatingsTable = ({
                   <div className="text-sm text-gray-500">
                     {timeAgo(rating.createdAt)}
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      {renderPagination()}
+      {!loading && renderPagination()}
     </div>
   );
 };
@@ -1086,7 +1165,7 @@ const TherapistSessionDetailCard = ({
                 Scheduled Time
               </label>
               <p className="text-sm text-gray-900">
-                {format(new Date(session.schedule), "hh:mm a")}
+                {format(new Date(session.schedule), "HH:mm")}
               </p>
             </div>
             <div>
