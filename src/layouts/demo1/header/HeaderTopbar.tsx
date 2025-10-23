@@ -29,6 +29,9 @@ const HeaderTopbar = () => {
     queryFn: me,
   });
 
+  // Use React Query data as the primary source, fallback to local state
+  const currentUserData = data?.data || userData;
+
   useEffect(() => {
     me();
   }, []);
@@ -57,17 +60,17 @@ const HeaderTopbar = () => {
               <div className="animate-spin size-9 rounded-full border-2 border-gray-300 flex items-center justify-center">
                 <KeenIcon icon="loading" className="text-gray-500 text-sm" />
               </div>
-            ) : userData?.profilePhoto ? (
+            ) : currentUserData?.profile ? (
               <img
-                className="size-9 rounded-full border-2 border-success"
-                src={`${BASE_URL}/profile/${userData?.profilePhoto}`}
-                alt=""
+                className="size-9 rounded-full border-2 border-success object-cover"
+                src={`${BASE_URL}/${currentUserData?.profile}`}
+                alt="Profile"
               />
             ) : (
               <img
                 className="size-9 rounded-full border-2 border-success shrink-0"
                 src={toAbsoluteUrl("/media/avatars/300-2.png")}
-                alt=""
+                alt="Default Avatar"
               />
             )}
           </MenuToggle>

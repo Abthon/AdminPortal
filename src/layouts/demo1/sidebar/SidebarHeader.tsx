@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useDemo1Layout } from "../";
 import { toAbsoluteUrl } from "@/utils";
 import { SidebarToggle } from "./";
+import logoOpened from "@/media/images/logo-opened.png";
+import logoClosed from "@/media/images/logo-closed.png";
 
 const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
   const { layout } = useDemo1Layout();
@@ -11,22 +13,26 @@ const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
     <Fragment>
       <Link to="/" className="dark:hidden">
         <img
-          src={toAbsoluteUrl("/media/app/logo.jpg")}
-          className="default-logo min-h-[40px] max-w-[40px] object-cover"
+          src={logoOpened}
+          className="default-logo min-h-[40px] max-w-[150px] object-contain translate-x-1/3"
+          alt="Logo"
         />
         <img
-          src={toAbsoluteUrl("/media/app/logo.jpg")}
-          className="small-logo min-h-[40px] max-w-[40px] object-cover"
+          src={logoClosed}
+          className="small-logo min-h-[40px] max-w-[40px] object-contain"
+          alt="Logo"
         />
       </Link>
       <Link to="/" className="hidden dark:block">
         <img
-          src={toAbsoluteUrl("/media/app/logo.jpg")}
-          className="default-logo min-h-[40px] max-w-[40px] object-cover"
+          src={logoOpened}
+          className="default-logo min-h-[40px] max-w-[150px] object-contain"
+          alt="Logo"
         />
         <img
-          src={toAbsoluteUrl("/media/app/logo.jpg")}
-          className="small-logo min-h-[40px] max-w-[40px] object-cover"
+          src={logoClosed}
+          className="small-logo min-h-[40px] max-w-[40px] object-contain"
+          alt="Logo"
         />
       </Link>
     </Fragment>
@@ -35,12 +41,14 @@ const SidebarHeader = forwardRef<HTMLDivElement, any>((props, ref) => {
   const darkLogo = () => (
     <Link to="/">
       <img
-        src={toAbsoluteUrl("/media/app/logo.jpg")}
-        className="default-logo min-h-[40px] max-w-[40px] object-cover"
+        src={logoOpened}
+        className="default-logo min-h-[40px] max-w-[150px] object-contain"
+        alt="Logo"
       />
       <img
-        src={toAbsoluteUrl("/media/app/logo.jpg")}
-        className="small-logo min-h-[40px] max-w-[40px] object-cover"
+        src={logoClosed}
+        className="small-logo min-h-[40px] max-w-[40px] object-contain"
+        alt="Logo"
       />
     </Link>
   );

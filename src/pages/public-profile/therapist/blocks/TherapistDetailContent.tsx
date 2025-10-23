@@ -1,7 +1,16 @@
-import { useState, useEffect } from "react";
-import { ITherapistDetailData, ITherapistRating } from "@/types/therapist";
+import { useState, useEffect, useMemo } from "react";
+import { ITherapistDetailData, ITherapistRating, IMatchResponse, IMatchData } from "@/types/therapist";
 import { ISessionData, ISessionResponse } from "@/types/session";
-import { KeenIcon } from "@/components";
+import { KeenIcon, DataGrid, DataGridColumnHeader } from "@/components";
+import { ColumnDef } from "@tanstack/react-table";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   formatDistanceToNow,
   format,
@@ -418,13 +427,20 @@ const TherapistTabbedContent = ({
   therapistData: ITherapistDetailData;
 }) => {
   const [activeView, setActiveView] = useState<
-    "sessions" | "activity" | "ratings"
+    "sessions" | "activity" | "ratings" | "clients"
   >("sessions");
 
   return (
     <div className="flex flex-col gap-5 lg:gap-7.5">
       {/* Tab Buttons */}
       <div className="flex gap-3 justify-center">
+        <button
+          type="button"
+          className={`btn btn-sm ${activeView === "clients" ? "btn-primary" : "btn-outline btn-primary"}`}
+          onClick={() => setActiveView("clients")}
+        >
+          <KeenIcon icon="people" /> Client List
+        </button>
         <button
           type="button"
           className={`btn btn-sm ${activeView === "sessions" ? "btn-primary" : "btn-outline btn-primary"}`}
@@ -457,6 +473,9 @@ const TherapistTabbedContent = ({
       )}
       {activeView === "ratings" && (
         <TherapistRatings therapistData={therapistData} />
+      )}
+      {activeView === "clients" && (
+        <TherapistClients therapistData={therapistData} />
       )}
     </div>
   );
@@ -1180,6 +1199,265 @@ const TherapistSessionDetailCard = ({
         </div>
       </div>
     </div>
+  );
+};
+
+// Clients Component
+const TherapistClients = ({
+  therapistData,
+}: {
+  therapistData: ITherapistDetailData;
+}) => {
+  const [filterInput, setFilterInput] = useState("all");
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsOnPage, setItemsOnPage] = useState(0);
+
+  // Fetch clients with pagination and search
+  async function getTherapistClients({
+    pageIndex,
+    pageSize,
+    sort,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    sort: any;
+  }) {
+    const statusFilter = filterInput && filterInput !== "all" ? `client.status:=${filterInput}` : "";
+    const filters = statusFilter ? `&filters=${statusFilter}` : "";
+    const url = `/api/v1/match?fields=client.*&filters=accepted.id=${therapistData.id}${statusFilter ? `,${statusFilter}` : ""}&take=${pageSize}&page=${pageIndex}`;
+    
+    const { data } = await axiosInstance.get(url);
+    
+    // Calculate items on current page
+    const startIndex = (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
+    
+    return data;
+  }
+
+  // Search clients
+  async function searchTherapistClients({
+    pageIndex,
+    pageSize,
+    search,
+    sort,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    search: any;
+    sort: any;
+  }) {
+    const statusFilter = filterInput && filterInput !== "all" ? `,client.status:=${filterInput}` : "";
+    const url = `/api/v1/match?fields=client.*&filters=accepted.id=${therapistData.id},client.firstName=${search}${statusFilter}&take=${pageSize}&page=${pageIndex}&sort=client.firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    
+    const { data } = await axiosInstance.get(url);
+    
+    // Calculate items on current page
+    const startIndex = (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
+    
+    return data;
+  }
+
+  // Revalidate clients for filtering
+  async function revalidateTherapistClients() {
+    const statusFilter = filterInput && filterInput !== "all" ? `,client.status:=${filterInput}` : "";
+    const url = `/api/v1/match?fields=client.*&filters=accepted.id=${therapistData.id}${statusFilter}&sort=client.firstName=ASC`;
+    
+    const { data } = await axiosInstance.get(url);
+    setTotalItems(data.pagination?.totalItems || data.data.length);
+    return data;
+  }
+
+  // Use query for revalidation when filters change
+  const { data: clientsData } = useQuery({
+    queryKey: ["therapist-clients", therapistData.id, filterInput],
+    queryFn: revalidateTherapistClients,
+  });
+
+  // Define columns for DataGrid
+  const columns = useMemo<ColumnDef<IMatchData>[]>(
+    () => [
+      {
+        accessorFn: (row) => row.client.firstName,
+        id: "client",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Client" column={column} className="min-w-[200px]"/>
+        ),
+        enableSorting: true,
+        cell: ({ row }) => {
+          const client = row.original.client;
+          const clientImage = client.profile
+            ? `${BASE_URL}/${client.profile}`
+            : avatar;
+
+          return (
+            <div className="flex items-center gap-3">
+              <img
+                src={clientImage}
+                alt={`${client.firstName} ${client.lastName}`}
+                className="w-9 h-9 rounded-full object-cover border-2 border-gray-200"
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-900">
+                  {client.firstName} {client.lastName}
+                </span>
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <span>@{client.username}</span>
+                  <div className="flex items-center gap-1">
+                    <KeenIcon icon="email" className="text-xs" />
+                    <span>{client.email}</span>
+                    {client.isEmailAuthenticated && (
+                      <KeenIcon icon="verify" className="text-primary text-xs" />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <KeenIcon icon="phone" className="text-xs" />
+                    <span>+251{client.phoneNumber}</span>
+                    {client.isPhoneNumberAuthenticated && (
+                      <KeenIcon icon="verify" className="text-primary text-xs" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        },
+        meta: {
+          className: "min-w-[400px]",
+        },
+      },
+      {
+        id: "status",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Status" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const client = row.original.client;
+          return (
+            <span
+              className={`badge badge-sm ${
+                client.status === "active" ? "badge-success" :
+                client.status === "pending" ? "badge-primary" :
+                client.status === "inactive" ? "badge-warning" :
+                "badge-danger"
+              } badge-outline rounded-[30px]`}
+            >
+              <span
+                className={`size-1.5 rounded-full ${
+                  client.status === "active" ? "bg-success" :
+                  client.status === "pending" ? "bg-primary" :
+                  client.status === "inactive" ? "bg-warning" :
+                  "bg-danger"
+                } me-1.5`}
+              ></span>
+              {client.status}
+            </span>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[120px]",
+        },
+      },
+      {
+        id: "onlineStatus",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Online Status" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const client = row.original.client;
+          return (
+            <div className="flex items-center gap-2">
+              <span
+                className={`size-2 rounded-full ${
+                  client.isOnline ? "bg-success" : "bg-gray-400"
+                }`}
+              ></span>
+              <span className="text-sm text-gray-600">
+                {client.isOnline ? "Online" : "Offline"}
+              </span>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[120px]",
+        },
+      },
+    ],
+    []
+  );
+
+  const data: IMatchData[] = useMemo(() => clientsData?.data ?? [], [clientsData]);
+
+  // Toolbar component
+  const Toolbar = () => {
+    const handleFilterChange = (value: any) => {
+      setFilterInput(value);
+    };
+
+    return (
+      <div className="card-header flex-wrap gap-2 border-b-0 px-5">
+        <h3 className="card-title font-medium text-sm">
+          Showing {itemsOnPage} of {totalItems} clients
+        </h3>
+
+        <div className="flex flex-wrap gap-2 lg:gap-5">
+          <div className="flex flex-wrap gap-2.5">
+            <Select
+              value={filterInput}
+              onValueChange={handleFilterChange}
+              defaultValue="all"
+            >
+              <SelectTrigger className="w-28" size="sm">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="w-32">
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <button className="btn btn-sm btn-outline btn-primary">
+              <KeenIcon icon="setting-4" /> Filters
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <DataGrid
+      onFetchData={getTherapistClients}
+      onSearchData={searchTherapistClients}
+      data={data}
+      columns={columns}
+      filterInput={filterInput}
+      rowSelection={false}
+      pagination={{ size: 5 }}
+      sorting={[{ id: "client", desc: false }]}
+      toolbar={<Toolbar />}
+      layout={{ card: true }}
+    />
   );
 };
 

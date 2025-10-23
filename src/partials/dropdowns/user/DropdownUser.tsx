@@ -20,6 +20,7 @@ import {
 } from "@/components/menu";
 import { useState, useRef } from "react";
 import { Dialog, DialogContent } from "@mui/material";
+import { toast } from "sonner";
 
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 interface IDropdownUserProps {
@@ -51,8 +52,15 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
     queryFn: me,
   });
 
+  // Use React Query data as the primary source, fallback to local state
+  const currentUserData = data?.data || userData;
+
+  // Debug logging
+  console.log("currentUserData:", currentUserData);
+  console.log("profile:", currentUserData?.profile);
+
   const handleImageClick = (imageSrc: string, imageAlt: string) => {
-    const img = `${BASE_URL}/profile/${imageSrc}`;
+    const img = `${BASE_URL}/${imageSrc}`;
     console.log("img", img);
     setSelectedImage({ src: img, alt: imageAlt });
     setImageModalOpen(true);
@@ -70,7 +78,7 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
       formData.append("file", file);
 
       const response = await axiosInstance.post(
-        "api/v1/file-upload/image/profile",
+        "/api/v1/admin/me/upload/profile",
         formData,
         {
           headers: {
@@ -82,23 +90,21 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
     },
     {
       onSuccess: async (data) => {
-        // Update local state
+        // Update local state with the filename from the response
         setUserData((prev: any) => ({
           ...prev,
-          profilePhoto: data.data.filename,
+          profile: data.data.filename,
         }));
 
-        const res = await axiosInstance.patch(`/api/v1/admin/${userData.id}`, {
-          profilePhoto: data.data.filename,
-        });
-        console.log(`what exactly is ${data.data.filename}`);
-        // Invalidate and refetch user data
-        console.log(`${res.data} the result babiiii`);
+        console.log("Profile uploaded successfully:", data.data.filename);
+        toast.success("Profile photo updated successfully!");
+        // Invalidate and refetch user data to get the updated profile
         queryClient.invalidateQueries(["me"]);
       },
-      onError: (error) => {
+      onError: (error: any) => {
         console.error("Error uploading profile photo:", error);
-        // You can add toast notification here
+        const errorMessage = error?.response?.data?.message || "Failed to upload profile photo. Please try again.";
+        toast.error(errorMessage);
       },
     }
   );
@@ -123,21 +129,25 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
         "image/jpg",
         "image/png",
         "image/gif",
+        "image/webp"
       ];
       if (!allowedTypes.includes(file.type)) {
-        alert("Please select a valid image file (JPEG, PNG, or GIF)");
+        toast.error("Please select a valid image file (JPEG, PNG, GIF, or WebP)");
         return;
       }
 
       // Validate file size (e.g., max 5MB)
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
-        alert("File size must be less than 5MB");
+        toast.error("File size must be less than 5MB");
         return;
       }
 
       uploadPhotoMutation.mutate(file);
     }
+    
+    // Clear the input value so the same file can be selected again if needed
+    event.target.value = '';
   };
 
   useEffect(() => {
@@ -145,7 +155,7 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
   }, []);
 
   const buildHeader = () => {
-    if (isLoading || !userData) {
+    if (isLoading || !currentUserData) {
       return (
         <div className="flex items-center justify-between px-5 py-1.5 gap-1.5">
           <div className="flex items-center gap-2">
@@ -161,20 +171,20 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
 
     return (
       <>
-        <div className="flex items-center justify-between px-5 py-1.5 gap-1.5">
-          <div className="flex items-center gap-2">
-            <div className="relative group">
-              {userData?.profilePhoto ? (
+        <div className="flex items-center justify-between px-3 sm:px-5 py-1.5 gap-1.5">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="relative group flex-shrink-0">
+              {currentUserData?.profile ? (
                 <img
-                  className="size-9 rounded-full border-2 border-success"
-                  src={`${BASE_URL}/profile/${userData?.profilePhoto}`}
-                  alt=""
+                  className="size-9 rounded-full border-2 border-success object-cover"
+                  src={`${BASE_URL}/${currentUserData?.profile}`}
+                  alt="Profile"
                 />
               ) : (
                 <img
                   className="size-9 rounded-full border-2 border-success shrink-0"
                   src={toAbsoluteUrl("/media/avatars/300-2.png")}
-                  alt=""
+                  alt="Default Avatar"
                 />
               )}
 
@@ -182,6 +192,7 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
               <div
                 className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                 onClick={handleEditPhotoClick}
+                title="Click to change profile photo"
               >
                 {uploadPhotoMutation.isLoading ? (
                   <div className="animate-spin">
@@ -196,47 +207,54 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                 onChange={handleFileChange}
                 className="hidden"
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 min-w-0 flex-1">
               <Link
                 to="#"
-                className="text-sm text-gray-800 hover:text-primary font-semibold leading-none"
+                className="text-sm text-gray-800 hover:text-primary font-semibold leading-none truncate"
               >
-                {userData?.firstName || ""} {userData?.lastName || ""}
+                {currentUserData?.firstName || ""} {currentUserData?.lastName || ""}
               </Link>
               <a
-                href={`mailto:${userData?.email || ""}`}
-                className="text-xs text-gray-600 hover:text-primary font-medium leading-none"
+                href={`mailto:${currentUserData?.email || ""}`}
+                className="text-xs text-gray-600 hover:text-primary font-medium leading-none truncate"
+                title={currentUserData?.email || "No email"}
               >
-                {userData?.email || "No email"}
+                {currentUserData?.email || "No email"}
               </a>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <button
-                type="button"
-                className={`btn btn-sm`}
-                onClick={() =>
-                  handleImageClick(userData?.profilePhoto, "imageAlt")
-                }
-              >
-                <KeenIcon icon="eye" />
-              </button>
-            </div>
+            
+            {currentUserData?.profile && (
+              <div className="flex-shrink-0">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-icon btn-clear btn-primary"
+                  onClick={() =>
+                    handleImageClick(currentUserData?.profile, "Profile Image")
+                  }
+                  title="View profile image"
+                >
+                  <KeenIcon icon="eye" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
-        <Dialog open={imageModalOpen} onChange={handleImageModalClose}>
-          <DialogContent className="w-fit">
-            {/* <DialogHeader>
-                    <DialogTitle>Vehicle Type Image</DialogTitle>
-                  </DialogHeader> */}
+        <Dialog 
+          open={imageModalOpen} 
+          onClose={handleImageModalClose}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogContent className="relative p-4">
             <button
               onClick={handleImageModalClose}
-              className="absolute -top-[-10px] -right-[-10px] bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
+              className="absolute -top-2 -right-2 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
             >
               <KeenIcon icon="cross" className="text-gray-600 text-sm" />
             </button>
@@ -245,7 +263,7 @@ const DropdownUser = ({ menuItemRef }: IDropdownUserProps) => {
                 <img
                   src={selectedImage.src}
                   alt={selectedImage.alt}
-                  className="max-w-full max-h-96 object-contain rounded-lg"
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg"
                 />
               </div>
             )}
