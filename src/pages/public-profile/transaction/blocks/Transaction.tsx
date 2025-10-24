@@ -216,6 +216,55 @@ const Transactions = ({
     refetchIntervalInBackground: true,
   });
 
+  // Fetch config parameters
+  async function getConfigParams() {
+    const { data } = await axiosInstance.get("/api/v1/params?take=0");
+    console.log("Raw API response:", data);
+    console.log("Returning data.data:", data.data);
+    return data.data;
+  }
+
+  const { data: configData, isLoading: isConfigLoading } = useQuery({
+    queryKey: ["ConfigParams"],
+    queryFn: getConfigParams,
+    staleTime: 300000, // 5 minutes
+  });
+
+  // Helper function to get config value by name
+  const getConfigValue = (name: string): number => {
+    console.log("configData:", configData);
+    console.log("Looking for config name:", name);
+    if (!configData) {
+      console.log("No config data available");
+      return 0;
+    }
+    const config = configData.find((item: any) => item.name === name);
+    console.log("Found config:", config);
+    return config ? parseFloat(config.value) : 0;
+  };
+
+  // Helper function to calculate VAT amount
+  const calculateVAT = (price: number): number => {
+    const vatRate = getConfigValue("vat");
+    console.log(vatRate, "vatRate");
+    return price * vatRate;
+  };
+
+  // Helper function to calculate therapist part
+  const calculateTherapistPart = (price: number, levelType: string): number => {
+    const vatAmount = calculateVAT(price);
+    const levelRate = getConfigValue(levelType?.toUpperCase());
+    const therapistAmount = price * levelRate;
+    return therapistAmount - vatAmount;
+  };
+
+  // Helper function to calculate company part
+  const calculateCompanyPart = (price: number, levelType: string): number => {
+    const vatAmount = calculateVAT(price);
+    const therapistPart = calculateTherapistPart(price, levelType);
+    return price - vatAmount - therapistPart;
+  };
+
   interface DeleteResponse {
     // Add your API response structure here
     data: any;
@@ -389,7 +438,7 @@ const Transactions = ({
       {
         id: "subscriptionType",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Subscription Type" column={column} />
+          <DataGridColumnHeader title="Type" column={column} />
         ),
         enableSorting: false,
         cell: (info) => {
@@ -405,31 +454,6 @@ const Transactions = ({
         },
         meta: {
           headerClassName: "min-w-[120px]",
-        },
-      },
-      {
-        id: "subscriptionStatus",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Status" column={column}/>
-        ),
-        enableSorting: true,
-        cell: (info) => {
-          const status = info.row.original?.status;
-          return (
-            <div className="flex justify-start relative">
-              <span
-                className={`badge ${status === "active" ? "badge-success" : status === "inactive" ? "badge-danger" : "badge-warning"} shrink-0 badge-outline rounded-[30px]`}
-              >
-                <span
-                  className={`size-1.5 rounded-full ${status === "active" ? "bg-success" : status === "inactive" ? "bg-danger" : "bg-warning"} me-1.5`}
-                ></span>
-                {status}
-              </span>
-            </div>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[100px]",
         },
       },
       {
@@ -456,6 +480,102 @@ const Transactions = ({
         },
         meta: {
           headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        id: "level",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Level" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          const level = info.row.original.subscription?.level;
+          return (
+            <div className="flex flex-col text-xs">
+              <span className="font-medium capitalize">{level?.type || "N/A"}</span>
+              <span className="text-gray-500">
+                XP: {level?.minXP}-{level?.maxXP || "∞"}
+              </span>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        id: "vat",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="VAT" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          const price = info.row.original.subscription?.price || 0;
+          const vatAmount = calculateVAT(price);
+          return (
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900">
+                {vatAmount.toFixed(2)} Birr
+              </span>
+              <span className="text-xs text-gray-500">
+                ({(getConfigValue("vat") * 100).toFixed(1)}%)
+              </span>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        id: "therapistPart",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Therapist Part" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          const price = info.row.original.subscription?.price || 0;
+          const levelType = info.row.original.subscription?.level?.type || "";
+          const therapistAmount = calculateTherapistPart(price, levelType);
+          const levelRate = getConfigValue(levelType?.toUpperCase());
+          return (
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900">
+                {therapistAmount.toFixed(2)} Birr
+              </span>
+              <span className="text-xs text-gray-500">
+                ({(levelRate * 100).toFixed(1)}% - VAT)
+              </span>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[120px]",
+        },
+      },
+      {
+        id: "companyPart",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Company Part" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          const price = info.row.original.subscription?.price || 0;
+          const levelType = info.row.original.subscription?.level?.type || "";
+          const companyAmount = calculateCompanyPart(price, levelType);
+          return (
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900">
+                {companyAmount.toFixed(2)} Birr
+              </span>
+              <span className="text-xs text-gray-500">
+                Remaining
+              </span>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[120px]",
         },
       },
       {
@@ -491,18 +611,22 @@ const Transactions = ({
         },
       },
       {
-        id: "level",
+        id: "subscriptionStatus",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Level" column={column} />
+          <DataGridColumnHeader title="Status" column={column}/>
         ),
-        enableSorting: false,
+        enableSorting: true,
         cell: (info) => {
-          const level = info.row.original.subscription?.level;
+          const status = info.row.original?.status;
           return (
-            <div className="flex flex-col text-xs">
-              <span className="font-medium capitalize">{level?.type || "N/A"}</span>
-              <span className="text-gray-500">
-                XP: {level?.minXP}-{level?.maxXP || "∞"}
+            <div className="flex justify-start relative">
+              <span
+                className={`badge ${status === "active" ? "badge-success" : status === "inactive" ? "badge-danger" : "badge-warning"} shrink-0 badge-outline rounded-[30px]`}
+              >
+                <span
+                  className={`size-1.5 rounded-full ${status === "active" ? "bg-success" : status === "inactive" ? "bg-danger" : "bg-warning"} me-1.5`}
+                ></span>
+                {status}
               </span>
             </div>
           );
@@ -512,7 +636,7 @@ const Transactions = ({
         },
       },
     ],
-    [mutate]
+    [mutate, configData, getConfigValue, calculateVAT, calculateTherapistPart, calculateCompanyPart]
   );
 
   const data: ITransactionData[] = useMemo(() => TransactionData ?? [], [TransactionData]);
