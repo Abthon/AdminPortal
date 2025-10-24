@@ -35,54 +35,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import axiosInstance from "@/auth/_helpers";
+import { ITherapistsData } from "@/types/therapist";
+import { IClientDetailData, ISubscription } from "@/types/client";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 interface ITransactionData {
   id: string;
-  client: {
-    id: string;
-    updatedAt: string;
-    createdAt: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    avatar: number;
-    phoneNumber: string;
-    isEmailAuthenticated: boolean;
-    isPhoneNumberAuthenticated: boolean;
-    firebaseToken: string | null;
-    status: string;
-    gender: string;
-    dob: string;
-    isLinked: boolean;
-    isOnline: boolean;
-    lastSeenAt: string;
-    profile: string | null;
-    username: string;
-    emergencyContact: string | null;
-    isVisible: boolean;
-    isInGroup: boolean;
-  };
-  subscription: {
-    id: string;
-    updatedAt: string;
-    createdAt: string;
-    type: number;
-    status: string;
-    start_date: string;
-    end_date: string;
-    old_price: number;
-    price: number;
-    level: {
-      id: string;
-      updatedAt: string;
-      createdAt: string;
-      type: string;
-      minXP: number;
-      maxXP: number | null;
-      price: number;
-    };
-  };
+  status: string;
+  client: IClientDetailData;
+  subscription: ISubscription;
+  therapist: ITherapistsData
 }
 
 const Transactions = ({
@@ -179,7 +141,7 @@ const Transactions = ({
       `${dateFilter.startDate ? ` subscription.start_date>=${dateFilter.startDate}` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` subscription.end_date<=${dateFilter.endDate}` : ""}`  : "";
     const statusFilterParam = (statusFilter && statusFilter !== "all") ? 
       `${dateFilter.startDate || dateFilter.endDate ? "," : ""}subscription.status:=${statusFilter}` : "";
-    const url = `/api/v1/subscription/user-sub?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || statusFilter && statusFilter !== "all" ? ` &filters=` : ""}${dateFilterParam}${statusFilterParam}&fields=client.*`;
+    const url = `/api/v1/subscription/user-sub?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || statusFilter && statusFilter !== "all" ? ` &filters=` : ""}${dateFilterParam}${statusFilterParam}&fields=client.*,status`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -213,7 +175,7 @@ const Transactions = ({
     const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
       `,${dateFilter.startDate ? ` subscription.start_date>=${dateFilter.startDate}` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` subscription.end_date<=${dateFilter.endDate}` : ""}`  : "";
     const statusFilterParam = (statusFilter && statusFilter !== "all") ? `,subscription.status:=${statusFilter}` : "";
-    const url = `/api/v1/subscription/user-sub?filters=client.firstName=${search}${dateFilterParam}${statusFilterParam}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=client.*`;
+    const url = `/api/v1/subscription/user-sub?filters=client.firstName=${search}${dateFilterParam}${statusFilterParam}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=client.*,status`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -234,7 +196,7 @@ const Transactions = ({
     const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
       `,${dateFilter.startDate ? ` subscription.start_date>=${dateFilter.startDate}` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` subscription.end_date<=${dateFilter.endDate}` : ""}`  : "";
     const statusFilterParam = (statusFilter && statusFilter !== "all") ? `,subscription.status:=${statusFilter}` : "";
-    const url = `/api/v1/subscription/user-sub?filters=client.firstName=${searchInput}${dateFilterParam}${statusFilterParam}&fields=client.*`;
+    const url = `/api/v1/subscription/user-sub?filters=client.firstName=${searchInput}${dateFilterParam}${statusFilterParam}&fields=client.*,status`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleTransactionNum(data.data.length);
@@ -362,6 +324,67 @@ const Transactions = ({
           cellClassName: "text-gray-800 font-normal",
         },
       },
+      //{
+      //  accessorFn: (row) => row.therapist?.firstName,
+      //  id: "Therapist",
+      //  header: ({ column }) => (
+      //    <DataGridColumnHeader title="Therapist" column={column} className="min-w-[180px]"/>
+      //  ),
+      //  enableSorting: true,
+      //  cell: ({ row }) => {
+      //    const img = row.original.therapist?.profile ? `${BASE_URL}/${row.original.therapist?.profile}` : null;
+
+      //    const handleImageClick = (e: React.MouseEvent) => {
+      //      e.preventDefault();
+      //      e.stopPropagation();
+      //      e.nativeEvent.stopImmediatePropagation();
+
+      //      setSelectedImage({
+      //        src: img ? img : avatar,
+      //        name: `${row.original.therapist?.firstName} ${row.original.therapist?.lastName}`,
+      //        phone: `+251${row.original.therapist?.phoneNumber}`,
+      //      });
+      //    };
+
+      //    return (
+      //      <div className="flex items-center gap-4">
+      //        <div
+      //          className="relative group cursor-pointer"
+      //          onClick={handleImageClick}
+      //        >
+      //          <img
+      //            src={img ? img : avatar}
+      //            className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105"
+      //            alt={`${row.original.therapist?.firstName} ${row.original.therapist?.lastName}`}
+      //          />
+
+      //          {/* Hover overlay with zoom icon */}
+      //          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+      //            <KeenIcon icon="eye" className="text-white text-xs" />
+      //          </div>
+
+      //          {/* Online status indicator */}
+      //          {/*<div
+      //            className={`flex size-2 bg-${row.original.therapist?.isOnline ? "success" : "gray-400"} rounded-full absolute bottom-0.5 start-7.5 transform pointer-events-none`}
+      //          ></div>*/}
+      //        </div>
+
+      //        <div className="flex flex-col gap-0.5">
+      //          <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+      //            {row.original.therapist?.firstName} {row.original.therapist?.lastName}
+      //          </span>
+      //          <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
+      //            +251{row.original.therapist?.phoneNumber}
+      //          </span>
+      //        </div>
+      //      </div>
+      //    );
+      //  },
+      //  meta: {
+      //    className: "min-w-[280px]",
+      //    cellClassName: "text-gray-800 font-normal",
+      //  },
+      //},
       {
         id: "subscriptionType",
         header: ({ column }) => (
@@ -371,10 +394,11 @@ const Transactions = ({
         cell: (info) => {
           const subscriptionType = info.row.original.subscription?.type;
           const typeLabels = {
-            0: "Free",
-            1: "Basic",
-            2: "Premium", 
-            3: "Enterprise"
+            0: "Trial",
+            1: "Monthly",
+            2: "Quarterly", 
+            3: "Semi Annual",
+            4: "Yearly"
           };
           return typeLabels[subscriptionType as keyof typeof typeLabels] || "Unknown";
         },
@@ -389,7 +413,7 @@ const Transactions = ({
         ),
         enableSorting: true,
         cell: (info) => {
-          const status = info.row.original.subscription?.status;
+          const status = info.row.original?.status;
           return (
             <div className="flex justify-start relative">
               <span

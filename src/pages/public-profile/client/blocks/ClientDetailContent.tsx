@@ -30,21 +30,6 @@ const ClientDetailContent = ({ clientData }: ClientDetailContentProps) => {
   };
 
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "text-success";
-      case "pending":
-        return "text-primary";
-      case "inactive":
-        return "text-warning";
-      case "suspended":
-        return "text-danger";
-      default:
-        return "text-gray-600";
-    }
-  };
-
   const profileImage = clientData.profile 
     ? `${BASE_URL}/${clientData.profile}` 
     : avatar;
@@ -159,31 +144,46 @@ const ClientStatistics = ({ clientData }: { clientData: IClientDetailData }) => 
           <div className="text-center">
             <div className="text-3xl font-bold text-gray-900 mb-1">
               {(() => {
-                if (!clientData.dob) return 'N/A';
-                const dobDate = new Date(clientData.dob);
-                if (isNaN(dobDate.getTime())) return 'N/A';
-                return new Date().getFullYear() - dobDate.getFullYear();
+                const subscription = clientData.activeSubscription?.subscription;
+                if (!subscription) return 'No Subscription';
+                
+                const type = subscription.type;
+                if (type === undefined || type === null) return 'N/A';
+                
+                const subscriptionTypes = ['Weekly', 'Monthly', 'Quarterly', 'Semi-Annual', 'Yearly'];
+                return subscriptionTypes[type] || `Type ${type}`;
               })()}
             </div>
-            <div className="text-sm text-gray-600">Age (Years)</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 mb-1">
-              {clientData.isEmailAuthenticated && clientData.isPhoneNumberAuthenticated ? "2" : 
-               clientData.isEmailAuthenticated || clientData.isPhoneNumberAuthenticated ? "1" : "0"}
-            </div>
-            <div className="text-sm text-gray-600">Verified Contacts</div>
+            <div className="text-sm text-gray-600">Subscription Type</div>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-gray-900 mb-1">
               {(() => {
-                if (!clientData.createdAt) return 'N/A';
-                const createdDate = new Date(clientData.createdAt);
-                if (isNaN(createdDate.getTime())) return 'N/A';
-                return Math.floor((new Date().getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+                const subscription = clientData.activeSubscription?.subscription;
+                if (!subscription) return 'N/A';
+                
+                const price = subscription.price;
+                if (price === undefined || price === null) return 'N/A';
+                
+                return `${price.toLocaleString()} Birr`;
               })()}
             </div>
-            <div className="text-sm text-gray-600">Days Since Registration</div>
+            <div className="text-sm text-gray-600">Subscription Price</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-gray-900 mb-1">
+              {(() => {
+                const subscription = clientData.activeSubscription?.subscription;
+                if (!subscription) return 'N/A';
+                
+                const type = subscription.type;
+                if (type === undefined || type === null) return 'N/A';
+                
+                const sessionsPerType = [1, 4, 12, 24, 48]; // weekly=1, monthly=4, quarterly=12, semi-annual=24, yearly=48
+                return sessionsPerType[type] || 'N/A';
+              })()}
+            </div>
+            <div className="text-sm text-gray-600">Total Sessions</div>
           </div>
         </div>
       </div>

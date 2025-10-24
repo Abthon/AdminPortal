@@ -6,6 +6,40 @@ export interface IClientRating {
   comment: string;
 }
 
+export interface ILevel {
+  id: string;
+  updatedAt: string;
+  createdAt: string;
+  type: string;
+  minXP: number;
+  maxXP: number;
+  price: number;
+}
+
+export interface ISubscription {
+  id: string;
+  updatedAt: string;
+  createdAt: string;
+  type: number; // 0=weekly, 1=monthly, 2=quarterly, 3=semi-annual, 4=yearly
+  status: string;
+  start_date: string;
+  end_date: string;
+  old_price: number;
+  price: number;
+  level: ILevel;
+}
+
+export interface IActiveSubscription {
+  id: string;
+  updatedAt: string;
+  createdAt: string;
+  status: string;
+  start_date: string;
+  end_date: string;
+  therapist: any;
+  subscription: ISubscription;
+}
+
 export interface IClientDetailData {
   id: string;
   updatedAt: string;
@@ -30,6 +64,7 @@ export interface IClientDetailData {
   isVisible: boolean;
   isInGroup: boolean;
   rating?: IClientRating[];
+  activeSubscription?: IActiveSubscription;
 }
 
 export interface IClientDetailResponse {

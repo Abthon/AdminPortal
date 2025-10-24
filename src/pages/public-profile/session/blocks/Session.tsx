@@ -264,6 +264,7 @@ const Sessions = ({
       data.pagination.currentPage * data.pagination.pageSize,
       data.pagination.totalItems
     );
+
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
