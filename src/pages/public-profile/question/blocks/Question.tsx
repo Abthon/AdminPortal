@@ -223,16 +223,16 @@ const Question = ({
 
   const columns = useMemo<ColumnDef<IQuestionData>[]>(
     () => [
-      {
-        accessorKey: "id",
-        header: () => <DataGridRowSelectAll />,
-        cell: ({ row }) => <DataGridRowSelect row={row} />,
-        enableSorting: false,
-        enableHiding: false,
-        meta: {
-          headerClassName: "w-0",
-        },
-      },
+      //{
+      //  accessorKey: "id",
+      //  header: () => <DataGridRowSelectAll />,
+      //  cell: ({ row }) => <DataGridRowSelect row={row} />,
+      //  enableSorting: false,
+      //  enableHiding: false,
+      //  meta: {
+      //    headerClassName: "w-0",
+      //  },
+      //},
       {
         accessorFn: (row) => row.order,
         id: "order",

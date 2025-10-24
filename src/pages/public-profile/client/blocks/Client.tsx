@@ -446,16 +446,16 @@ const Clients = ({
 
   const columns = useMemo<ColumnDef<IClientsData>[]>(
     () => [
-      {
-        accessorKey: "id",
-        header: () => <DataGridRowSelectAll />,
-        cell: ({ row }) => <DataGridRowSelect row={row} />,
-        enableSorting: false,
-        enableHiding: false,
-        meta: {
-          headerClassName: "w-0",
-        },
-      },
+      //{
+      //  accessorKey: "id",
+      //  header: () => <DataGridRowSelectAll />,
+      //  cell: ({ row }) => <DataGridRowSelect row={row} />,
+      //  enableSorting: false,
+      //  enableHiding: false,
+      //  meta: {
+      //    headerClassName: "w-0",
+      //  },
+      //},
       {
         accessorFn: (row) => row.firstName,
         id: "Client",

@@ -158,14 +158,14 @@ const Config = ({
   }, [isAddOpen]);
 
   const columns = useMemo<ColumnDef<IConfigData>[]>(() => [
-    {
-      accessorKey: "id",
-      header: () => <DataGridRowSelectAll />,
-      cell: ({ row }) => <DataGridRowSelect row={row} />,
-      enableSorting: false,
-      enableHiding: false,
-      meta: { headerClassName: "w-0" },
-    },
+    //{
+    //  accessorKey: "id",
+    //  header: () => <DataGridRowSelectAll />,
+    //  cell: ({ row }) => <DataGridRowSelect row={row} />,
+    //  enableSorting: false,
+    //  enableHiding: false,
+    //  meta: { headerClassName: "w-0" },
+    //},
     {
       accessorFn: (row) => row.name,
       id: "name",
