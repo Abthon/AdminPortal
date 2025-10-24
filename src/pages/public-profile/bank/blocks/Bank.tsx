@@ -280,6 +280,27 @@ const Bank = ({
           headerClassName: "min-w-[80px]",
         },
       },
+      {
+        id: "Delete",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Delete" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <button
+              onClick={() => mutate(info.row.original.id)}
+              className="btn btn-sm btn-icon btn-clear btn-danger"
+              disabled={isDeleting}
+            >
+              <KeenIcon icon="trash" />
+            </button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[80px]",
+        },
+      },
     ],
     [mutate]
   );
