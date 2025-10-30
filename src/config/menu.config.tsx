@@ -134,6 +134,18 @@ export const getMenuSidebar = (
           ],
         }
       : null,
+    getUserType(authToken) === "admin"
+      ? {
+          title: "Match",
+          icon: "heart",
+          children: [
+            {
+              title: "Matches",
+              path: "/matches",
+            },
+          ],
+        }
+      : null,
      getUserType(authToken) === "admin"
        ? {
            title: "Config",

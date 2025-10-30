@@ -1,6 +1,7 @@
 export * from './activity/ProfileActivityPage';
 export * from './campaigns';
 export * from './empty/ProfileEmptyPage';
+export * from './match';
 export * from './network/ProfileNetworkPage';
 export * from './profiles';
 export * from './projects';

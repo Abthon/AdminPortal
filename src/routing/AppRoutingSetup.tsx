@@ -18,6 +18,7 @@ import { QuotePage } from "@/pages/public-profile/daily-quotes";
 import { BankPage } from "@/pages/public-profile/bank";
 import { QuestionPage } from "@/pages/public-profile/question";
 import { SessionDetailPage } from "@/pages/public-profile/session/SessionDetailPage";
+import { MatchPage } from "@/pages/public-profile/match";
 
 const AppRoutingSetup = (): ReactElement => {
   return (
@@ -125,6 +126,14 @@ const AppRoutingSetup = (): ReactElement => {
             element={
               <RequireAuth allowedRoles={["admin", "dispatch"]}>
                 <ConfigPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/matches"
+            element={
+              <RequireAuth allowedRoles={["admin", "dispatch"]}>
+                <MatchPage />
               </RequireAuth>
             }
           />

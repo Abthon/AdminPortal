@@ -47,7 +47,7 @@ export function setupAxios(axiosInstance: any) {
       }
 
       // Add /test prefix to all API requests
-      if (config.url && !config.url.includes("/dev/")) {
+      if (config.url && !config.url.includes("/test/")) {
         config.url = getApiUrl(config.url);
       }
 
@@ -70,7 +70,7 @@ export function setupAxios(axiosInstance: any) {
           try {
             // Attempt to refresh the token
             const { data } = await axiosInstance.post(
-              "/api/v1/auth/refresh",
+              "/test/api/v1/auth/refresh",
               {},
               {
                 headers: {
