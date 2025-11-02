@@ -44,6 +44,57 @@ import ClassNameGenerator from "@mui/utils/ClassNameGenerator";
 import { GroupTherapy } from "./GroupTherapy";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
+// Component to handle async level fetching for session client
+const SessionLevelCell = ({ client }: { client: any }) => {
+  const [levelData, setLevelData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchLevelData = async () => {
+      if (!client?.preference || client.preference.length === 0) {
+        setLevelData(null);
+        return;
+      }
+
+      const preferenceId = client.preference[0]?.id;
+      if (!preferenceId) {
+        setLevelData(null);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const { data } = await axiosInstance.get(
+          `/api/v1/preference/${preferenceId}?fields=level.*`
+        );
+        setLevelData(data?.data?.level || null);
+      } catch (error) {
+        console.error("Error fetching preference level:", error);
+        setLevelData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLevelData();
+  }, [client]);
+
+  return (
+    <div className="flex flex-col text-xs">
+      {levelData ? (
+        <>
+          <span className="font-medium capitalize">{levelData.type}</span>
+          <span className="text-gray-500">
+            XP: {levelData.minXP}-{levelData.maxXP || "∞"}
+          </span>
+        </>
+      ) : (
+        <span className="text-gray-400 text-sm">Not Assigned</span>
+      )}
+    </div>
+  );
+};
+
 interface ISessionsData {
   id: string;
   hasclientAttended: boolean;
@@ -200,16 +251,37 @@ const Sessions = ({
     //   console.log(sort[0].id, "here");
     //   console.log(sort, "sorting is finally here");
     // }
-    // [Todo: refactor url]
-    const dateFilterParam =
-      dateFilter.startDate || dateFilter.endDate
-        ? `${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`
-        : "";
-    const modalFilterParam =
-      modalFilter && modalFilter !== "all"
-        ? `${dateFilter.startDate || dateFilter.endDate ? "," : ""}modal.id:=${modalFilter}`
-        : "";
-    const url = `/api/v1/session?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || (modalFilter && modalFilter !== "all") ? ` &filters=` : ""}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`;
+    // Build query parameters
+    let queryParams: string[] = [];
+    
+    // Add pagination and sorting
+    queryParams.push(`take=${pageSize}`);
+    queryParams.push(`page=${pageIndex}`);
+    queryParams.push(`sort=createdAt=DESC`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,group.preference.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
+    
+    // Add date parameters (inclusive)
+    if (dateFilter.startDate) {
+      queryParams.push(`startDate=${dateFilter.startDate}`);
+    }
+    if (dateFilter.endDate) {
+      queryParams.push(`endDate=${dateFilter.endDate}`);
+    }
+    
+    // Build remaining filters
+    let remainingFilters: string[] = [];
+    
+    // Add modal filter
+    if (modalFilter && modalFilter !== "all") {
+      remainingFilters.push(`modal.id:=${modalFilter}`);
+    }
+    
+    // Add remaining filters if any
+    if (remainingFilters.length > 0) {
+      queryParams.push(`filters=${remainingFilters.join(',')}`);
+    }
+    
+    const url = `/api/v1/session?${queryParams.join('&')}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -240,30 +312,53 @@ const Sessions = ({
     search: any;
     sort: any;
   }) {
-    const dateFilterParam =
-      dateFilter.startDate || dateFilter.endDate
-        ? `,${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`
-        : "";
-    const modalFilterParam =
-      modalFilter && modalFilter !== "all" ? `,modal.id:=${modalFilter}` : "";
+    // Build query parameters
+    let queryParams: string[] = [];
+    
+    // Add pagination and sorting
+    queryParams.push(`take=${pageSize}`);
+    queryParams.push(`page=${pageIndex}`);
+    queryParams.push(`sort=createdAt=DESC`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,group.preference.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
+    
+    // Add date parameters (inclusive)
+    if (dateFilter.startDate) {
+      queryParams.push(`startDate=${dateFilter.startDate}`);
+    }
+    if (dateFilter.endDate) {
+      queryParams.push(`endDate=${dateFilter.endDate}`);
+    }
+    
+    // Build remaining filters
+    let remainingFilters: string[] = [];
+    
+    // Add modal filter
+    if (modalFilter && modalFilter !== "all") {
+      remainingFilters.push(`modal.id:=${modalFilter}`);
+    }
+    
     // Handle search input based on search type (therapist or client)
     const searchTerm = search.trim();
-    let searchFilters = "";
-    
     if (searchTerm) {
       const searchPrefix = searchType === "therapist" ? "therapist" : "client";
       
       if (searchTerm.includes(' ')) {
         const searchParts = searchTerm.split(/\s+/);
         // Search for first name and last name matching the parts
-        searchFilters = `${searchPrefix}.firstName=${searchParts[0]},${searchPrefix}.lastName=${searchParts[1]}`;
+        remainingFilters.push(`${searchPrefix}.firstName=${searchParts[0]}`);
+        remainingFilters.push(`${searchPrefix}.lastName=${searchParts[1]}`);
       } else {
         // Single word - search only firstName
-        searchFilters = `${searchPrefix}.firstName=${searchTerm}`;
+        remainingFilters.push(`${searchPrefix}.firstName=${searchTerm}`);
       }
     }
     
-    const url = `/api/v1/session?filters=${searchFilters}${dateFilterParam}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`;
+    // Add remaining filters if any
+    if (remainingFilters.length > 0) {
+      queryParams.push(`filters=${remainingFilters.join(',')}`);
+    }
+    
+    const url = `/api/v1/session?${queryParams.join('&')}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -282,14 +377,30 @@ const Sessions = ({
   }
 
   async function revalidateSession() {
-    const dateFilterParam =
-      dateFilter.startDate || dateFilter.endDate
-        ? `,${dateFilter.startDate ? ` schedule>=${dateFilter.startDate}T00:00:00.000Z` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` schedule<=${dateFilter.endDate}T23:59:59.999Z` : ""}`
-        : "";
-    const modalFilterParam =
-      modalFilter && modalFilter !== "all" ? `,modal.id:=${modalFilter}` : "";
+    // Build query parameters
+    let queryParams: string[] = [];
+    
+    // Add fields and sorting
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,group.preference.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
+    queryParams.push(`sort=createdAt=DESC`);
+    
+    // Add date parameters (inclusive)
+    if (dateFilter.startDate) {
+      queryParams.push(`startDate=${dateFilter.startDate}`);
+    }
+    if (dateFilter.endDate) {
+      queryParams.push(`endDate=${dateFilter.endDate}`);
+    }
+    
+    // Build remaining filters
+    let remainingFilters: string[] = [];
+    
+    // Add modal filter
+    if (modalFilter && modalFilter !== "all") {
+      remainingFilters.push(`modal.id:=${modalFilter}`);
+    }
+    
     // Handle search input based on search type (therapist or client)
-    let searchFilters = "";
     if (searchInput && searchInput.trim()) {
       const searchTerm = searchInput.trim();
       const searchPrefix = searchType === "therapist" ? "therapist" : "client";
@@ -297,14 +408,20 @@ const Sessions = ({
       if (searchTerm.includes(' ')) {
         const searchParts = searchTerm.split(/\s+/);
         // Search for first name and last name matching the parts
-        searchFilters = `${searchPrefix}.firstName=${searchParts[0]},${searchPrefix}.lastName=${searchParts[1]}`;
+        remainingFilters.push(`${searchPrefix}.firstName=${searchParts[0]}`);
+        remainingFilters.push(`${searchPrefix}.lastName=${searchParts[1]}`);
       } else {
         // Single word - search only firstName
-        searchFilters = `${searchPrefix}.firstName=${searchTerm}`;
+        remainingFilters.push(`${searchPrefix}.firstName=${searchTerm}`);
       }
     }
     
-    const url = `/api/v1/session?${searchFilters ? `filters=${searchFilters}${dateFilterParam}${modalFilterParam}` : `${dateFilterParam || modalFilterParam ? `filters=${dateFilterParam}${modalFilterParam}`.replace(/^,/, '') : ''}`}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt&sort=createdAt=DESC`;
+    // Add remaining filters if any
+    if (remainingFilters.length > 0) {
+      queryParams.push(`filters=${remainingFilters.join(',')}`);
+    }
+    
+    const url = `/api/v1/session?${queryParams.join('&')}`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleSessionNum(data.data.length);
@@ -925,6 +1042,22 @@ const Sessions = ({
         cell: (info) => {
           const modalName = info.row.original.modal?.name;
           return modalName || "N/A";
+        },
+        meta: {
+          headerClassName: "min-w-[120px]",
+        },
+      },
+      {
+        id: "clientLevel",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Client Level" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          // For group therapy, show the first client's level
+          const isGroupTherapy = row.original.group && row.original.group.length > 0;
+          const client = isGroupTherapy ? row.original.group[0] : row.original.client;
+          return <SessionLevelCell client={client} />;
         },
         meta: {
           headerClassName: "min-w-[120px]",

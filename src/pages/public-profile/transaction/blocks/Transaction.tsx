@@ -92,6 +92,8 @@ const TransactionModalCell = ({ client }: { client: IClientDetailData & { prefer
 interface ITransactionData {
   id: string;
   status: string;
+  start_date: string;
+  end_date: string;
   client: IClientDetailData & {
     preference?: {
       id: string;
@@ -192,32 +194,43 @@ const Transactions = ({
     pageSize: number;
     sort: any;
   }) {
-    // Build date filter parameters correctly
-    let dateFilterParams: string[] = [];
+    // Build query parameters
+    let queryParams: string[] = [];
+    
+    // Add pagination and sorting
+    queryParams.push(`take=${pageSize}`);
+    queryParams.push(`page=${pageIndex}`);
+    //queryParams.push(`sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`);
+    queryParams.push(`sort=createdAt=DESC`)
+    queryParams.push(`fields=client.*,client.preference.*,status,subscription.*,start_date,end_date,createdAt`);
+    
+    // Add date parameters
     if (dateFilter.startDate) {
-      dateFilterParams.push(`subscription.start_date>=${dateFilter.startDate}`);
+      queryParams.push(`startDate=${dateFilter.startDate}`);
     }
     if (dateFilter.endDate) {
-      dateFilterParams.push(`subscription.start_date<=${dateFilter.endDate}`);
+      queryParams.push(`endDate=${dateFilter.endDate}`);
     }
     
+    // Build remaining filters
+    let remainingFilters: string[] = [];
+    
     // Build status filter parameter
-    let statusFilterParams: string[] = [];
     if (statusFilter && statusFilter !== "all") {
-      statusFilterParams.push(`subscription.status:=${statusFilter}`);
+      remainingFilters.push(`subscription.status:=${statusFilter}`);
     }
     
     // Build modal filter parameter
-    let modalFilterParams: string[] = [];
     if (modalFilter && modalFilter !== "all") {
-      modalFilterParams.push(`client.preference.modal.id:=${modalFilter}`);
+      remainingFilters.push(`client.preference.modal.id:=${modalFilter}`);
     }
     
-    // Combine all filters
-    const allFilters = [...dateFilterParams, ...statusFilterParams, ...modalFilterParams];
-    const filtersParam = allFilters.length > 0 ? `&filters=${allFilters.join(',')}` : '';
+    // Add remaining filters if any
+    if (remainingFilters.length > 0) {
+      queryParams.push(`filters=${remainingFilters.join(',')}`);
+    }
     
-    const url = `/api/v1/subscription/user-sub?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${filtersParam}&fields=client.*,client.preference.*,status,subscription.*`;
+    const url = `/api/v1/subscription/user-sub?${queryParams.join('&')}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -248,34 +261,48 @@ const Transactions = ({
     search: any;
     sort: any;
   }) {
-    // Build all filter parameters
-    let allFilters: string[] = [];
+    // Build query parameters
+    let queryParams: string[] = [];
+    
+    // Add pagination and sorting
+    queryParams.push(`take=${pageSize}`);
+    queryParams.push(`page=${pageIndex}`);
+    //queryParams.push(`sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`);
+    queryParams.push(`sort=createdAt=DESC`)
+    queryParams.push(`fields=client.*,client.preference.*,status,subscription.*,start_date,end_date,createdAt`);
+    
+    // Add date parameters
+    if (dateFilter.startDate) {
+      queryParams.push(`startDate=${dateFilter.startDate}`);
+    }
+    if (dateFilter.endDate) {
+      queryParams.push(`endDate=${dateFilter.endDate}`);
+    }
+    
+    // Build remaining filters
+    let remainingFilters: string[] = [];
     
     // Add search filter
     if (search) {
-      allFilters.push(`client.firstName=${search}`);
-    }
-    
-    // Add date filters
-    if (dateFilter.startDate) {
-      allFilters.push(`subscription.start_date>=${dateFilter.startDate}`);
-    }
-    if (dateFilter.endDate) {
-      allFilters.push(`subscription.start_date<=${dateFilter.endDate}`);
+      remainingFilters.push(`client.firstName=${search}`);
     }
     
     // Add status filter
     if (statusFilter && statusFilter !== "all") {
-      allFilters.push(`subscription.status:=${statusFilter}`);
+      remainingFilters.push(`subscription.status:=${statusFilter}`);
     }
     
     // Add modal filter
     if (modalFilter && modalFilter !== "all") {
-      allFilters.push(`client.preference.modal.id:=${modalFilter}`);
+      remainingFilters.push(`client.preference.modal.id:=${modalFilter}`);
     }
     
-    const filtersParam = allFilters.length > 0 ? `filters=${allFilters.join(',')}` : '';
-    const url = `/api/v1/subscription/user-sub?${filtersParam}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=client.*,client.preference.*,status,subscription.*`;
+    // Add remaining filters if any
+    if (remainingFilters.length > 0) {
+      queryParams.push(`filters=${remainingFilters.join(',')}`);
+    }
+    
+    const url = `/api/v1/subscription/user-sub?${queryParams.join('&')}`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -293,34 +320,45 @@ const Transactions = ({
   }
 
   async function revalidateTransaction() {
-    // Build all filter parameters
-    let allFilters: string[] = [];
+    // Build query parameters
+    let queryParams: string[] = [];
+    
+    // Add fields and sorting
+    queryParams.push(`fields=client.*,client.preference.*,status,subscription.*,start_date,end_date,createdAt`);
+    queryParams.push(`sort=createdAt=DESC`);
+    
+    // Add date parameters
+    if (dateFilter.startDate) {
+      queryParams.push(`startDate=${dateFilter.startDate}`);
+    }
+    if (dateFilter.endDate) {
+      queryParams.push(`endDate=${dateFilter.endDate}`);
+    }
+    
+    // Build remaining filters
+    let remainingFilters: string[] = [];
     
     // Add search filter
     if (searchInput) {
-      allFilters.push(`client.firstName=${searchInput}`);
-    }
-    
-    // Add date filters
-    if (dateFilter.startDate) {
-      allFilters.push(`subscription.start_date>=${dateFilter.startDate}`);
-    }
-    if (dateFilter.endDate) {
-      allFilters.push(`subscription.start_date<=${dateFilter.endDate}`);
+      remainingFilters.push(`client.firstName=${searchInput}`);
     }
     
     // Add status filter
     if (statusFilter && statusFilter !== "all") {
-      allFilters.push(`subscription.status:=${statusFilter}`);
+      remainingFilters.push(`subscription.status:=${statusFilter}`);
     }
     
     // Add modal filter
     if (modalFilter && modalFilter !== "all") {
-      allFilters.push(`client.preference.modal.id:=${modalFilter}`);
+      remainingFilters.push(`client.preference.modal.id:=${modalFilter}`);
     }
     
-    const filtersParam = allFilters.length > 0 ? `filters=${allFilters.join(',')}` : '';
-    const url = `/api/v1/subscription/user-sub?${filtersParam}&fields=client.*,client.preference.*,status,subscription.*`;
+    // Add remaining filters if any
+    if (remainingFilters.length > 0) {
+      queryParams.push(`filters=${remainingFilters.join(',')}`);
+    }
+    
+    const url = `/api/v1/subscription/user-sub?${queryParams.join('&')}`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleTransactionNum(data.data.length);
@@ -379,26 +417,30 @@ const Transactions = ({
     return config ? parseFloat(config.value) : 0;
   };
 
-  // Helper function to calculate VAT amount
-  const calculateVAT = (price: number): number => {
+  // Helper function to get original price without VAT (price displayed includes VAT)
+  const getOriginalPrice = (priceWithVat: number): number => {
     const vatRate = getConfigValue("vat");
-    console.log(vatRate, "vatRate");
-    return price * vatRate;
+    return priceWithVat / (1 + vatRate);
+  };
+
+  // Helper function to calculate VAT amount
+  const calculateVAT = (priceWithVat: number): number => {
+    const originalPrice = getOriginalPrice(priceWithVat);
+    return priceWithVat - originalPrice;
   };
 
   // Helper function to calculate therapist part
-  const calculateTherapistPart = (price: number, levelType: string): number => {
-    const vatAmount = calculateVAT(price);
+  const calculateTherapistPart = (priceWithVat: number, levelType: string): number => {
+    const originalPrice = getOriginalPrice(priceWithVat);
     const levelRate = getConfigValue(levelType?.toUpperCase());
-    const therapistAmount = price * levelRate;
-    return therapistAmount - vatAmount;
+    return originalPrice * levelRate;
   };
 
   // Helper function to calculate company part
-  const calculateCompanyPart = (price: number, levelType: string): number => {
-    const vatAmount = calculateVAT(price);
-    const therapistPart = calculateTherapistPart(price, levelType);
-    return price - vatAmount - therapistPart;
+  const calculateCompanyPart = (priceWithVat: number, levelType: string): number => {
+    const originalPrice = getOriginalPrice(priceWithVat);
+    const therapistPart = calculateTherapistPart(priceWithVat, levelType);
+    return originalPrice - therapistPart;
   };
 
   interface DeleteResponse {
@@ -716,7 +758,7 @@ const Transactions = ({
                 {therapistAmount.toFixed(2)} Birr
               </span>
               <span className="text-xs text-gray-500">
-                ({(levelRate * 100).toFixed(1)}% - VAT)
+                ({(levelRate * 100).toFixed(1)}% of base)
               </span>
             </div>
           );
@@ -757,8 +799,10 @@ const Transactions = ({
         ),
         enableSorting: false,
         cell: (info) => {
-          const startDate = info.row.original.subscription?.start_date;
-          const endDate = info.row.original.subscription?.end_date;
+          const startDate = info.row.original.start_date;
+          const endDate = info.row.original.end_date;
+          console.log(startDate, endDate, "the datesssss");
+          console.log(info.row.original, "the row");
           const formatDate = (dateString: string) => {
             try {
               const date = new Date(dateString);
@@ -876,12 +920,13 @@ const Transactions = ({
     
     if (!transactionList || !Array.isArray(transactionList)) {
       console.log("No valid transaction list found");
-      return { totalCompanyPrice: 0, totalTherapistPrice: 0, totalPrice: 0 };
+      return { totalCompanyPrice: 0, totalTherapistPrice: 0, totalPrice: 0, totalVAT: 0 };
     }
     
     let totalCompanyPrice = 0;
     let totalTherapistPrice = 0;
     let totalPrice = 0;
+    let totalVAT = 0;
     
     transactionList.forEach((transaction: ITransactionData, index: number) => {
       const price = transaction.subscription?.price || 0;
@@ -901,13 +946,16 @@ const Transactions = ({
         therapistAmount
       });
       
+      const vatAmount = calculateVAT(price);
+      
       totalCompanyPrice += companyAmount;
       totalTherapistPrice += therapistAmount;
       totalPrice += price;
+      totalVAT += vatAmount;
     });
     
-    console.log("Final totals:", { totalCompanyPrice, totalTherapistPrice, totalPrice });
-    return { totalCompanyPrice, totalTherapistPrice, totalPrice };
+    console.log("Final totals:", { totalCompanyPrice, totalTherapistPrice, totalPrice, totalVAT });
+    return { totalCompanyPrice, totalTherapistPrice, totalPrice, totalVAT };
   }, [TransactionData, data]);
 
   const Toolbar = useMemo(() => {
@@ -936,6 +984,16 @@ const Transactions = ({
                 <span className="text-gray-600">Total Revenue: </span>
                 <span className="font-semibold text-info">
                   {totals.totalPrice.toFixed(2)} Birr
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-warning/10 rounded-lg">
+              <KeenIcon icon="percentage" className="text-warning text-sm" />
+              <div className="text-xs">
+                <span className="text-gray-600">Total VAT: </span>
+                <span className="font-semibold text-warning">
+                  {totals.totalVAT.toFixed(2)} Birr
                 </span>
               </div>
             </div>

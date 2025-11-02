@@ -120,14 +120,14 @@ const SessionOverview = ({ sessionData }: { sessionData: any }) => {
       icon: "user",
       color: "text-primary",
     },
-    {
-      label: "Schedule",
-      value: sessionData.schedule
-        ? format(new Date(sessionData.schedule), "MMM dd, yyyy 'at' HH:mm")
-        : "No schedule provided",
-      icon: "calendar",
-      color: "text-success",
-    },
+    //{
+    //  label: "Schedule",
+    //  value: sessionData.schedule
+    //    ? format(new Date(sessionData.schedule), "MMM dd, yyyy 'at' HH:mm")
+    //    : "No schedule provided",
+    //  icon: "calendar",
+    //  color: "text-success",
+    //},
     //{
     //  label: "Schedule",
     //  value: format(new Date(sessionData.schedule), "MMM dd, yyyy 'at' HH:mm"),
