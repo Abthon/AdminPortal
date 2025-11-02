@@ -216,7 +216,7 @@ const Therapists = ({
         searchFilters = `firstName=${searchParts[0]},lastName=${searchParts[1]}`;
       } else {
         // Single word - search only firstName
-        searchFilters = `firstName=${searchTerm}`;
+        searchFilters = `firstName:=${searchTerm}`;
       }
     }
     

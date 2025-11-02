@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toAbsoluteUrl } from "@/utils";
 import { DataGridLoader } from "@/components/data-grid";
 import avatar from "@/media/avatars/blank.png";
@@ -75,6 +76,7 @@ const GroupTherapy = ({
 }: {
   searchInput?: string;
 }) => {
+  const navigate = useNavigate();
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
@@ -270,9 +272,17 @@ const GroupTherapy = ({
               </div>
 
               <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.nativeEvent.stopImmediatePropagation();
+                    navigate(`/clients/${row.original.id}`);
+                  }}
+                  className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px text-left"
+                >
                   {row.original.firstName} {row.original.lastName}
-                </span>
+                </button>
                 <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
                   +251{row.original.phoneNumber}
                 </span>

@@ -111,7 +111,7 @@ const TherapistDetailContent = ({
               </div>
             </div>
           ) : licenseRecord ? (
-            <LicenseInfo data={licenseRecord} />
+              <LicenseInfo data={licenseRecord} layout="horizontal" />
           ) : (
             <div className="card mt-4">
               <div className="card-body">

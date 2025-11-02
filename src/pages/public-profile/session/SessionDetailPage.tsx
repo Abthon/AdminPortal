@@ -13,7 +13,6 @@ import {
 //import { TherapistDetailContent } from "./blocks";
 import { useLayout } from "@/providers";
 import axiosInstance from "@/auth/_helpers";
-import { ITherapistDetailResponse } from "@/types/therapist";
 import { DataGridLoader } from "@/components/data-grid";
 import { toast } from "sonner";
 import { SessionDetailContent } from "./blocks/SessionDetailContent";
@@ -24,9 +23,7 @@ const SessionDetailPage = () => {
   const navigate = useNavigate();
   const { currentLayout } = useLayout();
 
-  const fetchTherapistDetail = async (
-    sessionId: string
-  ): Promise<ITherapistDetailResponse> => {
+  const fetchSessionDetail = async (sessionId: string) => {
     try {
       const { data } = await axiosInstance.get(
         `/api/v1/session/${sessionId}?fields=therapist.*,client.*,hasTherapistAttended,group.*`
@@ -41,22 +38,58 @@ const SessionDetailPage = () => {
     }
   };
 
+  // Fetch therapist rating separately
+  const fetchTherapistRating = async (therapistId: string) => {
+    try {
+      const { data } = await axiosInstance.get(
+        `/api/v1/therapist/${therapistId}?fields=rating.*`
+      );
+      return data?.data?.rating || [];
+    } catch (error: any) {
+      console.error("Failed to fetch therapist rating:", error);
+      return [];
+    }
+  };
+
   const {
     data: sessionData,
     isLoading,
     error,
   } = useQuery({
     queryKey: ["session-detail", id],
-    queryFn: () => fetchTherapistDetail(id!),
+    queryFn: () => fetchSessionDetail(id!),
     enabled: !!id,
     retry: 1,
   });
+
+  // Fetch therapist rating data separately
+  const {
+    data: therapistRating,
+    isLoading: ratingLoading,
+  } = useQuery({
+    queryKey: ["therapist-rating", sessionData?.data?.therapist?.id],
+    queryFn: () => fetchTherapistRating(sessionData?.data?.therapist?.id!),
+    enabled: !!sessionData?.data?.therapist?.id,
+    retry: 1,
+  });
+
+  // Merge session data with therapist rating
+  const enrichedSessionData = sessionData ? {
+    ...sessionData,
+    data: {
+      ...sessionData.data,
+      therapist: {
+        ...sessionData.data.therapist,
+        rating: therapistRating || []
+      }
+    }
+  } : null;
 
   const handleBackToSession = () => {
     navigate("/sessions");
   };
 
-  if (isLoading) {
+  if (isLoading || ratingLoading) {
     return (
       <Container>
         <DataGridLoader message="Loading session details..." />
@@ -108,14 +141,14 @@ const SessionDetailPage = () => {
         </Container>
       )} */}
 
-      {sessionData.data.group.length == 0 && (
+      {enrichedSessionData?.data.group.length == 0 && (
         <Container>
-          <SessionDetailContent sessionData={sessionData.data} />
+          <SessionDetailContent sessionData={enrichedSessionData.data} />
         </Container>
       )}
-      {sessionData.data.group.length != 0 && (
+      {enrichedSessionData?.data.group.length > 0 && (
         <Container>
-          <SessionGroupDetailContent sessionData={sessionData.data} />
+          <SessionGroupDetailContent sessionData={enrichedSessionData.data} />
         </Container>
       )}
     </Fragment>

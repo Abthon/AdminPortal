@@ -225,7 +225,7 @@ const Clients = ({
     // }
     // [Todo: refactor url]
     const statusFilter = filterInput && filterInput !== "all" ? `activeSubscription.status:=${filterInput}` : "";
-    const modalFilterParam = modalFilter && modalFilter !== "all" ? `preference.id:=${modalFilter}` : "";
+    const modalFilterParam = modalFilter && modalFilter !== "all" ? `preference.modal.id:=${modalFilter}` : "";
     const filters = [statusFilter, modalFilterParam].filter(Boolean).join(",");
     const url = `/api/v1/client?take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC,firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,username,emergencyContact,isVisible,isInGroup,createdAt,updatedAt,activeSubscription.*,preference.*${filters ? `&filters=${filters}` : ""}`;
     console.log(url, "url");
@@ -990,17 +990,6 @@ const Clients = ({
                 setSelectedReceipt(null);
               }}
             />
-
-            {/* Info card */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-sm text-gray-800 px-4 py-3 rounded-lg shadow-lg min-w-[200px] text-center">
-              <p className="font-semibold text-sm">Payment Receipt</p>
-              <p className="text-xs text-gray-600 mt-1">
-                {selectedReceipt.clientName}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {selectedReceipt.filename}
-              </p>
-            </div>
           </div>
         </div>
       )}

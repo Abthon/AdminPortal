@@ -14,12 +14,12 @@ import { type AuthModel, type UserModel } from "@/auth";
 import { useNavigate } from "react-router";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
-export const LOGIN_URL = `${API_URL}/test/api/v1/auth/login/admin`;
-export const VARIFY_ACCOUNT_URL = `${API_URL}/test/api/v1/auth/verify/admin`;
-export const REGISTER_URL = `${API_URL}/test/api/v1/auth/signup/admin`;
-export const FORGOT_PASSWORD_URL = `${API_URL}/test/api/v1/auth/forgotPassword/admin`;
-export const RESET_PASSWORD_URL = `${API_URL}/test/api/v1/auth/resetPassword/admin`;
-export const GET_USER_URL = `${API_URL}/test/api/v1/admin/me`;
+export const LOGIN_URL = `${API_URL}/dev/api/v1/auth/login/admin`;
+export const VARIFY_ACCOUNT_URL = `${API_URL}/dev/api/v1/auth/verify/admin`;
+export const REGISTER_URL = `${API_URL}/dev/api/v1/auth/signup/admin`;
+export const FORGOT_PASSWORD_URL = `${API_URL}/dev/api/v1/auth/forgotPassword/admin`;
+export const RESET_PASSWORD_URL = `${API_URL}/dev/api/v1/auth/resetPassword/admin`;
+export const GET_USER_URL = `${API_URL}/dev/api/v1/admin/me`;
 
 interface AuthContextProps {
   loading: boolean;

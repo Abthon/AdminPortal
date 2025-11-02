@@ -37,12 +37,66 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import axiosInstance from "@/auth/_helpers";
 import { ITherapistsData } from "@/types/therapist";
 import { IClientDetailData, ISubscription } from "@/types/client";
+import { IModal } from "@/types/subscription";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
+
+// Component to handle async modal fetching for transaction
+const TransactionModalCell = ({ client }: { client: IClientDetailData & { preference?: { id: string; }[]; } }) => {
+  const [modalName, setModalName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchModal = async () => {
+      if (!client.preference || client.preference.length === 0) {
+        setModalName(null);
+        return;
+      }
+
+      const preferenceId = client.preference[0].id;
+      if (!preferenceId) {
+        setModalName(null);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const { data } = await axiosInstance.get(
+          `/api/v1/preference/${preferenceId}?fields=modal.*`
+        );
+        setModalName(data?.data?.modal?.name || null);
+      } catch (error) {
+        console.error("Error fetching preference modal:", error);
+        setModalName(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModal();
+  }, [client.preference]);
+
+  return (
+    <div className="flex items-center">
+      {modalName ? (
+        <span className="badge badge-primary badge-outline rounded-[30px]">
+          <span className="size-1.5 rounded-full bg-primary me-1.5"></span>
+          {modalName}
+        </span>
+      ) : (
+        <span className="text-gray-400 text-sm">Not Assigned</span>
+      )}
+    </div>
+  );
+};
 
 interface ITransactionData {
   id: string;
   status: string;
-  client: IClientDetailData;
+  client: IClientDetailData & {
+    preference?: {
+      id: string;
+    }[];
+  };
   subscription: ISubscription;
   therapist: ITherapistsData
 }
@@ -71,6 +125,7 @@ const Transactions = ({
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [modalFilter, setModalFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState({
     startDate: "",
     endDate: "",
@@ -137,11 +192,32 @@ const Transactions = ({
     pageSize: number;
     sort: any;
   }) {
-    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
-      `${dateFilter.startDate ? ` subscription.start_date>=${dateFilter.startDate}` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` subscription.end_date<=${dateFilter.endDate}` : ""}`  : "";
-    const statusFilterParam = (statusFilter && statusFilter !== "all") ? 
-      `${dateFilter.startDate || dateFilter.endDate ? "," : ""}subscription.status:=${statusFilter}` : "";
-    const url = `/api/v1/subscription/user-sub?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || statusFilter && statusFilter !== "all" ? ` &filters=` : ""}${dateFilterParam}${statusFilterParam}&fields=client.*,status`;
+    // Build date filter parameters correctly
+    let dateFilterParams: string[] = [];
+    if (dateFilter.startDate) {
+      dateFilterParams.push(`subscription.start_date>=${dateFilter.startDate}`);
+    }
+    if (dateFilter.endDate) {
+      dateFilterParams.push(`subscription.start_date<=${dateFilter.endDate}`);
+    }
+    
+    // Build status filter parameter
+    let statusFilterParams: string[] = [];
+    if (statusFilter && statusFilter !== "all") {
+      statusFilterParams.push(`subscription.status:=${statusFilter}`);
+    }
+    
+    // Build modal filter parameter
+    let modalFilterParams: string[] = [];
+    if (modalFilter && modalFilter !== "all") {
+      modalFilterParams.push(`client.preference.modal.id:=${modalFilter}`);
+    }
+    
+    // Combine all filters
+    const allFilters = [...dateFilterParams, ...statusFilterParams, ...modalFilterParams];
+    const filtersParam = allFilters.length > 0 ? `&filters=${allFilters.join(',')}` : '';
+    
+    const url = `/api/v1/subscription/user-sub?take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}${filtersParam}&fields=client.*,client.preference.*,status,subscription.*`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -172,10 +248,34 @@ const Transactions = ({
     search: any;
     sort: any;
   }) {
-    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
-      `,${dateFilter.startDate ? ` subscription.start_date>=${dateFilter.startDate}` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` subscription.end_date<=${dateFilter.endDate}` : ""}`  : "";
-    const statusFilterParam = (statusFilter && statusFilter !== "all") ? `,subscription.status:=${statusFilter}` : "";
-    const url = `/api/v1/subscription/user-sub?filters=client.firstName=${search}${dateFilterParam}${statusFilterParam}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=client.*,status`;
+    // Build all filter parameters
+    let allFilters: string[] = [];
+    
+    // Add search filter
+    if (search) {
+      allFilters.push(`client.firstName=${search}`);
+    }
+    
+    // Add date filters
+    if (dateFilter.startDate) {
+      allFilters.push(`subscription.start_date>=${dateFilter.startDate}`);
+    }
+    if (dateFilter.endDate) {
+      allFilters.push(`subscription.start_date<=${dateFilter.endDate}`);
+    }
+    
+    // Add status filter
+    if (statusFilter && statusFilter !== "all") {
+      allFilters.push(`subscription.status:=${statusFilter}`);
+    }
+    
+    // Add modal filter
+    if (modalFilter && modalFilter !== "all") {
+      allFilters.push(`client.preference.modal.id:=${modalFilter}`);
+    }
+    
+    const filtersParam = allFilters.length > 0 ? `filters=${allFilters.join(',')}` : '';
+    const url = `/api/v1/subscription/user-sub?${filtersParam}&take=${pageSize}&page=${pageIndex}&sort=id=${sort[0].desc ? "DESC" : "ASC"}&fields=client.*,client.preference.*,status,subscription.*`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -193,14 +293,38 @@ const Transactions = ({
   }
 
   async function revalidateTransaction() {
-    const dateFilterParam = (dateFilter.startDate || dateFilter.endDate) ? 
-      `,${dateFilter.startDate ? ` subscription.start_date>=${dateFilter.startDate}` : ""}${dateFilter.startDate && dateFilter.endDate ? "," : ""}${dateFilter.endDate ? ` subscription.end_date<=${dateFilter.endDate}` : ""}`  : "";
-    const statusFilterParam = (statusFilter && statusFilter !== "all") ? `,subscription.status:=${statusFilter}` : "";
-    const url = `/api/v1/subscription/user-sub?filters=client.firstName=${searchInput}${dateFilterParam}${statusFilterParam}&fields=client.*,status`;
+    // Build all filter parameters
+    let allFilters: string[] = [];
+    
+    // Add search filter
+    if (searchInput) {
+      allFilters.push(`client.firstName=${searchInput}`);
+    }
+    
+    // Add date filters
+    if (dateFilter.startDate) {
+      allFilters.push(`subscription.start_date>=${dateFilter.startDate}`);
+    }
+    if (dateFilter.endDate) {
+      allFilters.push(`subscription.start_date<=${dateFilter.endDate}`);
+    }
+    
+    // Add status filter
+    if (statusFilter && statusFilter !== "all") {
+      allFilters.push(`subscription.status:=${statusFilter}`);
+    }
+    
+    // Add modal filter
+    if (modalFilter && modalFilter !== "all") {
+      allFilters.push(`client.preference.modal.id:=${modalFilter}`);
+    }
+    
+    const filtersParam = allFilters.length > 0 ? `filters=${allFilters.join(',')}` : '';
+    const url = `/api/v1/subscription/user-sub?${filtersParam}&fields=client.*,client.preference.*,status,subscription.*`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleTransactionNum(data.data.length);
-    console.log(data.data, "transaction data");
+
     return data;
   }
 
@@ -209,11 +333,23 @@ const Transactions = ({
     return data;
   }
 
+  // Fetch modals for filtering
+  async function fetchModals() {
+    const { data } = await axiosInstance.get("/api/v1/modal");
+    return data;
+  }
+
   const { isLoading: isTransactionLoading, data: TransactionData } = useQuery({
-    queryKey: ["Transactions", searchInput, dateFilter, statusFilter],
+    queryKey: ["Transactions", searchInput, dateFilter, statusFilter, modalFilter],
     queryFn: revalidateTransaction,
     refetchInterval: 50000,
     refetchIntervalInBackground: true,
+  });
+
+  // Fetch modals query
+  const { data: modalsData } = useQuery({
+    queryKey: ["modals"],
+    queryFn: fetchModals,
   });
 
   // Fetch config parameters
@@ -483,6 +619,19 @@ const Transactions = ({
         },
       },
       {
+        id: "therapyType",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Therapy Type" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          return <TransactionModalCell client={row.original.client} />;
+        },
+        meta: {
+          headerClassName: "min-w-[140px]",
+        },
+      },
+      {
         id: "level",
         header: ({ column }) => (
           <DataGridColumnHeader title="Level" column={column} />
@@ -501,6 +650,29 @@ const Transactions = ({
         },
         meta: {
           headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        id: "totalPrice",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Total Price" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          const price = info.row.original.subscription?.price || 0;
+          return (
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900">
+                {price.toFixed(2)} Birr
+              </span>
+              <span className="text-xs text-gray-500">
+                Total Amount
+              </span>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[120px]",
         },
       },
       {
@@ -694,17 +866,101 @@ const Transactions = ({
     setStatusFilter(value);
   }, []);
 
+  // Calculate totals from current filtered data
+  const totals = useMemo(() => {
+    // Check if we have TransactionData from the query
+    const transactionList = TransactionData?.data || data;
+    console.log("TransactionData:", TransactionData);
+    console.log("data:", data);
+    console.log("transactionList:", transactionList);
+    
+    if (!transactionList || !Array.isArray(transactionList)) {
+      console.log("No valid transaction list found");
+      return { totalCompanyPrice: 0, totalTherapistPrice: 0, totalPrice: 0 };
+    }
+    
+    let totalCompanyPrice = 0;
+    let totalTherapistPrice = 0;
+    let totalPrice = 0;
+    
+    transactionList.forEach((transaction: ITransactionData, index: number) => {
+      const price = transaction.subscription?.price || 0;
+      const levelType = transaction.subscription?.level?.type || "";
+      
+      console.log(`Transaction ${index}:`, {
+        price,
+        levelType,
+        subscription: transaction.subscription
+      });
+      
+      const companyAmount = calculateCompanyPart(price, levelType);
+      const therapistAmount = calculateTherapistPart(price, levelType);
+      
+      console.log(`Amounts for transaction ${index}:`, {
+        companyAmount,
+        therapistAmount
+      });
+      
+      totalCompanyPrice += companyAmount;
+      totalTherapistPrice += therapistAmount;
+      totalPrice += price;
+    });
+    
+    console.log("Final totals:", { totalCompanyPrice, totalTherapistPrice, totalPrice });
+    return { totalCompanyPrice, totalTherapistPrice, totalPrice };
+  }, [TransactionData, data]);
+
   const Toolbar = useMemo(() => {
     //const handleFilterChange = (value: any) => {
     //  setFilterInput(value); // Update the state when the user selects an item
     //  console.log("Filter value changed to:", value); // Optional: log for debugging
     //};
 
+    const handleModalFilterChange = (value: any) => {
+      setModalFilter(value);
+      console.log("Modal filter changed to:", value);
+    };
+
     return (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
-        <h3 className="card-title font-medium text-sm">
-          Showing {itemsOnPage} of {totalItems} transactions
-        </h3>
+        <div className="flex items-center justify-between w-full">
+          <h3 className="card-title font-medium text-sm">
+            Showing {itemsOnPage} of {totalItems} transactions
+          </h3>
+          
+          {/* Total Prices */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-info/10 rounded-lg">
+              <KeenIcon icon="chart-pie" className="text-info text-sm" />
+              <div className="text-xs">
+                <span className="text-gray-600">Total Revenue: </span>
+                <span className="font-semibold text-info">
+                  {totals.totalPrice.toFixed(2)} Birr
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-success/10 rounded-lg">
+              <KeenIcon icon="dollar" className="text-success text-sm" />
+              <div className="text-xs">
+                <span className="text-gray-600">Company Total: </span>
+                <span className="font-semibold text-success">
+                  {totals.totalCompanyPrice.toFixed(2)} Birr
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg">
+              <KeenIcon icon="wallet" className="text-primary text-sm" />
+              <div className="text-xs">
+                <span className="text-gray-600">Therapist Total: </span>
+                <span className="font-semibold text-primary">
+                  {totals.totalTherapistPrice.toFixed(2)} Birr
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex flex-wrap gap-2.5">
@@ -724,6 +980,25 @@ const Transactions = ({
                 <SelectItem value="suspended">Suspended</SelectItem>
               </SelectContent>
             </Select>*/}
+
+            {/* Modal Type Filter */}
+            <Select
+              value={modalFilter}
+              onValueChange={handleModalFilterChange}
+              defaultValue="all"
+            >
+              <SelectTrigger className="w-40" size="sm">
+                <SelectValue placeholder="Therapy Type" />
+              </SelectTrigger>
+              <SelectContent className="w-48">
+                <SelectItem value="all">All Types</SelectItem>
+                {modalsData?.data?.map((modal: any) => (
+                  <SelectItem key={modal.id} value={modal.id}>
+                    {modal.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             <div className="flex items-center gap-2">
               {/* Start Date Filter */}
@@ -838,7 +1113,23 @@ const Transactions = ({
         </div>
       </div>
     );
-  }, [dateFilter.startDateText, dateFilter.endDateText, dateFilter.startDate, dateFilter.endDate, itemsOnPage, totalItems, startDateOpen, endDateOpen, startDateMonth, endDateMonth, handleStartDateTextChange, handleEndDateTextChange, clearDateFilter, statusFilter, handleStatusFilterChange]);
+  }, [
+    itemsOnPage,
+    totalItems,
+    totals,
+    dateFilter,
+    startDateOpen,
+    endDateOpen,
+    startDateMonth,
+    endDateMonth,
+    handleStartDateTextChange,
+    handleEndDateTextChange,
+    clearDateFilter,
+    statusFilter,
+    handleStatusFilterChange,
+    modalFilter,
+    modalsData,
+  ]);
 
   // if (isDriverLoading) {
   //   return <DataGridLoader message="Loading" />;
@@ -856,7 +1147,7 @@ const Transactions = ({
         onRowSelectionChange={handleRowSelection}
         searchInput={searchInput}
         pagination={{ size: 5 }}
-        sorting={[{ id: "id", desc: false }]}
+        sorting={[{ id: "Client", desc: false }]}
         toolbar={Toolbar}
         layout={{ card: true }}
       />

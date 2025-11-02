@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { toAbsoluteUrl } from "@/utils";
 import { cn } from "@/lib/utils";
 import { DataGridLoader } from "@/components/data-grid";
@@ -52,6 +53,7 @@ interface ISessionsData {
   therapist: any;
   client: any;
   group?: any[];
+  createdAt: string;
   modal?: {
     id: string;
     name: string;
@@ -73,6 +75,7 @@ const Sessions = ({
   handleSessionNum: (num: any) => void;
   searchInput?: string;
 }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"sessions" | "group-therapy">(
     "sessions"
   );
@@ -127,6 +130,12 @@ const Sessions = ({
     name: string;
     phone: string;
   } | null>(null);
+  const [selectedReceipt, setSelectedReceipt] = useState<{
+    url: string;
+    filename: string;
+    clientName: string;
+  } | null>(null);
+  const [receiptModalOpen, setReceiptModalOpen] = useState(false);
   const [sessionDetailModalOpen, setSessionDetailModalOpen] = useState(false);
   const [selectedSessionDetail, setSelectedSessionDetail] =
     useState<ISessionsData | null>(null);
@@ -200,7 +209,7 @@ const Sessions = ({
       modalFilter && modalFilter !== "all"
         ? `${dateFilter.startDate || dateFilter.endDate ? "," : ""}modal.id:=${modalFilter}`
         : "";
-    const url = `/api/v1/session?take=${pageSize}&page=${pageIndex}&sort=schedule=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || (modalFilter && modalFilter !== "all") ? ` &filters=` : ""}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
+    const url = `/api/v1/session?take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}${dateFilter.startDate || dateFilter.endDate || (modalFilter && modalFilter !== "all") ? ` &filters=` : ""}${dateFilterParam}${modalFilterParam}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -254,7 +263,7 @@ const Sessions = ({
       }
     }
     
-    const url = `/api/v1/session?filters=${searchFilters}${dateFilterParam}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=schedule=${sort[0].desc ? "DESC" : "ASC"}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration`;
+    const url = `/api/v1/session?filters=${searchFilters}${dateFilterParam}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -295,7 +304,7 @@ const Sessions = ({
       }
     }
     
-    const url = `/api/v1/session?${searchFilters ? `filters=${searchFilters}${dateFilterParam}${modalFilterParam}` : `${dateFilterParam || modalFilterParam ? `filters=${dateFilterParam}${modalFilterParam}`.replace(/^,/, '') : ''}`}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration&sort=schedule=DESC`;
+    const url = `/api/v1/session?${searchFilters ? `filters=${searchFilters}${dateFilterParam}${modalFilterParam}` : `${dateFilterParam || modalFilterParam ? `filters=${dateFilterParam}${modalFilterParam}`.replace(/^,/, '') : ''}`}&fields=therapist.*,modal.*,client.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt&sort=createdAt=DESC`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleSessionNum(data.data.length);
@@ -614,14 +623,24 @@ const Sessions = ({
                 </div>
 
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-                    {firstClient?.firstName} {firstClient?.lastName}
+                  <div className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.nativeEvent.stopImmediatePropagation();
+                        navigate(`/clients/${firstClient?.id}`);
+                      }}
+                      className="hover:text-primary-active"
+                    >
+                      {firstClient?.firstName} {firstClient?.lastName}
+                    </button>
                     {remainingCount > 0 && (
                       <span className="text-xs text-blue-600 ml-1">
                         & {remainingCount} other{remainingCount > 1 ? "s" : ""}
                       </span>
                     )}
-                  </span>
+                  </div>
                   <span className="text-2sm text-gray-700 font-normal">
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">
                       <KeenIcon icon="users" className="text-xs" />
@@ -673,9 +692,17 @@ const Sessions = ({
                 </div>
 
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.nativeEvent.stopImmediatePropagation();
+                      navigate(`/clients/${client?.id}`);
+                    }}
+                    className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px text-left"
+                  >
                     {client?.firstName} {client?.lastName}
-                  </span>
+                  </button>
                   <span className="text-2sm text-gray-700 font-normal hover:text-primary-active">
                     +251{client?.phoneNumber}
                   </span>
@@ -836,7 +863,7 @@ const Sessions = ({
         ),
         enableSorting: true,
         cell: (info) => {
-          // Format schedule (datetime string) for display
+          // Format schedule (datetime string) for display in 24-hour format
           const schedule = info.row.original.schedule;
           const formatSchedule = (dateTimeString: string | number) => {
             try {
@@ -847,7 +874,7 @@ const Sessions = ({
                 day: "numeric",
                 hour: "2-digit",
                 minute: "2-digit",
-                hour12: true,
+                hour12: false, // Changed to 24-hour format
               };
               return date.toLocaleDateString("en-US", options);
             } catch {
@@ -858,6 +885,35 @@ const Sessions = ({
         },
         meta: {
           headerClassName: "min-w-[150px]",
+        },
+      },
+      {
+        id: "createdAt",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Created At" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          const createdAt = info.row.original.createdAt;
+          if (!createdAt) return "N/A";
+          
+          try {
+            const date = new Date(createdAt);
+            const options: Intl.DateTimeFormatOptions = {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            };
+            return date.toLocaleDateString("en-US", options);
+          } catch {
+            return "Invalid Date";
+          }
+        },
+        meta: {
+          headerClassName: "min-w-[140px]",
         },
       },
       {
@@ -872,6 +928,103 @@ const Sessions = ({
         },
         meta: {
           headerClassName: "min-w-[120px]",
+        },
+      },
+      {
+        id: "receipt",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Receipt" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const handleReceiptClick = async (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+
+            // For group therapy, we need to handle multiple clients
+            const isGroupTherapy = row.original.group && row.original.group.length > 0;
+            
+            if (isGroupTherapy) {
+              toast.info("Group therapy sessions have multiple receipts. Please check individual client details.");
+              return;
+            }
+
+            const client = row.original.client;
+            if (!client) {
+              toast.error("No client found for this session");
+              return;
+            }
+
+            try {
+              // Fetch client's active subscription to get payment receipt
+              const { data: clientData } = await axiosInstance.get(`/api/v1/client/${client.id}?fields=activeSubscription.*`);
+              const activeSubscription = clientData?.data?.activeSubscription;
+              
+              if (!activeSubscription?.id) {
+                toast.error("No active subscription found for this client");
+                return;
+              }
+
+              const { data: receiptData } = await axiosInstance.get(`/api/v1/subscription/user-sub?fields=payment.*&ids=${activeSubscription.id}`);
+              const payment = receiptData?.data?.[0]?.payment?.[0];
+              
+              if (!payment?.filename) {
+                toast.error("No receipt found for this client");
+                return;
+              }
+
+              const receiptUrl = `${BASE_URL}/payment/${payment.filename}`;
+              setSelectedReceipt({
+                url: receiptUrl,
+                filename: payment.filename,
+                clientName: `${client.firstName} ${client.lastName}`,
+              });
+              setReceiptModalOpen(true);
+            } catch (error) {
+              console.error("Error fetching receipt:", error);
+              toast.error("Failed to load receipt");
+            }
+          };
+
+          // Check if it's a group therapy or individual session
+          const isGroupTherapy = row.original.group && row.original.group.length > 0;
+          const hasClient = row.original.client;
+
+          if (isGroupTherapy) {
+            return (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReceiptClick}
+                className="h-8 px-3"
+              >
+                <KeenIcon icon="users" className="mr-1" />
+                Group Receipts
+              </Button>
+            );
+          } else if (hasClient) {
+            return (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReceiptClick}
+                className="h-8 px-3"
+              >
+                <KeenIcon icon="file-down" className="mr-1" />
+                View Receipt
+              </Button>
+            );
+          } else {
+            return (
+              <span className="text-xs text-gray-400 italic">
+                No Client
+              </span>
+            );
+          }
+        },
+        meta: {
+          headerClassName: "min-w-[140px]",
         },
       },
       {
@@ -1827,9 +1980,16 @@ const Sessions = ({
                             alt={`${client.firstName} ${client.lastName}`}
                           />
                           <div>
-                            <p className="font-medium text-gray-900">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                navigate(`/clients/${client.id}`);
+                              }}
+                              className="font-medium text-gray-900 hover:text-primary-active text-left"
+                            >
                               {client.firstName} {client.lastName}
-                            </p>
+                            </button>
                             <p className="text-sm text-gray-500">
                               {client.email}
                             </p>
@@ -1842,27 +2002,111 @@ const Sessions = ({
                     )}
                   </div>
                 ) : selectedSessionDetail.client ? (
-                  <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg max-w-md">
-                    <img
-                      src={
-                        selectedSessionDetail.client.profile
-                          ? `${BASE_URL}/${selectedSessionDetail.client.profile}`
-                          : avatar
-                      }
-                      className="rounded-full size-12 object-cover"
-                      alt={`${selectedSessionDetail.client.firstName} ${selectedSessionDetail.client.lastName}`}
-                    />
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {selectedSessionDetail.client.firstName}{" "}
-                        {selectedSessionDetail.client.lastName}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {selectedSessionDetail.client.email}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        +251{selectedSessionDetail.client.phoneNumber}
-                      </p>
+                  <div className="space-y-4">
+                    {/* Client Profile Header */}
+                    <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
+                      <img
+                        src={
+                          selectedSessionDetail.client.profile
+                            ? `${BASE_URL}/${selectedSessionDetail.client.profile}`
+                            : avatar
+                        }
+                        className="rounded-full size-16 object-cover border-2 border-blue-200"
+                        alt={`${selectedSessionDetail.client.firstName} ${selectedSessionDetail.client.lastName}`}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="text-lg font-semibold text-gray-900">
+                            {selectedSessionDetail.client.firstName} {selectedSessionDetail.client.lastName}
+                          </h4>
+                          {(selectedSessionDetail.client.isEmailAuthenticated || selectedSessionDetail.client.isPhoneNumberAuthenticated) && (
+                            <KeenIcon icon="verify" className="text-primary text-sm" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                          <div className="flex items-center gap-1">
+                            <KeenIcon icon="email" className="text-xs" />
+                            <span>{selectedSessionDetail.client.email}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <KeenIcon icon="phone" className="text-xs" />
+                            <span>+251{selectedSessionDetail.client.phoneNumber}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`badge ${
+                              selectedSessionDetail.client.status === "active"
+                                ? "badge-success"
+                                : selectedSessionDetail.client.status === "pending"
+                                ? "badge-primary"
+                                : selectedSessionDetail.client.status === "inactive"
+                                ? "badge-warning"
+                                : "badge-danger"
+                            } badge-outline badge-sm`}
+                          >
+                            <span
+                              className={`size-1.5 rounded-full ${
+                                selectedSessionDetail.client.status === "active"
+                                  ? "bg-success"
+                                  : selectedSessionDetail.client.status === "pending"
+                                  ? "bg-primary"
+                                  : selectedSessionDetail.client.status === "inactive"
+                                  ? "bg-warning"
+                                  : "bg-danger"
+                              } me-1.5`}
+                            ></span>
+                            {selectedSessionDetail.client.status}
+                          </span>
+                          {selectedSessionDetail.client.isOnline && (
+                            <span className="badge badge-sm badge-success badge-outline">
+                              Online
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Client Details Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Username</label>
+                          <p className="text-sm text-gray-900">@{selectedSessionDetail.client.username}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Gender</label>
+                          <p className="text-sm text-gray-900">{selectedSessionDetail.client.gender}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Email Verified</label>
+                          <p className="text-sm text-gray-900">
+                            {selectedSessionDetail.client.isEmailAuthenticated ? "✅ Yes" : "❌ No"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Phone Verified</label>
+                          <p className="text-sm text-gray-900">
+                            {selectedSessionDetail.client.isPhoneNumberAuthenticated ? "✅ Yes" : "❌ No"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Last Seen</label>
+                          <p className="text-sm text-gray-900">
+                            {selectedSessionDetail.client.lastSeenAt 
+                              ? new Date(selectedSessionDetail.client.lastSeenAt).toLocaleString()
+                              : "Never"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Member Since</label>
+                          <p className="text-sm text-gray-900">
+                            {new Date(selectedSessionDetail.client.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -1875,6 +2119,37 @@ const Sessions = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Receipt Modal */}
+      {selectedReceipt && (
+        <div
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6"
+          onClick={() => setSelectedReceipt(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] overflow-auto">
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedReceipt(null)}
+              className="absolute -top-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
+            >
+              <KeenIcon icon="cross" className="text-gray-600 text-sm" />
+            </button>
+
+            {/* Receipt Image */}
+            <img
+              src={selectedReceipt.url}
+              alt={`Receipt for ${selectedReceipt.clientName}`}
+              className="rounded-lg shadow-2xl max-h-[80vh] w-auto object-contain bg-white"
+              onClick={(e) => e.stopPropagation()}
+              onError={(e) => {
+                console.error("Failed to load receipt image");
+                toast.error("Failed to load receipt image");
+                setSelectedReceipt(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Conditional Content Based on Active Tab */}
       {activeTab === "sessions" ? (
@@ -1889,7 +2164,7 @@ const Sessions = ({
           onRowSelectionChange={handleRowSelection}
           searchInput={searchInput}
           pagination={{ size: 5 }}
-          sorting={[{ id: "schedule", desc: true }]}
+          sorting={[{ id: "createdAt", desc: true }]}
           toolbar={Toolbar}
           layout={{ card: true }}
         />

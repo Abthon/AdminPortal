@@ -22,11 +22,12 @@ export function capitalizeFirstLetter(input: string): string {
 
 interface LicenseInfoProps {
   data: any;
+  layout?: 'grid' | 'horizontal';
 }
 
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
-const LicenseInfo: React.FC<LicenseInfoProps> = ({ data }) => {
+const LicenseInfo: React.FC<LicenseInfoProps> = ({ data, layout = 'grid' }) => {
   console.log(data, "license data");
 
   const [showModal, setShowModal] = useState(false);
@@ -174,20 +175,134 @@ const LicenseInfo: React.FC<LicenseInfoProps> = ({ data }) => {
   return (
     <div className="card mt-4">
       <div className="card-header">
-        <h3 className="card-title">Professional Documents</h3>
+        <div className="flex items-center justify-between w-full">
+          <h3 className="card-title">Therapist Documents</h3>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">{items.length} Documents</span>
+            <button className="btn btn-sm btn-icon btn-clear btn-primary">
+              <KeenIcon icon="plus" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="card-body pt-3.5 pb-3.5">
+      <div className="card-body pt-3.5 pb-3.5" style={{ overflowX: 'hidden' }}>
         {items.length > 0 ? (
-          <table className="table-auto w-full">
-            <tbody>
-              {items.map((item, index) => renderItems(item, index))}
-            </tbody>
-          </table>
+          layout === 'horizontal' ? (
+            // Horizontal scrollable layout for therapist detail
+            <div className="overflow-x-auto">
+              <div className="flex gap-4 pb-2" style={{ minWidth: 'max-content' }}>
+                {items.map((item, index) => {
+                  if (!item.filename) return null;
+
+                  const getDocumentType = (label: string) => {
+                    switch (label) {
+                      case "Professional License:":
+                        return { name: "Professional License", type: "LICENSE", year: "2025" };
+                      case "Degree Certificate:":
+                        return { name: "Degree Certificate", type: "DEGREE", year: "2024" };
+                      case "Government ID:":
+                        return { name: "Government ID", type: "ID", year: "2025" };
+                      case "Work Experience:":
+                        return { name: "Work Experience", type: "EXPERIENCE", year: "2024" };
+                      case "Special Training:":
+                        return { name: "Special Training", type: "TRAINING", year: "2025" };
+                      default:
+                        return { name: "Document", type: "DOC", year: "2025" };
+                    }
+                  };
+
+                  const docInfo = getDocumentType(item.label);
+
+                  return (
+                    <div 
+                      key={index} 
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer flex-shrink-0" 
+                      style={{ width: '280px', overflowX:'hidden' }}
+                      onClick={() => openImageModal(item.filename!, docInfo.name)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <KeenIcon icon="document" className="text-gray-600 text-xl" />
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900 mb-1 truncate">
+                            {docInfo.name}
+                          </h4>
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <span className="uppercase font-medium">{docInfo.type}</span>
+                            <span>•</span>
+                            <span>{docInfo.year}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            // Grid layout for session detail
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {items.map((item, index) => {
+                if (!item.filename) return null;
+
+                const getDocumentType = (label: string) => {
+                  switch (label) {
+                    case "Professional License:":
+                      return { name: "Professional License", type: "LICENSE", year: "2025" };
+                    case "Degree Certificate:":
+                      return { name: "Degree Certificate", type: "DEGREE", year: "2024" };
+                    case "Government ID:":
+                      return { name: "Government ID", type: "ID", year: "2025" };
+                    case "Work Experience:":
+                      return { name: "Work Experience", type: "EXPERIENCE", year: "2024" };
+                    case "Special Training:":
+                      return { name: "Special Training", type: "TRAINING", year: "2025" };
+                    default:
+                      return { name: "Document", type: "DOC", year: "2025" };
+                  }
+                };
+
+                const docInfo = getDocumentType(item.label);
+
+                return (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <KeenIcon icon="document" className="text-gray-600 text-xl" />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-gray-900 mb-1 truncate">
+                          {docInfo.name}
+                        </h4>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                          <span className="uppercase font-medium">{docInfo.type}</span>
+                          <span>•</span>
+                          <span>{docInfo.year}</span>
+                        </div>
+                        
+                        <button
+                          onClick={() => openImageModal(item.filename!, docInfo.name)}
+                          className="w-full btn btn-xs btn-outline btn-primary"
+                        >
+                          <KeenIcon icon="eye" className="me-1" />
+                          View Document
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
         ) : (
-          <div className="text-center py-4">
-            <KeenIcon icon="document" className="text-3xl text-gray-400 mb-2" />
-            <p className="text-gray-600">No professional documents available</p>
+          <div className="text-center py-8">
+            <KeenIcon icon="document" className="text-4xl text-gray-400 mb-4" />
+            <h4 className="text-lg font-medium text-gray-900 mb-2">No Documents Found</h4>
+            <p className="text-gray-600">No professional documents have been uploaded yet.</p>
           </div>
         )}
       </div>

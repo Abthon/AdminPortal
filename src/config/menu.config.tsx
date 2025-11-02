@@ -18,24 +18,24 @@ export const getMenuSidebar = (
     },
     getUserType(authToken) === "admin"
       ? {
-          title: "Therapist",
-          icon: "user-tick",
-          children: [
-            {
-              title: "Therapists",
-              path: "/therapists",
-            },
-          ],
-        }
-      : null, // Use null when the condition fails
-    getUserType(authToken) === "admin"
-      ? {
           title: "Client",
           icon: "people",
           children: [
             {
               title: "Client",
               path: "/clients",
+            },
+          ],
+        }
+      : null, // Use null when the condition fails
+    getUserType(authToken) === "admin"
+      ? {
+          title: "Therapist",
+          icon: "user-tick",
+          children: [
+            {
+              title: "Therapists",
+              path: "/therapists",
             },
           ],
         }
