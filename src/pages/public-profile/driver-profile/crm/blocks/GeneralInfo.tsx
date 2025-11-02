@@ -31,7 +31,7 @@ export function truncateString(str: string) {
 }
 
 const removeBaseUrl = (url: any) => {
-  const baseUrl = "https://app.navigo.et/test/static/profile/";
+  const baseUrl = "https://app.navigo.et/dev/static/profile/";
   console.log(url.replace(baseUrl, url, "here here"));
   return url.replace(baseUrl, "");
 };
@@ -114,7 +114,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
   ].filter(Boolean); // Filter out any falsy values (like undefined or null)
 
   const renderItems = (item: IGeneralInfoItem, index: number) => {
-    const baseUrl = "https://app.navigo.et/test/static/";
+    const baseUrl = "https://app.navigo.et/dev/static/";
 
     const openDriverLicenseModal = async (fileName: any) => {
       try {
