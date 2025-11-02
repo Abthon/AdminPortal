@@ -47,20 +47,38 @@ const ModalSubscriptionForm = ({
   const queryClient = useQueryClient();
 
   // Fetch levels
-  const { data: levelsData } = useQuery({
+  const { data: levelsData, error: levelsError } = useQuery({
     queryKey: ["levels"],
     queryFn: async () => {
-      const { data } = await axiosInstance.get("/api/v1/level");
-      return data.data;
+      try {
+        const { data } = await axiosInstance.get("/api/v1/level");
+        console.log("Levels API response in ModalSubscriptionForm:", data);
+        return Array.isArray(data?.data) ? data.data : [];
+      } catch (error) {
+        console.error("Error fetching levels in ModalSubscriptionForm:", error);
+        return [];
+      }
+    },
+    onError: (error) => {
+      console.error("Levels query error in ModalSubscriptionForm:", error);
     },
   });
 
   // Fetch modals
-  const { data: modalsData } = useQuery({
+  const { data: modalsData, error: modalsError } = useQuery({
     queryKey: ["modals"],
     queryFn: async () => {
-      const { data } = await axiosInstance.get("/api/v1/modal");
-      return data.data;
+      try {
+        const { data } = await axiosInstance.get("/api/v1/modal");
+        console.log("Modals API response in ModalSubscriptionForm:", data);
+        return Array.isArray(data?.data) ? data.data : [];
+      } catch (error) {
+        console.error("Error fetching modals in ModalSubscriptionForm:", error);
+        return [];
+      }
+    },
+    onError: (error) => {
+      console.error("Modals query error in ModalSubscriptionForm:", error);
     },
   });
 
@@ -162,7 +180,7 @@ const ModalSubscriptionForm = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {modalsData?.map((modal: IModal) => (
+                {Array.isArray(modalsData) && modalsData.map((modal: IModal) => (
                   <SelectItem key={modal.id} value={modal.id}>
                     {modal.name}
                   </SelectItem>
@@ -183,7 +201,7 @@ const ModalSubscriptionForm = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="no-level">No Level</SelectItem>
-                {levelsData?.map((level: ILevel) => (
+                {Array.isArray(levelsData) && levelsData.map((level: ILevel) => (
                   <SelectItem key={level.id} value={level.id}>
                     {level.type} (XP: {level.minXP}-{level.maxXP || "∞"})
                   </SelectItem>

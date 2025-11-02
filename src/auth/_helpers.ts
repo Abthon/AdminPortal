@@ -46,7 +46,7 @@ export function setupAxios(axiosInstance: any) {
         config.headers.Authorization = `Bearer ${auth.accessToken}`;
       }
 
-      // Add /dev prefix to all API requests
+      // Add /test prefix to all API requests
       if (config.url && !config.url.includes("/test/")) {
         config.url = getApiUrl(config.url);
       }

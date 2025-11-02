@@ -69,11 +69,20 @@ const SubscriptionManagement = ({
   }
 
   // Fetch modals for filtering
-  const { data: modalsData } = useQuery({
+  const { data: modalsData, error: modalsError } = useQuery({
     queryKey: ["modals"],
     queryFn: async () => {
-      const { data } = await axiosInstance.get("/api/v1/modal");
-      return data.data;
+      try {
+        const { data } = await axiosInstance.get("/api/v1/modal");
+        console.log("Modals API response:", data);
+        return Array.isArray(data?.data) ? data.data : [];
+      } catch (error) {
+        console.error("Error fetching modals:", error);
+        return [];
+      }
+    },
+    onError: (error) => {
+      console.error("Modals query error:", error);
     },
   });
 
@@ -236,7 +245,7 @@ const SubscriptionManagement = ({
               </SelectTrigger>
               <SelectContent className="w-48">
                 <SelectItem value="all">All Therapy Types</SelectItem>
-                {modalsData?.map((modal: any) => (
+                {Array.isArray(modalsData) && modalsData.map((modal: any) => (
                   <SelectItem key={modal.id} value={modal.id}>
                     {modal.name}
                   </SelectItem>

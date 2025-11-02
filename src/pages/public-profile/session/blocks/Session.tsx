@@ -1322,7 +1322,7 @@ const Sessions = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  {modalsData?.data?.map((modal: any) => (
+                  {Array.isArray(modalsData?.data) && modalsData.data.map((modal: any) => (
                     <SelectItem key={modal.id} value={modal.id}>
                       {modal.name}
                     </SelectItem>
@@ -1471,7 +1471,7 @@ const Sessions = ({
                   <SelectValue placeholder="Select therapy type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {modalsData?.data?.map((modal: any) => (
+                  {Array.isArray(modalsData?.data) && modalsData.data.map((modal: any) => (
                     <SelectItem key={modal.id} value={modal.id}>
                       {modal.name}
                     </SelectItem>

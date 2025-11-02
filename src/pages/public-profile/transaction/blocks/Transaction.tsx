@@ -992,7 +992,7 @@ const Transactions = ({
               </SelectTrigger>
               <SelectContent className="w-48">
                 <SelectItem value="all">All Types</SelectItem>
-                {modalsData?.data?.map((modal: any) => (
+                {Array.isArray(modalsData?.data) && modalsData.data.map((modal: any) => (
                   <SelectItem key={modal.id} value={modal.id}>
                     {modal.name}
                   </SelectItem>
