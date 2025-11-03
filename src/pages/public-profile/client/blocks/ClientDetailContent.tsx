@@ -327,7 +327,7 @@ const ClientSessions = ({ clientData }: { clientData: IClientDetailData }) => {
 
   // Fetch sessions for the client
   const fetchSessions = async (): Promise<ISessionResponse> => {
-    const { data } = await axiosInstance.get(`/api/v1/session?fields=therapist.*,schedule&filters=client.id=${clientData.id}`);
+    const { data } = await axiosInstance.get(`/api/v1/session?fields=therapist.*,hasTherapistAttended,schedule&filters=client.id=${clientData.id}&take=0`);
     return data;
   };
 

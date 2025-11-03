@@ -495,7 +495,7 @@ const TherapistSessions = ({
   // Fetch sessions for the therapist
   const fetchSessions = async (): Promise<ISessionResponse> => {
     const { data } = await axiosInstance.get(
-      `/api/v1/session?fields=client.*,schedule&filters=therapist.id=${therapistData.id}`
+      `/api/v1/session?fields=client.*,hasTherapistAttended,schedule&filters=therapist.id=${therapistData.id}&take=0`
     );
     return data;
   };

@@ -1,0 +1,710 @@
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { toAbsoluteUrl } from "@/utils";
+import { DataGridLoader } from "@/components/data-grid";
+import avatar from "@/media/avatars/blank.png";
+
+import {
+  DataGrid,
+  DataGridColumnHeader,
+  KeenIcon,
+  DataGridRowSelectAll,
+  DataGridRowSelect,
+} from "@/components";
+import { ColumnDef, Column } from "@tanstack/react-table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import axiosInstance from "@/auth/_helpers";
+
+const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
+
+interface IExpertise {
+  id: string;
+  expertise: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface IClient {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  gender: string;
+  status: string;
+  profile: string | null;
+  email: string;
+  avatar: number;
+  isEmailAuthenticated: boolean;
+  isPhoneNumberAuthenticated: boolean;
+  firebaseToken: string | null;
+  dob: string;
+  isLinked: boolean;
+  isOnline: boolean;
+  lastSeenAt: string | null;
+  username: string;
+  emergencyContact: string | null;
+  isVisible: boolean;
+  isInGroup: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ITherapist {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  gender: string;
+  status: string;
+  profile: string | null;
+  email: string;
+  avatar: number;
+  isEmailAuthenticated: boolean;
+  isPhoneNumberAuthenticated: boolean;
+  firebaseToken: string | null;
+  dob: string;
+  isLinked: boolean;
+  isOnline: boolean;
+  lastSeenAt: string | null;
+  bio: string;
+  verified: boolean;
+  hoursDedicatedPerWeek: number;
+  expertise: IExpertise[];
+  createdAt: string;
+  updatedAt: string;
+  modalMatch?: {
+    id: string;
+    name: string;
+    order: number;
+    description: string;
+    updatedAt: string;
+    createdAt: string;
+  };
+}
+
+interface IMatchData {
+  id: string;
+  expiresAt: string;
+  client: IClient;
+  accepted: ITherapist | null;
+}
+
+const Matches = ({
+  handleMatchNum,
+  searchInput,
+}: {
+  handleMatchNum: (num: any) => void;
+  searchInput?: string;
+}) => {
+  const navigate = useNavigate();
+  const [totalPage, setTotalPage] = useState(0);
+  const [pageIndex, setPageIndex] = useState({ index: 0 });
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsOnPage, setItemsOnPage] = useState(0);
+  const [filterInput, setFilterInput] = useState("all");
+  const [therapists, setTherapists] = useState<ITherapist[]>([]);
+  const [selectedMatch, setSelectedMatch] = useState<IMatchData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [clientModal, setClientModal] = useState<any>(null);
+  const [isLoadingMatch, setIsLoadingMatch] = useState(false);
+
+  useEffect(() => {
+    console.log(pageIndex, "current page Index is: ");
+  }, [pageIndex]);
+
+  // Get client's modal type
+  const getClientModal = async (clientId: string) => {
+    try {
+      console.log('Fetching client preferences for:', clientId);
+      
+      // Step 1: Get client with preference data
+      const { data: clientData } = await axiosInstance.get(`/api/v1/client/${clientId}?fields=preference.*`);
+      console.log('Client data:', clientData);
+      
+      const preferences = clientData?.data?.preference;
+      if (!preferences || preferences.length === 0) {
+        console.log('No preferences found for client');
+        return null;
+      }
+
+      const preferenceId = preferences[0].id;
+      console.log('Preference ID:', preferenceId);
+      
+      // Step 2: Get preference with modal data
+      const { data: preferenceData } = await axiosInstance.get(
+        `/api/v1/preference/${preferenceId}?fields=modal.*`
+      );
+      console.log('Preference modal data:', preferenceData);
+      
+      return preferenceData?.data?.modal || null;
+    } catch (error) {
+      console.error('Error fetching client modal:', error);
+      return null;
+    }
+  };
+
+  // Get therapist's modal type from license
+  const getTherapistModal = async (therapistId: string) => {
+    try {
+      // Step 1: Get therapist with license data
+      const { data: therapistData } = await axiosInstance.get(`/api/v1/therapist/${therapistId}?fields=license.*`);
+      console.log('Therapist license data:', therapistData);
+      
+      const licenses = therapistData?.data?.license;
+      if (!licenses || licenses.length === 0) {
+        console.log('No licenses found for therapist');
+        return null;
+      }
+
+      const licenseId = licenses[0].id;
+      console.log('License ID:', licenseId);
+      
+      // Step 2: Get license with modal data
+      const { data: licenseData } = await axiosInstance.get(
+        `/api/v1/license/${licenseId}?fields=modal.*`
+      );
+      console.log('License modal data:', licenseData);
+      
+      return licenseData?.data?.modal || null;
+    } catch (error) {
+      console.error('Error fetching therapist modal:', error);
+      return null;
+    }
+  };
+
+  // Fetch therapists with modal matching
+  const fetchTherapists = async (match?: IMatchData) => {
+    const matchToUse = match || selectedMatch;
+    if (!matchToUse) return;
+    
+    setIsLoadingMatch(true);
+    try {
+      console.log('Starting smart matching process...');
+      
+      // Get client's modal type
+      const clientModalData = await getClientModal(matchToUse.client.id);
+      setClientModal(clientModalData);
+      
+      if (!clientModalData) {
+        console.log('No modal found for client, showing all therapists');
+        // Fallback to all active therapists
+        const { data } = await axiosInstance.get('/api/v1/therapist?fields=id,firstName,lastName,email,profile,status&filters=status:=1');
+        setTherapists(data.data || []);
+        return;
+      }
+      
+      console.log('Client modal:', clientModalData);
+      
+      // Get all active therapists
+      const { data } = await axiosInstance.get('/api/v1/therapist?fields=id,firstName,lastName,email,profile,status&filters=status:=1');
+      const allTherapists = data.data || [];
+      console.log('All therapists:', allTherapists);
+      
+      // Filter therapists by matching modal
+      const matchingTherapists = [];
+      
+      for (const therapist of allTherapists) {
+        const therapistModal = await getTherapistModal(therapist.id);
+        
+        if (therapistModal && therapistModal.id === clientModalData.id) {
+          console.log(`Therapist ${therapist.firstName} ${therapist.lastName} matches modal: ${therapistModal.name}`);
+          matchingTherapists.push({
+            ...therapist,
+            modalMatch: therapistModal
+          });
+        }
+      }
+      
+      console.log('Matching therapists:', matchingTherapists);
+      setTherapists(matchingTherapists);
+      
+    } catch (error) {
+      console.error('Error in smart matching:', error);
+      toast.error('Failed to load matching therapists');
+    } finally {
+      setIsLoadingMatch(false);
+    }
+  };
+
+  // Handle therapist assignment
+  const handleAssignTherapist = async (therapistId: string) => {
+    if (!selectedMatch) return;
+    
+    setIsAssigning(true);
+    try {
+      await axiosInstance.post(
+        `/api/v1/match/accept?mockId=${therapistId}`,
+        { matchId: selectedMatch.id }
+      );
+      
+      toast.success('Therapist assigned successfully!');
+      setIsModalOpen(false);
+      setSelectedMatch(null);
+      
+      // Refresh the data
+      window.location.reload();
+    } catch (error) {
+      console.error('Error assigning therapist:', error);
+      toast.error('Failed to assign therapist');
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  // Open assignment modal
+  const openAssignmentModal = (match: IMatchData, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    event.nativeEvent.stopImmediatePropagation();
+    
+    setSelectedMatch(match);
+    setIsModalOpen(true);
+    setTherapists([]); // Clear previous results
+    setClientModal(null);
+    fetchTherapists(match); // Pass the match directly to avoid race condition
+  };
+
+  async function getMatches({
+    pageIndex,
+    pageSize,
+    sort,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    sort: any;
+  }) {
+    // Filter for non-accepted matches (accepted=null) as requested by user
+    const filters = "accepted:=null";
+    const url = `/api/v1/match?take=${pageSize}&page=${pageIndex}&sort=expiresAt=${sort[0].desc ? "DESC" : "ASC"}&fields=client.*,expiresAt&filters=${filters}`;
+    console.log(url, "url");
+    const { data } = await axiosInstance.get(url);
+
+    console.log(data, "The match data");
+    // calculating how many items are there on the current page
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
+    handleMatchNum(data.data.length);
+    return data;
+  }
+
+  async function searchMatch({
+    pageIndex,
+    pageSize,
+    search,
+    sort,
+  }: {
+    pageIndex: number;
+    pageSize: number;
+    search: any;
+    sort: any;
+  }) {
+    const filters = `client.firstName=${search},accepted:=null`;
+    const url = `/api/v1/match?filters=${filters}&take=${pageSize}&page=${pageIndex}&sort=expiresAt=${sort[0].desc ? "DESC" : "ASC"}&fields=client.*,expiresAt`;
+    const { data } = await axiosInstance.get(url);
+
+    // calculating how many items are there on the current page
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const endIndex = Math.min(
+      data.pagination.currentPage * data.pagination.pageSize,
+      data.pagination.totalItems
+    );
+    const itemsOnPage = endIndex - startIndex + 1;
+    setItemsOnPage(itemsOnPage);
+    setTotalItems(data.pagination.totalItems);
+    handleMatchNum(data.data.length);
+    return data;
+  }
+
+  async function revalidateMatch() {
+    const filters = searchInput ? `client.firstName=${searchInput},accepted:=null` : "accepted:=null";
+    const url = `/api/v1/match?filters=${filters}&fields=client.*,expiresAt&sort=expiresAt=DESC`;
+    const { data } = await axiosInstance.get(url);
+    console.log(data, "the match data");
+    handleMatchNum(data.data.length);
+    console.log(data.data, "match data");
+    return data;
+  }
+
+  const data = useMemo(() => [], []);
+
+  // Helper function to check if match is still active
+  const isMatchActive = (expiresAt: string) => {
+    const now = new Date();
+    const expiryDate = new Date(expiresAt);
+    return expiryDate > now;
+  };
+
+  const columns = useMemo<ColumnDef<IMatchData>[]>(
+    () => [
+      {
+        accessorFn: (row) => row.client,
+        id: "client",
+        header: ({ column }: { column: Column<IMatchData, unknown> }) => (
+          <DataGridColumnHeader title="Client" column={column} />
+        ),
+        cell: ({ row }) => {
+          const client = row.original.client;
+          return (
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-center shrink-0 rounded-full bg-gray-100 border border-gray-200 size-9">
+                {client.profile ? (
+                  <img
+                    className="rounded-full size-7"
+                    src={`${BASE_URL}/${client.profile}`}
+                    alt={`${client.firstName} ${client.lastName}`}
+                  />
+                ) : (
+                  <img
+                    className="rounded-full size-7"
+                    src={avatar}
+                    alt={`${client.firstName} ${client.lastName}`}
+                  />
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <Link
+                  className="text-sm font-medium text-gray-900 hover:text-primary-active"
+                  to={`/public-profile/client-detail/${client.id}`}
+                >
+                  {client.firstName} {client.lastName}
+                </Link>
+                <span className="text-xs text-gray-600">{client.email}</span>
+              </div>
+            </div>
+          );
+        },
+        enableSorting: true,
+        meta: {
+          headerClassName: "min-w-[250px]",
+        },
+      },
+      {
+        accessorFn: (row) => row.accepted,
+        id: "therapist",
+        header: ({ column }: { column: Column<IMatchData, unknown> }) => (
+          <DataGridColumnHeader title="Therapist" column={column} />
+        ),
+        cell: ({ row }) => {
+          const therapist = row.original.accepted;
+          if (!therapist) {
+            return (
+              <div className="flex items-center gap-2">
+                {/*<span className="text-gray-400 text-sm">Not Assigned</span>*/}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.nativeEvent.stopImmediatePropagation();
+                    openAssignmentModal(row.original, event);
+                  }}
+                  className="h-7 px-2 text-xs"
+                >
+                  <KeenIcon icon="user-plus" className="mr-1" />
+                  Assign
+                </Button>
+              </div>
+            );
+          }
+          return (
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-center shrink-0 rounded-full bg-gray-100 border border-gray-200 size-9">
+                {therapist.profile ? (
+                  <img
+                    className="rounded-full size-7"
+                    src={`${BASE_URL}/${therapist.profile}`}
+                    alt={`${therapist.firstName} ${therapist.lastName}`}
+                  />
+                ) : (
+                  <img
+                    className="rounded-full size-7"
+                    src={avatar}
+                    alt={`${therapist.firstName} ${therapist.lastName}`}
+                  />
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <Link
+                  className="text-sm font-medium text-gray-900 hover:text-primary-active"
+                  to={`/public-profile/therapist-detail/${therapist.id}`}
+                >
+                  {therapist.firstName} {therapist.lastName}
+                </Link>
+                <span className="text-xs text-gray-600">{therapist.email}</span>
+              </div>
+            </div>
+          );
+        },
+        enableSorting: false,
+        meta: {
+          headerClassName: "min-w-[250px]",
+        },
+      },
+      {
+        accessorKey: "isMatched",
+        header: ({ column }: { column: Column<IMatchData, unknown> }) => (
+          <DataGridColumnHeader title="Match Status" column={column} />
+        ),
+        cell: ({ row }) => {
+          const isActive = isMatchActive(row.original.expiresAt);
+          return (
+            <div className="flex items-center gap-2">
+              <div
+                className={`size-2 rounded-full ${
+                  isActive ? "bg-green-500" : "bg-red-500"
+                }`}
+              />
+              <span className={`text-sm ${
+                isActive ? "text-green-600" : "text-red-600"
+              }`}>
+                {isActive ? "Active" : "Expired"}
+              </span>
+            </div>
+          );
+        },
+        enableSorting: false,
+        meta: {
+          headerClassName: "w-[150px]",
+        },
+      },
+      {
+        accessorKey: "expiresAt",
+        header: ({ column }: { column: Column<IMatchData, unknown> }) => (
+          <DataGridColumnHeader title="Expires At" column={column} />
+        ),
+        cell: ({ row }) => {
+          const expiresAt = new Date(row.original.expiresAt);
+          return (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm text-gray-900">
+                {expiresAt.toLocaleDateString()}
+              </span>
+              <span className="text-xs text-gray-600">
+                {expiresAt.toLocaleTimeString()}
+              </span>
+            </div>
+          );
+        },
+        enableSorting: true,
+        meta: {
+          headerClassName: "w-[150px]",
+        },
+      },
+    ],
+    []
+  );
+
+  const handleRowSelection = (updaterOrValue: any) => {
+    // Handle row selection
+  };
+
+  return (
+    <div className="card card-grid min-w-full">
+      <div className="card-header py-5 flex-wrap">
+        <h3 className="card-title">Matches</h3>
+        <div className="flex flex-wrap gap-2 lg:gap-5">
+          <div className="flex">
+            <label className="input input-sm">
+              <KeenIcon icon="magnifier" />
+              <input
+                type="text"
+                placeholder="Search matches"
+                className="placeholder:text-gray-500"
+                value={searchInput || ""}
+                readOnly
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+      <div className="card-body">
+        <DataGrid
+          onFetchData={getMatches}
+          onSearchData={searchMatch}
+          data={data}
+          link={"matches"}
+          columns={columns}
+          rowSelection={true}
+          onRowSelectionChange={handleRowSelection}
+          searchInput={searchInput}
+          pagination={{ size: 10 }}
+          sorting={[{ id: "expiresAt", desc: true }]}
+          layout={{ card: true }}
+        />
+      </div>
+      
+      {/* Therapist Assignment Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Assign Therapist to Match</DialogTitle>
+          </DialogHeader>
+          {selectedMatch && (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-medium mb-2">Client Information</h4>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center justify-center shrink-0 rounded-full bg-gray-100 border border-gray-200 size-10">
+                  {selectedMatch.client.profile ? (
+                    <img
+                      className="rounded-full size-8"
+                      src={`${BASE_URL}/${selectedMatch.client.profile}`}
+                      alt={`${selectedMatch.client.firstName} ${selectedMatch.client.lastName}`}
+                    />
+                  ) : (
+                    <img
+                      className="rounded-full size-8"
+                      src={avatar}
+                      alt={`${selectedMatch.client.firstName} ${selectedMatch.client.lastName}`}
+                    />
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium">{selectedMatch.client.firstName} {selectedMatch.client.lastName}</p>
+                  <p className="text-sm text-gray-600">{selectedMatch.client.email}</p>
+                </div>
+              </div>
+              {clientModal && (
+                <div className="mt-2 p-2 bg-blue-50 rounded border-l-4 border-blue-400">
+                  <p className="text-sm font-medium text-blue-800">Required Therapy Type:</p>
+                  <p className="text-sm text-blue-700">{clientModal.name}</p>
+                  {clientModal.description && (
+                    <p className="text-xs text-blue-600 mt-1">{clientModal.description}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          
+          <div className="space-y-4 p-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium">Select a Matching Therapist</h4>
+              {isLoadingMatch && (
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                  Finding matches...
+                </div>
+              )}
+            </div>
+            
+            <div className="max-h-96 overflow-y-auto space-y-2">
+              {isLoadingMatch ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-500">Analyzing therapist compatibility...</p>
+                </div>
+              ) : therapists.length === 0 ? (
+                <div className="text-center py-8 space-y-4">
+                  <p className="text-gray-500">
+                    {clientModal 
+                      ? `No therapists found matching "${clientModal.name}" therapy type`
+                      : 'No therapists available for this client'
+                    }
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={fetchTherapists}
+                    className="mx-auto"
+                  >
+                    <KeenIcon icon="refresh" className="mr-2" />
+                    Retry Matching
+                  </Button>
+                </div>
+              ) : (
+                therapists.map((therapist) => (
+                  <div
+                    key={therapist.id}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center shrink-0 rounded-full bg-gray-100 border border-gray-200 size-10">
+                        {therapist.profile ? (
+                          <img
+                            className="rounded-full size-8"
+                            src={`${BASE_URL}/${therapist.profile}`}
+                            alt={`${therapist.firstName} ${therapist.lastName}`}
+                          />
+                        ) : (
+                          <img
+                            className="rounded-full size-8"
+                            src={avatar}
+                            alt={`${therapist.firstName} ${therapist.lastName}`}
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">{therapist.firstName} {therapist.lastName}</p>
+                        <p className="text-sm text-gray-600">{therapist.email}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-1">
+                            <div className="size-2 bg-green-500 rounded-full"></div>
+                            <span className="text-xs text-green-600">Active</span>
+                          </div>
+                          {therapist.modalMatch && (
+                            <div className="flex items-center gap-1">
+                              <div className="size-2 bg-blue-500 rounded-full"></div>
+                              <span className="text-xs text-blue-600 font-medium">Perfect Match</span>
+                            </div>
+                          )}
+                        </div>
+                        {therapist.modalMatch && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Specializes in: {therapist.modalMatch.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => handleAssignTherapist(therapist.id)}
+                      disabled={isAssigning}
+                      size="sm"
+                      className="min-w-20"
+                    >
+                      {isAssigning ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Assigning...
+                        </div>
+                      ) : (
+                        'Assign'
+                      )}
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export { Matches };
