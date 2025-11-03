@@ -19,6 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import axiosInstance from "@/auth/_helpers";
@@ -102,10 +110,73 @@ const Matches = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
+  const [therapists, setTherapists] = useState<ITherapist[]>([]);
+  const [selectedMatch, setSelectedMatch] = useState<IMatchData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
   }, [pageIndex]);
+
+  // Fetch therapists for assignment modal
+  const fetchTherapists = async () => {
+    try {
+      console.log('Fetching therapists...');
+      const { data } = await axiosInstance.get('/api/v1/therapist?fields=id,firstName,lastName,email,profile,status&filters=status:=1');
+      console.log('Therapist API response:', data);
+      
+      const therapistList = data.data || [];
+      console.log('Therapist list:', therapistList);
+      setTherapists(therapistList);
+      
+      //if (therapistList.length === 0) {
+      //  console.log('No verified therapists found');
+      //  // Try fetching all therapists to see if any exist
+      //  const { data: allData } = await axiosInstance.get('/api/v1/therapist?fields=id,firstName,lastName,email,profile,verified');
+      //  console.log('All therapists:', allData);
+      //}
+    } catch (error) {
+      console.error('Error fetching therapists:', error);
+      toast.error('Failed to load therapists');
+    }
+  };
+
+  // Handle therapist assignment
+  const handleAssignTherapist = async (therapistId: string) => {
+    if (!selectedMatch) return;
+    
+    setIsAssigning(true);
+    try {
+      await axiosInstance.post(
+        `/api/v1/match/accept?mockId=${therapistId}`,
+        { matchId: selectedMatch.id }
+      );
+      
+      toast.success('Therapist assigned successfully!');
+      setIsModalOpen(false);
+      setSelectedMatch(null);
+      
+      // Refresh the data
+      window.location.reload();
+    } catch (error) {
+      console.error('Error assigning therapist:', error);
+      toast.error('Failed to assign therapist');
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  // Open assignment modal
+  const openAssignmentModal = (match: IMatchData, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    event.nativeEvent.stopImmediatePropagation();
+    
+    setSelectedMatch(match);
+    setIsModalOpen(true);
+    fetchTherapists();
+  };
 
   async function getMatches({
     pageIndex,
@@ -240,8 +311,22 @@ const Matches = ({
           const therapist = row.original.accepted;
           if (!therapist) {
             return (
-              <div className="flex items-center">
-                <span className="text-gray-400 text-sm">Not Assigned</span>
+              <div className="flex items-center gap-2">
+                {/*<span className="text-gray-400 text-sm">Not Assigned</span>*/}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.nativeEvent.stopImmediatePropagation();
+                    openAssignmentModal(row.original, event);
+                  }}
+                  className="h-7 px-2 text-xs"
+                >
+                  <KeenIcon icon="user-plus" className="mr-1" />
+                  Assign
+                </Button>
               </div>
             );
           }
@@ -367,10 +452,86 @@ const Matches = ({
           onRowSelectionChange={handleRowSelection}
           searchInput={searchInput}
           pagination={{ size: 10 }}
-          sorting={[{ id: "expiresAt", desc: false }]}
+          sorting={[{ id: "expiresAt", desc: true }]}
           layout={{ card: true }}
         />
       </div>
+      
+      {/* Therapist Assignment Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Assign Therapist to Match</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 p-4">
+            <h4 className="font-medium">Select a Therapist</h4>
+            <div className="max-h-96 overflow-y-auto space-y-2">
+              {therapists.length === 0 ? (
+                <div className="text-center py-8 space-y-4">
+                  <p className="text-gray-500">No verified therapists available</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={fetchTherapists}
+                    className="mx-auto"
+                  >
+                    <KeenIcon icon="refresh" className="mr-2" />
+                    Refresh List
+                  </Button>
+                </div>
+              ) : (
+                therapists.map((therapist) => (
+                  <div
+                    key={therapist.id}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center shrink-0 rounded-full bg-gray-100 border border-gray-200 size-10">
+                        {therapist.profile ? (
+                          <img
+                            className="rounded-full size-8"
+                            src={`${BASE_URL}/${therapist.profile}`}
+                            alt={`${therapist.firstName} ${therapist.lastName}`}
+                          />
+                        ) : (
+                          <img
+                            className="rounded-full size-8"
+                            src={avatar}
+                            alt={`${therapist.firstName} ${therapist.lastName}`}
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">{therapist.firstName} {therapist.lastName}</p>
+                        <p className="text-sm text-gray-600">{therapist.email}</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <div className="size-2 bg-green-500 rounded-full"></div>
+                          <span className="text-xs text-green-600">{therapist.status}</span>
+                        </div>
+                        </div>
+                    </div>
+                    <Button
+                      onClick={() => handleAssignTherapist(therapist.id)}
+                      disabled={isAssigning}
+                      size="sm"
+                      className="min-w-20"
+                    >
+                      {isAssigning ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Assigning...
+                        </div>
+                      ) : (
+                        'Assign'
+                      )}
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

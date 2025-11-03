@@ -51,25 +51,38 @@ const SessionLevelCell = ({ client }: { client: any }) => {
 
   useEffect(() => {
     const fetchLevelData = async () => {
-      if (!client?.preference || client.preference.length === 0) {
-        setLevelData(null);
-        return;
-      }
-
-      const preferenceId = client.preference[0]?.id;
-      if (!preferenceId) {
+      if (!client?.id) {
         setLevelData(null);
         return;
       }
 
       setLoading(true);
       try {
-        const { data } = await axiosInstance.get(
+        // Step 1: Get client with preference data
+        const { data: clientData } = await axiosInstance.get(
+          `/api/v1/client/${client.id}?fields=preference.*`
+        );
+        
+        const preferences = clientData?.data?.preference;
+        if (!preferences || preferences.length === 0) {
+          setLevelData(null);
+          return;
+        }
+
+        const preferenceId = preferences[0].id;
+        if (!preferenceId) {
+          setLevelData(null);
+          return;
+        }
+
+        // Step 2: Get preference with level data
+        const { data: preferenceData } = await axiosInstance.get(
           `/api/v1/preference/${preferenceId}?fields=level.*`
         );
-        setLevelData(data?.data?.level || null);
+        
+        setLevelData(preferenceData?.data?.level || null);
       } catch (error) {
-        console.error("Error fetching preference level:", error);
+        console.error("Error fetching client level:", error);
         setLevelData(null);
       } finally {
         setLoading(false);
@@ -77,7 +90,16 @@ const SessionLevelCell = ({ client }: { client: any }) => {
     };
 
     fetchLevelData();
-  }, [client]);
+
+  }, [client?.id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center">
+        <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col text-xs">
@@ -260,7 +282,7 @@ const Sessions = ({
     queryParams.push(`sort=createdAt=DESC`);
     queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,group.preference.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
     
-    // Add date parameters (inclusive)
+    // Add date parameters (backend should filter by createdAt, not schedule)
     if (dateFilter.startDate) {
       queryParams.push(`startDate=${dateFilter.startDate}`);
     }
@@ -321,7 +343,7 @@ const Sessions = ({
     queryParams.push(`sort=createdAt=DESC`);
     queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,group.preference.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
     
-    // Add date parameters (inclusive)
+    // Add date parameters (backend should filter by createdAt, not schedule)
     if (dateFilter.startDate) {
       queryParams.push(`startDate=${dateFilter.startDate}`);
     }
@@ -384,7 +406,7 @@ const Sessions = ({
     queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,group.preference.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
     queryParams.push(`sort=createdAt=DESC`);
     
-    // Add date parameters (inclusive)
+    // Add date parameters (backend should filter by createdAt, not schedule)
     if (dateFilter.startDate) {
       queryParams.push(`startDate=${dateFilter.startDate}`);
     }
@@ -1048,16 +1070,28 @@ const Sessions = ({
         },
       },
       {
-        id: "clientLevel",
+        id: "Level",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Client Level" column={column} />
+          <DataGridColumnHeader title= "Level" column={column} />
         ),
         enableSorting: false,
         cell: ({ row }) => {
-          // For group therapy, show the first client's level
-          const isGroupTherapy = row.original.group && row.original.group.length > 0;
-          const client = isGroupTherapy ? row.original.group[0] : row.original.client;
-          return <SessionLevelCell client={client} />;
+          const modalName = row.original.modal?.name?.toLowerCase();
+          
+          // Don't show levels for group and couple therapy
+          if (modalName && (modalName.includes('group') || modalName.includes('couple'))) {
+            return (
+              <span className="text-gray-400 text-sm italic">
+                N/A for {modalName.includes('group') ? 'Group' : 'Couple'} Therapy
+              </span>
+            );
+          }
+          
+          // For individual therapy, show client level
+          const client = row.original.client;
+          return client ? <SessionLevelCell client={client} /> : (
+            <span className="text-gray-400 text-sm">No Client</span>
+          );
         },
         meta: {
           headerClassName: "min-w-[120px]",
@@ -1249,7 +1283,7 @@ const Sessions = ({
     setDateFilter((prev) => {
       const date = parseDate(value);
       if (date) {
-        const dateStr = date.toISOString().split("T")[0];
+        const dateStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
         setStartDateMonth(date);
         return {
           ...prev,
@@ -1266,7 +1300,7 @@ const Sessions = ({
     setDateFilter((prev) => {
       const date = parseDate(value);
       if (date) {
-        const dateStr = date.toISOString().split("T")[0];
+        const dateStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
         setEndDateMonth(date);
         return {
           ...prev,
@@ -1362,7 +1396,7 @@ const Sessions = ({
                       onMonthChange={setStartDateMonth}
                       onSelect={(date) => {
                         if (date) {
-                          const dateStr = date.toISOString().split("T")[0];
+                          const dateStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
                           setDateFilter((prev) => ({
                             ...prev,
                             startDate: dateStr,
@@ -1415,7 +1449,7 @@ const Sessions = ({
                       onMonthChange={setEndDateMonth}
                       onSelect={(date) => {
                         if (date) {
-                          const dateStr = date.toISOString().split("T")[0];
+                          const dateStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
                           setDateFilter((prev) => ({
                             ...prev,
                             endDate: dateStr,

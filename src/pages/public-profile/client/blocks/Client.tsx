@@ -94,6 +94,95 @@ const ClientModalCell = ({ client }: { client: IClientsData }) => {
   );
 };
 
+// Component to handle async level fetching for client
+const ClientLevelCell = ({ client }: { client: IClientsData }) => {
+  const [levelData, setLevelData] = useState<any>(null);
+  const [modalData, setModalData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!client?.id) {
+        setLevelData(null);
+        setModalData(null);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // Step 1: Get client with preference data
+        const { data: clientData } = await axiosInstance.get(
+          `/api/v1/client/${client.id}?fields=preference.*`
+        );
+        
+        const preferences = clientData?.data?.preference;
+        if (!preferences || preferences.length === 0) {
+          setLevelData(null);
+          setModalData(null);
+          return;
+        }
+
+        const preferenceId = preferences[0].id;
+        if (!preferenceId) {
+          setLevelData(null);
+          setModalData(null);
+          return;
+        }
+
+        // Step 2: Get preference with modal and level data
+        const { data: preferenceData } = await axiosInstance.get(
+          `/api/v1/preference/${preferenceId}?fields=modal.*,level.*`
+        );
+        
+        setModalData(preferenceData?.data?.modal || null);
+        setLevelData(preferenceData?.data?.level || null);
+      } catch (error) {
+        console.error("Error fetching client data:", error);
+        setLevelData(null);
+        setModalData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [client?.id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center">
+        <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Check if client has group or couple therapy
+  const modalName = modalData?.name?.toLowerCase();
+  if (modalName && (modalName.includes('group') || modalName.includes('couple'))) {
+    console.log(modalName, "The modal nameeeeee!", modalName.includes('couple'))
+    return (
+      <span className="text-gray-400 text-sm italic">
+        N/A for {modalName.includes('group') ? 'Group' : 'Couple'}
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex flex-col text-xs">
+      {levelData ? (
+        <>
+          <span className="font-medium capitalize">{levelData.type}</span>
+          <span className="text-gray-500">
+            XP: {levelData.minXP}-{levelData.maxXP || "∞"}
+          </span>
+        </>
+      ) : (
+        <span className="text-gray-400 text-sm">Not Assigned</span>
+      )}
+    </div>
+  );
+};
+
 interface IClientsData {
   id: string;
   firstName: string;
@@ -619,6 +708,19 @@ const Clients = ({
         },
         meta: {
           headerClassName: "min-w-[140px]",
+        },
+      },
+      {
+        id: "level",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Level" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          return <ClientLevelCell client={row.original} />;
+        },
+        meta: {
+          headerClassName: "min-w-[120px]",
         },
       },
       {
