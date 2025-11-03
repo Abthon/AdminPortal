@@ -37,7 +37,7 @@ const LicenseInfo: React.FC<LicenseInfoProps> = ({ data, layout = 'grid' }) => {
   // Create license items array - only include non-null values
   const items: ILicenseInfoItems = [
     {
-      label: "Professional License:",
+      label: "License",
       filename: data.filename,
     },
     {
@@ -49,7 +49,7 @@ const LicenseInfo: React.FC<LicenseInfoProps> = ({ data, layout = 'grid' }) => {
       filename: data.government_id,
     },
     {
-      label: "Work Experience:",
+      label: "CV",
       filename: data.work_experience,
     },
     {
@@ -127,51 +127,6 @@ const LicenseInfo: React.FC<LicenseInfoProps> = ({ data, layout = 'grid' }) => {
     }
   };
 
-  const renderItems = (item: ILicenseInfoItem, index: number) => {
-    if (!item.filename) return null;
-
-    const getDocumentType = (label: string) => {
-      switch (label) {
-        case "Professional License:":
-          return "Professional License";
-        case "Degree Certificate:":
-          return "Degree Certificate";
-        case "Government ID:":
-          return "Government ID";
-        case "Work Experience:":
-          return "Work Experience Document";
-        case "Special Training:":
-          return "Special Training Certificate";
-        default:
-          return "Document";
-      }
-    };
-
-    return (
-      <tr key={index}>
-        <td className="text-sm text-gray-600 pb-3 pe-4 lg:pe-8">
-          {item.label}
-        </td>
-        <td className="text-sm text-gray-900 pb-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() =>
-                openImageModal(item.filename!, getDocumentType(item.label))
-              }
-              className="btn btn-sm btn-icon btn-clear btn-primary"
-              title={`View ${getDocumentType(item.label)}`}
-            >
-              <KeenIcon icon="eye" />
-            </button>
-            {/* <span className="text-xs text-gray-500">
-              {item.filename.split("/").pop()}
-            </span> */}
-          </div>
-        </td>
-      </tr>
-    );
-  };
-
   return (
     <div className="card mt-4">
       <div className="card-header">
@@ -197,8 +152,8 @@ const LicenseInfo: React.FC<LicenseInfoProps> = ({ data, layout = 'grid' }) => {
 
                   const getDocumentType = (label: string) => {
                     switch (label) {
-                      case "Professional License:":
-                        return { name: "Professional License", type: "LICENSE", year: "2025" };
+                      case "License":
+                        return { name: "License", type: "LICENSE", year: "2025" };
                       case "Degree Certificate:":
                         return { name: "Degree Certificate", type: "DEGREE", year: "2024" };
                       case "Government ID:":

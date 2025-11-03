@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { ITherapistDetailData, ITherapistRating, IMatchResponse, IMatchData } from "@/types/therapist";
 import { ISessionData, ISessionResponse } from "@/types/session";
 import { KeenIcon, DataGrid, DataGridColumnHeader } from "@/components";
@@ -1211,6 +1211,17 @@ const TherapistClients = ({
   const [filterInput, setFilterInput] = useState("all");
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearchInput, setDebouncedSearchInput] = useState("");
+
+  // Debounce search input to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchInput(searchInput);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // Fetch clients with pagination and search
   async function getTherapistClients({
@@ -1255,7 +1266,25 @@ const TherapistClients = ({
     sort: any;
   }) {
     const statusFilter = filterInput && filterInput !== "all" ? `,client.status:=${filterInput}` : "";
-    const url = `/api/v1/match?fields=client.*&filters=accepted.id=${therapistData.id},client.firstName=${search}${statusFilter}&take=${pageSize}&page=${pageIndex}&sort=client.firstName=${sort[0].desc ? "DESC" : "ASC"}`;
+    
+    // Handle search input - API supports comma separation
+    const searchTerm = search.trim();
+    let searchFilters = `accepted.id=${therapistData.id}`;
+    
+    if (searchTerm) {
+      // Check if search contains space (likely full name)
+      if (searchTerm.includes(' ')) {
+        const searchParts = searchTerm.split(/\s+/);
+        // Search for first name and last name matching the parts
+        //searchFilters += `,client.firstName=${searchParts[0]},client.lastName=${searchParts[1]}`;
+        searchFilters += `,client.firstName=${searchParts[0]},client.lastName=${searchParts[1]}`;
+      } else {
+        // Single word - search both firstName and lastName
+        searchFilters += `,client.firstName=${searchTerm}`;
+      }
+    }
+    
+    const url = `/api/v1/match?fields=client.*&filters=${searchFilters}${statusFilter}&take=${pageSize}&page=${pageIndex}`;
     
     const { data } = await axiosInstance.get(url);
     
@@ -1276,7 +1305,23 @@ const TherapistClients = ({
   // Revalidate clients for filtering
   async function revalidateTherapistClients() {
     const statusFilter = filterInput && filterInput !== "all" ? `,client.status:=${filterInput}` : "";
-    const url = `/api/v1/match?fields=client.*&filters=accepted.id=${therapistData.id}${statusFilter}&sort=client.firstName=ASC`;
+    
+    // Handle search input using debounced value
+    let searchFilters = `accepted.id=${therapistData.id}`;
+    if (debouncedSearchInput && debouncedSearchInput.trim()) {
+      const searchTerm = debouncedSearchInput.trim();
+      // Check if search contains space (likely full name)
+      if (searchTerm.includes(' ')) {
+        const searchParts = searchTerm.split(/\s+/);
+        // Search for first name and last name matching the parts
+        searchFilters += `,client.firstName=${searchParts[0]},client.lastName=${searchParts[1]}`;
+      } else {
+        // Single word - search firstName
+        searchFilters += `,client.firstName=${searchTerm}`;
+      }
+    }
+    
+    const url = `/api/v1/match?fields=client.*&filters=${searchFilters}${statusFilter}`;
     
     const { data } = await axiosInstance.get(url);
     setTotalItems(data.pagination?.totalItems || data.data.length);
@@ -1285,7 +1330,7 @@ const TherapistClients = ({
 
   // Use query for revalidation when filters change
   const { data: clientsData } = useQuery({
-    queryKey: ["therapist-clients", therapistData.id, filterInput],
+    queryKey: ["therapist-clients", therapistData.id, filterInput, debouncedSearchInput],
     queryFn: revalidateTherapistClients,
   });
 
@@ -1405,13 +1450,9 @@ const TherapistClients = ({
 
   const data: IMatchData[] = useMemo(() => clientsData?.data ?? [], [clientsData]);
 
-  // Toolbar component
-  const Toolbar = () => {
-    const handleFilterChange = (value: any) => {
-      setFilterInput(value);
-    };
-
-    return (
+  // Toolbar - memoized with React.memo to prevent re-renders
+  const Toolbar = useMemo(
+    () => (
       <div className="card-header flex-wrap gap-2 border-b-0 px-5">
         <h3 className="card-title font-medium text-sm">
           Showing {itemsOnPage} of {totalItems} clients
@@ -1419,9 +1460,25 @@ const TherapistClients = ({
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex flex-wrap gap-2.5">
+            {/* Search Input */}
+            <div className="relative">
+              <KeenIcon
+                icon="magnifier"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+              />
+              <Input
+                type="text"
+                placeholder="Search clients..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="pl-10 w-64"
+                size="sm"
+              />
+            </div>
+
             <Select
               value={filterInput}
-              onValueChange={handleFilterChange}
+              onValueChange={(value) => setFilterInput(value)}
               defaultValue="all"
             >
               <SelectTrigger className="w-28" size="sm">
@@ -1442,8 +1499,9 @@ const TherapistClients = ({
           </div>
         </div>
       </div>
-    );
-  };
+    ),
+    [itemsOnPage, totalItems, searchInput, filterInput]
+  );
 
   return (
     <DataGrid
@@ -1452,10 +1510,11 @@ const TherapistClients = ({
       data={data}
       columns={columns}
       filterInput={filterInput}
+      searchInput={debouncedSearchInput}
       rowSelection={false}
       pagination={{ size: 5 }}
       sorting={[{ id: "client", desc: false }]}
-      toolbar={<Toolbar />}
+      toolbar={Toolbar}
       layout={{ card: true }}
     />
   );

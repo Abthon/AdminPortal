@@ -52,6 +52,16 @@ export interface IModalData {
   createdAt: string;
 }
 
+export interface ILevelData {
+  id: string;
+  type: "associate" | "moderate" | "advanced";
+  minXP: number;
+  maxXP: number | null;
+  price: number;
+  updatedAt: string;
+  createdAt: string;
+}
+
 export interface ILicenseData {
   id: string;
   license_number?: string;
@@ -78,6 +88,7 @@ export interface ITherapistsData {
   status: string;
   profile: string;
   license?: ILicenseData[];
+  level?: ILevelData;
 }
 
 export interface IMatchClientData {

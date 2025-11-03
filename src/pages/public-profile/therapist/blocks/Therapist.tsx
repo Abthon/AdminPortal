@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import avatar from "@/media/avatars/blank.png";
-import { ITherapistsData } from "@/types/therapist";
+import { ITherapistsData, ILevelData } from "@/types/therapist";
 
 import {
   DataGrid,
@@ -121,6 +121,10 @@ const Therapists = ({
   const [selectedTherapist, setSelectedTherapist] =
     useState<ITherapistsData | null>(null);
   const [selectedModalId, setSelectedModalId] = useState("");
+  const [levelModalOpen, setLevelModalOpen] = useState(false);
+  const [selectedTherapistForLevel, setSelectedTherapistForLevel] =
+    useState<ITherapistsData | null>(null);
+  const [selectedLevelId, setSelectedLevelId] = useState("");
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -153,6 +157,18 @@ const Therapists = ({
     setProfileModalOpen(true);
   };
 
+  const handleOpenLevelModal = (therapist: ITherapistsData) => {
+    setSelectedTherapistForLevel(therapist);
+    setSelectedLevelId(therapist.level?.id || "");
+    setLevelModalOpen(true);
+  };
+
+  const handleCloseLevelModal = () => {
+    setLevelModalOpen(false);
+    setSelectedTherapistForLevel(null);
+    setSelectedLevelId("");
+  };
+
   async function getTherapists({
     pageIndex,
     pageSize,
@@ -170,7 +186,7 @@ const Therapists = ({
     const statusFilter = filterInput && filterInput !== "all" ? `status:=${filterInput}` : "";
     const modalFilterParam = modalFilter && modalFilter !== "all" ? `license.modal.id:=${modalFilter}` : "";
     const filters = [statusFilter, modalFilterParam].filter(Boolean).join(",");
-    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}${filters ? `&filters=${filters}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
+    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC${filters ? `&filters=${filters}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,level.*,createdAt`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -220,7 +236,7 @@ const Therapists = ({
       }
     }
     
-    const url = `/api/v1/therapist?filters=${searchFilters}${statusFilter}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
+    const url = `/api/v1/therapist?filters=${searchFilters}${statusFilter}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,level.*,createdAt`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -256,7 +272,7 @@ const Therapists = ({
       }
     }
     
-    const url = `/api/v1/therapist?${searchFilters ? `filters=${searchFilters}${statusFilter}${modalFilterParam}` : `${statusFilter || modalFilterParam ? `filters=${statusFilter}${modalFilterParam}`.replace(/^,/, '') : ''}`}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*`;
+    const url = `/api/v1/therapist?${searchFilters ? `filters=${searchFilters}${statusFilter}${modalFilterParam}` : `${statusFilter || modalFilterParam ? `filters=${statusFilter}${modalFilterParam}`.replace(/^,/, '') : ''}`}&sort=createdAt=DESC&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,level.*,createdAt`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleTherapistNum(data.data.length);
@@ -269,17 +285,16 @@ const Therapists = ({
     return data;
   }
 
-  // Fetch license details with modal information
-  async function fetchLicenseWithModal(licenseId: string) {
-    try {
-      const { data } = await axiosInstance.get(
-        `/api/v1/license/${licenseId}?fields=modal.*`
-      );
-      return data;
-    } catch (error) {
-      console.error("Error fetching license modal:", error);
-      return null;
-    }
+  async function fetchLevels() {
+    const { data } = await axiosInstance.get("/api/v1/level");
+    return data;
+  }
+
+  async function updateTherapistLevel(therapistId: string, levelId: string) {
+    const { data } = await axiosInstance.patch(`/api/v1/therapist/${therapistId}`, {
+      level: levelId,
+    });
+    return data;
   }
 
   async function deleteTherapist(id: string) {
@@ -324,6 +339,11 @@ const Therapists = ({
     queryFn: fetchModals,
   });
 
+  const { data: levelsData } = useQuery({
+    queryKey: ["levels"],
+    queryFn: fetchLevels,
+  });
+
   // Assign modal to therapist mutation
   const { isLoading: isAssigning, mutate: assignModalMutation } = useMutation({
     mutationFn: async ({
@@ -355,6 +375,29 @@ const Therapists = ({
     },
     onError: (error: any) => {
       toast(error?.message || "Error assigning modal");
+    },
+  });
+
+  // Update therapist level mutation
+  const { isLoading: isUpdatingLevel, mutate: updateLevelMutation } = useMutation({
+    mutationFn: async ({
+      therapistId,
+      levelId,
+    }: {
+      therapistId: string;
+      levelId: string;
+    }) => {
+      return updateTherapistLevel(therapistId, levelId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["Therapists"],
+      });
+      toast("Level updated successfully!");
+      handleCloseLevelModal();
+    },
+    onError: (error: any) => {
+      toast(error?.message || "Error updating level");
     },
   });
 
@@ -491,6 +534,49 @@ const Therapists = ({
         },
         meta: {
           headerClassName: "min-w-[140px]",
+        },
+      },
+      {
+        id: "level",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Level" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const level = row.original.level;
+          console.log(level, "The levelllll ", row.original)
+          return (
+            <div className="flex items-center gap-2">
+              {level ? (
+                <span
+                  className={`badge ${
+                    level.type === "advanced"
+                      ? "badge-success"
+                      : level.type === "moderate"
+                      ? "badge-warning"
+                      : "badge-info"
+                  } badge-outline`}
+                >
+                  {level.type.charAt(0).toUpperCase() + level.type.slice(1)}
+                </span>
+              ) : (
+                <span className="text-gray-500 text-sm">No level</span>
+              )}
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation();
+                  handleOpenLevelModal(row.original);
+                }}
+                className="btn btn-xs btn-icon btn-clear btn-primary"
+              >
+                <KeenIcon icon="notepad-edit" className="text-xs" />
+              </button>
+            </div>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[150px]",
         },
       },
       {
@@ -734,6 +820,95 @@ const Therapists = ({
         </DialogContent>
       </Dialog>
 
+      {/* Level Assignment Dialog */}
+      <Dialog open={levelModalOpen} onOpenChange={setLevelModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Assign Level to {selectedTherapistForLevel?.firstName}{" "}
+              {selectedTherapistForLevel?.lastName}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 p-6">
+            <div>
+              <label className="block text-sm font-medium mb-3">
+                Select Level
+              </label>
+              <div className="space-y-3">
+                {levelsData?.data?.map((level: any) => (
+                  <label
+                    key={level.id}
+                    className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                      selectedLevelId === level.id
+                        ? "border-primary bg-primary/5"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="level"
+                        value={level.id}
+                        checked={selectedLevelId === level.id}
+                        onChange={(e) => setSelectedLevelId(e.target.value)}
+                        className="w-4 h-4 text-primary"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`badge ${
+                              level.type === "advanced"
+                                ? "badge-success"
+                                : level.type === "moderate"
+                                ? "badge-warning"
+                                : "badge-info"
+                            } badge-outline`}
+                          >
+                            {level.type.charAt(0).toUpperCase() +
+                              level.type.slice(1)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          {level.minXP} - {level.maxXP || "∞"} XP
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {level.price} ETB
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button
+                onClick={handleCloseLevelModal}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (selectedTherapistForLevel && selectedLevelId) {
+                    updateLevelMutation({
+                      therapistId: selectedTherapistForLevel.id,
+                      levelId: selectedLevelId,
+                    });
+                  }
+                }}
+                disabled={isUpdatingLevel || !selectedLevelId}
+                className="flex-1"
+              >
+                {isUpdatingLevel ? "Updating..." : "Update Level"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Image Modal */}
       {selectedImage && (
         <div
@@ -787,7 +962,7 @@ const Therapists = ({
         onRowSelectionChange={handleRowSelection}
         searchInput={searchInput}
         pagination={{ size: 5 }}
-        sorting={[{ id: "firstName", desc: false }]}
+        sorting={[{ id: "createdAt", desc: true }]}
         toolbar={<Toolbar />}
         layout={{ card: true }}
       />
