@@ -122,6 +122,7 @@ interface ISessionsData {
   hasclientAttended: boolean;
   hasTherapistAttended: boolean;
   schedule: string;
+  groupName: string;
   duration: number;
   therapist: any;
   client: any;
@@ -280,7 +281,7 @@ const Sessions = ({
     queryParams.push(`take=${pageSize}`);
     queryParams.push(`page=${pageIndex}`);
     queryParams.push(`sort=createdAt=DESC`);
-    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,group.preference.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
     
     // Add date parameters (backend should filter by createdAt, not schedule)
     if (dateFilter.startDate) {
@@ -341,7 +342,7 @@ const Sessions = ({
     queryParams.push(`take=${pageSize}`);
     queryParams.push(`page=${pageIndex}`);
     queryParams.push(`sort=createdAt=DESC`);
-    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,group.preference.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
     
     // Add date parameters (backend should filter by createdAt, not schedule)
     if (dateFilter.startDate) {
@@ -403,7 +404,7 @@ const Sessions = ({
     let queryParams: string[] = [];
     
     // Add fields and sorting
-    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,group.preference.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
     queryParams.push(`sort=createdAt=DESC`);
     
     // Add date parameters (backend should filter by createdAt, not schedule)
@@ -723,37 +724,19 @@ const Sessions = ({
           const group = row.original.group;
 
           if (isGroupTherapy && group) {
-            // Display group therapy clients
-            const firstClient = group[0];
-            const remainingCount = group.length - 1;
-            const img = firstClient?.profile
-              ? `${BASE_URL}/${firstClient.profile}`
-              : null;
-
-            const handleGroupImageClick = (e: React.MouseEvent) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.nativeEvent.stopImmediatePropagation();
-
-              setSelectedImage({
-                src: img ? img : avatar,
-                name: `${firstClient?.firstName} ${firstClient?.lastName}`,
-                phone: `+251${firstClient?.phoneNumber}`,
-              });
-            };
-
+            const clientCount = group.length;
             return (
               <div className="flex items-center gap-4">
                 <div className="relative flex">
                   {/* First client avatar */}
                   <div
                     className="relative group cursor-pointer"
-                    onClick={handleGroupImageClick}
+                    //onClick={handleGroupImageClick}
                   >
                     <img
-                      src={img ? img : avatar}
+                      src={avatar}
                       className="rounded-full size-9 shrink-0 object-cover transition-transform hover:scale-105 border-2 border-white"
-                      alt={`${firstClient?.firstName} ${firstClient?.lastName}`}
+                      alt={`Group therapy session`}
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                       <KeenIcon icon="eye" className="text-white text-xs" />
@@ -763,27 +746,12 @@ const Sessions = ({
 
                 <div className="flex flex-col gap-0.5">
                   <div className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        e.nativeEvent.stopImmediatePropagation();
-                        navigate(`/clients/${firstClient?.id}`);
-                      }}
-                      className="hover:text-primary-active"
-                    >
-                      {firstClient?.firstName} {firstClient?.lastName}
-                    </button>
-                    {remainingCount > 0 && (
-                      <span className="text-xs text-blue-600 ml-1">
-                        & {remainingCount} other{remainingCount > 1 ? "s" : ""}
-                      </span>
-                    )}
+                    #{row.original.groupName}
                   </div>
                   <span className="text-2sm text-gray-700 font-normal">
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">
                       <KeenIcon icon="users" className="text-xs" />
-                      Group ({group.length} members)
+                      Group ({clientCount} {clientCount === 1 ? "member" : "members"})
                     </span>
                   </span>
                 </div>
@@ -932,69 +900,6 @@ const Sessions = ({
           cellClassName: "text-gray-800 font-normal",
         },
       },
-      //{
-      //  accessorFn: (row) => row.client?.firstName,
-      //  id: "Client",
-      //  header: ({ column }) => (
-      //    <DataGridColumnHeader title="Client" column={column} />
-      //  ),
-      //  enableSorting: true,
-      //  cell: ({ row }) => {
-      //    const img = row.original.client?.profile ? `${BASE_URL}/${row.original.client?.profile}` : row.original.client?.profile;
-
-      //    const handleImageClick = (e: React.MouseEvent) => {
-      //      e.preventDefault();
-      //      e.stopPropagation();
-      //      e.nativeEvent.stopImmediatePropagation();
-
-      //      console.log("Client Image clicked!"); // Add this to debug
-      //      if (row.original.client) {
-      //        setSelectedImage({
-      //          src: img || avatar,
-      //          name: `${row.original.client.firstName || ""} ${row.original.client.lastName || ""}`.trim(),
-      //          phone: row.original.client.phone || "N/A",
-      //        });
-      //      }
-      //    };
-
-      //    return (
-      //      <div className="flex items-center gap-2">
-      //        <div className="flex items-center justify-center shrink-0 rounded-full bg-gray-100 size-9">
-      //          <img
-      //            className="size-7 rounded-full cursor-pointer"
-      //            src={img || avatar}
-      //            alt=""
-      //            onClick={handleImageClick}
-      //          />
-      //        </div>
-      //        <div className="flex flex-col gap-0.5">
-      //          <span className="leading-none font-medium text-sm text-gray-900">
-      //            {row.original.client?.firstName} {row.original.client?.lastName}
-      //          </span>
-      //          <span className="text-2sm text-gray-700 font-normal">
-      //            {row.original.client?.phone}
-      //          </span>
-      //        </div>
-      //      </div>
-      //    );
-      //  },
-      //  meta: {
-      //    headerClassName: "min-w-[165px]",
-      //  },
-      //},
-      //{
-      //  id: "duration",
-      //  header: ({ column }) => (
-      //    <DataGridColumnHeader title="Duration" column={column} />
-      //  ),
-      //  enableSorting: false,
-      //  cell: (info) => {
-      //    return info.row.original.duration + " minutes";
-      //  },
-      //  meta: {
-      //    headerClassName: "min-w-[80px]",
-      //  },
-      //},
       {
         id: "schedule",
         header: ({ column }) => (

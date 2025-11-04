@@ -158,8 +158,8 @@ const LicenseInfo: React.FC<LicenseInfoProps> = ({ data, layout = 'grid' }) => {
                         return { name: "Degree Certificate", type: "DEGREE", year: "2024" };
                       case "Government ID:":
                         return { name: "Government ID", type: "ID", year: "2025" };
-                      case "Work Experience:":
-                        return { name: "Work Experience", type: "EXPERIENCE", year: "2024" };
+                      case "CV":
+                        return { name: "CV", type: "CV", year: "2025" };
                       case "Special Training:":
                         return { name: "Special Training", type: "TRAINING", year: "2025" };
                       default:
@@ -201,18 +201,19 @@ const LicenseInfo: React.FC<LicenseInfoProps> = ({ data, layout = 'grid' }) => {
             // Grid layout for session detail
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((item, index) => {
+                console.log(item.label, "THe label abeniiii", items.length)
                 if (!item.filename) return null;
 
                 const getDocumentType = (label: string) => {
                   switch (label) {
-                    case "Professional License:":
-                      return { name: "Professional License", type: "LICENSE", year: "2025" };
+                    case "License":
+                      return { name: "License", type: "LICENSE", year: "2025" };
                     case "Degree Certificate:":
-                      return { name: "Degree Certificate", type: "DEGREE", year: "2024" };
+                      return { name: "Degree Certificate", type: "DEGREE", year: "2025" };
                     case "Government ID:":
                       return { name: "Government ID", type: "ID", year: "2025" };
-                    case "Work Experience:":
-                      return { name: "Work Experience", type: "EXPERIENCE", year: "2024" };
+                    case "CV":
+                      return { name: "CV", type: "CV", year: "2025" };
                     case "Special Training:":
                       return { name: "Special Training", type: "TRAINING", year: "2025" };
                     default:
