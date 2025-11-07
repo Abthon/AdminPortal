@@ -46,34 +46,47 @@ const TransactionModalCell = ({ client }: { client: IClientDetailData & { prefer
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchModal = async () => {
-      if (!client.preference || client.preference.length === 0) {
-        setModalName(null);
-        return;
-      }
-
-      const preferenceId = client.preference[0].id;
-      if (!preferenceId) {
+    const fetchClientAndModal = async () => {
+      if (!client?.id) {
         setModalName(null);
         return;
       }
 
       setLoading(true);
       try {
-        const { data } = await axiosInstance.get(
+        // First, fetch the client data to get preference IDs
+        const { data: clientData } = await axiosInstance.get(
+          `/api/v1/client/${client.id}?fields=preference.*`
+        );
+
+        // Check if client has preferences
+        if (!clientData?.data?.preference || clientData.data.preference.length === 0) {
+          setModalName(null);
+          return;
+        }
+
+        const preferenceId = clientData.data.preference[0].id;
+        if (!preferenceId) {
+          setModalName(null);
+          return;
+        }
+
+        // Then, fetch the modal using the preference ID
+        const { data: preferenceData } = await axiosInstance.get(
           `/api/v1/preference/${preferenceId}?fields=modal.*`
         );
-        setModalName(data?.data?.modal?.name || null);
+        
+        setModalName(preferenceData?.data?.modal?.name || null);
       } catch (error) {
-        console.error("Error fetching preference modal:", error);
+        console.error("Error fetching client preference modal:", error);
         setModalName(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchModal();
-  }, [client.preference]);
+    fetchClientAndModal();
+  }, [client?.id]);
 
   return (
     <div className="flex items-center">
@@ -202,7 +215,7 @@ const Transactions = ({
     queryParams.push(`page=${pageIndex}`);
     //queryParams.push(`sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`);
     queryParams.push(`sort=createdAt=DESC`)
-    queryParams.push(`fields=client.*,client.preference.*,status,subscription.*,start_date,end_date,createdAt`);
+    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,createdAt`);
     
     // Add date parameters
     if (dateFilter.startDate) {
@@ -220,10 +233,8 @@ const Transactions = ({
       remainingFilters.push(`subscription.status:=${statusFilter}`);
     }
     
-    // Build modal filter parameter
-    if (modalFilter && modalFilter !== "all") {
-      remainingFilters.push(`client.preference.modal.id:=${modalFilter}`);
-    }
+    // Note: Modal filter is not supported by user-sub endpoint due to nested relationship limitations
+    // Modal filtering would need to be done client-side after fetching data
     
     // Add remaining filters if any
     if (remainingFilters.length > 0) {
@@ -269,7 +280,7 @@ const Transactions = ({
     queryParams.push(`page=${pageIndex}`);
     //queryParams.push(`sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`);
     queryParams.push(`sort=createdAt=DESC`)
-    queryParams.push(`fields=client.*,client.preference.*,status,subscription.*,start_date,end_date,createdAt`);
+    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,createdAt`);
     
     // Add date parameters
     if (dateFilter.startDate) {
@@ -292,10 +303,8 @@ const Transactions = ({
       remainingFilters.push(`subscription.status:=${statusFilter}`);
     }
     
-    // Add modal filter
-    if (modalFilter && modalFilter !== "all") {
-      remainingFilters.push(`client.preference.modal.id:=${modalFilter}`);
-    }
+    // Note: Modal filter is not supported by user-sub endpoint due to nested relationship limitations
+    // Modal filtering would need to be done client-side after fetching data
     
     // Add remaining filters if any
     if (remainingFilters.length > 0) {
@@ -324,7 +333,7 @@ const Transactions = ({
     let queryParams: string[] = [];
     
     // Add fields and sorting
-    queryParams.push(`fields=client.*,client.preference.*,status,subscription.*,start_date,end_date,createdAt`);
+    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,createdAt`);
     queryParams.push(`sort=createdAt=DESC`);
     
     // Add date parameters
@@ -348,10 +357,8 @@ const Transactions = ({
       remainingFilters.push(`subscription.status:=${statusFilter}`);
     }
     
-    // Add modal filter
-    if (modalFilter && modalFilter !== "all") {
-      remainingFilters.push(`client.preference.modal.id:=${modalFilter}`);
-    }
+    // Note: Modal filter is not supported by user-sub endpoint due to nested relationship limitations
+    // Modal filtering would need to be done client-side after fetching data
     
     // Add remaining filters if any
     if (remainingFilters.length > 0) {
@@ -378,7 +385,7 @@ const Transactions = ({
   }
 
   const { isLoading: isTransactionLoading, data: TransactionData } = useQuery({
-    queryKey: ["Transactions", searchInput, dateFilter, statusFilter, modalFilter],
+    queryKey: ["Transactions", searchInput, dateFilter, statusFilter],
     queryFn: revalidateTransaction,
     refetchInterval: 50000,
     refetchIntervalInBackground: true,
@@ -856,7 +863,6 @@ const Transactions = ({
   );
 
   const data: ITransactionData[] = useMemo(() => TransactionData ?? [], [TransactionData]);
-
   const handleRowSelection = (state: RowSelectionState) => {
     const selectedRowIds = Object.keys(state);
 
@@ -1039,8 +1045,10 @@ const Transactions = ({
               </SelectContent>
             </Select>*/}
 
-            {/* Modal Type Filter */}
-            <Select
+            {/* Modal Type Filter - DISABLED: Backend doesn't support nested filtering (client.preference.modal)
+                API limitation: user-sub endpoint can only nest one level deep
+                TODO: Implement client-side filtering if needed */}
+            {/* <Select
               value={modalFilter}
               onValueChange={handleModalFilterChange}
               defaultValue="all"
@@ -1056,7 +1064,7 @@ const Transactions = ({
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
+            </Select> */}
 
             <div className="flex items-center gap-2">
               {/* Start Date Filter */}

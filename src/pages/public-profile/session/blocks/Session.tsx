@@ -136,6 +136,14 @@ interface ISessionsData {
     updatedAt: string;
     createdAt: string;
   };
+  subscription?: {
+    id: string;
+    status: string;
+    start_date: string;
+    end_date: string;
+    old_price: number | null;
+    price: number | null;
+  };
 }
 
 const Sessions = ({
@@ -217,6 +225,15 @@ const Sessions = ({
   const [userSearch, setUserSearch] = useState("");
   const [isAddToSessionModalOpen, setIsAddToSessionModalOpen] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [reassignModalOpen, setReassignModalOpen] = useState(false);
+  const [reassignSessionData, setReassignSessionData] = useState<ISessionsData | null>(null);
+  const [subscriptionSessions, setSubscriptionSessions] = useState<any[]>([]);
+  const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([]);
+  const [newTherapistId, setNewTherapistId] = useState<string>("");
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [isRemoveFromSessionModalOpen, setIsRemoveFromSessionModalOpen] = useState(false);
+  const [removeSessionData, setRemoveSessionData] = useState<ISessionsData | null>(null);
+  const [selectedUsersToRemove, setSelectedUsersToRemove] = useState<string[]>([]);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -281,7 +298,7 @@ const Sessions = ({
     queryParams.push(`take=${pageSize}`);
     queryParams.push(`page=${pageIndex}`);
     queryParams.push(`sort=createdAt=DESC`);
-    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
     
     // Add date parameters (backend should filter by createdAt, not schedule)
     if (dateFilter.startDate) {
@@ -342,7 +359,7 @@ const Sessions = ({
     queryParams.push(`take=${pageSize}`);
     queryParams.push(`page=${pageIndex}`);
     queryParams.push(`sort=createdAt=DESC`);
-    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
     
     // Add date parameters (backend should filter by createdAt, not schedule)
     if (dateFilter.startDate) {
@@ -404,7 +421,7 @@ const Sessions = ({
     let queryParams: string[] = [];
     
     // Add fields and sorting
-    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
     queryParams.push(`sort=createdAt=DESC`);
     
     // Add date parameters (backend should filter by createdAt, not schedule)
@@ -489,6 +506,17 @@ const Sessions = ({
     return data;
   }
 
+  // Remove users from session
+  async function removeUsersFromSession(sessionId: string, userIds: string[]) {
+    const { data } = await axiosInstance.post(
+      `/api/v1/session/${sessionId}/remove-from-session`,
+      {
+        groupClients: userIds,
+      }
+    );
+    return data;
+  }
+
   // Fetch users for adding to session
   async function fetchUsers(search: string = "") {
     const url = search
@@ -515,7 +543,7 @@ const Sessions = ({
   const { data: therapistsData } = useQuery({
     queryKey: ["therapists", therapistSearch],
     queryFn: () => fetchTherapists(therapistSearch),
-    enabled: isAddSessionOpen,
+    enabled: isAddSessionOpen || reassignModalOpen,
   });
 
   // Fetch clients for session creation
@@ -616,6 +644,30 @@ const Sessions = ({
       },
     });
 
+  // Remove users from session mutation
+  const { isLoading: isRemovingUsers, mutate: removeUsersFromSessionMutation } =
+    useMutation({
+      mutationFn: ({
+        sessionId,
+        userIds,
+      }: {
+        sessionId: string;
+        userIds: string[];
+      }) => removeUsersFromSession(sessionId, userIds),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["Sessions"],
+        });
+        toast(`Successfully removed ${selectedUsersToRemove.length} user(s) from session!`);
+        setIsRemoveFromSessionModalOpen(false);
+        setSelectedUsersToRemove([]);
+        setRemoveSessionData(null);
+      },
+      onError: (error: any) => {
+        toast(error?.message || "Error removing users from session");
+      },
+    });
+
   useEffect(
     function () {
       isAddOpen && setIsAddSessionOpen(true);
@@ -682,14 +734,128 @@ const Sessions = ({
     );
   };
 
+  const handleOpenRemoveFromSession = useCallback((sessionData: ISessionsData) => {
+    setRemoveSessionData(sessionData);
+    setIsRemoveFromSessionModalOpen(true);
+    setSelectedUsersToRemove([]);
+  }, []);
+
+  const handleRemoveUsersFromSession = () => {
+    if (!removeSessionData?.id || selectedUsersToRemove.length === 0) {
+      toast("Please select at least one user to remove from the session.");
+      return;
+    }
+
+    removeUsersFromSessionMutation({
+      sessionId: removeSessionData.id,
+      userIds: selectedUsersToRemove,
+    });
+  };
+
+  const handleUserToRemoveToggle = (userId: string) => {
+    setSelectedUsersToRemove((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
   const formatDate = (date: Date | undefined) => {
     if (!date) {
       return "";
     }
+
     return date.toLocaleDateString("en-US", {
       day: "2-digit",
       month: "long",
       year: "numeric",
+    });
+  };
+
+  // Handle opening reassign therapist modal
+  const handleOpenReassignModal = async (sessionData: ISessionsData) => {
+    if (!sessionData.subscription?.id) {
+      toast("No subscription found for this session");
+      return;
+    }
+
+    setReassignSessionData(sessionData);
+    setReassignModalOpen(true);
+    setLoadingSessions(true);
+    setSelectedSessionIds([]);
+    setNewTherapistId("");
+
+    try {
+      // Fetch all sessions for this subscription
+      const { data } = await axiosInstance.get(
+        `/api/v1/subscription/user-sub?ids=${sessionData.subscription.id}`
+      );
+
+      if (data?.data?.[0]?.session) {
+        setSubscriptionSessions(data.data[0].session);
+      } else {
+        setSubscriptionSessions([]);
+        toast("No sessions found for this subscription");
+      }
+    } catch (error) {
+      console.error("Error fetching subscription sessions:", error);
+      toast("Failed to fetch subscription sessions");
+      setSubscriptionSessions([]);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  // Toggle session selection
+  const handleToggleSessionSelection = (sessionId: string) => {
+    setSelectedSessionIds((prev) =>
+      prev.includes(sessionId)
+        ? prev.filter((id) => id !== sessionId)
+        : [...prev, sessionId]
+    );
+  };
+
+  // Reassign therapist mutation
+  const reassignTherapistMutation = useMutation(
+    async ({ sessionIds, therapistId }: { sessionIds: string[]; therapistId: string }) => {
+      // Patch each selected session with the new therapist
+      const promises = sessionIds.map((sessionId) =>
+        axiosInstance.patch(`/api/v1/session/${sessionId}`, {
+          therapist: therapistId,
+        })
+      );
+      await Promise.all(promises);
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["Sessions"]);
+        toast("Therapist reassigned successfully!");
+        setReassignModalOpen(false);
+        setSelectedSessionIds([]);
+        setNewTherapistId("");
+      },
+      onError: (error: any) => {
+        console.error("Error reassigning therapist:", error);
+        toast(error?.message || "Failed to reassign therapist");
+      },
+    }
+  );
+
+  // Handle reassigning therapist
+  const handleReassignTherapist = () => {
+    if (selectedSessionIds.length === 0) {
+      toast("Please select at least one session");
+      return;
+    }
+
+    if (!newTherapistId) {
+      toast("Please select a therapist");
+      return;
+    }
+
+    reassignTherapistMutation.mutate({
+      sessionIds: selectedSessionIds,
+      therapistId: newTherapistId,
     });
   };
 
@@ -1164,8 +1330,74 @@ const Sessions = ({
           headerClassName: "min-w-[140px]",
         },
       },
+      {
+        id: "removeFromSession",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Remove from Session" column={column} />
+        ),
+        enableSorting: false,
+        cell: ({ row }) => {
+          // Check if this is a group therapy session
+          const isGroupTherapy = row.original.group && row.original.group.length > 0;
+          
+          // Only show the button for group therapy sessions
+          if (!isGroupTherapy) {
+            return (
+              <span className="text-xs text-gray-400 italic">
+                Individual Session
+              </span>
+            );
+          }
+
+          return (
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
+                handleOpenRemoveFromSession(row.original);
+              }}
+              size="sm"
+              variant="outline"
+              className="h-8 px-3"
+            >
+              <KeenIcon icon="minus-circle" className="mr-1" />
+              Remove Users
+            </Button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[160px]",
+        },
+      },
+      {
+        id: "reassignTherapist",
+        header: () => <span>Actions</span>,
+        enableSorting: false,
+        cell: ({ row }) => {
+          return (
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
+                handleOpenReassignModal(row.original);
+              }}
+              size="sm"
+              variant="outline"
+              className="h-8 px-3"
+            >
+              <KeenIcon icon="arrows-circle" className="mr-1" />
+              Re-assign Therapist
+            </Button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[180px]",
+        },
+      },
     ],
-    [mutate]
+    [mutate, handleOpenReassignModal, handleOpenRemoveFromSession]
   );
 
   const data: ISessionsData[] = useMemo(() => SessionData ?? [], [SessionData]);
@@ -1904,6 +2136,127 @@ const Sessions = ({
         </DialogContent>
       </Dialog>
 
+      {/* Remove from Session Modal */}
+      <Dialog
+        open={isRemoveFromSessionModalOpen}
+        onOpenChange={setIsRemoveFromSessionModalOpen}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-6">
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Remove Users from Session
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6 px-1 m-4">
+            {/* Session Info */}
+            {removeSessionData && (
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <p className="text-sm font-medium text-orange-900 mb-1">
+                  Session: {removeSessionData.groupName || "Group Session"}
+                </p>
+                <p className="text-sm text-orange-700">
+                  {removeSessionData.group?.length || 0} member(s) in this group
+                </p>
+              </div>
+            )}
+
+            {/* Group Members List */}
+            <div className="space-y-4">
+              <h4 className="text-base font-medium text-gray-900">
+                Select users to remove:
+              </h4>
+
+              {removeSessionData?.group && removeSessionData.group.length > 0 ? (
+                <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-xl bg-white">
+                  {removeSessionData.group.map((user: any) => (
+                    <div
+                      key={user.id}
+                      className={`p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 transition-colors ${
+                        selectedUsersToRemove.includes(user.id)
+                          ? "bg-red-50 border-red-200 hover:bg-red-100"
+                          : ""
+                      }`}
+                      onClick={() => handleUserToRemoveToggle(user.id)}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <img
+                            src={
+                              user.profile
+                                ? `${BASE_URL}/${user.profile}`
+                                : avatar
+                            }
+                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                            alt={`${user.firstName} ${user.lastName}`}
+                          />
+                          {selectedUsersToRemove.includes(user.id) && (
+                            <div className="absolute -top-1 -right-1 bg-red-600 rounded-full w-5 h-5 flex">
+                              <KeenIcon
+                                icon="check"
+                                className="text-white text-xs m-1"
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-base font-medium text-gray-900">
+                            {user.firstName} {user.lastName}
+                          </p>
+                          <p className="text-sm text-gray-500">{user.email}</p>
+                          <p className="text-sm text-gray-500">+251{user.phoneNumber}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedUsersToRemove.includes(user.id)}
+                            onChange={() => handleUserToRemoveToggle(user.id)}
+                            className="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-gray-500 border border-gray-200 rounded-xl">
+                  No users in this group session
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+              <Button
+                variant="outline"
+                onClick={() => setIsRemoveFromSessionModalOpen(false)}
+                className="px-6 py-3 text-base"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleRemoveUsersFromSession}
+                disabled={isRemovingUsers || selectedUsersToRemove.length === 0}
+                className="px-6 py-3 text-base bg-red-600 hover:bg-red-700"
+              >
+                {isRemovingUsers ? (
+                  <>
+                    <KeenIcon icon="loading" className="animate-spin mr-2" />
+                    Removing Users...
+                  </>
+                ) : (
+                  <>
+                    <KeenIcon icon="minus-circle" className="mr-2" />
+                    Remove {selectedUsersToRemove.length} User
+                    {selectedUsersToRemove.length !== 1 ? "s" : ""}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Session Detail Modal */}
       <Dialog
         open={sessionDetailModalOpen}
@@ -2189,6 +2542,188 @@ const Sessions = ({
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Re-assign Therapist Modal */}
+      <Dialog open={reassignModalOpen} onOpenChange={setReassignModalOpen}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-4">
+          <div className="space-y-6">
+            {/* Select New Therapist */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select New Therapist
+              </label>
+              <div className="relative w-full">
+                <Input
+                  value={therapistSearch}
+                  onChange={(e) => setTherapistSearch(e.target.value)}
+                  placeholder="Search therapist by name..."
+                  className="w-full"
+                />
+                {therapistSearch && (
+                  <button
+                    onClick={() => {
+                      setTherapistSearch("");
+                      setNewTherapistId("");
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <KeenIcon icon="cross" className="text-sm" />
+                  </button>
+                )}
+              </div>
+              
+              {/* Therapist Results */}
+              {therapistsData?.data && therapistsData.data.length > 0 && (
+                <div className="mt-2 border rounded-lg max-h-64 overflow-y-auto w-full">
+                  {therapistsData.data.map((therapist: any) => (
+                    <div
+                      key={therapist.id}
+                      className={cn(
+                        "flex items-center gap-3 p-3 cursor-pointer transition-colors hover:bg-gray-50",
+                        newTherapistId === therapist.id && "bg-blue-50 border-l-4 border-blue-500"
+                      )}
+                      onClick={() => {
+                        setNewTherapistId(therapist.id);
+                        setTherapistSearch(`${therapist.firstName} ${therapist.lastName}`);
+                      }}
+                    >
+                      <img
+                        src={therapist.profile ? `${BASE_URL}/${therapist.profile}` : avatar}
+                        className="rounded-full size-10 object-cover border"
+                        alt={therapist.firstName}
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">
+                          {therapist.firstName} {therapist.lastName}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          +251{therapist.phoneNumber}
+                        </p>
+                      </div>
+                      {newTherapistId === therapist.id && (
+                        <KeenIcon icon="check" className="text-blue-600" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Selected Therapist Display */}
+              {newTherapistId && !therapistSearch && (
+                <div className="mt-2 flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200 w-80">
+                  <img
+                    src={
+                      therapistsData?.data?.find((t: any) => t.id === newTherapistId)?.profile
+                        ? `${BASE_URL}/${therapistsData.data.find((t: any) => t.id === newTherapistId).profile}`
+                        : avatar
+                    }
+                    className="rounded-full size-10 object-cover"
+                    alt="Selected therapist"
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">
+                      {therapistsData?.data?.find((t: any) => t.id === newTherapistId)?.firstName}{" "}
+                      {therapistsData?.data?.find((t: any) => t.id === newTherapistId)?.lastName}
+                    </p>
+                    <p className="text-sm text-gray-600">Selected Therapist</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setNewTherapistId("");
+                      setTherapistSearch("");
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <KeenIcon icon="cross" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Sessions List */}
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">
+                Select Sessions to Re-assign ({subscriptionSessions.length} sessions)
+              </h4>
+              
+              {loadingSessions ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                </div>
+              ) : subscriptionSessions.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No sessions found</p>
+              ) : (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {subscriptionSessions.map((session: any) => (
+                    <div
+                      key={session.id}
+                      className={cn(
+                        "p-4 border rounded-lg cursor-pointer transition-all",
+                      )}
+                      onClick={() => handleToggleSessionSelection(session.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedSessionIds.includes(session.id)}
+                              onChange={() => handleToggleSessionSelection(session.id)}
+                              className="rounded border-gray-300"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div>
+                              <p className="font-medium">{session.groupName || "Session"}</p>
+                              <p className="text-sm text-gray-600">
+                                Schedule: {new Date(session.schedule).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "badge badge-sm",
+                              session.approvalStatus === "confirmed"
+                                ? "badge-success"
+                                : session.approvalStatus === "pending"
+                                ? "badge-warning"
+                                : "badge-danger"
+                            )}
+                          >
+                            {session.approvalStatus}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-4 border-t">
+              <p className="text-sm text-gray-600">
+                {selectedSessionIds.length} session(s) selected
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setReassignModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleReassignTherapist}
+                  disabled={selectedSessionIds.length === 0 || !newTherapistId || reassignTherapistMutation.isLoading}
+                >
+                  {reassignTherapistMutation.isLoading ? "Reassigning..." : "Re-assign Therapist"}
+                </Button>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 

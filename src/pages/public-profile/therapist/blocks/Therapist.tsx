@@ -87,6 +87,99 @@ const TherapistModalCell = ({ therapist }: { therapist: ITherapistsData }) => {
   );
 };
 
+// Component to handle level display based on therapy type
+const TherapistLevelCell = ({ 
+  therapist,
+  onEdit 
+}: { 
+  therapist: ITherapistsData;
+  onEdit: (therapist: ITherapistsData) => void;
+}) => {
+  const [modalName, setModalName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchModal = async () => {
+      if (!therapist.license || therapist.license.length === 0) {
+        setModalName(null);
+        return;
+      }
+
+      const licenseId = therapist.license[0].id;
+      if (!licenseId) {
+        setModalName(null);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const { data } = await axiosInstance.get(
+          `/api/v1/license/${licenseId}?fields=modal.*`
+        );
+        setModalName(data?.data?.modal?.name || null);
+      } catch (error) {
+        console.error("Error fetching license modal:", error);
+        setModalName(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModal();
+  }, [therapist.license]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Check if therapy type is couple or group (case insensitive)
+  const isGroupOrCouple = modalName && 
+    (modalName.toLowerCase() === 'couple therapy' || modalName.toLowerCase() === 'group therapy');
+
+  if (isGroupOrCouple) {
+    return (
+      <div className="flex items-center">
+        <span className="text-gray-500 text-sm">Not Available</span>
+      </div>
+    );
+  }
+
+  const level = therapist.level;
+  return (
+    <div className="flex items-center gap-2">
+      {level ? (
+        <span
+          className={`badge ${
+            level.type === "advanced"
+              ? "badge-success"
+              : level.type === "moderate"
+              ? "badge-warning"
+              : "badge-info"
+          } badge-outline`}
+        >
+          {level.type.charAt(0).toUpperCase() + level.type.slice(1)}
+        </span>
+      ) : (
+        <span className="text-gray-500 text-sm">No level</span>
+      )}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onEdit(therapist);
+        }}
+        className="btn btn-xs btn-icon btn-clear btn-primary"
+      >
+        <KeenIcon icon="notepad-edit" className="text-xs" />
+      </button>
+    </div>
+  );
+};
+
 const Therapists = ({
   isAddOpen,
   _handleAddOpen,
@@ -543,36 +636,11 @@ const Therapists = ({
         ),
         enableSorting: false,
         cell: ({ row }) => {
-          const level = row.original.level;
-          console.log(level, "The levelllll ", row.original)
           return (
-            <div className="flex items-center gap-2">
-              {level ? (
-                <span
-                  className={`badge ${
-                    level.type === "advanced"
-                      ? "badge-success"
-                      : level.type === "moderate"
-                      ? "badge-warning"
-                      : "badge-info"
-                  } badge-outline`}
-                >
-                  {level.type.charAt(0).toUpperCase() + level.type.slice(1)}
-                </span>
-              ) : (
-                <span className="text-gray-500 text-sm">No level</span>
-              )}
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation();
-                  handleOpenLevelModal(row.original);
-                }}
-                className="btn btn-xs btn-icon btn-clear btn-primary"
-              >
-                <KeenIcon icon="notepad-edit" className="text-xs" />
-              </button>
-            </div>
+            <TherapistLevelCell 
+              therapist={row.original}
+              onEdit={handleOpenLevelModal}
+            />
           );
         },
         meta: {

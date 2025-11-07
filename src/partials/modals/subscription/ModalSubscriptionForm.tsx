@@ -43,6 +43,8 @@ const ModalSubscriptionForm = ({
     modal: "",
     level: "no-level"
   });
+  
+  const [levelPrice, setLevelPrice] = useState<string>("");
 
   const queryClient = useQueryClient();
 
@@ -102,6 +104,26 @@ const ModalSubscriptionForm = ({
     },
   });
 
+  // Update level price mutation
+  const { isLoading: isUpdatingLevelPrice, mutate: updateLevelPrice } = useMutation<
+    any,
+    Error,
+    { levelId: string; price: number }
+  >({
+    mutationFn: async ({ levelId, price }) => {
+      const { data } = await axiosInstance.patch(`/api/v1/level/${levelId}`, { price });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["levels"]);
+      queryClient.invalidateQueries(["adminSubscriptions"]);
+      toast.success("Level price updated successfully!");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Error updating level price");
+    },
+  });
+
   // Set form data when subscription changes
   useEffect(() => {
     if (subscription) {
@@ -112,6 +134,13 @@ const ModalSubscriptionForm = ({
         modal: subscription.modal.id,
         level: subscription.level?.id || "no-level"
       });
+      
+      // Set level price if level exists
+      if (subscription.level?.price) {
+        setLevelPrice(subscription.level.price.toString());
+      } else {
+        setLevelPrice("");
+      }
     }
   }, [subscription]);
 
@@ -129,6 +158,21 @@ const ModalSubscriptionForm = ({
     updateSubscription({ id: subscription.id, payload });
   };
 
+  const handleUpdateLevelPrice = () => {
+    if (!formData.level || formData.level === "no-level") {
+      toast.error("Please select a level first");
+      return;
+    }
+    
+    const price = parseFloat(levelPrice);
+    if (isNaN(price) || price < 0) {
+      toast.error("Please enter a valid price");
+      return;
+    }
+
+    updateLevelPrice({ levelId: formData.level, price });
+  };
+
   const handleClose = () => {
     onClose();
     // Reset form data
@@ -139,6 +183,7 @@ const ModalSubscriptionForm = ({
       modal: "",
       level: "no-level"
     });
+    setLevelPrice("");
   };
 
   return (
@@ -149,12 +194,13 @@ const ModalSubscriptionForm = ({
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Subscription Type */}
+          {/* Subscription Type (Read-only) */}
           <div>
             <label className="block text-sm font-medium mb-2 mt-6">Subscription Type</label>
             <Select
               value={formData.type.toString()}
               onValueChange={(value) => setFormData(prev => ({ ...prev, type: parseInt(value) }))}
+              disabled
             >
               <SelectTrigger>
                 <SelectValue />
@@ -169,12 +215,13 @@ const ModalSubscriptionForm = ({
             </Select>
           </div>
 
-          {/* Therapy Modal */}
+          {/* Therapy Modal (Read-only) */}
           <div>
             <label className="block text-sm font-medium mb-2">Therapy Type</label>
             <Select
               value={formData.modal}
               onValueChange={(value) => setFormData(prev => ({ ...prev, modal: value }))}
+              disabled
             >
               <SelectTrigger>
                 <SelectValue />
@@ -189,12 +236,13 @@ const ModalSubscriptionForm = ({
             </Select>
           </div>
 
-          {/* Level */}
+          {/* Level (Read-only) */}
           <div>
             <label className="block text-sm font-medium mb-2">Level</label>
             <Select
               value={formData.level}
               onValueChange={(value) => setFormData(prev => ({ ...prev, level: value }))}
+              disabled
             >
               <SelectTrigger>
                 <SelectValue />
@@ -210,12 +258,36 @@ const ModalSubscriptionForm = ({
             </Select>
           </div>
 
+          {/* Level Price */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Level Price</label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                value={levelPrice}
+                onChange={(e) => setLevelPrice(e.target.value)}
+                placeholder="Enter level price"
+                disabled={formData.level === "no-level"}
+              />
+              <Button
+                onClick={handleUpdateLevelPrice}
+                disabled={isUpdatingLevelPrice || formData.level === "no-level"}
+                size="sm"
+              >
+                {isUpdatingLevelPrice ? "Updating..." : "Update"}
+              </Button>
+            </div>
+            {formData.level === "no-level" && (
+              <p className="text-sm text-muted-foreground mt-1">Select a level to edit its price</p>
+            )}
+          </div>
+
           {/* Price */}
           <div>
             <label className="block text-sm font-medium mb-2">Price</label>
             <Input
               type="number"
-              value={formData.price}
+              value={formData.price || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
               placeholder="Enter price"
             />
@@ -226,7 +298,7 @@ const ModalSubscriptionForm = ({
             <label className="block text-sm font-medium mb-2">Old Price (Optional)</label>
             <Input
               type="number"
-              value={formData.old_price}
+              value={formData.old_price || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, old_price: parseFloat(e.target.value) || 0 }))}
               placeholder="Enter old price"
             />

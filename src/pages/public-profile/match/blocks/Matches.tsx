@@ -119,31 +119,52 @@ const Matches = ({
     console.log(pageIndex, "current page Index is: ");
   }, [pageIndex]);
 
-  // Fetch therapists for assignment modal
-  const fetchTherapists = async () => {
+  // Fetch therapist candidates for assignment modal based on client preference
+  const fetchTherapists = async (clientId: string) => {
     try {
-      console.log('Fetching therapists...');
-      const { data } = await axiosInstance.get('/api/v1/therapist?fields=id,firstName,lastName,email,profile,status&filters=status:=1');
-      console.log('Therapist API response:', data);
+      console.log('Fetching client preference for client:', clientId);
       
-      const therapistList = data.data || [];
-      console.log('Therapist list:', therapistList);
+      // Step 1: Get client preference
+      const { data: clientData } = await axiosInstance.get(
+        `/api/v1/client/${clientId}?fields=preference.*`
+      );
+      console.log('Client data with preference:', clientData);
+      
+      const preference = clientData?.data?.preference?.[0];
+      
+      if (!preference || !preference.id) {
+        console.warn('No preference found for client');
+        toast.error('Client has no preference set');
+        setTherapists([]);
+        return;
+      }
+      
+      const preferenceId = preference.id;
+      console.log('Fetching therapist candidates for preference:', preferenceId);
+      
+      // Step 2: Get therapist candidates using preference ID
+      const { data: therapistData } = await axiosInstance.get(
+        `/api/v1/therapist/candidates/${preferenceId}?take=0`
+      );
+      console.log('Therapist candidates response:', therapistData);
+      
+      const therapistList = therapistData.data || [];
+      console.log('Therapist candidate list:', therapistList);
       setTherapists(therapistList);
       
-      //if (therapistList.length === 0) {
-      //  console.log('No verified therapists found');
-      //  // Try fetching all therapists to see if any exist
-      //  const { data: allData } = await axiosInstance.get('/api/v1/therapist?fields=id,firstName,lastName,email,profile,verified');
-      //  console.log('All therapists:', allData);
-      //}
+      if (therapistList.length === 0) {
+        toast.info('No matching therapist candidates found');
+      }
     } catch (error) {
-      console.error('Error fetching therapists:', error);
-      toast.error('Failed to load therapists');
+      console.error('Error fetching therapist candidates:', error);
+      toast.error('Failed to load therapist candidates');
+      setTherapists([]);
     }
   };
 
   // Handle therapist assignment
   const handleAssignTherapist = async (therapistId: string) => {
+    console.log('Assigning therapist:', therapistId);
     if (!selectedMatch) return;
     
     setIsAssigning(true);
@@ -175,7 +196,13 @@ const Matches = ({
     
     setSelectedMatch(match);
     setIsModalOpen(true);
-    fetchTherapists();
+    
+    // Fetch therapist candidates based on client preference
+    if (match.client?.id) {
+      fetchTherapists(match.client.id);
+    } else {
+      toast.error('Client ID not found');
+    }
   };
 
   async function getMatches({
@@ -472,7 +499,7 @@ const Matches = ({
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={fetchTherapists}
+                    onClick={() => selectedMatch?.client?.id && fetchTherapists(selectedMatch.client.id)}
                     className="mx-auto"
                   >
                     <KeenIcon icon="refresh" className="mr-2" />

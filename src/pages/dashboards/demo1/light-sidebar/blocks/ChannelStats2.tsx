@@ -32,6 +32,10 @@ interface IAnalyticsData {
     moodCount: number;
     diaryCount: number;
   };
+  usersPerModal: Array<{
+    modal: string;
+    userCount: string;
+  }>;
 }
 
 interface IStatsCard {
@@ -94,15 +98,15 @@ const ChannelStats2 = () => {
       },
       {
         icon: "calendar",
-        title: "Therapists with Sessions",
+        title: "Total Sessions",
         value: analyticsData.therapistStats.therapistsWithSessions,
         color: "text-orange-600",
         bgColor: "bg-orange-50"
       },
       {
         icon: "dollar",
-        title: "Total Revenue",
-        value: `$${parseFloat(analyticsData.revenueStats.totalRevenue).toLocaleString()}`,
+        title: "Total Company Revenue",
+        value: `${parseFloat(analyticsData.revenueStats.totalRevenue).toLocaleString()} Birr`,
         color: "text-emerald-600",
         bgColor: "bg-emerald-50"
       },
@@ -126,7 +130,40 @@ const ChannelStats2 = () => {
         value: analyticsData.matchStats.acceptedMatches,
         color: "text-teal-600",
         bgColor: "bg-teal-50"
-      }
+      },
+      // Users per modal cards
+      ...(analyticsData.usersPerModal?.map(modalData => {
+        // Assign different colors based on therapy type
+        let color = "text-indigo-600";
+        let bgColor = "bg-indigo-50";
+        let icon = "abstract";
+        
+        if (modalData.modal.toLowerCase().includes('individual')) {
+          color = "text-indigo-600";
+          bgColor = "bg-indigo-50";
+          icon = "user";
+        } else if (modalData.modal.toLowerCase().includes('teen')) {
+          color = "text-cyan-600";
+          bgColor = "bg-cyan-50";
+          icon = "user-tick";
+        } else if (modalData.modal.toLowerCase().includes('couple')) {
+          color = "text-rose-600";
+          bgColor = "bg-rose-50";
+          icon = "people";
+        } else if (modalData.modal.toLowerCase().includes('group')) {
+          color = "text-amber-600";
+          bgColor = "bg-amber-50";
+          icon = "element-11";
+        }
+        
+        return {
+          icon: icon,
+          title: modalData.modal,
+          value: parseInt(modalData.userCount).toLocaleString(),
+          color: color,
+          bgColor: bgColor
+        };
+      }) || [])
     ];
   };
 

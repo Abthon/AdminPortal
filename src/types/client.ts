@@ -65,6 +65,7 @@ export interface IClientDetailData {
   isInGroup: boolean;
   rating?: IClientRating[];
   activeSubscription?: IActiveSubscription;
+  preference?: { id: string }[];
 }
 
 export interface IClientDetailResponse {

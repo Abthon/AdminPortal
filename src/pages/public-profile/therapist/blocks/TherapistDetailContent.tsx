@@ -138,6 +138,18 @@ function removeTherapy(text: string): string {
   return text.replace(/therapy/gi, "");
 }
 
+// Therapist Stats Interface
+interface ITherapistStats {
+  totalSessions: number;
+  totalUsers: number;
+  totalRevenue: number;
+  totalHours: number;
+  sessionsOverTime: Array<{ date: string; count: string }>;
+  usersTreatedOverTime: Array<{ date: string; treatedUsers: string }>;
+  revenueOverTime: Array<{ date: string; revenue: number | null }>;
+  therapistHoursPerWeek: Array<{ year: number; week: number; totalHours: string }>;
+}
+
 // Statistics Component
 const TherapistStatistics = ({
   therapistData,
@@ -190,6 +202,40 @@ const TherapistStatistics = ({
   const uniqueModalNames = [...new Set(modalNames)]; // Remove duplicates
   const displayModal =
     uniqueModalNames.length > 0 ? uniqueModalNames.join(", ") : "N/A";
+
+  // Fetch therapist statistics - all time
+  const fetchTherapistStats = async (): Promise<ITherapistStats> => {
+    const { data } = await axiosInstance.get(
+      `/api/v1/therapist/stats?mockId=${therapistData.id}`
+    );
+    return data.data;
+  };
+
+  const { data: statsData, isLoading: statsLoading } = useQuery({
+    queryKey: ["therapist-stats-all", therapistData.id],
+    queryFn: fetchTherapistStats,
+  });
+
+  // Fetch therapist statistics - last 7 days
+  const fetchTherapistStatsWeek = async (): Promise<ITherapistStats> => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 7);
+
+    const formatDate = (date: Date) => {
+      return date.toISOString().split('T')[0];
+    };
+
+    const { data } = await axiosInstance.get(
+      `/api/v1/therapist/stats?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}&mockId=${therapistData.id}`
+    );
+    return data.data;
+  };
+
+  const { data: statsWeekData, isLoading: statsWeekLoading } = useQuery({
+    queryKey: ["therapist-stats-week", therapistData.id],
+    queryFn: fetchTherapistStatsWeek,
+  });
 
   return (
     <div className="">
@@ -263,44 +309,105 @@ const TherapistStatistics = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4 border-t">
-          {/* Replace Age with Modal Type */}
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 mb-1">
-              {licenseLoading || modalLoading ? (
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-              ) : (
-                removeTherapy(displayModal)
-              )}
+        {/* Statistics Grid */}
+        <div className="space-y-6 py-4">
+          <div className="pt-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">All-Time Statistics</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-primary mb-1">
+                  {statsLoading ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-primary mx-auto"></div>
+                  ) : (
+                    statsData?.totalSessions || 0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Total Sessions</div>
+              </div>
+
+              <div className="text-center">
+                <div className="text-3xl font-bold text-success mb-1">
+                  {statsLoading ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                  ) : (
+                    statsData?.totalHours || 0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Total Hours</div>
+              </div>
+
+              <div className="text-center">
+                <div className="text-3xl font-bold text-warning mb-1">
+                  {statsLoading ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-primary mx-auto"></div>
+                  ) : (
+                    statsData?.totalRevenue || 0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Total Revenue (ETB)</div>
+              </div>
+
+              <div className="text-center">
+                <div className="text-3xl font-bold text-info mb-1">
+                  {statsLoading ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                  ) : (
+                    statsData?.totalUsers || 0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Total Users</div>
+              </div>
             </div>
-            <div className="text-sm text-gray-600">Modal Type</div>
           </div>
 
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 mb-1">
-              {therapistData.isEmailAuthenticated &&
-              therapistData.isPhoneNumberAuthenticated
-                ? "2"
-                : therapistData.isEmailAuthenticated ||
-                    therapistData.isPhoneNumberAuthenticated
-                  ? "1"
-                  : "0"}
+          {/* Row 3: Weekly Statistics (Last 7 Days) */}
+          <div className="pt-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">Last 7 Days</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-primary mb-1">
+                  {statsWeekLoading ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                  ) : (
+                    statsWeekData?.totalSessions || 0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Sessions/Week</div>
+              </div>
+
+              <div className="text-center">
+                <div className="text-3xl font-bold text-success mb-1">
+                  {statsWeekLoading ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                  ) : (
+                    statsWeekData?.totalHours || 0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Hours/Week</div>
+              </div>
+
+              <div className="text-center">
+                <div className="text-3xl font-bold text-warning mb-1">
+                  {statsWeekLoading ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                  ) : (
+                    statsWeekData?.totalRevenue || 0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Revenue/Week (ETB)</div>
+              </div>
+
+              {/*<div className="text-center">
+                <div className="text-3xl font-bold text-info mb-1">
+                  {statsWeekLoading ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                  ) : (
+                    statsWeekData?.totalUsers || 0
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">Users/Week</div>
+              </div>*/}
             </div>
-            <div className="text-sm text-gray-600">Verified Contacts</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 mb-1">
-              {(() => {
-                if (!therapistData.createdAt) return "N/A";
-                const createdDate = new Date(therapistData.createdAt);
-                if (isNaN(createdDate.getTime())) return "N/A";
-                return Math.floor(
-                  (new Date().getTime() - createdDate.getTime()) /
-                    (1000 * 60 * 60 * 24)
-                );
-              })()}
-            </div>
-            <div className="text-sm text-gray-600">Days Since Registration</div>
           </div>
         </div>
       </div>

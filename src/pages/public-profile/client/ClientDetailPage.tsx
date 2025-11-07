@@ -24,7 +24,7 @@ const ClientDetailPage = () => {
 
   const fetchClientDetail = async (clientId: string): Promise<IClientDetailResponse> => {
     try {
-      const { data } = await axiosInstance.get(`/api/v1/client/${clientId}?fields=rating.*,username,email,gender,createdAt,phoneNumber,status,profile,activeSubscription.*`);
+      const { data } = await axiosInstance.get(`/api/v1/client/${clientId}?fields=rating.*,username,email,gender,createdAt,phoneNumber,status,profile,activeSubscription.*,preference.*`);
       console.log(data, "data neshhhh");
       return data;
     } catch (error: any) {

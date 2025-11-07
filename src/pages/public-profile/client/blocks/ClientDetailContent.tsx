@@ -281,9 +281,26 @@ const ClientAccountInfo = ({ clientData }: { clientData: IClientDetailData }) =>
   );
 };
 
+// Preference Data Interface
+interface IPreferenceData {
+  id: string;
+  gender: string | null;
+  otherLang: string | null;
+  goal: string | null;
+  level: {
+    id: string;
+    type: string;
+    minXP: number;
+    maxXP: number;
+    price: number;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
+}
+
 // Tabbed Content Component
 const ClientTabbedContent = ({ clientData }: { clientData: IClientDetailData }) => {
-  const [activeView, setActiveView] = useState<"sessions" | "activity" | "ratings">("sessions");
+  const [activeView, setActiveView] = useState<"sessions" | "activity" | "ratings" | "preferences">("sessions");
 
   return (
     <div className="flex flex-col gap-5 lg:gap-7.5">
@@ -296,13 +313,6 @@ const ClientTabbedContent = ({ clientData }: { clientData: IClientDetailData }) 
         >
           <KeenIcon icon="calendar" /> Session Calendar
         </button>
-        {/*<button
-          type="button"
-          className={`btn btn-sm ${activeView === "activity" ? "btn-primary" : "btn-outline btn-primary"}`}
-          onClick={() => setActiveView("activity")}
-        >
-          <KeenIcon icon="chart-line" /> A
-        </button>*/}
         <button
           type="button"
           className={`btn btn-sm ${activeView === "ratings" ? "btn-primary" : "btn-outline btn-primary"}`}
@@ -310,12 +320,20 @@ const ClientTabbedContent = ({ clientData }: { clientData: IClientDetailData }) 
         >
           <KeenIcon icon="star" /> Onboarding Questions
         </button>
+        <button
+          type="button"
+          className={`btn btn-sm ${activeView === "preferences" ? "btn-primary" : "btn-outline btn-primary"}`}
+          onClick={() => setActiveView("preferences")}
+        >
+          <KeenIcon icon="setting-2" /> Preferences
+        </button>
       </div>
 
       {/* Tab Content */}
       {activeView === "sessions" && <ClientSessions clientData={clientData} />}
       {activeView === "activity" && <ClientActivity clientData={clientData} />}
       {activeView === "ratings" && <ClientOnboardingQuestions clientData={clientData} />}
+      {activeView === "preferences" && <ClientPreferences clientData={clientData} />}
     </div>
   );
 };
@@ -527,6 +545,163 @@ const ClientActivity = ({ clientData }: { clientData: IClientDetailData }) => {
   );
 };
 
+// Client Preferences Component
+const ClientPreferences = ({ clientData }: { clientData: IClientDetailData }) => {
+  // Get preference ID from client data
+  const preferenceId = clientData.preference?.[0]?.id;
+
+  console.log(preferenceId, "The answer to the question 1", clientData)
+  // Fetch preference details
+  const fetchPreference = async (): Promise<IPreferenceData> => {
+    if (!preferenceId) {
+      throw new Error("No preference ID found");
+    }
+    const { data } = await axiosInstance.get(
+      //`/api/v1/preference/${preferenceId}?fields=gender,otherLang,goal,level.*`
+      `/api/v1/preference/${preferenceId}`
+    );
+
+    console.log(data, "The answer to the question")
+    return data.data;
+  };
+
+  const { data: preferenceData, isLoading, error } = useQuery({
+    queryKey: ["client-preference", preferenceId],
+    queryFn: fetchPreference,
+    enabled: !!preferenceId,
+  });
+
+  // Hardcoded questions with dynamic answers
+  const preferenceQuestions = [
+    {
+      id: 1,
+      question: "What is your preferred therapist gender?",
+      answer: preferenceData?.gender || "Not specified",
+      icon: "profile-circle",
+      color: "text-primary",
+    },
+    {
+      id: 2,
+      question: "Do you speak any other languages?",
+      answer: preferenceData?.otherLang || "Not specified",
+      icon: "message-text",
+      color: "text-success",
+    },
+    {
+      id: 3,
+      question: "What is your therapy goal?",
+      answer: preferenceData?.goal || "Not specified",
+      icon: "setting",
+      color: "text-warning",
+    },
+    {
+      id: 4,
+      question: "What level of therapist expertise do you prefer?",
+      answer: preferenceData?.level
+        ? `${preferenceData.level.type.charAt(0).toUpperCase() + preferenceData.level.type.slice(1)}`
+        : "Not specified",
+      icon: "medal-star",
+      color: "text-info",
+    },
+  ];
+
+  if (!preferenceId) {
+    return (
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Client Preferences</h3>
+        </div>
+        <div className="card-body">
+          <div className="text-center py-8">
+            <KeenIcon icon="information" className="text-4xl text-gray-400 mb-4" />
+            <h4 className="text-lg font-medium text-gray-900 mb-2">No Preferences Found</h4>
+            <p className="text-gray-600">This client hasn't set up their preferences yet.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Client Preferences</h3>
+        </div>
+        <div className="card-body">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading preferences...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Client Preferences</h3>
+        </div>
+        <div className="card-body">
+          <div className="text-center py-8">
+            <KeenIcon icon="information-2" className="text-4xl text-danger mb-4" />
+            <h4 className="text-lg font-medium text-gray-900 mb-2">Error Loading Preferences</h4>
+            <p className="text-gray-600">Could not load preference data. Please try again later.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card">
+      <div className="card-header">
+        <div className="flex items-center justify-between w-full">
+          <h3 className="card-title">Client Preferences</h3>
+          <span className="badge badge-sm badge-primary badge-outline">
+            Therapist Matching Criteria
+          </span>
+        </div>
+      </div>
+      <div className="card-body">
+        <div className="space-y-6">
+          {preferenceQuestions.map((item) => (
+            <div
+              key={item.id}
+              className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
+            >
+              <div className="flex items-start gap-4">
+                {/* Question Icon */}
+                <div className="flex-shrink-0">
+                  <div className={`w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center ${item.color}`}>
+                    <KeenIcon icon={item.icon} className="text-xl" />
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-3">
+                  {/* Question */}
+                  <h4 className="text-base font-semibold text-gray-900">
+                    {item.question}
+                  </h4>
+
+                  {/* Answer */}
+                  <div className="p-4 rounded-lg">
+                    <p className="text-base text-gray-900 font-medium">
+                      {item.answer}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Onboarding Questions Component
 const ClientOnboardingQuestions = ({ clientData }: { clientData: IClientDetailData }) => {
   // Fetch answers for the client
@@ -584,7 +759,7 @@ const ClientOnboardingQuestions = ({ clientData }: { clientData: IClientDetailDa
         );
       case "open":
         return (
-          <div className="p-3 bg-gray-50 rounded-lg">
+          <div className="p-3 rounded-lg">
             <p className="text-sm text-gray-900">
               {answer.text || <span className="text-gray-500 italic">No text provided</span>}
             </p>

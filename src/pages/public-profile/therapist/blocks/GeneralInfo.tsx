@@ -50,7 +50,7 @@ const LicenseInfo: React.FC<LicenseInfoProps> = ({ data, layout = 'grid' }) => {
     },
     {
       label: "CV",
-      filename: data.work_experience,
+      filename: data.professional_license,
     },
     {
       label: "Special Training:",
