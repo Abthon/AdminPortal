@@ -279,7 +279,7 @@ const Therapists = ({
     const statusFilter = filterInput && filterInput !== "all" ? `status:=${filterInput}` : "";
     const modalFilterParam = modalFilter && modalFilter !== "all" ? `license.modal.id:=${modalFilter}` : "";
     const filters = [statusFilter, modalFilterParam].filter(Boolean).join(",");
-    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC${filters ? `&filters=${filters}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,level.*,createdAt`;
+    const url = `/api/v1/therapist?take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC${filters ? `&filters=${filters}` : ""}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,level.*,bio,expertise.*,therapistBank.*,createdAt`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
@@ -329,7 +329,7 @@ const Therapists = ({
       }
     }
     
-    const url = `/api/v1/therapist?filters=${searchFilters}${statusFilter}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,level.*,createdAt`;
+    const url = `/api/v1/therapist?filters=${searchFilters}${statusFilter}${modalFilterParam}&take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,level.*,bio,expertise.*,therapistBank.*,createdAt`;
     const { data } = await axiosInstance.get(url);
 
     // calculating how many items are there on the current page
@@ -365,7 +365,7 @@ const Therapists = ({
       }
     }
     
-    const url = `/api/v1/therapist?${searchFilters ? `filters=${searchFilters}${statusFilter}${modalFilterParam}` : `${statusFilter || modalFilterParam ? `filters=${statusFilter}${modalFilterParam}`.replace(/^,/, '') : ''}`}&sort=createdAt=DESC&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,level.*,createdAt`;
+    const url = `/api/v1/therapist?${searchFilters ? `filters=${searchFilters}${statusFilter}${modalFilterParam}` : `${statusFilter || modalFilterParam ? `filters=${statusFilter}${modalFilterParam}`.replace(/^,/, '') : ''}`}&sort=createdAt=DESC&fields=id,firstName,lastName,phoneNumber,gender,status,profile,dob,license.*,level.*,bio,expertise.*,therapistBank.*,createdAt`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
     handleTherapistNum(data.data.length);

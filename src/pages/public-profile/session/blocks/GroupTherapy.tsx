@@ -63,6 +63,13 @@ interface ITherapist {
   email: string;
   phoneNumber: string;
   profile: string | null;
+  license?: Array<{
+    id: string;
+    modal?: {
+      id: string;
+      name: string;
+    };
+  }>;
 }
 
 interface ISessionForm {
@@ -161,9 +168,43 @@ const GroupTherapy = ({
   });
 
   async function getTherapists(search?: string) {
-    const url = `/api/v1/therapist${search ? `?filters=firstName=${search}` : ""}`;
+    // Fetch all therapists with license data
+    const url = `/api/v1/therapist?take=0${search ? `&filters=firstName=${search}` : ""}&fields=id,firstName,lastName,email,phoneNumber,profile,license.*`;
     const { data } = await axiosInstance.get(url);
-    return data;
+    
+    // Filter therapists who have licenses and check their modals
+    const therapistsWithLicenses = data.data.filter((therapist: ITherapist) => 
+      therapist.license && therapist.license.length > 0
+    );
+
+    // Fetch modal info for each therapist's license and filter for Group Therapy
+    const groupTherapyTherapists = await Promise.all(
+      therapistsWithLicenses.map(async (therapist: ITherapist) => {
+        try {
+          const licenseId = therapist.license![0].id;
+          const { data: licenseData } = await axiosInstance.get(
+            `/api/v1/license/${licenseId}?fields=modal.*`
+          );
+          
+          // Check if modal name is "Group Therapy"
+          if (licenseData.data.modal && licenseData.data.modal.name === "Group Therapy") {
+            return therapist;
+          }
+          return null;
+        } catch (error) {
+          console.error(`Error fetching license for therapist ${therapist.id}:`, error);
+          return null;
+        }
+      })
+    );
+
+    // Filter out null values (therapists who don't have Group Therapy modal)
+    const filteredTherapists = groupTherapyTherapists.filter(t => t !== null);
+    
+    return {
+      ...data,
+      data: filteredTherapists
+    };
   }
 
   async function createGroupSession(sessionData: ISessionForm & { groupClients: string[] }) {

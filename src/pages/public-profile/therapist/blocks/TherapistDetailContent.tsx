@@ -96,8 +96,7 @@ const TherapistDetailContent = ({
       <div className="col-span-1 w-full">
         <div className="w-full">
           <TherapistGeneralInfo therapistData={therapistData} />
-          {/* <LicenseInfo data={therapistData} /> */}
-
+          
           {/* License Information */}
           {licenseLoading ? (
             <div className="card mt-4">
@@ -111,7 +110,7 @@ const TherapistDetailContent = ({
               </div>
             </div>
           ) : licenseRecord ? (
-              <LicenseInfo data={licenseRecord} layout="horizontal" />
+            <LicenseInfo data={licenseRecord} layout="horizontal" />
           ) : (
             <div className="card mt-4">
               <div className="card-body">
@@ -450,7 +449,7 @@ const TherapistGeneralInfo = ({
       <div className="card-header">
         <h3 className="card-title">General Info</h3>
       </div>
-      <div className="card-body pt-3.5 pb-3.5">
+      <div className="card-body pt-3.5">
         <table className="table-auto">
           <tbody>
             {items.map((item, index) => (
@@ -465,6 +464,55 @@ const TherapistGeneralInfo = ({
             ))}
           </tbody>
         </table>
+
+        <div className="flex flex-col">
+            {/* Bio Section */}
+            {therapistData.bio && (
+              <div className="border-gray-200">
+                <h4 className="text-sm text-gray-600 mb-2">Bio</h4>
+                <p className="text-sm text-gray-700">{therapistData.bio}</p>
+              </div>
+            )}
+
+            {/* Expertise Section */}
+            {therapistData.expertise && therapistData.expertise.length > 0 && (
+              <div className="mt-4 border-gray-200">
+                <h4 className="text-sm text-gray-600 mb-2">Areas of Expertise</h4>
+                <div className="flex flex-wrap gap-2">
+                  {therapistData.expertise.map((exp) => (
+                    <span
+                      key={exp.id}
+                      className="badge badge-primary badge-outline"
+                    >
+                      {exp.expertise}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Bank Information Section */}
+            {therapistData.therapistBank && therapistData.therapistBank.length > 0 && (
+              <div className="mt-4 border-gray-200">
+                <h4 className="text-sm text-gray-600 mb-2">Bank Account Details</h4>
+                <div className="space-y-2">
+                  {therapistData.therapistBank.map((bank) => (
+                    <div key={bank.id} className="flex items-center gap-2 text-sm">
+                      <span className="text-gray-600">Account:</span>
+                      <span className="font-medium text-gray-900">{bank.accountNumber}</span>
+                      {bank.branch && (
+                        <>
+                          <span className="text-gray-400">|</span>
+                          <span className="text-gray-600">Branch:</span>
+                          <span className="text-gray-900">{bank.branch}</span>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+        </div>
       </div>
     </div>
   );

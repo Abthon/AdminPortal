@@ -314,7 +314,7 @@ const Matches = ({
               <div className="flex flex-col gap-0.5">
                 <Link
                   className="text-sm font-medium text-gray-900 hover:text-primary-active"
-                  to={`/public-profile/client-detail/${client.id}`}
+                  to={`/clients/${client.id}`}
                 >
                   {client.firstName} {client.lastName}
                 </Link>

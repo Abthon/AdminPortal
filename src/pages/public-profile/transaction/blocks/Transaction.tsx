@@ -107,6 +107,7 @@ interface ITransactionData {
   status: string;
   start_date: string;
   end_date: string;
+  createdAt: string;
   client: IClientDetailData & {
     preference?: {
       id: string;
@@ -856,6 +857,35 @@ const Transactions = ({
         },
         meta: {
           headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        id: "createdAt",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Created At" column={column} />
+        ),
+        enableSorting: true,
+        cell: (info) => {
+          const createdAt = info.row.original.createdAt;
+          if (!createdAt) return "N/A";
+          
+          try {
+            const date = new Date(createdAt);
+            const options: Intl.DateTimeFormatOptions = {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            };
+            return date.toLocaleDateString("en-US", options);
+          } catch {
+            return "Invalid Date";
+          }
+        },
+        meta: {
+          headerClassName: "min-w-[140px]",
         },
       },
     ],

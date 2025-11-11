@@ -24,7 +24,7 @@ const TherapistDetailPage = () => {
 
   const fetchTherapistDetail = async (therapistId: string): Promise<ITherapistDetailResponse> => {
     try {
-      const { data } = await axiosInstance.get(`/api/v1/therapist/${therapistId}?fields=rating.*,email,gender,createdAt,phoneNumber,status,profile,hoursDedicatedPerWeek`);
+      const { data } = await axiosInstance.get(`/api/v1/therapist/${therapistId}?fields=rating.*,email,gender,createdAt,phoneNumber,status,profile,hoursDedicatedPerWeek,bio,expertise.*,therapistBank.*`);
       return data;
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to fetch therapist details");

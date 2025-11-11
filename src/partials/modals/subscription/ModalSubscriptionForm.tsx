@@ -44,7 +44,8 @@ const ModalSubscriptionForm = ({
     level: "no-level"
   });
   
-  const [levelPrice, setLevelPrice] = useState<string>("");
+  const [minXP, setMinXP] = useState<string>("");
+  const [maxXP, setMaxXP] = useState<string>("");
 
   const queryClient = useQueryClient();
 
@@ -104,23 +105,23 @@ const ModalSubscriptionForm = ({
     },
   });
 
-  // Update level price mutation
-  const { isLoading: isUpdatingLevelPrice, mutate: updateLevelPrice } = useMutation<
+  // Update level XP mutation
+  const { isLoading: isUpdatingLevelXP, mutate: updateLevelXP } = useMutation<
     any,
     Error,
-    { levelId: string; price: number }
+    { levelId: string; minXP: number; maxXP: number | null }
   >({
-    mutationFn: async ({ levelId, price }) => {
-      const { data } = await axiosInstance.patch(`/api/v1/level/${levelId}`, { price });
+    mutationFn: async ({ levelId, minXP, maxXP }) => {
+      const { data } = await axiosInstance.patch(`/api/v1/level/${levelId}`, { minXP, maxXP });
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["levels"]);
       queryClient.invalidateQueries(["adminSubscriptions"]);
-      toast.success("Level price updated successfully!");
+      toast.success("Level XP range updated successfully!");
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Error updating level price");
+      toast.error(error?.response?.data?.message || "Error updating level XP range");
     },
   });
 
@@ -135,11 +136,13 @@ const ModalSubscriptionForm = ({
         level: subscription.level?.id || "no-level"
       });
       
-      // Set level price if level exists
-      if (subscription.level?.price) {
-        setLevelPrice(subscription.level.price.toString());
+      // Set level XP if level exists
+      if (subscription.level) {
+        setMinXP(subscription.level.minXP?.toString() || "");
+        setMaxXP(subscription.level.maxXP?.toString() || "");
       } else {
-        setLevelPrice("");
+        setMinXP("");
+        setMaxXP("");
       }
     }
   }, [subscription]);
@@ -158,19 +161,26 @@ const ModalSubscriptionForm = ({
     updateSubscription({ id: subscription.id, payload });
   };
 
-  const handleUpdateLevelPrice = () => {
+  const handleUpdateLevelXP = () => {
     if (!formData.level || formData.level === "no-level") {
       toast.error("Please select a level first");
       return;
     }
     
-    const price = parseFloat(levelPrice);
-    if (isNaN(price) || price < 0) {
-      toast.error("Please enter a valid price");
+    const minXPValue = parseInt(minXP);
+    if (isNaN(minXPValue) || minXPValue < 0) {
+      toast.error("Please enter a valid minimum XP");
       return;
     }
 
-    updateLevelPrice({ levelId: formData.level, price });
+    // maxXP can be null for the highest level
+    const maxXPValue = maxXP.trim() === "" ? null : parseInt(maxXP);
+    if (maxXPValue !== null && (isNaN(maxXPValue) || maxXPValue < minXPValue)) {
+      toast.error("Maximum XP must be greater than minimum XP or leave empty for unlimited");
+      return;
+    }
+
+    updateLevelXP({ levelId: formData.level, minXP: minXPValue, maxXP: maxXPValue });
   };
 
   const handleClose = () => {
@@ -183,7 +193,8 @@ const ModalSubscriptionForm = ({
       modal: "",
       level: "no-level"
     });
-    setLevelPrice("");
+    setMinXP("");
+    setMaxXP("");
   };
 
   return (
@@ -258,27 +269,41 @@ const ModalSubscriptionForm = ({
             </Select>
           </div>
 
-          {/* Level Price */}
+          {/* Level XP Range */}
           <div>
-            <label className="block text-sm font-medium mb-2">Level Price</label>
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                value={levelPrice}
-                onChange={(e) => setLevelPrice(e.target.value)}
-                placeholder="Enter level price"
-                disabled={formData.level === "no-level"}
-              />
+            <label className="block text-sm font-medium mb-2">Level XP Range</label>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Input
+                    type="number"
+                    value={minXP}
+                    onChange={(e) => setMinXP(e.target.value)}
+                    placeholder="Min XP"
+                    disabled={formData.level === "no-level"}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Input
+                    type="number"
+                    value={maxXP}
+                    onChange={(e) => setMaxXP(e.target.value)}
+                    placeholder="Max XP (empty for ∞)"
+                    disabled={formData.level === "no-level"}
+                  />
+                </div>
+              </div>
               <Button
-                onClick={handleUpdateLevelPrice}
-                disabled={isUpdatingLevelPrice || formData.level === "no-level"}
+                onClick={handleUpdateLevelXP}
+                disabled={isUpdatingLevelXP || formData.level === "no-level"}
                 size="sm"
+                className="w-full"
               >
-                {isUpdatingLevelPrice ? "Updating..." : "Update"}
+                {isUpdatingLevelXP ? "Updating..." : "Update XP Range"}
               </Button>
             </div>
             {formData.level === "no-level" && (
-              <p className="text-sm text-muted-foreground mt-1">Select a level to edit its price</p>
+              <p className="text-sm text-muted-foreground mt-1">Select a level to edit its XP range</p>
             )}
           </div>
 

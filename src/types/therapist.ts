@@ -6,6 +6,21 @@ export interface ITherapistRating {
   comment: string;
 }
 
+export interface IExpertiseData {
+  id: string;
+  updatedAt: string;
+  createdAt: string;
+  expertise: string;
+}
+
+export interface ITherapistBankData {
+  id: string;
+  updatedAt: string;
+  createdAt: string;
+  accountNumber: string;
+  branch: string;
+}
+
 export interface ITherapistDetailData {
   id: string;
   updatedAt: string;
@@ -32,6 +47,9 @@ export interface ITherapistDetailData {
   isVisible: boolean;
   isInGroup: boolean;
   rating?: ITherapistRating[];
+  bio?: string | null;
+  expertise?: IExpertiseData[];
+  therapistBank?: ITherapistBankData[];
 }
 
 export interface ITherapistDetailResponse {
