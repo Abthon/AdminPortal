@@ -74,6 +74,8 @@ interface ITherapist {
 
 interface ISessionForm {
   schedule: string;
+  scheduleDate: string;
+  scheduleTime: string;
   therapist: string;
   groupName: string;
 }
@@ -96,6 +98,8 @@ const GroupTherapy = ({
   const [therapistSearch, setTherapistSearch] = useState("");
   const [sessionForm, setSessionForm] = useState<ISessionForm>({
     schedule: "",
+    scheduleDate: "",
+    scheduleTime: "",
     therapist: "",
     groupName: "",
   });
@@ -248,6 +252,8 @@ const GroupTherapy = ({
       setIsSessionModalOpen(false);
       setSessionForm({
         schedule: "",
+        scheduleDate: "",
+        scheduleTime: "",
         therapist: "",
         groupName: "",
       });
@@ -426,13 +432,16 @@ const GroupTherapy = ({
   };
 
   const handleCreateSession = () => {
-    if (!sessionForm.therapist || !sessionForm.schedule || !sessionForm.groupName) {
-      toast("Please select a therapist, schedule, and provide a group name.");
+    if (!sessionForm.therapist || !sessionForm.scheduleDate || !sessionForm.scheduleTime || !sessionForm.groupName) {
+      toast("Please select a therapist, schedule date and time, and provide a group name.");
       return;
     }
 
+    // Combine date and time into schedule
+    const schedule = `${sessionForm.scheduleDate}T${sessionForm.scheduleTime}`;
     createSession({
       ...sessionForm,
+      schedule,
       groupClients: selectedClients,
     });
   };
@@ -547,12 +556,35 @@ const GroupTherapy = ({
               <label className="text-base font-semibold text-gray-900 block">
                 Schedule Date & Time
               </label>
-              <Input
-                type="datetime-local"
-                value={sessionForm.schedule}
-                onChange={(e) => setSessionForm(prev => ({ ...prev, schedule: e.target.value }))}
-                className="h-12 text-base"
-              />
+              <style>{`
+                input[type="time"]::-webkit-calendar-picker-indicator {
+                  filter: invert(0.5);
+                }
+                input[type="time"]::-webkit-datetime-edit-ampm-field {
+                  display: none;
+                }
+              `}</style>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-gray-600 mb-1 block">Date</label>
+                  <Input
+                    type="date"
+                    value={sessionForm.scheduleDate}
+                    onChange={(e) => setSessionForm(prev => ({ ...prev, scheduleDate: e.target.value }))}
+                    className="h-12 text-base"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-600 mb-1 block">Time (24h)</label>
+                  <Input
+                    type="time"
+                    value={sessionForm.scheduleTime}
+                    onChange={(e) => setSessionForm(prev => ({ ...prev, scheduleTime: e.target.value }))}
+                    className="h-12 text-base"
+                    step="60"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -566,7 +598,7 @@ const GroupTherapy = ({
               </Button>
               <Button
                 onClick={handleCreateSession}
-                disabled={isCreatingSession || !sessionForm.therapist || !sessionForm.schedule || !sessionForm.groupName}
+                disabled={isCreatingSession || !sessionForm.therapist || !sessionForm.scheduleDate || !sessionForm.scheduleTime || !sessionForm.groupName}
                 className="px-6 py-3 text-base bg-blue-600 hover:bg-blue-700"
               >
                 {isCreatingSession ? (
