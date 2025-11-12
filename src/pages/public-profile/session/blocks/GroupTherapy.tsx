@@ -89,6 +89,7 @@ const GroupTherapy = ({
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [selectedImage, setSelectedImage] = useState<{
     src: string;
     name: string;
@@ -223,7 +224,7 @@ const GroupTherapy = ({
       groupName: sessionData.groupName,
       duration: 60,
       type: "video",
-      modal: "d724ce6f-4f28-4406-8e67-d8f52afab561",
+      modal: "aa4c9839-e031-417a-b319-2da4bf1092c3",
       groupClients: sessionData.groupClients,
       therapist: sessionData.therapist,
       date: {
@@ -235,12 +236,27 @@ const GroupTherapy = ({
     return data;
   }
 
+
+  async function createGroupChats(sessionData: ISessionForm & { groupClients: string[] }) {
+    const payload = {
+      groupName: sessionData.groupName,
+      groupClients: sessionData.groupClients,
+      therapist: sessionData.therapist,
+    };
+    console.log(payload, "created group chat payload");
+    const { data } = await axiosInstance.post(`/api/v1/chat?mockId=${sessionData.therapist}`, payload);
+    console.log(data, "created group chat");
+    return data;
+  }
+
   const { data: therapistsData, isLoading: isLoadingTherapists } = useQuery({
     queryKey: ["Therapists", therapistSearch],
     queryFn: () => getTherapists(therapistSearch),
     enabled: isSessionModalOpen,
   });
 
+
+  // Creating group session for the selected clients
   const queryClient = useQueryClient();
   const { isLoading: isCreatingSession, mutate: createSession } = useMutation({
     mutationFn: createGroupSession,
@@ -248,7 +264,32 @@ const GroupTherapy = ({
       queryClient.invalidateQueries({
         queryKey: ["GroupTherapyCandidates"],
       });
+      toast("Group session successfully created!");
+      //setSelectedClients([]);
+      //setRowSelection({});
+      //setIsSessionModalOpen(false);
+      //setSessionForm({
+      //  schedule: "",
+      //  scheduleDate: "",
+      //  scheduleTime: "",
+      //  therapist: "",
+      //  groupName: "",
+      //});
+    },
+    onError: (error: any) => {
+      toast(error?.message || "Error creating group session");
+    },
+  });
+
+  // Creating group chats after creating the group session for the clients 
+  const { isLoading: isCreatingChat, mutate: createChat } = useMutation({
+    mutationFn: createGroupChats,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["GroupChats"],
+      });
       setSelectedClients([]);
+      setRowSelection({});
       setIsSessionModalOpen(false);
       setSessionForm({
         schedule: "",
@@ -257,10 +298,10 @@ const GroupTherapy = ({
         therapist: "",
         groupName: "",
       });
-      toast("Group session successfully created!");
+      toast("Group chat successfully created!");
     },
     onError: (error: any) => {
-      toast(error?.message || "Error creating group session");
+      toast(error?.message || "Error creating group chat");
     },
   });
 
@@ -399,6 +440,7 @@ const GroupTherapy = ({
 
   const data: IGroupTherapyCandidate[] = useMemo(() => {
     const rawData = groupTherapyData?.data ?? [];
+    console.log("Raw data structure:", rawData[0]); // Debug the actual data structure
     // Filter out duplicates based on id
     const uniqueData = rawData.filter((item: IGroupTherapyCandidate, index: number, self: IGroupTherapyCandidate[]) => 
       index === self.findIndex((t: IGroupTherapyCandidate) => t.id === item.id)
@@ -407,16 +449,15 @@ const GroupTherapy = ({
   }, [groupTherapyData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
-    const selectedRowIds = Object.keys(state);
-    const selectedClientIds = selectedRowIds.map(rowId => {
-      const rowIndex = parseInt(rowId);
-      return data[rowIndex]?.id;
-    }).filter(Boolean);
+    // Keys in the state are now actual client IDs (not indices)
+    const selectedClientIds = Object.keys(state).filter(id => state[id]);
     
+    setRowSelection(state);
     setSelectedClients(selectedClientIds);
 
-    if (selectedRowIds.length > 0) {
-      toast(`Total ${selectedRowIds.length} clients selected.`, {
+    if (selectedClientIds.length > 0) {
+      toast(`selected client ids ${selectedClientIds}`)
+      toast(`Total ${selectedClientIds.length} clients selected.`, {
         description: `Selected clients: ${selectedClientIds.length}`,
       });
     }
@@ -444,6 +485,15 @@ const GroupTherapy = ({
       schedule,
       groupClients: selectedClients,
     });
+
+    // creating group chat
+    createChat({
+      ...sessionForm,
+      groupClients: selectedClients,
+      therapist: sessionForm.therapist,
+    });
+
+    toast.message("Group session created successfully.");
   };
 
   const Toolbar = () => {
@@ -658,6 +708,11 @@ const GroupTherapy = ({
         data={data}
         columns={columns}
         rowSelection={true}
+        getRowId={(row) => {
+          console.log("getRowId received row:", row);
+          console.log("Using ID:", row.id);
+          return row.id;
+        }}
         onRowSelectionChange={handleRowSelection}
         searchInput={searchInput}
         pagination={{ size: 5 }}

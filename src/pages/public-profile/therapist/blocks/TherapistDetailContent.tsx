@@ -207,6 +207,7 @@ const TherapistStatistics = ({
     const { data } = await axiosInstance.get(
       `/api/v1/therapist/stats?mockId=${therapistData.id}`
     );
+    console.log(data.data, "Total revenue data");
     return data.data;
   };
 
@@ -219,15 +220,17 @@ const TherapistStatistics = ({
   const fetchTherapistStatsWeek = async (): Promise<ITherapistStats> => {
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 7);
+    startDate.setDate(startDate.getDate() + 9);
 
     const formatDate = (date: Date) => {
       return date.toISOString().split('T')[0];
     };
 
     const { data } = await axiosInstance.get(
-      `/api/v1/therapist/stats?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}&mockId=${therapistData.id}`
+      `/api/v1/therapist/stats?startDate=${formatDate(endDate)}&endDate=${formatDate(startDate)}&mockId=${therapistData.id}`
     );
+
+    console.log(data.data, "Per week data");
     return data.data;
   };
 
