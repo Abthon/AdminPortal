@@ -296,6 +296,13 @@ interface IPreferenceData {
     createdAt: string;
     updatedAt: string;
   } | null;
+  language: {
+    id: string;
+    name: string;
+    code: string;
+    createdAt: string;
+    updatedAt: string;
+  }[]
 }
 
 // Tabbed Content Component
@@ -558,7 +565,7 @@ const ClientPreferences = ({ clientData }: { clientData: IClientDetailData }) =>
     }
     const { data } = await axiosInstance.get(
       //`/api/v1/preference/${preferenceId}?fields=gender,otherLang,goal,level.*`
-      `/api/v1/preference/${preferenceId}`
+      `/api/v1/preference/${preferenceId}?fields=language.*`
     );
 
     console.log(data, "The answer to the question")
@@ -583,7 +590,11 @@ const ClientPreferences = ({ clientData }: { clientData: IClientDetailData }) =>
     {
       id: 2,
       question: "Do you speak any other languages?",
-      answer: preferenceData?.otherLang || "Not specified",
+      answer: preferenceData?.otherLang 
+        ? preferenceData.otherLang 
+        : (preferenceData?.language && preferenceData.language.length > 0)
+          ? preferenceData.language.map(lang => lang.name).join(", ")
+          : "Not specified",
       icon: "message-text",
       color: "text-success",
     },
