@@ -33,7 +33,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ISubscriptionData, IClientSubscriptionResponse } from "@/types/client";
+import { ISubscriptionData, IClientSubscriptionResponse, IActiveSubscription } from "@/types/client";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 // Component to handle async modal fetching for client
@@ -206,14 +206,7 @@ interface IClientsData {
   isInGroup: boolean;
   createdAt: string;
   updatedAt: string;
-  activeSubscription: {
-    id: string;
-    status: "pending" | "inactive" | "active" | "paused" | "canceled";
-    start_date: string;
-    end_date: string;
-    createdAt: string;
-    updatedAt: string;
-  } | null;
+  activeSubscription: IActiveSubscription;
   preference?: {
     id: string;
   }[];
@@ -252,7 +245,7 @@ const Clients = ({
   } | null>(null);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<IClientsData | null>(null);
-  const [selectedSubscription, setSelectedSubscription] = useState<ISubscriptionData | null>(null);
+  const [selectedSubscription, setSelectedSubscription] = useState<IActiveSubscription | null>(null);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [receiptModalOpen, setReceiptModalOpen] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<{
@@ -402,53 +395,71 @@ const Clients = ({
     return data;
   }
 
-  const getReadablePeriod = (startDate: string, endDate: string): string => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) {
-      return "1 day";
-    } else if (diffDays < 7) {
-      return `${diffDays} days`;
-    } else if (diffDays === 7) {
-      return "1 week";
-    } else if (diffDays < 30) {
-      const weeks = Math.floor(diffDays / 7);
-      const remainingDays = diffDays % 7;
-      if (remainingDays === 0) {
-        return weeks === 1 ? "1 week" : `${weeks} weeks`;
-      } else {
-        return weeks === 1 ? `1 week ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : `${weeks} weeks ${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
-      }
-    } else if (diffDays < 365) {
-      const months = Math.floor(diffDays / 30);
-      const remainingDays = diffDays % 30;
-      if (remainingDays === 0) {
-        return months === 1 ? "1 month" : `${months} months`;
-      } else if (remainingDays < 7) {
-        return months === 1 ? `1 month ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : `${months} months ${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
-      } else {
-        const weeks = Math.floor(remainingDays / 7);
-        const days = remainingDays % 7;
-        if (days === 0) {
-          return months === 1 ? `1 month ${weeks} week${weeks > 1 ? 's' : ''}` : `${months} months ${weeks} week${weeks > 1 ? 's' : ''}`;
-        } else {
-          return months === 1 ? `1 month ${weeks} week${weeks > 1 ? 's' : ''} ${days} day${days > 1 ? 's' : ''}` : `${months} months ${weeks} week${weeks > 1 ? 's' : ''} ${days} day${days > 1 ? 's' : ''}`;
-        }
-      }
-    } else {
-      const years = Math.floor(diffDays / 365);
-      const remainingDays = diffDays % 365;
-      const months = Math.floor(remainingDays / 30);
-      if (months === 0) {
-        return years === 1 ? "1 year" : `${years} years`;
-      } else {
-        return years === 1 ? `1 year ${months} month${months > 1 ? 's' : ''}` : `${years} years ${months} month${months > 1 ? 's' : ''}`;
-      }
+  const getReadablePeriod = (type: number): string => { 
+    switch (type) {
+      case 0:
+        return "Weekly";
+      case 1:
+        return "Monthly";
+      case 2:
+        return "Quarterly";
+      case 3:
+        return "Semi-Annual";
+      case 6:
+        return "Yearly";
+      case 12:
+        return "Yearly";
+      default:
+        return "Invalid type";
     }
-  };
+  }
+  //const getReadablePeriod = (startDate: string, endDate: string): string => {
+  //  const start = new Date(startDate);
+  //  const end = new Date(endDate);
+  //  const diffTime = Math.abs(end.getTime() - start.getTime());
+  //  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+  //  if (diffDays === 1) {
+  //    return "1 day";
+  //  } else if (diffDays < 7) {
+  //    return `${diffDays} days`;
+  //  } else if (diffDays === 7) {
+  //    return "1 week";
+  //  } else if (diffDays < 30) {
+  //    const weeks = Math.floor(diffDays / 7);
+  //    const remainingDays = diffDays % 7;
+  //    if (remainingDays === 0) {
+  //      return weeks === 1 ? "1 week" : `${weeks} weeks`;
+  //    } else {
+  //      return weeks === 1 ? `1 week ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : `${weeks} weeks ${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
+  //    }
+  //  } else if (diffDays < 365) {
+  //    const months = Math.floor(diffDays / 30);
+  //    const remainingDays = diffDays % 30;
+  //    if (remainingDays === 0) {
+  //      return months === 1 ? "1 month" : `${months} months`;
+  //    } else if (remainingDays < 7) {
+  //      return months === 1 ? `1 month ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : `${months} months ${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
+  //    } else {
+  //      const weeks = Math.floor(remainingDays / 7);
+  //      const days = remainingDays % 7;
+  //      if (days === 0) {
+  //        return months === 1 ? `1 month ${weeks} week${weeks > 1 ? 's' : ''}` : `${months} months ${weeks} week${weeks > 1 ? 's' : ''}`;
+  //      } else {
+  //        return months === 1 ? `1 month ${weeks} week${weeks > 1 ? 's' : ''} ${days} day${days > 1 ? 's' : ''}` : `${months} months ${weeks} week${weeks > 1 ? 's' : ''} ${days} day${days > 1 ? 's' : ''}`;
+  //      }
+  //    }
+  //  } else {
+  //    const years = Math.floor(diffDays / 365);
+  //    const remainingDays = diffDays % 365;
+  //    const months = Math.floor(remainingDays / 30);
+  //    if (months === 0) {
+  //      return years === 1 ? "1 year" : `${years} years`;
+  //    } else {
+  //      return years === 1 ? `1 year ${months} month${months > 1 ? 's' : ''}` : `${years} years ${months} month${months > 1 ? 's' : ''}`;
+  //    }
+  //  }
+  //};
 
   const { isLoading: isClientLoading, data: ClientData } = useQuery({
     queryKey: ["Clients", searchInput, filterInput, modalFilter],
@@ -984,11 +995,15 @@ const Clients = ({
                   </span>
                 </p>
                 <p className="text-sm text-gray-700 mt-1">
-                  <strong>Period:</strong> {getReadablePeriod(selectedSubscription.start_date, selectedSubscription.end_date)}
+                  <strong>Period:</strong> {getReadablePeriod(selectedSubscription.subscription.type)}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  ({selectedSubscription.start_date} to {selectedSubscription.end_date})
-                </p>
+                {
+                  selectedSubscription.start_date && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      ({selectedSubscription.start_date} to {selectedSubscription.end_date})
+                    </p>
+                  )
+                }
               </div>
             )}
             

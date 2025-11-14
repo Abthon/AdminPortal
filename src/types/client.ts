@@ -84,6 +84,7 @@ export interface ISubscriptionData {
   status: "pending" | "inactive" | "active" | "paused" | "canceled";
   start_date: string;
   end_date: string;
+  type: string;
 }
 
 export interface IClientSubscriptionResponse {
