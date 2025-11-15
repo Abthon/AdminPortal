@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { toAbsoluteUrl } from "@/utils";
-import { DataGridLoader } from "@/components/data-grid";
 import avatar from "@/media/avatars/blank.png";
 
 import {
@@ -114,6 +112,14 @@ const Matches = ({
   const [selectedMatch, setSelectedMatch] = useState<IMatchData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
+  
+  // Session scheduling states
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [availabilityData, setAvailabilityData] = useState<any[]>([]);
+  const [modalData, setModalData] = useState<any[]>([]);
+  const [selectedTimes, setSelectedTimes] = useState<{[key: string]: string[]}>({});
+  const [assignedTherapistId, setAssignedTherapistId] = useState<string>("");
+  const [isCreatingSessions, setIsCreatingSessions] = useState(false);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -176,10 +182,10 @@ const Matches = ({
       
       toast.success('Therapist assigned successfully!');
       setIsModalOpen(false);
-      setSelectedMatch(null);
+      //setSelectedMatch(null);
       
       // Refresh the data
-      window.location.reload();
+      //window.location.reload();
     } catch (error) {
       console.error('Error assigning therapist:', error);
       toast.error('Failed to assign therapist');
@@ -187,6 +193,166 @@ const Matches = ({
       setIsAssigning(false);
     }
   };
+
+  // Helper function to generate time slots based on day period
+  const generateTimeSlots = (dayPeriod: string): string[] => {
+    const timeSlots: string[] = [];
+    
+    switch (dayPeriod.toLowerCase()) {
+      case 'morning':
+        for (let hour = 8; hour <= 11; hour++) {
+          timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
+          timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+        }
+        break;
+      case 'afternoon':
+        for (let hour = 12; hour <= 17; hour++) {
+          timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
+          timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+        }
+        break;
+      case 'evening':
+        for (let hour = 18; hour <= 21; hour++) {
+          timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
+          timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+        }
+        break;
+      default:
+        // Full day
+        for (let hour = 8; hour <= 21; hour++) {
+          timeSlots.push(`${hour.toString().padStart(2, '0')}:00`);
+          timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+        }
+    }
+    
+    return timeSlots;
+  };
+
+  // Fetch client availability data
+  const fetchClientAvailability = async (clientId: string) => {
+    try {
+      // Step 1: Get client preferences
+      const { data: clientResponse } = await axiosInstance.get(
+        `/api/v1/client/${clientId}?fields=preference.*`
+      );
+      
+      if (!clientResponse.data.preference || clientResponse.data.preference.length === 0) {
+        toast.error("Client has no preferences set");
+        return;
+      }
+      
+      const preferenceId = clientResponse.data.preference[0].id;
+      
+      // Step 2: Get availability from preference
+      const { data: preferenceResponse } = await axiosInstance.get(
+        `/api/v1/preference/${preferenceId}?fields=availability.*,modal.*`
+      );
+      
+      if (!preferenceResponse.data.availability || preferenceResponse.data.availability.length === 0) {
+        toast.error("Client has no availability set");
+        return;
+      }
+      
+      setAvailabilityData(preferenceResponse.data.availability);
+      setModalData(preferenceResponse.data.modal.id);
+      console.log("the modal yene qonjo", preferenceResponse.data.modal.id)
+      setIsScheduleModalOpen(true);
+      
+    } catch (error) {
+      console.error('Error fetching client availability:', error);
+      toast.error('Failed to fetch client availability');
+    }
+  };
+
+  async function createChat() {
+    const payload = {
+      client: selectedMatch?.client?.id,
+      therapist: assignedTherapistId,
+    };
+
+    console.log(payload, "My payload baby");
+    console.log(payload, "created group chat payload");
+    const { data } = await axiosInstance.post(`/api/v1/chat?mockId=${assignedTherapistId}`, payload);
+    console.log(data, "the chat data baby");
+    return data;
+  }
+
+  // Handle session creation
+  const createSessions = async () => {
+    console.log(selectedMatch, "The selected match for session");
+    if (!selectedMatch || !assignedTherapistId) return;
+    
+    setIsCreatingSessions(true);
+    try {
+      // Format selected times for API
+      const dates = Object.entries(selectedTimes)
+        .filter(([_, times]) => times.length > 0)
+        .map(([date, startTimes]) => ({
+          date,
+          startTimes
+        }));
+      
+      if (dates.length === 0) {
+        toast.error("Please select at least one time slot");
+        return;
+      }
+      
+      const sessionData = {
+        //note: "Session scheduled through match assignment",
+        //groupName: "Therapy Session",
+        duration: 60,
+        type: "video",
+        modal: modalData,
+        client: selectedMatch.client.id,
+        dates
+      };
+      
+      await axiosInstance.post(
+        `/api/v1/session?mockId=${assignedTherapistId}`,
+        sessionData
+      );
+      
+      toast.success('Sessions created successfully!');
+      // Creating chat for them
+      createChat();
+      toast.message("created chat between them sucessfully");
+
+      setIsScheduleModalOpen(false);
+      setSelectedTimes({});
+      setAssignedTherapistId("");
+      
+      // Refresh the data
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('Error creating sessions:', error);
+      toast.error('Failed to create sessions');
+    } finally {
+      setIsCreatingSessions(false);
+    }
+  };
+
+  const handleMatchAssignment = async (match: IMatchData, therapistId: string) => {
+    if(!therapistId){
+      toast.error("No therapist to assign");
+      return;
+    }
+    
+    try {
+      // Step 1: Assign therapist
+      await handleAssignTherapist(therapistId);
+      // Step 2: Store therapist ID for session creation
+      setAssignedTherapistId(therapistId);
+      
+      // Step 3: Fetch client availability and open scheduling modal
+      await fetchClientAvailability(match.client.id);
+      
+    } catch (error) {
+      console.error('Error in match assignment flow:', error);
+      toast.error('Failed to complete match assignment');
+    }
+  };
+
 
   // Open assignment modal
   const openAssignmentModal = (match: IMatchData, event: React.MouseEvent) => {
@@ -473,7 +639,7 @@ const Matches = ({
           onFetchData={getMatches}
           onSearchData={searchMatch}
           data={data}
-          link={"matches"}
+          //link={"matches"}
           columns={columns}
           rowSelection={true}
           onRowSelectionChange={handleRowSelection}
@@ -538,7 +704,7 @@ const Matches = ({
                         </div>
                     </div>
                     <Button
-                      onClick={() => handleAssignTherapist(therapist.id)}
+                      onClick={() => selectedMatch && handleMatchAssignment(selectedMatch, therapist.id)}
                       disabled={isAssigning}
                       size="sm"
                       className="min-w-20"
@@ -555,6 +721,87 @@ const Matches = ({
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Session Scheduling Modal */}
+      <Dialog open={isScheduleModalOpen} onOpenChange={setIsScheduleModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto px-4">
+          <DialogHeader>
+            <DialogTitle>Schedule Sessions</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 p-4">
+            <div className="space-y-4">
+              <h3 className="font-semibold">Available Time Slots</h3>
+              {availabilityData.map((availability, index) => {
+                const timeSlots = generateTimeSlots(availability.day_period);
+                const dayKey = availability.day;
+                
+                return (
+                  <div key={index} className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-3">
+                      {availability.day} - {availability.day_period}
+                    </h4>
+                    
+                    <div className="grid grid-cols-4 gap-2">
+                      {timeSlots.map((time) => {
+                        const isSelected = selectedTimes[dayKey]?.includes(time) || false;
+                        
+                        return (
+                          <Button
+                            key={time}
+                            variant={isSelected ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              setSelectedTimes(prev => {
+                                const dayTimes = prev[dayKey] || [];
+                                const newDayTimes = isSelected
+                                  ? dayTimes.filter(t => t !== time)
+                                  : [...dayTimes, time];
+                                
+                                return {
+                                  ...prev,
+                                  [dayKey]: newDayTimes
+                                };
+                              });
+                            }}
+                            className="text-xs"
+                          >
+                            {time}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    {selectedTimes[dayKey] && selectedTimes[dayKey].length > 0 && (
+                      <div className="mt-2 text-sm text-green-600">
+                        Selected: {selectedTimes[dayKey].join(', ')}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            
+            <div className="flex justify-end space-x-2 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsScheduleModalOpen(false);
+                  setSelectedTimes({});
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={createSessions}
+                disabled={isCreatingSessions || Object.values(selectedTimes).every(times => times.length === 0)}
+              >
+                {isCreatingSessions ? 'Creating Sessions...' : 'Create Sessions'}
+              </Button>
             </div>
           </div>
         </DialogContent>

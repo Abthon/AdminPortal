@@ -675,7 +675,19 @@ const Transactions = ({
         ),
         enableSorting: false,
         cell: ({ row }) => {
-          return <TransactionModalCell client={row.original.client} />;
+          console.log(row.original.subscription, "The sub baby");
+          return (
+            <div className="flex items-center">
+              {row.original.subscription?.modal?.name ? (
+                <span className="badge badge-primary badge-outline rounded-[30px]">
+                  <span className="size-1.5 rounded-full bg-primary me-1.5"></span>
+                  {row.original.subscription?.modal?.name}
+                </span>
+              ) : (
+                <span className="text-gray-400 text-sm">Not Assigned</span>
+              )}
+            </div>
+          );
         },
         meta: {
           headerClassName: "min-w-[140px]",
@@ -756,6 +768,7 @@ const Transactions = ({
         ),
         enableSorting: false,
         cell: (info) => {
+          console.log(info.row.original.subscription.level, "info.row.original.subscription newwwww")
           const price = info.row.original.subscription?.price || 0;
           const levelType = info.row.original.subscription?.level?.type || "";
           const therapistAmount = calculateTherapistPart(price, levelType);

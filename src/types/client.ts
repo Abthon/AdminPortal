@@ -1,3 +1,5 @@
+import { IModal } from "./subscription";
+
 export interface IClientRating {
   id: string;
   updatedAt: string;
@@ -27,6 +29,7 @@ export interface ISubscription {
   old_price: number;
   price: number;
   level: ILevel;
+  modal: IModal;
 }
 
 export interface IActiveSubscription {

@@ -116,7 +116,7 @@ const SessionOverview = ({ sessionData }: { sessionData: any }) => {
   const stats = [
     {
       label: "Session Type",
-      value: "Individual Session",
+      value: sessionData.modal.name,
       icon: "user",
       color: "text-primary",
     },

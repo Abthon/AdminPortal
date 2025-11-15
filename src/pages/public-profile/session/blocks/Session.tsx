@@ -1133,8 +1133,18 @@ const Sessions = ({
         ),
         enableSorting: false,
         cell: (info) => {
-          const modalName = info.row.original.modal?.name;
-          return modalName || "N/A";
+          return (
+            <div className="flex items-center">
+              {info.row.original?.modal?.name ? (
+                <span className="badge badge-primary badge-outline rounded-[30px]">
+                  <span className="size-1.5 rounded-full bg-primary me-1.5"></span>
+                  {info.row.original?.modal?.name}
+                </span>
+              ) : (
+                <span className="text-gray-400 text-sm">Not Assigned</span>
+              )}
+            </div>
+          );
         },
         meta: {
           headerClassName: "min-w-[120px]",

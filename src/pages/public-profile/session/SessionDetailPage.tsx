@@ -26,7 +26,7 @@ const SessionDetailPage = () => {
   const fetchSessionDetail = async (sessionId: string) => {
     try {
       const { data } = await axiosInstance.get(
-        `/api/v1/session/${sessionId}?fields=therapist.*,client.*,hasTherapistAttended,group.*`
+        `/api/v1/session/${sessionId}?fields=therapist.*,client.*,hasTherapistAttended,group.*,modal.*,duration`
       );
       console.log("here", data);
       return data;

@@ -3,10 +3,19 @@ import { Link } from "react-router-dom";
 import { KeenIcon } from "@/components";
 import { CardConnection, CardConnectionRow } from "@/partials/cards";
 import avatar from "@/media/avatars/blank.png";
-import { formatDistanceToNow, format } from "date-fns";
 import { useQuery } from "react-query";
 import axiosInstance from "@/auth/_helpers";
 import { LicenseInfo } from "../../therapist/blocks/GeneralInfo";
+import { 
+  formatDistanceToNow, 
+  format, 
+  startOfMonth, 
+  endOfMonth, 
+  eachDayOfInterval, 
+  isSameMonth, 
+  isSameDay, 
+  isToday 
+} from "date-fns";
 
 // Import TherapistGeneralInfa from therapist detail content
 // We'll use this component instead of our custom GeneralInfo
@@ -555,6 +564,355 @@ const SessionStatistics = ({ sessionData }: { sessionData: any }) => {
   );
 };
 
+const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistData: any; groupMembers: any[] }) => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedSession, setSelectedSession] = useState<any>(null);
+  console.log(groupMembers, "the members");
+
+  // Fetch sessions for group members only
+  const fetchTherapistSessions = async () => {
+    if (!groupMembers || groupMembers.length === 0) {
+      return { data: [] };
+    }
+
+    try {
+      // Get client IDs from group members
+      const clientIds = groupMembers.map(member => member.id);
+      console.log(clientIds, "The ids");
+      // Fetch sessions for each group client with this therapist
+      const sessionPromises = clientIds.map(clientId => 
+        axiosInstance.get(`/api/v1/session?fields=client.*,schedule,hasTherapistAttended,hasclientAttended&filters=client.id=${clientId}`)
+      );
+      
+      const sessionResponses = await Promise.all(sessionPromises);
+
+      console.log(sessionResponses, "the responses");
+      // Merge all sessions from different clients
+      const allSessions = sessionResponses.reduce((acc, response) => {
+        return acc.concat(response.data.data || []);
+      }, []);
+      
+      return { data: allSessions };
+    } catch (error) {
+      console.error('Error fetching group sessions:', error);
+      return { data: [] };
+    }
+  };
+
+  const { data: sessionsData, isLoading } = useQuery({
+    queryKey: ["therapist-group-sessions", therapistData.id, groupMembers?.map(m => m.id).join(',')],
+    queryFn: fetchTherapistSessions,
+  });
+
+  const sessions = sessionsData?.data || [];
+
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  // Group sessions by date
+  const sessionsByDate = sessions.reduce((acc: any, session: any) => {
+    const dateKey = format(new Date(session.schedule), 'yyyy-MM-dd');
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(session);
+    return acc;
+  }, {});
+
+  const handleDayClick = (day: Date) => {
+    const dateKey = format(day, 'yyyy-MM-dd');
+    const daySessions = sessionsByDate[dateKey];
+    if (daySessions && daySessions.length > 0) {
+      setSelectedSession(daySessions[0]); // Show first session of the day
+    }
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentMonth(prev => {
+      const newMonth = new Date(prev);
+      if (direction === 'prev') {
+        newMonth.setMonth(prev.getMonth() - 1);
+      } else {
+        newMonth.setMonth(prev.getMonth() + 1);
+      }
+      return newMonth;
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Therapist Session Calendar</h3>
+        </div>
+        <div className="card-body">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading sessions...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Therapist Session Calendar</h3>
+        </div>
+        <div className="card-body">
+          {sessions.length === 0 ? (
+            <div className="text-center py-8">
+              <KeenIcon icon="calendar" className="text-4xl text-gray-400 mb-4" />
+              <h4 className="text-lg font-medium text-gray-900 mb-2">No Sessions Yet</h4>
+              <p className="text-gray-600">This therapist hasn't scheduled any therapy sessions.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Calendar Header */}
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  onClick={() => navigateMonth('prev')}
+                  className="btn btn-sm btn-icon btn-clear btn-primary"
+                >
+                  <KeenIcon icon="arrow-left" />
+                </button>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  {format(currentMonth, 'MMMM yyyy')}
+                </h4>
+                <button
+                  onClick={() => navigateMonth('next')}
+                  className="btn btn-sm btn-icon btn-clear btn-primary"
+                >
+                  <KeenIcon icon="arrow-right" />
+                </button>
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-1 mb-4">
+                {/* Day headers */}
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="p-2 text-center text-sm font-medium text-gray-600">
+                    {day}
+                  </div>
+                ))}
+                
+                {/* Calendar days */}
+                {monthDays.map(day => {
+                  const dateKey = format(day, 'yyyy-MM-dd');
+                  const hasSessions = sessionsByDate[dateKey]?.length > 0;
+                  const isCurrentMonth = isSameMonth(day, currentMonth);
+                  const isDayToday = isToday(day);
+                  
+                  return (
+                    <button
+                      key={day.toISOString()}
+                      onClick={() => handleDayClick(day)}
+                      className={`
+                        p-2 text-sm rounded-lg transition-colors relative
+                        ${
+                          !isCurrentMonth
+                            ? 'text-gray-300 cursor-default'
+                            : hasSessions
+                            ? 'bg-primary text-white hover:bg-primary-dark cursor-pointer'
+                            : isDayToday
+                            ? 'bg-gray-100 text-primary font-semibold hover:bg-gray-200 cursor-pointer'
+                            : 'text-gray-700 hover:bg-gray-100 cursor-pointer'
+                        }
+                      `}
+                      disabled={!isCurrentMonth}
+                    >
+                      {format(day, 'd')}
+                      {hasSessions && (
+                        <div className="absolute top-1 right-1 w-2 h-2 bg-warning rounded-full"></div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Legend */}
+              <div className="flex items-center gap-4 text-sm text-gray-600 border-t pt-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-primary rounded"></div>
+                  <span>Has Sessions</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-warning rounded-full"></div>
+                  <span>Session Indicator</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-gray-100 rounded border"></div>
+                  <span>Today</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Session Details Card */}
+      {selectedSession && (
+        <TherapistSessionDetailCard 
+          session={selectedSession} 
+          onClose={() => setSelectedSession(null)} 
+        />
+      )}
+    </div>
+  );
+};
+
+// Therapist Session Detail Card Component
+const TherapistSessionDetailCard = ({ 
+  session, 
+  onClose 
+}: { 
+  session: any; 
+  onClose: () => void; 
+}) => {
+  const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
+  
+  const therapistImage = session.therapist?.profile 
+    ? `${BASE_URL}/${session.therapist.profile}` 
+    : avatar;
+  
+  const clientImage = session.client?.profile 
+    ? `${BASE_URL}/${session.client.profile}` 
+    : avatar;
+
+  const timeAgo = (dateString: string) => {
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  };
+
+  return (
+    <div className="card">
+      <div className="card-header">
+        <div className="flex items-center justify-between">
+          <h3 className="card-title">Session Details</h3>
+          <button
+            onClick={onClose}
+            className="btn btn-sm btn-icon btn-clear btn-primary"
+          >
+            <KeenIcon icon="cross" />
+          </button>
+        </div>
+      </div>
+      <div className="card-body">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Therapist Info */}
+          <div className="space-y-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">Therapist</h4>
+            <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
+              <img
+                src={therapistImage}
+                alt={`${session.therapist?.firstName} ${session.therapist?.lastName}`}
+                className="w-16 h-16 rounded-full object-cover border-2 border-blue-200"
+              />
+              <div className="flex-1">
+                <h5 className="font-semibold text-gray-900">
+                  {session.therapist?.firstName} {session.therapist?.lastName}
+                </h5>
+                <p className="text-sm text-gray-600">{session.therapist?.email}</p>
+                <p className="text-sm text-gray-600">+251{session.therapist?.phoneNumber}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span
+                    className={`badge badge-sm ${
+                      session.therapist?.status === "active"
+                        ? "badge-success"
+                        : session.therapist?.status === "pending"
+                        ? "badge-primary"
+                        : session.therapist?.status === "inactive"
+                        ? "badge-warning"
+                        : "badge-danger"
+                    } badge-outline`}
+                  >
+                    {session.therapist?.status}
+                  </span>
+                  {session.therapist?.verified && (
+                    <span className="badge badge-sm badge-primary badge-outline">
+                      <KeenIcon icon="verify" className="text-xs me-1" />
+                      Verified
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Client Info */}
+          <div className="space-y-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">Matched Client</h4>
+            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+              <img
+                src={clientImage}
+                alt={`${session.client?.firstName} ${session.client?.lastName}`}
+                className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+              />
+              <div className="flex-1">
+                <h5 className="font-semibold text-gray-900">
+                  {session.client?.firstName} {session.client?.lastName}
+                </h5>
+                <p className="text-sm text-gray-600">@{session.client?.username}</p>
+                <p className="text-sm text-gray-600">+251{session.client?.phoneNumber}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span
+                    className={`badge badge-sm ${
+                      session.client?.status === "active"
+                        ? "badge-success"
+                        : session.client?.status === "pending"
+                        ? "badge-primary"
+                        : session.client?.status === "inactive"
+                        ? "badge-warning"
+                        : "badge-danger"
+                    } badge-outline`}
+                  >
+                    {session.client?.status}
+                  </span>
+                  {session.client?.isOnline && (
+                    <span className="badge badge-sm badge-success badge-outline">
+                      Online
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Session Info */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <h4 className="text-lg font-semibold text-gray-900 mb-3">Session Information</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-600">Therapist Attendance</label>
+              <span className={`badge badge-sm w-fit ${session.hasTherapistAttended ? "badge-success" : "badge-warning"} badge-outline`}>
+                {session.hasTherapistAttended ? "Attended" : "Not Attended"}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-600">Client Attendance</label>
+              <span className={`badge badge-sm w-fit ${session.hasclientAttended ? "badge-success" : "badge-warning"} badge-outline`}>
+                {session.hasclientAttended ? "Attended" : "Not Attended"}
+              </span>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">Scheduled Date</label>
+              <p className="text-sm text-gray-900">{format(new Date(session.schedule), 'MMM dd, yyyy')}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">Scheduled Time</label>
+              <p className="text-sm text-gray-900">{format(new Date(session.schedule), 'HH:mm')}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 // Main Component
 interface INetworkItem {
   name: string;
@@ -701,6 +1059,7 @@ const SessionGroupDetailContent = ({ sessionData }: any) => {
               <div>
                 <GroupMembersTable data={sessionData.group} />
                 <TherapistDocuments therapistData={sessionData.therapist} />
+                <TherapistSessionCalendar therapistData={sessionData.therapist} groupMembers={sessionData.group} />
               </div>
             ) : sessionData.client ? (
               <ClientOnboardingQuestions clientData={sessionData.client} />
