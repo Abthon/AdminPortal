@@ -644,7 +644,7 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
     return (
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">Therapist Session Calendar</h3>
+          <h3 className="card-title">Group Session Calendar</h3>
         </div>
         <div className="card-body">
           <div className="text-center py-8">
@@ -657,10 +657,10 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pt-2">
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">Therapist Session Calendar</h3>
+          <h3 className="card-title">Group Session Calendar</h3>
         </div>
         <div className="card-body">
           {sessions.length === 0 ? (
@@ -1059,7 +1059,6 @@ const SessionGroupDetailContent = ({ sessionData }: any) => {
               <div>
                 <GroupMembersTable data={sessionData.group} />
                 <TherapistDocuments therapistData={sessionData.therapist} />
-                <TherapistSessionCalendar therapistData={sessionData.therapist} groupMembers={sessionData.group} />
               </div>
             ) : sessionData.client ? (
               <ClientOnboardingQuestions clientData={sessionData.client} />
@@ -1072,51 +1071,10 @@ const SessionGroupDetailContent = ({ sessionData }: any) => {
                 </div>
               </div>
             )}
-
-            {/* Participants View Toggle */}
-            {/* <div className="card">
-              <div className="card-header">
-                <div className="flex flex-wrap items-center gap-5 justify-between">
-                 <h3 className="card-title">
-                    Session Participants ({items.length})
-                  </h3>
-
-                  <div className="btn-tabs" data-tabs="true">
-                    <button
-                      className={`btn btn-icon btn-sm ${activeView === "cards" ? "active" : ""}`}
-                      onClick={() => setActiveView("cards")}
-                    >
-                      <KeenIcon icon="category" />
-                    </button>
-                    <button
-                      className={`btn btn-icon btn-sm ${activeView === "list" ? "active" : ""}`}
-                      onClick={() => setActiveView("list")}
-                    >
-                      <KeenIcon icon="row-horizontal" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card-body">
-                {activeView === "cards" && (
-                  <div id="network_cards">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-7.5">
-                      {items.map((item, index) => renderItem(item, index))}
-                    </div>
-                  </div>
-                )}
-
-                {activeView === "list" && (
-                  <div id="network_list">
-                    <div className="flex flex-col gap-5 lg:gap-7.5">
-                      {items.map((data, index) => renderData(data, index))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div> */}
           </div>
+        </div>
+        <div className="col-span-3 mb-4">
+          <TherapistSessionCalendar therapistData={sessionData.therapist} groupMembers={sessionData.group} />
         </div>
       </div>
 
