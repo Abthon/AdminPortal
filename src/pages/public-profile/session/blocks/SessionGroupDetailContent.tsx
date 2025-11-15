@@ -581,7 +581,7 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
       console.log(clientIds, "The ids");
       // Fetch sessions for each group client with this therapist
       const sessionPromises = clientIds.map(clientId => 
-        axiosInstance.get(`/api/v1/session?fields=client.*,schedule,hasTherapistAttended,hasclientAttended&filters=client.id=${clientId}`)
+        axiosInstance.get(`/api/v1/session?fields=client.*,therapist.*,schedule,hasTherapistAttended,hasclientAttended&filters=group.id=${clientId}`)
       );
       
       const sessionResponses = await Promise.all(sessionPromises);
@@ -778,8 +778,8 @@ const TherapistSessionDetailCard = ({
     ? `${BASE_URL}/${session.therapist.profile}` 
     : avatar;
   
-  const clientImage = session.client?.profile 
-    ? `${BASE_URL}/${session.client.profile}` 
+  const clientImage = session.group?.[0]?.profile 
+    ? `${BASE_URL}/${session.group?.[0]?.profile}` 
     : avatar;
 
   const timeAgo = (dateString: string) => {
@@ -852,25 +852,25 @@ const TherapistSessionDetailCard = ({
               />
               <div className="flex-1">
                 <h5 className="font-semibold text-gray-900">
-                  {session.client?.firstName} {session.client?.lastName}
+                  {session.group?.[0]?.firstName} {session.group?.[0]?.lastName}
                 </h5>
-                <p className="text-sm text-gray-600">@{session.client?.username}</p>
-                <p className="text-sm text-gray-600">+251{session.client?.phoneNumber}</p>
+                <p className="text-sm text-gray-600">@{session.group?.[0]?.username}</p>
+                <p className="text-sm text-gray-600">+251{session.group?.[0]?.phoneNumber}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <span
                     className={`badge badge-sm ${
-                      session.client?.status === "active"
+                      session.group?.[0]?.status === "active"
                         ? "badge-success"
-                        : session.client?.status === "pending"
+                        : session.group?.[0]?.status === "pending"
                         ? "badge-primary"
-                        : session.client?.status === "inactive"
+                        : session.group?.[0]?.status === "inactive"
                         ? "badge-warning"
                         : "badge-danger"
                     } badge-outline`}
                   >
-                    {session.client?.status}
+                    {session.group?.[0]?.status}
                   </span>
-                  {session.client?.isOnline && (
+                  {session.group?.[0]?.isOnline && (
                     <span className="badge badge-sm badge-success badge-outline">
                       Online
                     </span>
