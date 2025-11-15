@@ -4,6 +4,7 @@ import { toAbsoluteUrl } from "@/utils";
 import { cn } from "@/lib/utils";
 import { DataGridLoader } from "@/components/data-grid";
 import avatar from "@/media/avatars/blank.png";
+import {Link} from "react-router-dom";
 
 import {
   DataGrid,
@@ -1836,9 +1837,13 @@ const Sessions = ({
                         className="w-8 h-8 rounded-full object-cover"
                       />
                       <div>
-                        <p className="font-medium text-sm">
+                        <Link
+                          to={`/therapists/${therapist.id}`}
+                          className="font-medium text-sm text-gray-900 hover:text-primary-active transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {therapist.firstName} {therapist.lastName}
-                        </p>
+                        </Link>
                         <p className="text-xs text-gray-500">Therapist</p>
                       </div>
                     </div>
@@ -2605,9 +2610,13 @@ const Sessions = ({
                         alt={therapist.firstName}
                       />
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">
+                        <Link
+                          to={`/therapists/${therapist.id}`}
+                          className="font-medium text-gray-900 hover:text-primary-active transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {therapist.firstName} {therapist.lastName}
-                        </p>
+                        </Link>
                         <p className="text-sm text-gray-500">
                           +251{therapist.phoneNumber}
                         </p>
@@ -2633,10 +2642,13 @@ const Sessions = ({
                     alt="Selected therapist"
                   />
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">
+                    <Link
+                      to={`/public-profile/therapist-detail/${newTherapistId}`}
+                      className="font-medium text-gray-900 hover:text-primary-active transition-colors"
+                    >
                       {therapistsData?.data?.find((t: any) => t.id === newTherapistId)?.firstName}{" "}
                       {therapistsData?.data?.find((t: any) => t.id === newTherapistId)?.lastName}
-                    </p>
+                    </Link>
                     <p className="text-sm text-gray-600">Selected Therapist</p>
                   </div>
                   <button

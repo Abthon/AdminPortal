@@ -543,7 +543,7 @@ const Matches = ({
               <div className="flex flex-col gap-0.5">
                 <Link
                   className="text-sm font-medium text-gray-900 hover:text-primary-active"
-                  to={`/public-profile/therapist-detail/${therapist.id}`}
+                  to={`/therapists/${therapist.id}`}
                 >
                   {therapist.firstName} {therapist.lastName}
                 </Link>
@@ -695,7 +695,13 @@ const Matches = ({
                         )}
                       </div>
                       <div>
-                        <p className="font-medium">{therapist.firstName} {therapist.lastName}</p>
+                        <Link
+                          to={`/therapists/${therapist.id}`}
+                          className="font-medium text-gray-900 hover:text-primary-active transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {therapist.firstName} {therapist.lastName}
+                        </Link>
                         <p className="text-sm text-gray-600">{therapist.email}</p>
                         <div className="flex items-center gap-1 mt-1">
                           <div className="size-2 bg-green-500 rounded-full"></div>
