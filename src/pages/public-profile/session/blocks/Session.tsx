@@ -41,7 +41,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ModalClientTypeForm } from "@/partials/modals/client";
 import axiosInstance from "@/auth/_helpers";
-import ClassNameGenerator from "@mui/utils/ClassNameGenerator";
 import { GroupTherapy } from "./GroupTherapy";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
