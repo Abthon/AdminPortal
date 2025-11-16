@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import TimePicker24h from "./TimePicker24h";
 
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
@@ -80,11 +81,7 @@ interface ISessionForm {
   groupName: string;
 }
 
-const GroupTherapy = ({
-  searchInput,
-}: {
-  searchInput?: string;
-}) => {
+const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
   const navigate = useNavigate();
   const [totalItems, setTotalItems] = useState(0);
   const [itemsOnPage, setItemsOnPage] = useState(0);
@@ -116,7 +113,7 @@ const GroupTherapy = ({
   }) {
     const url = `/api/v1/answer/user-ans?take=${pageSize}&page=${pageIndex}&filters=isInGroup=0`;
     const { data } = await axiosInstance.get(url);
-    
+
     // calculating how many items are there on the current page
     const startIndex =
       (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
@@ -165,21 +162,24 @@ const GroupTherapy = ({
     return data;
   }
 
-  const { isLoading: isGroupTherapyLoading, data: groupTherapyData } = useQuery({
-    queryKey: ["GroupTherapyCandidates", searchInput],
-    queryFn: revalidateGroupTherapyCandidates,
-    //refetchInterval: 5000,
-    //refetchIntervalInBackground: true,
-  });
+  const { isLoading: isGroupTherapyLoading, data: groupTherapyData } = useQuery(
+    {
+      queryKey: ["GroupTherapyCandidates", searchInput],
+      queryFn: revalidateGroupTherapyCandidates,
+      //refetchInterval: 5000,
+      //refetchIntervalInBackground: true,
+    }
+  );
 
   async function getTherapists(search?: string) {
     // Fetch all therapists with license data
     const url = `/api/v1/therapist?take=0${search ? `&filters=firstName=${search}` : ""}&fields=id,firstName,lastName,email,phoneNumber,profile,license.*`;
     const { data } = await axiosInstance.get(url);
-    
+
     // Filter therapists who have licenses and check their modals
-    const therapistsWithLicenses = data.data.filter((therapist: ITherapist) => 
-      therapist.license && therapist.license.length > 0
+    const therapistsWithLicenses = data.data.filter(
+      (therapist: ITherapist) =>
+        therapist.license && therapist.license.length > 0
     );
 
     // Fetch modal info for each therapist's license and filter for Group Therapy
@@ -190,32 +190,48 @@ const GroupTherapy = ({
           const { data: licenseData } = await axiosInstance.get(
             `/api/v1/license/${licenseId}?fields=modal.*`
           );
-          
+
           // Check if modal name is "Group Therapy"
-          if (licenseData.data.modal && licenseData.data.modal.name === "Group Therapy") {
+          if (
+            licenseData.data.modal &&
+            licenseData.data.modal.name === "Group Therapy"
+          ) {
             return therapist;
           }
           return null;
         } catch (error) {
-          console.error(`Error fetching license for therapist ${therapist.id}:`, error);
+          console.error(
+            `Error fetching license for therapist ${therapist.id}:`,
+            error
+          );
           return null;
         }
       })
     );
 
     // Filter out null values (therapists who don't have Group Therapy modal)
-    const filteredTherapists = groupTherapyTherapists.filter(t => t !== null);
-    
+    const filteredTherapists = groupTherapyTherapists.filter((t) => t !== null);
+
     return {
       ...data,
-      data: filteredTherapists
+      data: filteredTherapists,
     };
   }
 
-  async function createGroupSession(sessionData: ISessionForm & { groupClients: string[] }) {
+  async function createGroupSession(
+    sessionData: ISessionForm & { groupClients: string[] }
+  ) {
     // Parse the datetime-local input to extract day and time
     const scheduleDate = new Date(sessionData.schedule);
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
     const dayName = dayNames[scheduleDate.getDay()];
     const startTime = scheduleDate.toTimeString().slice(0, 5); // Format: "HH:MM"
 
@@ -229,22 +245,26 @@ const GroupTherapy = ({
       therapist: sessionData.therapist,
       date: {
         date: dayName,
-        startTime: startTime
-      }
+        startTime: startTime,
+      },
     };
-    const { data } = await axiosInstance.post('/api/v1/session/group', payload);
+    const { data } = await axiosInstance.post("/api/v1/session/group", payload);
     return data;
   }
 
-
-  async function createGroupChats(sessionData: ISessionForm & { groupClients: string[] }) {
+  async function createGroupChats(
+    sessionData: ISessionForm & { groupClients: string[] }
+  ) {
     const payload = {
       groupName: sessionData.groupName,
       groupClients: sessionData.groupClients,
       therapist: sessionData.therapist,
     };
     console.log(payload, "created group chat payload");
-    const { data } = await axiosInstance.post(`/api/v1/chat?mockId=${sessionData.therapist}`, payload);
+    const { data } = await axiosInstance.post(
+      `/api/v1/chat?mockId=${sessionData.therapist}`,
+      payload
+    );
     console.log(data, "created group chat");
     return data;
   }
@@ -254,7 +274,6 @@ const GroupTherapy = ({
     queryFn: () => getTherapists(therapistSearch),
     enabled: isSessionModalOpen,
   });
-
 
   // Creating group session for the selected clients
   const queryClient = useQueryClient();
@@ -281,7 +300,7 @@ const GroupTherapy = ({
     },
   });
 
-  // Creating group chats after creating the group session for the clients 
+  // Creating group chats after creating the group session for the clients
   const { isLoading: isCreatingChat, mutate: createChat } = useMutation({
     mutationFn: createGroupChats,
     onSuccess: () => {
@@ -321,7 +340,11 @@ const GroupTherapy = ({
         accessorFn: (row) => row.firstName,
         id: "Client",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Client" column={column} className="min-w-[250px]"/>
+          <DataGridColumnHeader
+            title="Client"
+            column={column}
+            className="min-w-[250px]"
+          />
         ),
         enableSorting: true,
         cell: ({ row }) => {
@@ -442,21 +465,27 @@ const GroupTherapy = ({
     const rawData = groupTherapyData?.data ?? [];
     console.log("Raw data structure:", rawData[0]); // Debug the actual data structure
     // Filter out duplicates based on id
-    const uniqueData = rawData.filter((item: IGroupTherapyCandidate, index: number, self: IGroupTherapyCandidate[]) => 
-      index === self.findIndex((t: IGroupTherapyCandidate) => t.id === item.id)
+    const uniqueData = rawData.filter(
+      (
+        item: IGroupTherapyCandidate,
+        index: number,
+        self: IGroupTherapyCandidate[]
+      ) =>
+        index ===
+        self.findIndex((t: IGroupTherapyCandidate) => t.id === item.id)
     );
     return uniqueData;
   }, [groupTherapyData]);
 
   const handleRowSelection = (state: RowSelectionState) => {
     // Keys in the state are now actual client IDs (not indices)
-    const selectedClientIds = Object.keys(state).filter(id => state[id]);
-    
+    const selectedClientIds = Object.keys(state).filter((id) => state[id]);
+
     setRowSelection(state);
     setSelectedClients(selectedClientIds);
 
     if (selectedClientIds.length > 0) {
-      toast(`selected client ids ${selectedClientIds}`)
+      toast(`selected client ids ${selectedClientIds}`);
       toast(`Total ${selectedClientIds.length} clients selected.`, {
         description: `Selected clients: ${selectedClientIds.length}`,
       });
@@ -473,8 +502,15 @@ const GroupTherapy = ({
   };
 
   const handleCreateSession = () => {
-    if (!sessionForm.therapist || !sessionForm.scheduleDate || !sessionForm.scheduleTime || !sessionForm.groupName) {
-      toast("Please select a therapist, schedule date and time, and provide a group name.");
+    if (
+      !sessionForm.therapist ||
+      !sessionForm.scheduleDate ||
+      !sessionForm.scheduleTime ||
+      !sessionForm.groupName
+    ) {
+      toast(
+        "Please select a therapist, schedule date and time, and provide a group name."
+      );
       return;
     }
 
@@ -505,12 +541,13 @@ const GroupTherapy = ({
 
         <div className="flex flex-wrap gap-2 lg:gap-5">
           <div className="flex flex-wrap gap-2.5">
-            <button 
+            <button
               className="btn btn-sm btn-primary"
               onClick={handleAddToGroup}
               disabled={selectedClients.length === 0}
             >
-              <KeenIcon icon="users" /> Create Group Session ({selectedClients.length})
+              <KeenIcon icon="users" /> Create Group Session (
+              {selectedClients.length})
             </button>
           </div>
         </div>
@@ -532,7 +569,7 @@ const GroupTherapy = ({
               Create Group Session
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-8 px-1 m-4">
             {/* Therapist Selection */}
             <div className="space-y-4">
@@ -542,11 +579,16 @@ const GroupTherapy = ({
                 onChange={(e) => setTherapistSearch(e.target.value)}
                 className="h-12 text-base"
               />
-              
+
               {isLoadingTherapists ? (
                 <div className="flex items-center justify-center p-8 bg-gray-50 rounded-xl">
-                  <KeenIcon icon="loading" className="animate-spin text-gray-400" />
-                  <span className="ml-3 text-gray-600">Loading therapists...</span>
+                  <KeenIcon
+                    icon="loading"
+                    className="animate-spin text-gray-400"
+                  />
+                  <span className="ml-3 text-gray-600">
+                    Loading therapists...
+                  </span>
                 </div>
               ) : (
                 <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-xl bg-white">
@@ -555,15 +597,24 @@ const GroupTherapy = ({
                       <div
                         key={therapist.id}
                         className={`p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 transition-colors ${
-                          sessionForm.therapist === therapist.id 
-                            ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
-                            : ''
+                          sessionForm.therapist === therapist.id
+                            ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                            : ""
                         }`}
-                        onClick={() => setSessionForm(prev => ({ ...prev, therapist: therapist.id }))}
+                        onClick={() =>
+                          setSessionForm((prev) => ({
+                            ...prev,
+                            therapist: therapist.id,
+                          }))
+                        }
                       >
                         <div className="flex items-center gap-4">
                           <img
-                            src={therapist.profile ? `${BASE_URL}/${therapist.profile}` : avatar}
+                            src={
+                              therapist.profile
+                                ? `${BASE_URL}/${therapist.profile}`
+                                : avatar
+                            }
                             className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
                             alt={`${therapist.firstName} ${therapist.lastName}`}
                           />
@@ -571,10 +622,15 @@ const GroupTherapy = ({
                             <p className="text-base font-medium text-gray-900">
                               {therapist.firstName} {therapist.lastName}
                             </p>
-                            <p className="text-sm text-gray-500">{therapist.email}</p>
+                            <p className="text-sm text-gray-500">
+                              {therapist.email}
+                            </p>
                           </div>
                           {sessionForm.therapist === therapist.id && (
-                            <KeenIcon icon="check-circle" className="text-blue-600 text-xl" />
+                            <KeenIcon
+                              icon="check-circle"
+                              className="text-blue-600 text-xl"
+                            />
                           )}
                         </div>
                       </div>
@@ -596,42 +652,51 @@ const GroupTherapy = ({
               <Input
                 placeholder="Enter group name (e.g., Anxiety Support Group)"
                 value={sessionForm.groupName}
-                onChange={(e) => setSessionForm(prev => ({ ...prev, groupName: e.target.value }))}
+                onChange={(e) =>
+                  setSessionForm((prev) => ({
+                    ...prev,
+                    groupName: e.target.value,
+                  }))
+                }
                 className="h-12 text-base"
               />
             </div>
 
             {/* Schedule */}
+            {/* Schedule */}
             <div className="space-y-4">
               <label className="text-base font-semibold text-gray-900 block">
                 Schedule Date & Time
               </label>
-              <style>{`
-                input[type="time"]::-webkit-calendar-picker-indicator {
-                  filter: invert(0.5);
-                }
-                input[type="time"]::-webkit-datetime-edit-ampm-field {
-                  display: none;
-                }
-              `}</style>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm text-gray-600 mb-1 block">Date</label>
+                  <label className="text-sm text-gray-600 mb-1 block">
+                    Date
+                  </label>
                   <Input
                     type="date"
                     value={sessionForm.scheduleDate}
-                    onChange={(e) => setSessionForm(prev => ({ ...prev, scheduleDate: e.target.value }))}
+                    onChange={(e) =>
+                      setSessionForm((prev) => ({
+                        ...prev,
+                        scheduleDate: e.target.value,
+                      }))
+                    }
                     className="h-12 text-base"
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-600 mb-1 block">Time (24h)</label>
-                  <Input
-                    type="time"
+                  <label className="text-sm text-gray-600 mb-1 block">
+                    Time (24h)
+                  </label>
+                  <TimePicker24h
                     value={sessionForm.scheduleTime}
-                    onChange={(e) => setSessionForm(prev => ({ ...prev, scheduleTime: e.target.value }))}
-                    className="h-12 text-base"
-                    step="60"
+                    onChange={(time: any) =>
+                      setSessionForm((prev) => ({
+                        ...prev,
+                        scheduleTime: time,
+                      }))
+                    }
                   />
                 </div>
               </div>
@@ -648,7 +713,13 @@ const GroupTherapy = ({
               </Button>
               <Button
                 onClick={handleCreateSession}
-                disabled={isCreatingSession || !sessionForm.therapist || !sessionForm.scheduleDate || !sessionForm.scheduleTime || !sessionForm.groupName}
+                disabled={
+                  isCreatingSession ||
+                  !sessionForm.therapist ||
+                  !sessionForm.scheduleDate ||
+                  !sessionForm.scheduleTime ||
+                  !sessionForm.groupName
+                }
                 className="px-6 py-3 text-base bg-blue-600 hover:bg-blue-700"
               >
                 {isCreatingSession ? (

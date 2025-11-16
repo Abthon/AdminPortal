@@ -226,20 +226,22 @@ const TherapistStatistics = ({
   });
 
   // Fetch therapist statistics - last 7 days
+  // Fetch therapist statistics - last 7 days (fixed date calculation)
+  // Fetch therapist statistics - last 7 days (past week)
   const fetchTherapistStatsWeek = async (): Promise<ITherapistStats> => {
-    const endDate = new Date();
+    const endDate = new Date(); // Today
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() + 9);
+    startDate.setDate(startDate.getDate() - 7); // 7 days ago
 
     const formatDate = (date: Date) => {
       return date.toISOString().split("T")[0];
     };
 
     const { data } = await axiosInstance.get(
-      `/api/v1/therapist/stats?startDate=${formatDate(endDate)}&endDate=${formatDate(startDate)}&mockId=${therapistData.id}`
+      `/api/v1/therapist/stats?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}&mockId=${therapistData.id}`
     );
 
-    console.log(data.data, "Per week data");
+    console.log(data.data, "Last 7 days data");
     return data.data;
   };
 
@@ -384,7 +386,12 @@ const TherapistStatistics = ({
                   {statsWeekLoading ? (
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                   ) : (
-                    statsWeekData?.totalSessions || 0
+                    statsWeekData?.sessionsOverTime?.reduce(
+                      (total: number, session: any) => {
+                        return total + (parseInt(session.count) || 0);
+                      },
+                      0
+                    ) || 0
                   )}
                 </div>
                 <div className="text-sm text-gray-600">Sessions/Week</div>
@@ -395,7 +402,11 @@ const TherapistStatistics = ({
                   {statsWeekLoading ? (
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                   ) : (
-                    statsWeekData?.totalHours || 0
+                    statsWeekData?.therapistHoursPerWeek
+                      ?.reduce((total: number, week: any) => {
+                        return total + (parseFloat(week.totalHours) || 0);
+                      }, 0)
+                      .toFixed(2) || 0
                   )}
                 </div>
                 <div className="text-sm text-gray-600">Hours/Week</div>
@@ -406,22 +417,28 @@ const TherapistStatistics = ({
                   {statsWeekLoading ? (
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                   ) : (
-                    statsWeekData?.totalRevenue || 0
+                    statsWeekData?.revenueOverTime
+                      ?.reduce((total: number, revenue: any) => {
+                        return (
+                          total + (parseFloat(revenue.revenueOverTime) || 0)
+                        );
+                      }, 0)
+                      .toFixed(2) || 0
                   )}
                 </div>
                 <div className="text-sm text-gray-600">Revenue/Week (ETB)</div>
               </div>
 
               {/*<div className="text-center">
-                <div className="text-3xl font-bold text-info mb-1">
-                  {statsWeekLoading ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                  ) : (
-                    statsWeekData?.totalUsers || 0
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">Users/Week</div>
-              </div>*/}
+      <div className="text-3xl font-bold text-info mb-1">
+        {statsWeekLoading ? (
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+        ) : (
+          statsWeekData?.totalUsers || 0
+        )}
+      </div>
+      <div className="text-sm text-gray-600">Users/Week</div>
+    </div>*/}
             </div>
           </div>
         </div>
@@ -1310,6 +1327,7 @@ const TherapistSessionDetailCard = ({
   session: ISessionData;
   onClose: () => void;
 }) => {
+  console.log("session here we go", session.client);
   const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
   const therapistImage = session.therapist.profile
