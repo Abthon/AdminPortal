@@ -235,6 +235,8 @@ const Sessions = ({
   const [removeSessionData, setRemoveSessionData] = useState<ISessionsData | null>(null);
   const [selectedUsersToRemove, setSelectedUsersToRemove] = useState<string[]>([]);
   const [clientModal, setClientModal] = useState<string>("");
+  const [clientId, setClientId] = useState<string>("");
+  const [therpaistId, setTherapistId] = useState<string>("");
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -782,7 +784,9 @@ const Sessions = ({
 
     setReassignSessionData(sessionData);
     setReassignModalOpen(true);
-    setClientModal(sessionData.modal?.id || "")
+    setClientModal(sessionData.modal?.id || "");
+    setClientId(sessionData.client?.id || "");
+    setTherapistId(sessionData.therapist?.id || "");
     setLoadingSessions(true);
     setSelectedSessionIds([]);
     setNewTherapistId("");
@@ -843,6 +847,38 @@ const Sessions = ({
     }
   );
 
+  // Reassign therapist mutation
+  const reassignMatchMutation= useMutation(
+    async ({ clientId, therapistId }: { clientId: string, therapistId: string }) => {
+      // Patch each selected session with the new therapist
+      const res = await axiosInstance.get(`/api/v1/client/${clientId}?fields=match.*,preference.*`)
+      const preferenceId = res.data.data.preference.id;
+      const promises = res.data.data.match.map((matchId: string) =>
+        axiosInstance.patch(`/api/v1/match/${matchId}`, {
+          preferenceId: preferenceId,
+          therapistId: therapistId,
+        })
+      );
+      await Promise.all(promises);
+      console.log(res.data.data.match, "The res");
+    },
+  
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["Sessions"]);
+        toast("Therapist reassigned successfully!");
+        setReassignModalOpen(false);
+        setSelectedSessionIds([]);
+        setNewTherapistId("");
+      },
+      onError: (error: any) => {
+        console.error("Error reassigning therapist:", error);
+        toast(error?.message || "Failed to reassign therapist");
+      },
+    }
+  );
+
+
   // Handle reassigning therapist
   const handleReassignTherapist = () => {
     if (selectedSessionIds.length === 0) {
@@ -855,10 +891,15 @@ const Sessions = ({
       return;
     }
 
-    reassignTherapistMutation.mutate({
-      sessionIds: selectedSessionIds,
+    //reassignTherapistMutation.mutate({
+    //  sessionIds: selectedSessionIds,
+    //  therapistId: newTherapistId,
+    //});
+    reassignMatchMutation.mutate({
+      clientId: clientId,
       therapistId: newTherapistId,
     });
+
   };
 
   const columns = useMemo<ColumnDef<ISessionsData>[]>(
