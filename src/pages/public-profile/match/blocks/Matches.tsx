@@ -381,7 +381,7 @@ const Matches = ({
     sort: any;
   }) {
     // Filter for non-accepted matches (accepted=null) as requested by user
-    const filters = "accepted:=null";
+    const filters = "accepted:=null,client.preference.modal.id!=aa4c9839-e031-417a-b319-2da4bf1092c3";
     const url = `/api/v1/match?take=${pageSize}&page=${pageIndex}&sort=expiresAt=${sort[0].desc ? "DESC" : "ASC"}&fields=client.*,expiresAt&filters=${filters}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);

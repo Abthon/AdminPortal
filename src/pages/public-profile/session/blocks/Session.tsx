@@ -234,6 +234,7 @@ const Sessions = ({
   const [isRemoveFromSessionModalOpen, setIsRemoveFromSessionModalOpen] = useState(false);
   const [removeSessionData, setRemoveSessionData] = useState<ISessionsData | null>(null);
   const [selectedUsersToRemove, setSelectedUsersToRemove] = useState<string[]>([]);
+  const [clientModal, setClientModal] = useState<string>("");
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -483,8 +484,8 @@ const Sessions = ({
   // Fetch therapists for session creation
   async function fetchTherapists(search: string = "") {
     const url = search
-      ? `/api/v1/therapist?filters=firstName=${search}&fields=id,firstName,lastName,profile`
-      : `/api/v1/therapist?fields=id,firstName,lastName,profile`;
+      ? `/api/v1/therapist?filters=firstName=${search}&fields=id,firstName,lastName,profile&filters=license.modal.id:=${clientModal}`
+      : `/api/v1/therapist?fields=id,firstName,lastName,profile&filters=license.modal.id:=${clientModal}`;
     const { data } = await axiosInstance.get(url);
     return data;
   }
@@ -781,6 +782,7 @@ const Sessions = ({
 
     setReassignSessionData(sessionData);
     setReassignModalOpen(true);
+    setClientModal(sessionData.modal?.id || "")
     setLoadingSessions(true);
     setSelectedSessionIds([]);
     setNewTherapistId("");
