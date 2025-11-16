@@ -33,7 +33,8 @@ const QuestionSchemaForEdit = Yup.object().shape({
     is: (val: string) => val === 'single' || val === 'multiple',
     then: (schema) => schema.of(Yup.string().required("Option cannot be empty")).min(2, "At least 2 options are required"),
     otherwise: (schema) => schema.notRequired()
-  })
+  }),
+  order: Yup.number().required("Order is required."),
 });
 
 interface IModalQuestionProps {
@@ -73,12 +74,14 @@ const ModalQuestion = ({
         options: questionData?.option ? 
           questionData.option.sort((a: any, b: any) => a.order - b.order).map((opt: any) => opt.text) : 
           questionData?.options || ["", ""],
+        order: questionData?.order || 0,
       }
     : {
         text: "",
         type: "single",
         modalId: "",
         options: ["", ""],
+        order: 0,
       };
 
   async function addQuestion(values: { [key: string]: any }) {
@@ -90,6 +93,7 @@ const ModalQuestion = ({
         text: values.text,
         type: values.type,
         modalId: values.modalId,
+        order: parseInt(values.order),
       };
 
       const questionRes = await axiosInstance.post(`/api/v1/question`, questionPayload);
@@ -164,13 +168,14 @@ const ModalQuestion = ({
 
   async function editQuestion(values: any) {
     try {
-      const { id, text, type, modalId } = values;
+      const { id, text, type, modalId, order } = values;
 
       // Step 1: Update the question
       const updatedValues: any = {
         text,
         type,
         modalId,
+        order: parseInt(order),
       };
 
       const res = await axiosInstance.patch(
@@ -185,7 +190,7 @@ const ModalQuestion = ({
         try {
           // Get existing options from questionData to update them
           const existingOptions = questionData?.option || [];
-          
+          console.log(existingOptions, "The existing options") 
           const optionPromises = validOptions.map((optionText: string, index: number) => {
             if (existingOptions[index]) {
               // Update existing option using PATCH /api/v1/option/{id}
@@ -260,6 +265,7 @@ const ModalQuestion = ({
           options: questionData.option ? 
             questionData.option.sort((a: any, b: any) => a.order - b.order).map((opt: any) => opt.text) : 
             questionData.options || ["", ""],
+          order: questionData.order || 0,
         };
         formik.setValues(editValues);
       } else {
@@ -269,6 +275,7 @@ const ModalQuestion = ({
             type: "single",
             modalId: "",
             options: ["", ""],
+            order: 0,
           }
         });
       }
@@ -421,6 +428,35 @@ const ModalQuestion = ({
                 </span>
               )}
             </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="form-label text-gray-900">Question Order</label>
+              <label className="input">
+                <input
+                  placeholder="Type your order number"
+                  //rows={3}
+                  {...formik.getFieldProps("order")}
+                  className={clsx(
+                    "form-control bg-transparent resize-none w-full",
+                    {
+                      "is-invalid":
+                        formik.touched.order && formik.errors.order,
+                    },
+                    {
+                      "is-valid":
+                        formik.touched.order && !formik.errors.order,
+                    }
+                  )}
+                />
+              </label>
+              {formik.touched.order && formik.errors.order && (
+                <span role="alert" className="text-danger text-xs mt-1">
+                  {typeof formik.errors.order === "string" &&
+                    formik.errors.order}
+                </span>
+              )}
+            </div>
+
 
             {/* Options for Single/Multiple Choice */}
             {(formik.values.type === "single" || formik.values.type === "multiple") && (
