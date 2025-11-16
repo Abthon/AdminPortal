@@ -6,15 +6,15 @@ import avatar from "@/media/avatars/blank.png";
 import { useQuery } from "react-query";
 import axiosInstance from "@/auth/_helpers";
 import { LicenseInfo } from "../../therapist/blocks/GeneralInfo";
-import { 
-  formatDistanceToNow, 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
-  eachDayOfInterval, 
-  isSameMonth, 
-  isSameDay, 
-  isToday 
+import {
+  formatDistanceToNow,
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  isToday,
 } from "date-fns";
 
 // Import TherapistGeneralInfa from therapist detail content
@@ -114,12 +114,16 @@ const GroupMembersTable: React.FC<GroupMembersTableProps> = ({ data }) => {
         <td className="text-start text-sm text-gray-800">
           <div className="flex items-center gap-3">
             <img
-              src={member.profile ? `${import.meta.env.VITE_APP_STATIC_URL}/${member.profile}` : avatar}
+              src={
+                member.profile
+                  ? `${import.meta.env.VITE_APP_STATIC_URL}/${member.profile}`
+                  : avatar
+              }
               className="rounded-full size-8 object-cover"
               alt={`${member.firstName} ${member.lastName}`}
             />
             <div>
-              <Link 
+              <Link
                 to={`/clients/${member.id}`}
                 className="font-medium text-gray-900 hover:text-primary-active"
               >
@@ -130,7 +134,10 @@ const GroupMembersTable: React.FC<GroupMembersTableProps> = ({ data }) => {
                   <KeenIcon icon="verify" className="text-primary text-xs" />
                 )}
                 {member.isPhoneNumberAuthenticated && (
-                  <KeenIcon icon="shield-check" className="text-success text-xs" />
+                  <KeenIcon
+                    icon="shield-check"
+                    className="text-success text-xs"
+                  />
                 )}
                 {member.isOnline && (
                   <span className="size-2 bg-success rounded-full"></span>
@@ -183,12 +190,18 @@ const GroupMembersTable: React.FC<GroupMembersTableProps> = ({ data }) => {
         <table className="table text-end">
           <thead>
             <tr>
-              <th className="text-start min-w-[200px] !text-gray-700">Client</th>
+              <th className="text-start min-w-[200px] !text-gray-700">
+                Client
+              </th>
               <th className="text-start min-w-[150px] !text-gray-700">Email</th>
               <th className="text-start min-w-[120px] !text-gray-700">Phone</th>
-              <th className="text-start min-w-[100px] !text-gray-700">Username</th>
+              <th className="text-start min-w-[100px] !text-gray-700">
+                Username
+              </th>
               <th className="text-start min-w-[80px] !text-gray-700">Gender</th>
-              <th className="text-start min-w-[100px] !text-gray-700">Last Seen</th>
+              <th className="text-start min-w-[100px] !text-gray-700">
+                Last Seen
+              </th>
               <th className="min-w-[100px] !text-gray-700">Status</th>
               <th className="min-w-[80px] !text-gray-700">Actions</th>
             </tr>
@@ -367,8 +380,12 @@ const TherapistDocuments = ({ therapistData }: { therapistData: any }) => {
       <div className="card-body">
         <div className="text-center py-8">
           <KeenIcon icon="document" className="text-4xl text-gray-400 mb-4" />
-          <h4 className="text-lg font-medium text-gray-900 mb-2">No Documents Found</h4>
-          <p className="text-gray-600">No professional documents have been uploaded yet.</p>
+          <h4 className="text-lg font-medium text-gray-900 mb-2">
+            No Documents Found
+          </h4>
+          <p className="text-gray-600">
+            No professional documents have been uploaded yet.
+          </p>
         </div>
       </div>
     </div>
@@ -379,7 +396,9 @@ const TherapistDocuments = ({ therapistData }: { therapistData: any }) => {
 const ClientOnboardingQuestions = ({ clientData }: { clientData: any }) => {
   // Fetch answers for the client
   const fetchAnswers = async () => {
-    const { data } = await axiosInstance.get(`/api/v1/answer?fields=question.*,singleOption.*,multiOption.*,text&filters=client.id=${clientData.id}`);
+    const { data } = await axiosInstance.get(
+      `/api/v1/answer?fields=question.*,singleOption.*,multiOption.*,text&filters=client.id=${clientData.id}`
+    );
     return data;
   };
 
@@ -389,9 +408,11 @@ const ClientOnboardingQuestions = ({ clientData }: { clientData: any }) => {
   });
 
   const answers = answersData?.data || [];
-  
+
   // Sort answers by question order
-  const sortedAnswers = answers.sort((a: any, b: any) => a.question.order - b.question.order);
+  const sortedAnswers = answers.sort(
+    (a: any, b: any) => a.question.order - b.question.order
+  );
 
   const getQuestionTypeColor = (type: string) => {
     switch (type) {
@@ -412,7 +433,9 @@ const ClientOnboardingQuestions = ({ clientData }: { clientData: any }) => {
         return (
           <div className="flex items-center gap-2">
             <KeenIcon icon="check-circle" className="text-primary text-sm" />
-            <span className="text-sm text-gray-900">{answer.singleOption?.text || "No answer"}</span>
+            <span className="text-sm text-gray-900">
+              {answer.singleOption?.text || "No answer"}
+            </span>
           </div>
         );
       case "multiple":
@@ -421,12 +444,17 @@ const ClientOnboardingQuestions = ({ clientData }: { clientData: any }) => {
             {answer.multiOption.length > 0 ? (
               answer.multiOption.map((option: any, index: number) => (
                 <div key={option.id} className="flex items-center gap-2">
-                  <KeenIcon icon="check-circle" className="text-warning text-sm" />
+                  <KeenIcon
+                    icon="check-circle"
+                    className="text-warning text-sm"
+                  />
                   <span className="text-sm text-gray-900">{option.text}</span>
                 </div>
               ))
             ) : (
-              <span className="text-sm text-gray-500 italic">No options selected</span>
+              <span className="text-sm text-gray-500 italic">
+                No options selected
+              </span>
             )}
           </div>
         );
@@ -434,12 +462,16 @@ const ClientOnboardingQuestions = ({ clientData }: { clientData: any }) => {
         return (
           <div className="p-3 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-900">
-              {answer.text || <span className="text-gray-500 italic">No text provided</span>}
+              {answer.text || (
+                <span className="text-gray-500 italic">No text provided</span>
+              )}
             </p>
           </div>
         );
       default:
-        return <span className="text-sm text-gray-500">Unknown answer type</span>;
+        return (
+          <span className="text-sm text-gray-500">Unknown answer type</span>
+        );
     }
   };
 
@@ -465,42 +497,52 @@ const ClientOnboardingQuestions = ({ clientData }: { clientData: any }) => {
         <div className="flex items-center justify-between w-full">
           <h3 className="card-title">Client Onboarding Questions</h3>
           <span className="badge badge-sm badge-outline">
-            {answers.length} Question{answers.length !== 1 ? 's' : ''} Answered
+            {answers.length} Question{answers.length !== 1 ? "s" : ""} Answered
           </span>
         </div>
       </div>
       <div className="card-body">
         {answers.length === 0 ? (
           <div className="text-center py-8">
-            <KeenIcon icon="questionnaire-tablet" className="text-4xl text-gray-400 mb-4" />
-            <h4 className="text-lg font-medium text-gray-900 mb-2">No Questions Answered</h4>
-            <p className="text-gray-600">This client hasn't completed the onboarding questionnaire yet.</p>
+            <KeenIcon
+              icon="questionnaire-tablet"
+              className="text-4xl text-gray-400 mb-4"
+            />
+            <h4 className="text-lg font-medium text-gray-900 mb-2">
+              No Questions Answered
+            </h4>
+            <p className="text-gray-600">
+              This client hasn't completed the onboarding questionnaire yet.
+            </p>
           </div>
         ) : (
           <div className="space-y-6">
             {sortedAnswers.map((answer: any, index: number) => (
-              <div key={answer.id} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+              <div
+                key={answer.id}
+                className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
+              >
                 <div className="flex items-start gap-4">
                   {/* Question Number */}
                   <div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
                     {index + 1}
                   </div>
-                  
+
                   <div className="flex-1 space-y-3">
                     {/* Question Header */}
                     <div className="flex items-start justify-between gap-4">
                       <h4 className="text-base font-medium text-gray-900 leading-relaxed">
                         {answer.question.text}
                       </h4>
-                      <span className={`badge badge-sm ${getQuestionTypeColor(answer.question.type)} badge-outline flex-shrink-0`}>
+                      <span
+                        className={`badge badge-sm ${getQuestionTypeColor(answer.question.type)} badge-outline flex-shrink-0`}
+                      >
                         {answer.question.type}
                       </span>
                     </div>
-                    
+
                     {/* Answer */}
-                    <div className="ml-0">
-                      {renderAnswer(answer)}
-                    </div>
+                    <div className="ml-0">{renderAnswer(answer)}</div>
                   </div>
                 </div>
               </div>
@@ -564,7 +606,13 @@ const SessionStatistics = ({ sessionData }: { sessionData: any }) => {
   );
 };
 
-const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistData: any; groupMembers: any[] }) => {
+const TherapistSessionCalendar = ({
+  therapistData,
+  groupMembers,
+}: {
+  therapistData: any;
+  groupMembers: any[];
+}) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedSession, setSelectedSession] = useState<any>(null);
   console.log(groupMembers, "the members");
@@ -577,13 +625,15 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
 
     try {
       // Get client IDs from group members
-      const clientIds = groupMembers.map(member => member.id);
+      const clientIds = groupMembers.map((member) => member.id);
       console.log(clientIds, "The ids");
       // Fetch sessions for each group client with this therapist
-      const sessionPromises = clientIds.map(clientId => 
-        axiosInstance.get(`/api/v1/session?fields=client.*,therapist.*,schedule,hasTherapistAttended,hasclientAttended&filters=group.id=${clientId}&take=0`)
+      const sessionPromises = clientIds.map((clientId) =>
+        axiosInstance.get(
+          `/api/v1/session?fields=client.*,therapist.*,schedule,hasTherapistAttended,hasclientAttended&filters=group.id=${clientId}&take=0`
+        )
       );
-      
+
       const sessionResponses = await Promise.all(sessionPromises);
 
       console.log(sessionResponses, "the responses");
@@ -591,28 +641,59 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
       const allSessions = sessionResponses.reduce((acc, response) => {
         return acc.concat(response.data.data || []);
       }, []);
-      
+
       return { data: allSessions };
     } catch (error) {
-      console.error('Error fetching group sessions:', error);
+      console.error("Error fetching group sessions:", error);
       return { data: [] };
     }
   };
 
   const { data: sessionsData, isLoading } = useQuery({
-    queryKey: ["therapist-group-sessions", therapistData.id, groupMembers?.map(m => m.id).join(',')],
+    queryKey: [
+      "therapist-group-sessions",
+      therapistData.id,
+      groupMembers?.map((m) => m.id).join(","),
+    ],
     queryFn: fetchTherapistSessions,
   });
 
   const sessions = sessionsData?.data || [];
 
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  // Fixed calendar logic
+  const getCalendarDays = (date: Date) => {
+    const monthStart = startOfMonth(date);
+    const monthEnd = endOfMonth(date);
+
+    // Get the start day of the week (0 = Sunday, 1 = Monday, etc.)
+    const startDay = monthStart.getDay();
+
+    // Get the end day of the week
+    const endDay = monthEnd.getDay();
+
+    // Calculate days from previous month to show
+    const prevMonthDays = startDay;
+    const prevMonth = new Date(monthStart);
+    prevMonth.setDate(prevMonth.getDate() - prevMonthDays);
+
+    // Calculate days from next month to show
+    const nextMonthDays = 6 - endDay;
+    const nextMonth = new Date(monthEnd);
+    nextMonth.setDate(nextMonth.getDate() + 1);
+
+    // Create array of all days to display
+    const calendarStart = new Date(prevMonth);
+    const calendarEnd = new Date(monthEnd);
+    calendarEnd.setDate(calendarEnd.getDate() + nextMonthDays);
+
+    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  };
+
+  const calendarDays = getCalendarDays(currentMonth);
 
   // Group sessions by date
   const sessionsByDate = sessions.reduce((acc: any, session: any) => {
-    const dateKey = format(new Date(session.schedule), 'yyyy-MM-dd');
+    const dateKey = format(new Date(session.schedule), "yyyy-MM-dd");
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
@@ -621,17 +702,19 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
   }, {});
 
   const handleDayClick = (day: Date) => {
-    const dateKey = format(day, 'yyyy-MM-dd');
+    if (!isSameMonth(day, currentMonth)) return;
+
+    const dateKey = format(day, "yyyy-MM-dd");
     const daySessions = sessionsByDate[dateKey];
     if (daySessions && daySessions.length > 0) {
       setSelectedSession(daySessions[0]); // Show first session of the day
     }
   };
 
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentMonth(prev => {
+  const navigateMonth = (direction: "prev" | "next") => {
+    setCurrentMonth((prev) => {
       const newMonth = new Date(prev);
-      if (direction === 'prev') {
+      if (direction === "prev") {
         newMonth.setMonth(prev.getMonth() - 1);
       } else {
         newMonth.setMonth(prev.getMonth() + 1);
@@ -665,25 +748,32 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
         <div className="card-body">
           {sessions.length === 0 ? (
             <div className="text-center py-8">
-              <KeenIcon icon="calendar" className="text-4xl text-gray-400 mb-4" />
-              <h4 className="text-lg font-medium text-gray-900 mb-2">No Sessions Yet</h4>
-              <p className="text-gray-600">This therapist hasn't scheduled any therapy sessions.</p>
+              <KeenIcon
+                icon="calendar"
+                className="text-4xl text-gray-400 mb-4"
+              />
+              <h4 className="text-lg font-medium text-gray-900 mb-2">
+                No Sessions Yet
+              </h4>
+              <p className="text-gray-600">
+                This therapist hasn't scheduled any therapy sessions.
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
               {/* Calendar Header */}
               <div className="flex items-center justify-between mb-4">
                 <button
-                  onClick={() => navigateMonth('prev')}
+                  onClick={() => navigateMonth("prev")}
                   className="btn btn-sm btn-icon btn-clear btn-primary"
                 >
                   <KeenIcon icon="arrow-left" />
                 </button>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  {format(currentMonth, 'MMMM yyyy')}
+                  {format(currentMonth, "MMMM yyyy")}
                 </h4>
                 <button
-                  onClick={() => navigateMonth('next')}
+                  onClick={() => navigateMonth("next")}
                   className="btn btn-sm btn-icon btn-clear btn-primary"
                 >
                   <KeenIcon icon="arrow-right" />
@@ -693,39 +783,44 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
               {/* Calendar Grid */}
               <div className="grid grid-cols-7 gap-1 mb-4">
                 {/* Day headers */}
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="p-2 text-center text-sm font-medium text-gray-600">
-                    {day}
-                  </div>
-                ))}
-                
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                  (day) => (
+                    <div
+                      key={day}
+                      className="p-2 text-center text-sm font-medium text-gray-600"
+                    >
+                      {day}
+                    </div>
+                  )
+                )}
+
                 {/* Calendar days */}
-                {monthDays.map(day => {
-                  const dateKey = format(day, 'yyyy-MM-dd');
+                {calendarDays.map((day) => {
+                  const dateKey = format(day, "yyyy-MM-dd");
                   const hasSessions = sessionsByDate[dateKey]?.length > 0;
                   const isCurrentMonth = isSameMonth(day, currentMonth);
                   const isDayToday = isToday(day);
-                  
+
                   return (
                     <button
                       key={day.toISOString()}
-                      onClick={() => handleDayClick(day)}
+                      onClick={() => {}}
                       className={`
-                        p-2 text-sm rounded-lg transition-colors relative
+                        p-2 text-sm rounded-lg transition-colors relative min-h-12
                         ${
                           !isCurrentMonth
-                            ? 'text-gray-300 cursor-default'
+                            ? "text-gray-300 bg-gray-50 cursor-default hover:bg-gray-50"
                             : hasSessions
-                            ? 'bg-primary text-white hover:bg-primary-dark cursor-pointer'
-                            : isDayToday
-                            ? 'bg-gray-100 text-primary font-semibold hover:bg-gray-200 cursor-pointer'
-                            : 'text-gray-700 hover:bg-gray-100 cursor-pointer'
+                              ? "bg-primary text-white hover:bg-primary-dark cursor-pointer"
+                              : isDayToday
+                                ? "bg-gray-100 text-primary font-semibold hover:bg-gray-200 cursor-pointer"
+                                : "text-gray-700 hover:bg-gray-100 cursor-pointer"
                         }
                       `}
                       disabled={!isCurrentMonth}
                     >
-                      {format(day, 'd')}
-                      {hasSessions && (
+                      {format(day, "d")}
+                      {hasSessions && isCurrentMonth && (
                         <div className="absolute top-1 right-1 w-2 h-2 bg-warning rounded-full"></div>
                       )}
                     </button>
@@ -734,7 +829,7 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
               </div>
 
               {/* Legend */}
-              <div className="flex items-center gap-4 text-sm text-gray-600 border-t pt-4">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 border-t pt-4">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-primary rounded"></div>
                   <span>Has Sessions</span>
@@ -747,6 +842,10 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
                   <div className="w-4 h-4 bg-gray-100 rounded border"></div>
                   <span>Today</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-gray-50 rounded"></div>
+                  <span>Other Month</span>
+                </div>
               </div>
             </div>
           )}
@@ -755,9 +854,9 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
 
       {/* Session Details Card */}
       {selectedSession && (
-        <TherapistSessionDetailCard 
-          session={selectedSession} 
-          onClose={() => setSelectedSession(null)} 
+        <TherapistSessionDetailCard
+          session={selectedSession}
+          onClose={() => setSelectedSession(null)}
         />
       )}
     </div>
@@ -765,26 +864,28 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
 };
 
 // Therapist Session Detail Card Component
-const TherapistSessionDetailCard = ({ 
-  session, 
-  onClose 
-}: { 
-  session: any; 
-  onClose: () => void; 
+const TherapistSessionDetailCard = ({
+  session,
+  onClose,
+}: {
+  session: any;
+  onClose: () => void;
 }) => {
   const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
-  
-  const therapistImage = session.therapist?.profile 
-    ? `${BASE_URL}/${session.therapist.profile}` 
+
+  const therapistImage = session.therapist?.profile
+    ? `${BASE_URL}/${session.therapist.profile}`
     : avatar;
-  
-  const clientImage = session.group?.[0]?.profile 
-    ? `${BASE_URL}/${session.group?.[0]?.profile}` 
+
+  const clientImage = session.group?.[0]?.profile
+    ? `${BASE_URL}/${session.group?.[0]?.profile}`
     : avatar;
 
   const timeAgo = (dateString: string) => {
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   };
+
+  console.log("session", session.group);
 
   return (
     <div className="card">
@@ -803,7 +904,9 @@ const TherapistSessionDetailCard = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Therapist Info */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">Therapist</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">
+              Therapist
+            </h4>
             <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
               <img
                 src={therapistImage}
@@ -814,18 +917,22 @@ const TherapistSessionDetailCard = ({
                 <h5 className="font-semibold text-gray-900">
                   {session.therapist?.firstName} {session.therapist?.lastName}
                 </h5>
-                <p className="text-sm text-gray-600">{session.therapist?.email}</p>
-                <p className="text-sm text-gray-600">+251{session.therapist?.phoneNumber}</p>
+                <p className="text-sm text-gray-600">
+                  {session.therapist?.email}
+                </p>
+                <p className="text-sm text-gray-600">
+                  +251{session.therapist?.phoneNumber}
+                </p>
                 <div className="flex items-center gap-2 mt-2">
                   <span
                     className={`badge badge-sm ${
                       session.therapist?.status === "active"
                         ? "badge-success"
                         : session.therapist?.status === "pending"
-                        ? "badge-primary"
-                        : session.therapist?.status === "inactive"
-                        ? "badge-warning"
-                        : "badge-danger"
+                          ? "badge-primary"
+                          : session.therapist?.status === "inactive"
+                            ? "badge-warning"
+                            : "badge-danger"
                     } badge-outline`}
                   >
                     {session.therapist?.status}
@@ -843,29 +950,43 @@ const TherapistSessionDetailCard = ({
 
           {/* Client Info */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">Matched Client</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">
+              Matched Client
+            </h4>
             <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
               <img
                 src={clientImage}
-                alt={`${session.client?.firstName} ${session.client?.lastName}`}
+                // alt={`${session.client?.firstName} ${session.client?.lastName}`}
                 className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
               />
-              <div className="flex-1">
+              {session.group.map((member: any) => (
+                <div key={member.id} className="flex-1">
+                  <h5 className="font-semibold text-gray-900">
+                    {member.firstName} {member.lastName}
+                  </h5>
+                </div>
+              ))}
+
+              {/* <div className="flex-1">
                 <h5 className="font-semibold text-gray-900">
                   {session.group?.[0]?.firstName} {session.group?.[0]?.lastName}
                 </h5>
-                <p className="text-sm text-gray-600">@{session.group?.[0]?.username}</p>
-                <p className="text-sm text-gray-600">+251{session.group?.[0]?.phoneNumber}</p>
+                <p className="text-sm text-gray-600">
+                  @{session.group?.[0]?.username}
+                </p>
+                <p className="text-sm text-gray-600">
+                  +251{session.group?.[0]?.phoneNumber}
+                </p>
                 <div className="flex items-center gap-2 mt-2">
                   <span
                     className={`badge badge-sm ${
                       session.group?.[0]?.status === "active"
                         ? "badge-success"
                         : session.group?.[0]?.status === "pending"
-                        ? "badge-primary"
-                        : session.group?.[0]?.status === "inactive"
-                        ? "badge-warning"
-                        : "badge-danger"
+                          ? "badge-primary"
+                          : session.group?.[0]?.status === "inactive"
+                            ? "badge-warning"
+                            : "badge-danger"
                     } badge-outline`}
                   >
                     {session.group?.[0]?.status}
@@ -876,34 +997,52 @@ const TherapistSessionDetailCard = ({
                     </span>
                   )}
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
 
         {/* Session Info */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-lg font-semibold text-gray-900 mb-3">Session Information</h4>
+          <h4 className="text-lg font-semibold text-gray-900 mb-3">
+            Session Information
+          </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-600">Therapist Attendance</label>
-              <span className={`badge badge-sm w-fit ${session.hasTherapistAttended ? "badge-success" : "badge-warning"} badge-outline`}>
+              <label className="text-sm font-medium text-gray-600">
+                Therapist Attendance
+              </label>
+              <span
+                className={`badge badge-sm w-fit ${session.hasTherapistAttended ? "badge-success" : "badge-warning"} badge-outline`}
+              >
                 {session.hasTherapistAttended ? "Attended" : "Not Attended"}
               </span>
             </div>
             <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-600">Client Attendance</label>
-              <span className={`badge badge-sm w-fit ${session.hasclientAttended ? "badge-success" : "badge-warning"} badge-outline`}>
+              <label className="text-sm font-medium text-gray-600">
+                Client Attendance
+              </label>
+              <span
+                className={`badge badge-sm w-fit ${session.hasclientAttended ? "badge-success" : "badge-warning"} badge-outline`}
+              >
                 {session.hasclientAttended ? "Attended" : "Not Attended"}
               </span>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-600">Scheduled Date</label>
-              <p className="text-sm text-gray-900">{format(new Date(session.schedule), 'MMM dd, yyyy')}</p>
+              <label className="text-sm font-medium text-gray-600">
+                Scheduled Date
+              </label>
+              <p className="text-sm text-gray-900">
+                {format(new Date(session.schedule), "MMM dd, yyyy")}
+              </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-600">Scheduled Time</label>
-              <p className="text-sm text-gray-900">{format(new Date(session.schedule), 'HH:mm')}</p>
+              <label className="text-sm font-medium text-gray-600">
+                Scheduled Time
+              </label>
+              <p className="text-sm text-gray-900">
+                {format(new Date(session.schedule), "HH:mm")}
+              </p>
             </div>
           </div>
         </div>
@@ -911,7 +1050,6 @@ const TherapistSessionDetailCard = ({
     </div>
   );
 };
-
 
 // Main Component
 interface INetworkItem {
@@ -1074,7 +1212,10 @@ const SessionGroupDetailContent = ({ sessionData }: any) => {
           </div>
         </div>
         <div className="col-span-3 mb-4">
-          <TherapistSessionCalendar therapistData={sessionData.therapist} groupMembers={sessionData.group} />
+          <TherapistSessionCalendar
+            therapistData={sessionData.therapist}
+            groupMembers={sessionData.group}
+          />
         </div>
       </div>
 
@@ -1102,7 +1243,7 @@ const TherapistRatings = ({ therapistData }: { therapistData: any }) => {
         setLoading(false);
         return;
       }
-      
+
       setLoading(true);
       try {
         const enhancedData = await Promise.all(
@@ -1224,7 +1365,9 @@ const TherapistRatings = ({ therapistData }: { therapistData: any }) => {
 
             {/* Ratings Table - Compact */}
             <div>
-              <h4 className="text-xs font-medium text-gray-900 mb-2">Client Ratings</h4>
+              <h4 className="text-xs font-medium text-gray-900 mb-2">
+                Client Ratings
+              </h4>
               <div className="overflow-x-auto">
                 <table className="table table-auto">
                   <thead>
@@ -1235,43 +1378,48 @@ const TherapistRatings = ({ therapistData }: { therapistData: any }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {enhancedRatings.slice(0, 3).map((rating: any, index: number) => (
-                      <tr key={rating.id || index}>
-                        <td>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-medium">
-                              {rating.client?.firstName?.charAt(0) || 'C'}
+                    {enhancedRatings
+                      .slice(0, 3)
+                      .map((rating: any, index: number) => (
+                        <tr key={rating.id || index}>
+                          <td>
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-medium">
+                                {rating.client?.firstName?.charAt(0) || "C"}
+                              </div>
+                              <div className="text-xs font-medium text-gray-900 truncate">
+                                {rating.client?.firstName || "Unknown"}{" "}
+                                {rating.client?.lastName || "Client"}
+                              </div>
                             </div>
-                            <div className="text-xs font-medium text-gray-900 truncate">
-                              {rating.client?.firstName || 'Unknown'} {rating.client?.lastName || 'Client'}
+                          </td>
+                          <td className="text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {renderStars(rating.value)}
+                              <span className="text-xs font-medium text-gray-900 ml-1">
+                                {rating.value}
+                              </span>
                             </div>
-                          </div>
-                        </td>
-                        <td className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            {renderStars(rating.value)}
-                            <span className="text-xs font-medium text-gray-900 ml-1">
-                              {rating.value}
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="max-w-24">
-                            {rating.comment ? (
-                              <p className="text-xs text-gray-600 line-clamp-1">
-                                "{rating.comment}"
-                              </p>
-                            ) : (
-                              <span className="text-xs text-gray-400 italic">-</span>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td>
+                            <div className="max-w-24">
+                              {rating.comment ? (
+                                <p className="text-xs text-gray-600 line-clamp-1">
+                                  "{rating.comment}"
+                                </p>
+                              ) : (
+                                <span className="text-xs text-gray-400 italic">
+                                  -
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
-              
+
               {enhancedRatings.length > 3 && (
                 <div className="text-center mt-3">
                   <button className="btn btn-xs btn-outline btn-primary">
