@@ -581,7 +581,7 @@ const TherapistSessionCalendar = ({ therapistData, groupMembers }: { therapistDa
       console.log(clientIds, "The ids");
       // Fetch sessions for each group client with this therapist
       const sessionPromises = clientIds.map(clientId => 
-        axiosInstance.get(`/api/v1/session?fields=client.*,therapist.*,schedule,hasTherapistAttended,hasclientAttended&filters=group.id=${clientId}`)
+        axiosInstance.get(`/api/v1/session?fields=client.*,therapist.*,schedule,hasTherapistAttended,hasclientAttended&filters=group.id=${clientId}&take=0`)
       );
       
       const sessionResponses = await Promise.all(sessionPromises);

@@ -2696,9 +2696,9 @@ const Sessions = ({
                               onClick={(e) => e.stopPropagation()}
                             />
                             <div>
-                              <p className="font-medium">{session.groupName || "Session"}</p>
+                              {/* 24hour format */}
                               <p className="text-sm text-gray-600">
-                                Schedule: {new Date(session.schedule).toLocaleString()}
+                                Schedule: {new Date(session.schedule).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
                               </p>
                             </div>
                           </div>

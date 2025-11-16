@@ -440,7 +440,7 @@ const Transactions = ({
   // Helper function to calculate therapist part
   const calculateTherapistPart = (priceWithVat: number, levelType: string): number => {
     const originalPrice = getOriginalPrice(priceWithVat);
-    const levelRate = getConfigValue(levelType?.toUpperCase());
+    const levelRate = getConfigValue(`${levelType?.toUpperCase()}_PRICE_PERCENTAGE`);
     return originalPrice * levelRate;
   };
 
@@ -715,29 +715,6 @@ const Transactions = ({
         },
       },
       {
-        id: "totalPrice",
-        header: ({ column }) => (
-          <DataGridColumnHeader title="Total Price" column={column} />
-        ),
-        enableSorting: false,
-        cell: (info) => {
-          const price = info.row.original.subscription?.price || 0;
-          return (
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-900">
-                {price.toFixed(2)} Birr
-              </span>
-              <span className="text-xs text-gray-500">
-                Total Amount
-              </span>
-            </div>
-          );
-        },
-        meta: {
-          headerClassName: "min-w-[120px]",
-        },
-      },
-      {
         id: "vat",
         header: ({ column }) => (
           <DataGridColumnHeader title="VAT" column={column} />
@@ -768,11 +745,23 @@ const Transactions = ({
         ),
         enableSorting: false,
         cell: (info) => {
-          console.log(info.row.original.subscription.level, "info.row.original.subscription newwwww")
+          const therapistModal = info.row.original.subscription?.modal?.name;
           const price = info.row.original.subscription?.price || 0;
           const levelType = info.row.original.subscription?.level?.type || "";
-          const therapistAmount = calculateTherapistPart(price, levelType);
-          const levelRate = getConfigValue(levelType?.toUpperCase());
+          let therapistAmount = 0;
+          let levelRate = 0;
+          console.log(therapistModal.toLowerCase(), "ttherapist modalllll",therapistModal.toLowerCase().trim() == 'couple therapy' || therapistModal.toLowerCase().trim() == 'group therapy');
+
+          if(therapistModal.toLowerCase().trim() == 'couple therapy' || therapistModal.toLowerCase().trim() == 'group therapy'){
+            levelRate = getConfigValue(`${therapistModal.split(" ")[0].toUpperCase()}_PRICE_PERCENTAGE`);
+            let originalPrice = getOriginalPrice(price);
+            therapistAmount = originalPrice * levelRate;
+          }else{
+            levelRate = getConfigValue(`${levelType?.toUpperCase()}_PRICE_PERCENTAGE`);
+            therapistAmount = calculateTherapistPart(price, levelType);
+          }
+
+
           return (
             <div className="flex flex-col">
               <span className="text-sm font-medium text-gray-900">
@@ -822,8 +811,6 @@ const Transactions = ({
         cell: (info) => {
           const startDate = info.row.original.start_date;
           const endDate = info.row.original.end_date;
-          console.log(startDate, endDate, "the datesssss");
-          console.log(info.row.original, "the row");
           const formatDate = (dateString: string) => {
             try {
               const date = new Date(dateString);

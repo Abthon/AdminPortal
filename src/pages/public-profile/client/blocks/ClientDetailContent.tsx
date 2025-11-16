@@ -302,7 +302,11 @@ interface IPreferenceData {
     code: string;
     createdAt: string;
     updatedAt: string;
-  }[]
+  }[];
+  availability: {
+    day: string;
+    day_period: string;
+  }[];
 }
 
 // Tabbed Content Component
@@ -565,8 +569,9 @@ const ClientPreferences = ({ clientData }: { clientData: IClientDetailData }) =>
     }
     const { data } = await axiosInstance.get(
       //`/api/v1/preference/${preferenceId}?fields=gender,otherLang,goal,level.*`
-      `/api/v1/preference/${preferenceId}?fields=language.*`
+      `/api/v1/preference/${preferenceId}?fields=language.*,gender,goal,availability.*`
     );
+
 
     console.log(data, "The answer to the question")
     return data.data;
@@ -613,6 +618,17 @@ const ClientPreferences = ({ clientData }: { clientData: IClientDetailData }) =>
         : "Not specified",
       icon: "medal-star",
       color: "text-info",
+    },
+    {
+      id: 5,
+      question: "What is your availability?",
+      answer: preferenceData?.availability 
+        ? (preferenceData?.availability && preferenceData.availability.length > 0)
+          ? preferenceData.availability.map(lang => `${lang.day} ${lang.day_period}`).join(", ")
+          : "Not specified"
+        : "Not specified",
+      icon: "message-text",
+      color: "text-success",
     },
   ];
 
@@ -717,7 +733,7 @@ const ClientPreferences = ({ clientData }: { clientData: IClientDetailData }) =>
 const ClientOnboardingQuestions = ({ clientData }: { clientData: IClientDetailData }) => {
   // Fetch answers for the client
   const fetchAnswers = async (): Promise<IAnswerResponse> => {
-    const { data } = await axiosInstance.get(`/api/v1/answer?fields=question.*,singleOption.*,multiOption.*,text&filters=client.id=${clientData.id}`);
+    const { data } = await axiosInstance.get(`/api/v1/answer?fields=question.*,singleOption.*,multiOption.*,text&filters=client.id=${clientData.id}&take=0`);
     return data;
   };
 
