@@ -1,5 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { ITherapistDetailData, ITherapistRating, IMatchResponse, IMatchData } from "@/types/therapist";
+import {
+  ITherapistDetailData,
+  ITherapistRating,
+  IMatchResponse,
+  IMatchData,
+} from "@/types/therapist";
 import { ISessionData, ISessionResponse } from "@/types/session";
 import { KeenIcon, DataGrid, DataGridColumnHeader } from "@/components";
 import { ColumnDef } from "@tanstack/react-table";
@@ -96,7 +101,7 @@ const TherapistDetailContent = ({
       <div className="col-span-1 w-full">
         <div className="w-full">
           <TherapistGeneralInfo therapistData={therapistData} />
-          
+
           {/* License Information */}
           {licenseLoading ? (
             <div className="card mt-4">
@@ -146,7 +151,11 @@ interface ITherapistStats {
   sessionsOverTime: Array<{ date: string; count: string }>;
   usersTreatedOverTime: Array<{ date: string; treatedUsers: string }>;
   revenueOverTime: Array<{ date: string; revenue: number | null }>;
-  therapistHoursPerWeek: Array<{ year: number; week: number; totalHours: string }>;
+  therapistHoursPerWeek: Array<{
+    year: number;
+    week: number;
+    totalHours: string;
+  }>;
 }
 
 // Statistics Component
@@ -175,7 +184,7 @@ const TherapistStatistics = ({
   // Fetch modal data for each license
   const fetchLicenseModals = async () => {
     if (!licenseData?.data || licenseData.data.length === 0) return [];
-    
+
     const modalPromises = licenseData.data.map(async (license: any) => {
       try {
         const { data } = await axiosInstance.get(
@@ -187,9 +196,9 @@ const TherapistStatistics = ({
         return null;
       }
     });
-    
+
     const modalNames = await Promise.all(modalPromises);
-    return modalNames.filter(name => name !== null);
+    return modalNames.filter((name) => name !== null);
   };
 
   const { data: modalNames = [], isLoading: modalLoading } = useQuery({
@@ -217,20 +226,22 @@ const TherapistStatistics = ({
   });
 
   // Fetch therapist statistics - last 7 days
+  // Fetch therapist statistics - last 7 days (fixed date calculation)
+  // Fetch therapist statistics - last 7 days (past week)
   const fetchTherapistStatsWeek = async (): Promise<ITherapistStats> => {
-    const endDate = new Date();
+    const endDate = new Date(); // Today
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 7);
+    startDate.setDate(startDate.getDate() - 7); // 7 days ago
 
     const formatDate = (date: Date) => {
-      return date.toISOString().split('T')[0];
+      return date.toISOString().split("T")[0];
     };
 
     const { data } = await axiosInstance.get(
-      `/api/v1/therapist/stats?startDate=${formatDate(endDate)}&endDate=${formatDate(startDate)}&mockId=${therapistData.id}`
+      `/api/v1/therapist/stats?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}&mockId=${therapistData.id}`
     );
 
-    console.log(data.data, "Per week data");
+    console.log(data.data, "Last 7 days data");
     return data.data;
   };
 
@@ -314,7 +325,9 @@ const TherapistStatistics = ({
         {/* Statistics Grid */}
         <div className="space-y-6 py-4">
           <div className="pt-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">All-Time Statistics</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+              All-Time Statistics
+            </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className="text-3xl font-bold text-primary mb-1">
@@ -364,14 +377,21 @@ const TherapistStatistics = ({
 
           {/* Row 3: Weekly Statistics (Last 7 Days) */}
           <div className="pt-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">Last 7 Days</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+              Last 7 Days
+            </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className="text-3xl font-bold text-primary mb-1">
                   {statsWeekLoading ? (
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                   ) : (
-                    statsWeekData?.totalSessions || 0
+                    statsWeekData?.sessionsOverTime?.reduce(
+                      (total: number, session: any) => {
+                        return total + (parseInt(session.count) || 0);
+                      },
+                      0
+                    ) || 0
                   )}
                 </div>
                 <div className="text-sm text-gray-600">Sessions/Week</div>
@@ -382,7 +402,11 @@ const TherapistStatistics = ({
                   {statsWeekLoading ? (
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                   ) : (
-                    statsWeekData?.totalHours || 0
+                    statsWeekData?.therapistHoursPerWeek
+                      ?.reduce((total: number, week: any) => {
+                        return total + (parseFloat(week.totalHours) || 0);
+                      }, 0)
+                      .toFixed(2) || 0
                   )}
                 </div>
                 <div className="text-sm text-gray-600">Hours/Week</div>
@@ -393,22 +417,28 @@ const TherapistStatistics = ({
                   {statsWeekLoading ? (
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                   ) : (
-                    statsWeekData?.totalRevenue || 0
+                    statsWeekData?.revenueOverTime
+                      ?.reduce((total: number, revenue: any) => {
+                        return (
+                          total + (parseFloat(revenue.revenueOverTime) || 0)
+                        );
+                      }, 0)
+                      .toFixed(2) || 0
                   )}
                 </div>
                 <div className="text-sm text-gray-600">Revenue/Week (ETB)</div>
               </div>
 
               {/*<div className="text-center">
-                <div className="text-3xl font-bold text-info mb-1">
-                  {statsWeekLoading ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                  ) : (
-                    statsWeekData?.totalUsers || 0
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">Users/Week</div>
-              </div>*/}
+      <div className="text-3xl font-bold text-info mb-1">
+        {statsWeekLoading ? (
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+        ) : (
+          statsWeekData?.totalUsers || 0
+        )}
+      </div>
+      <div className="text-sm text-gray-600">Users/Week</div>
+    </div>*/}
             </div>
           </div>
         </div>
@@ -418,12 +448,31 @@ const TherapistStatistics = ({
 };
 
 // General Info Component
+// General Info Component
 const TherapistGeneralInfo = ({
   therapistData,
 }: {
   therapistData: ITherapistDetailData;
 }) => {
   console.log(therapistData, "The therapist Data");
+
+  const fetchTherapistLanguages = async (therapistId: string) => {
+    const { data } = await axiosInstance.get(
+      `/api/v1/therapist/${therapistId}?fields=language.*`
+    );
+
+    console.log("Language Data:", data);
+    return data;
+  };
+
+  // Fetch therapist languages
+  const { data: languagesData, isLoading: languagesLoading } = useQuery({
+    queryKey: ["therapist-languages", therapistData.id],
+    queryFn: () => fetchTherapistLanguages(therapistData.id),
+  });
+
+  const languages = languagesData?.data?.language || [];
+
   const items = [
     { label: "Phone:", info: `+251 ${therapistData.phoneNumber}` },
     { label: "Email:", info: therapistData.email },
@@ -469,40 +518,74 @@ const TherapistGeneralInfo = ({
         </table>
 
         <div className="flex flex-col">
-            {/* Bio Section */}
-            {therapistData.bio && (
-              <div className="border-gray-200">
-                <h4 className="text-sm text-gray-600 mb-2">Bio</h4>
-                <p className="text-sm text-gray-700">{therapistData.bio}</p>
+          {/* Languages Section */}
+          <div className="mt-4 border-gray-200">
+            <h4 className="text-sm text-gray-600 mb-2">Languages</h4>
+            {languagesLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                <span className="text-sm text-gray-600">
+                  Loading languages...
+                </span>
               </div>
-            )}
-
-            {/* Expertise Section */}
-            {therapistData.expertise && therapistData.expertise.length > 0 && (
-              <div className="mt-4 border-gray-200">
-                <h4 className="text-sm text-gray-600 mb-2">Areas of Expertise</h4>
-                <div className="flex flex-wrap gap-2">
-                  {therapistData.expertise.map((exp) => (
-                    <span
-                      key={exp.id}
-                      className="badge badge-primary badge-outline"
-                    >
-                      {exp.expertise}
-                    </span>
-                  ))}
-                </div>
+            ) : languages.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {languages.map((language: any) => (
+                  <span
+                    key={language.id}
+                    className="badge badge-primary badge-outline"
+                  >
+                    {language.name}
+                  </span>
+                ))}
               </div>
+            ) : (
+              <p className="text-sm text-gray-600">No languages specified</p>
             )}
+          </div>
 
-            {/* Bank Information Section */}
-            {therapistData.therapistBank && therapistData.therapistBank.length > 0 && (
+          {/* Bio Section */}
+          {therapistData.bio && (
+            <div className="mt-4 border-gray-200">
+              <h4 className="text-sm text-gray-600 mb-2">Bio</h4>
+              <p className="text-sm text-gray-700">{therapistData.bio}</p>
+            </div>
+          )}
+
+          {/* Expertise Section */}
+          {therapistData.expertise && therapistData.expertise.length > 0 && (
+            <div className="mt-4 border-gray-200">
+              <h4 className="text-sm text-gray-600 mb-2">Areas of Expertise</h4>
+              <div className="flex flex-wrap gap-2">
+                {therapistData.expertise.map((exp) => (
+                  <span
+                    key={exp.id}
+                    className="badge badge-primary badge-outline"
+                  >
+                    {exp.expertise}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Bank Information Section */}
+          {therapistData.therapistBank &&
+            therapistData.therapistBank.length > 0 && (
               <div className="mt-4 border-gray-200">
-                <h4 className="text-sm text-gray-600 mb-2">Bank Account Details</h4>
+                <h4 className="text-sm text-gray-600 mb-2">
+                  Bank Account Details
+                </h4>
                 <div className="space-y-2">
                   {therapistData.therapistBank.map((bank) => (
-                    <div key={bank.id} className="flex items-center gap-2 text-sm">
+                    <div
+                      key={bank.id}
+                      className="flex items-center gap-2 text-sm"
+                    >
                       <span className="text-gray-600">Account:</span>
-                      <span className="font-medium text-gray-900">{bank.accountNumber}</span>
+                      <span className="font-medium text-gray-900">
+                        {bank.accountNumber}
+                      </span>
                       {bank.branch && (
                         <>
                           <span className="text-gray-400">|</span>
@@ -640,6 +723,7 @@ const TherapistTabbedContent = ({
 };
 
 // Sessions Component
+// Sessions Component - Fixed Calendar Logic
 const TherapistSessions = ({
   therapistData,
 }: {
@@ -665,11 +749,6 @@ const TherapistSessions = ({
 
   const sessions = sessionsData?.data || [];
 
-  // Calendar logic
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
   // Group sessions by date using the schedule field
   const sessionsByDate = sessions.reduce(
     (acc: { [key: string]: ISessionData[] }, session) => {
@@ -681,6 +760,37 @@ const TherapistSessions = ({
     {}
   );
 
+  // Fixed calendar logic
+  const getCalendarDays = (date: Date) => {
+    const monthStart = startOfMonth(date);
+    const monthEnd = endOfMonth(date);
+
+    // Get the start day of the week (0 = Sunday, 1 = Monday, etc.)
+    const startDay = monthStart.getDay();
+
+    // Get the end day of the week
+    const endDay = monthEnd.getDay();
+
+    // Calculate days from previous month to show
+    const prevMonthDays = startDay;
+    const prevMonth = new Date(monthStart);
+    prevMonth.setDate(prevMonth.getDate() - prevMonthDays);
+
+    // Calculate days from next month to show
+    const nextMonthDays = 6 - endDay;
+    const nextMonth = new Date(monthEnd);
+    nextMonth.setDate(nextMonth.getDate() + 1);
+
+    // Create array of all days to display
+    const calendarStart = new Date(prevMonth);
+    const calendarEnd = new Date(monthEnd);
+    calendarEnd.setDate(calendarEnd.getDate() + nextMonthDays);
+
+    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  };
+
+  const calendarDays = getCalendarDays(currentDate);
+
   const navigateMonth = (direction: "prev" | "next") => {
     const newDate = new Date(currentDate);
     newDate.setMonth(currentDate.getMonth() + (direction === "next" ? 1 : -1));
@@ -688,10 +798,12 @@ const TherapistSessions = ({
   };
 
   const handleDayClick = (day: Date) => {
+    if (!isSameMonth(day, currentDate)) return;
+
     const dateKey = format(day, "yyyy-MM-dd");
     const daySessions = sessionsByDate[dateKey];
     if (daySessions && daySessions.length > 0) {
-      setSelectedSession(daySessions[0]); // Show first session for that day
+      setSelectedSession(daySessions[0]);
     }
   };
 
@@ -778,10 +890,10 @@ const TherapistSessions = ({
                       key={day.toISOString()}
                       onClick={() => handleDayClick(day)}
                       className={`
-                        p-2 text-sm rounded-lg transition-colors relative
+                        p-2 text-sm rounded-lg transition-colors relative min-h-12
                         ${
                           !isCurrentMonth
-                            ? "text-gray-300 cursor-default"
+                            ? "text-gray-300 bg-gray-50 cursor-default hover:bg-gray-50"
                             : hasSessions
                               ? "bg-primary text-white hover:bg-primary-dark cursor-pointer"
                               : isDayToday
@@ -792,7 +904,7 @@ const TherapistSessions = ({
                       disabled={!isCurrentMonth}
                     >
                       {format(day, "d")}
-                      {hasSessions && (
+                      {hasSessions && isCurrentMonth && (
                         <div className="absolute top-1 right-1 w-2 h-2 bg-warning rounded-full"></div>
                       )}
                     </button>
@@ -801,7 +913,7 @@ const TherapistSessions = ({
               </div>
 
               {/* Legend */}
-              <div className="flex items-center gap-4 text-sm text-gray-600 border-t pt-4">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 border-t pt-4">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-primary rounded"></div>
                   <span>Has Sessions</span>
@@ -813,6 +925,10 @@ const TherapistSessions = ({
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-gray-100 rounded border"></div>
                   <span>Today</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-gray-50 rounded"></div>
+                  <span>Other Month</span>
                 </div>
               </div>
             </div>
@@ -830,7 +946,6 @@ const TherapistSessions = ({
     </div>
   );
 };
-
 // Activity Component
 const TherapistActivity = ({
   therapistData,
@@ -1106,15 +1221,17 @@ const RatingsTable = ({
       <div className="flex justify-between items-center">
         <h4 className="font-medium text-gray-900">Individual Ratings</h4>
         <span className="text-sm text-gray-600">
-          Showing {startIndex + 1}-{Math.min(endIndex, enhancedRatings.length)} of{" "}
-          {enhancedRatings.length} ratings
+          Showing {startIndex + 1}-{Math.min(endIndex, enhancedRatings.length)}{" "}
+          of {enhancedRatings.length} ratings
         </span>
       </div>
 
       {loading ? (
         <div className="flex justify-center items-center py-8">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-          <span className="ml-2 text-gray-600">Loading client information...</span>
+          <span className="ml-2 text-gray-600">
+            Loading client information...
+          </span>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -1144,16 +1261,28 @@ const RatingsTable = ({
                   <td className="border border-gray-200 px-4 py-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={rating.client?.avatar ? `${BASE_URL}/avatars/${rating.client.avatar}.png` : avatar}
-                        alt={rating.client ? `${rating.client.firstName} ${rating.client.lastName}` : "Client"}
+                        src={
+                          rating.client?.avatar
+                            ? `${BASE_URL}/avatars/${rating.client.avatar}.png`
+                            : avatar
+                        }
+                        alt={
+                          rating.client
+                            ? `${rating.client.firstName} ${rating.client.lastName}`
+                            : "Client"
+                        }
                         className="w-8 h-8 rounded-full object-cover"
                       />
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-gray-900">
-                          {rating.client ? `${rating.client.firstName} ${rating.client.lastName}` : "Unknown Client"}
+                          {rating.client
+                            ? `${rating.client.firstName} ${rating.client.lastName}`
+                            : "Unknown Client"}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {rating.client?.username ? `@${rating.client.username}` : ""}
+                          {rating.client?.username
+                            ? `@${rating.client.username}`
+                            : ""}
                         </span>
                       </div>
                     </div>
@@ -1165,18 +1294,18 @@ const RatingsTable = ({
                         {rating.value}/5
                       </span>
                     </div>
-                </td>
-                <td className="border border-gray-200 px-4 py-3">
-                  <div className="text-sm text-gray-700 max-w-xs">
-                    {rating.comment || (
-                      <span className="text-gray-400 italic">No comment</span>
-                    )}
-                  </div>
-                </td>
-                <td className="border border-gray-200 px-4 py-3">
-                  <div className="text-sm text-gray-500">
-                    {timeAgo(rating.createdAt)}
-                  </div>
+                  </td>
+                  <td className="border border-gray-200 px-4 py-3">
+                    <div className="text-sm text-gray-700 max-w-xs">
+                      {rating.comment || (
+                        <span className="text-gray-400 italic">No comment</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="border border-gray-200 px-4 py-3">
+                    <div className="text-sm text-gray-500">
+                      {timeAgo(rating.createdAt)}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -1198,6 +1327,7 @@ const TherapistSessionDetailCard = ({
   session: ISessionData;
   onClose: () => void;
 }) => {
+  console.log("session here we go", session.client);
   const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
   const therapistImage = session.therapist.profile
@@ -1391,23 +1521,27 @@ const TherapistClients = ({
     pageSize: number;
     sort: any;
   }) {
-    const statusFilter = filterInput && filterInput !== "all" ? `client.status:=${filterInput}` : "";
+    const statusFilter =
+      filterInput && filterInput !== "all"
+        ? `client.status:=${filterInput}`
+        : "";
     const filters = statusFilter ? `&filters=${statusFilter}` : "";
     const url = `/api/v1/match?fields=client.*&filters=accepted.id=${therapistData.id}${statusFilter ? `,${statusFilter}` : ""}&take=${pageSize}&page=${pageIndex}`;
-    
+
     const { data } = await axiosInstance.get(url);
-    
+
     // Calculate items on current page
-    const startIndex = (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
     const endIndex = Math.min(
       data.pagination.currentPage * data.pagination.pageSize,
       data.pagination.totalItems
     );
     const itemsOnPage = endIndex - startIndex + 1;
-    
+
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
-    
+
     return data;
   }
 
@@ -1423,15 +1557,18 @@ const TherapistClients = ({
     search: any;
     sort: any;
   }) {
-    const statusFilter = filterInput && filterInput !== "all" ? `,client.status:=${filterInput}` : "";
-    
+    const statusFilter =
+      filterInput && filterInput !== "all"
+        ? `,client.status:=${filterInput}`
+        : "";
+
     // Handle search input - API supports comma separation
     const searchTerm = search.trim();
     let searchFilters = `accepted.id=${therapistData.id}`;
-    
+
     if (searchTerm) {
       // Check if search contains space (likely full name)
-      if (searchTerm.includes(' ')) {
+      if (searchTerm.includes(" ")) {
         const searchParts = searchTerm.split(/\s+/);
         // Search for first name and last name matching the parts
         //searchFilters += `,client.firstName=${searchParts[0]},client.lastName=${searchParts[1]}`;
@@ -1441,35 +1578,39 @@ const TherapistClients = ({
         searchFilters += `,client.firstName=${searchTerm}`;
       }
     }
-    
+
     const url = `/api/v1/match?fields=client.*&filters=${searchFilters}${statusFilter}&take=${pageSize}&page=${pageIndex}`;
-    
+
     const { data } = await axiosInstance.get(url);
-    
+
     // Calculate items on current page
-    const startIndex = (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
+    const startIndex =
+      (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
     const endIndex = Math.min(
       data.pagination.currentPage * data.pagination.pageSize,
       data.pagination.totalItems
     );
     const itemsOnPage = endIndex - startIndex + 1;
-    
+
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
-    
+
     return data;
   }
 
   // Revalidate clients for filtering
   async function revalidateTherapistClients() {
-    const statusFilter = filterInput && filterInput !== "all" ? `,client.status:=${filterInput}` : "";
-    
+    const statusFilter =
+      filterInput && filterInput !== "all"
+        ? `,client.status:=${filterInput}`
+        : "";
+
     // Handle search input using debounced value
     let searchFilters = `accepted.id=${therapistData.id}`;
     if (debouncedSearchInput && debouncedSearchInput.trim()) {
       const searchTerm = debouncedSearchInput.trim();
       // Check if search contains space (likely full name)
-      if (searchTerm.includes(' ')) {
+      if (searchTerm.includes(" ")) {
         const searchParts = searchTerm.split(/\s+/);
         // Search for first name and last name matching the parts
         searchFilters += `,client.firstName=${searchParts[0]},client.lastName=${searchParts[1]}`;
@@ -1478,9 +1619,9 @@ const TherapistClients = ({
         searchFilters += `,client.firstName=${searchTerm}`;
       }
     }
-    
+
     const url = `/api/v1/match?fields=client.*&filters=${searchFilters}${statusFilter}`;
-    
+
     const { data } = await axiosInstance.get(url);
     setTotalItems(data.pagination?.totalItems || data.data.length);
     return data;
@@ -1488,7 +1629,12 @@ const TherapistClients = ({
 
   // Use query for revalidation when filters change
   const { data: clientsData } = useQuery({
-    queryKey: ["therapist-clients", therapistData.id, filterInput, debouncedSearchInput],
+    queryKey: [
+      "therapist-clients",
+      therapistData.id,
+      filterInput,
+      debouncedSearchInput,
+    ],
     queryFn: revalidateTherapistClients,
   });
 
@@ -1499,7 +1645,11 @@ const TherapistClients = ({
         accessorFn: (row) => row.client.firstName,
         id: "client",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Client" column={column} className="min-w-[200px]"/>
+          <DataGridColumnHeader
+            title="Client"
+            column={column}
+            className="min-w-[200px]"
+          />
         ),
         enableSorting: true,
         cell: ({ row }) => {
@@ -1525,14 +1675,20 @@ const TherapistClients = ({
                     <KeenIcon icon="email" className="text-xs" />
                     <span>{client.email}</span>
                     {client.isEmailAuthenticated && (
-                      <KeenIcon icon="verify" className="text-primary text-xs" />
+                      <KeenIcon
+                        icon="verify"
+                        className="text-primary text-xs"
+                      />
                     )}
                   </div>
                   <div className="flex items-center gap-1">
                     <KeenIcon icon="phone" className="text-xs" />
                     <span>+251{client.phoneNumber}</span>
                     {client.isPhoneNumberAuthenticated && (
-                      <KeenIcon icon="verify" className="text-primary text-xs" />
+                      <KeenIcon
+                        icon="verify"
+                        className="text-primary text-xs"
+                      />
                     )}
                   </div>
                 </div>
@@ -1555,18 +1711,24 @@ const TherapistClients = ({
           return (
             <span
               className={`badge badge-sm ${
-                client.status === "active" ? "badge-success" :
-                client.status === "pending" ? "badge-primary" :
-                client.status === "inactive" ? "badge-warning" :
-                "badge-danger"
+                client.status === "active"
+                  ? "badge-success"
+                  : client.status === "pending"
+                    ? "badge-primary"
+                    : client.status === "inactive"
+                      ? "badge-warning"
+                      : "badge-danger"
               } badge-outline rounded-[30px]`}
             >
               <span
                 className={`size-1.5 rounded-full ${
-                  client.status === "active" ? "bg-success" :
-                  client.status === "pending" ? "bg-primary" :
-                  client.status === "inactive" ? "bg-warning" :
-                  "bg-danger"
+                  client.status === "active"
+                    ? "bg-success"
+                    : client.status === "pending"
+                      ? "bg-primary"
+                      : client.status === "inactive"
+                        ? "bg-warning"
+                        : "bg-danger"
                 } me-1.5`}
               ></span>
               {client.status}
@@ -1606,7 +1768,10 @@ const TherapistClients = ({
     []
   );
 
-  const data: IMatchData[] = useMemo(() => clientsData?.data ?? [], [clientsData]);
+  const data: IMatchData[] = useMemo(
+    () => clientsData?.data ?? [],
+    [clientsData]
+  );
 
   // Toolbar - memoized with React.memo to prevent re-renders
   const Toolbar = useMemo(
