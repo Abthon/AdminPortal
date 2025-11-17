@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toAbsoluteUrl } from "@/utils";
 import { DataGridLoader } from "@/components/data-grid";
 import avatar from "@/media/avatars/blank.png";
@@ -569,7 +569,12 @@ const GroupTherapy = ({
                           />
                           <div className="flex-1">
                             <p className="text-base font-medium text-gray-900">
+                            <Link
+                              className="text-sm font-medium text-gray-900 hover:text-primary-active"
+                              to={`/therapists/${therapist.id}`}
+                            >
                               {therapist.firstName} {therapist.lastName}
+                            </Link>
                             </p>
                             <p className="text-sm text-gray-500">{therapist.email}</p>
                           </div>

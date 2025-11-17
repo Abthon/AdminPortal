@@ -220,7 +220,7 @@ const TherapistStatistics = ({
   const fetchTherapistStatsWeek = async (): Promise<ITherapistStats> => {
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() + 9);
+    startDate.setDate(startDate.getDate() - 7);
 
     const formatDate = (date: Date) => {
       return date.toISOString().split('T')[0];

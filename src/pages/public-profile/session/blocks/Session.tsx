@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { DataGridLoader } from "@/components/data-grid";
 import avatar from "@/media/avatars/blank.png";
 import {Link} from "react-router-dom";
-
 import {
   DataGrid,
   DataGridColumnHeader,
@@ -144,6 +143,7 @@ interface ISessionsData {
     old_price: number | null;
     price: number | null;
   };
+  groupClients?: string[];
 }
 
 const Sessions = ({
@@ -236,6 +236,7 @@ const Sessions = ({
   const [selectedUsersToRemove, setSelectedUsersToRemove] = useState<string[]>([]);
   const [clientModal, setClientModal] = useState<string>("");
   const [clientId, setClientId] = useState<string>("");
+  const [clientsId, setClientsId] = useState<string[]>([]);
   const [therpaistId, setTherapistId] = useState<string>("");
 
   useEffect(() => {
@@ -486,7 +487,7 @@ const Sessions = ({
   // Fetch therapists for session creation
   async function fetchTherapists(search: string = "") {
     const url = search
-      ? `/api/v1/therapist?filters=firstName=${search}&fields=id,firstName,lastName,profile&filters=license.modal.id:=${clientModal}`
+      ? `/api/v1/therapist?filters=firstName=${search},license.modal.id:=${clientModal}&fields=id,firstName,lastName,profile`
       : `/api/v1/therapist?fields=id,firstName,lastName,profile&filters=license.modal.id:=${clientModal}`;
     const { data } = await axiosInstance.get(url);
     return data;
@@ -522,10 +523,12 @@ const Sessions = ({
 
   // Fetch users for adding to session
   async function fetchUsers(search: string = "") {
+    console.log(clientModal, "My modalll");
     const url = search
-      ? `/api/v1/client?filters=firstName=${search}&fields=id,firstName,lastName,profile,email`
-      : `/api/v1/client?fields=id,firstName,lastName,profile,email`;
+      ? `/api/v1/client?filters=firstName=${search},isInGroup=0,preference.modal.id=${clientModal},isInGroup=0&fields=id,firstName,lastName,profile,email`
+      : `/api/v1/client?fields=id,firstName,lastName,profile,email&filters=preference.modal.id=aa4c9839-e031-417a-b319-2da4bf1092c3,isInGroup=0,`;
     const { data } = await axiosInstance.get(url);
+    console.log(data, "the length");
     return data;
   }
 
@@ -786,6 +789,7 @@ const Sessions = ({
     setReassignModalOpen(true);
     setClientModal(sessionData.modal?.id || "");
     setClientId(sessionData.client?.id || "");
+    setClientsId(sessionData.groupClients || []);
     setTherapistId(sessionData.therapist?.id || "");
     setLoadingSessions(true);
     setSelectedSessionIds([]);
@@ -850,13 +854,15 @@ const Sessions = ({
   // Reassign therapist mutation
   const reassignMatchMutation= useMutation(
     async ({ clientId, therapistId }: { clientId: string, therapistId: string }) => {
+      console.log(clientId, "The clientID");
       // Patch each selected session with the new therapist
       const res = await axiosInstance.get(`/api/v1/client/${clientId}?fields=match.*,preference.*`)
-      const preferenceId = res.data.data.preference.id;
-      const promises = res.data.data.match.map((matchId: string) =>
-        axiosInstance.patch(`/api/v1/match/${matchId}`, {
+      const preferenceId = res.data.data.preference?.[0].id;
+      console.log(preferenceId, "The preferanceID");
+      const promises = res.data.data.match.map((match: any) =>
+        axiosInstance.patch(`/api/v1/match/${match.id}`, {
           preferenceId: preferenceId,
-          therapistId: therapistId,
+          accepted: therapistId,
         })
       );
       await Promise.all(promises);
@@ -866,7 +872,7 @@ const Sessions = ({
     {
       onSuccess: () => {
         queryClient.invalidateQueries(["Sessions"]);
-        toast("Therapist reassigned successfully!");
+        toast("Match reassigned successfully!");
         setReassignModalOpen(false);
         setSelectedSessionIds([]);
         setNewTherapistId("");
@@ -878,6 +884,27 @@ const Sessions = ({
     }
   );
 
+  const createChatMutation = useMutation(
+    async ({ clientId, therapistId }: { clientId: string, therapistId: string }) => {
+      const res = await axiosInstance.post(`/api/v1/chat?mockId=${therapistId}`, {
+        client: clientId,
+        therapist: therapistId,
+      })
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["Sessions"]);
+        toast("Chat created successfully!");
+        setReassignModalOpen(false);
+        setSelectedSessionIds([]);
+        setNewTherapistId("");
+      },
+      onError: (error: any) => {
+        console.error("Error reassigning therapist:", error);
+        toast(error?.message || "Failed to reassign therapist");
+      },
+    }
+  );
 
   // Handle reassigning therapist
   const handleReassignTherapist = () => {
@@ -891,11 +918,20 @@ const Sessions = ({
       return;
     }
 
-    //reassignTherapistMutation.mutate({
-    //  sessionIds: selectedSessionIds,
-    //  therapistId: newTherapistId,
-    //});
+    //reassign therapist
+    reassignTherapistMutation.mutate({
+      sessionIds: selectedSessionIds,
+      therapistId: newTherapistId,
+    });
+
+    //reassign match
     reassignMatchMutation.mutate({
+      clientId: clientId,
+      therapistId: newTherapistId,
+    });
+
+    ////create chat
+    createChatMutation.mutate({
       clientId: clientId,
       therapistId: newTherapistId,
     });
@@ -1369,6 +1405,7 @@ const Sessions = ({
                 e.stopPropagation();
                 e.nativeEvent.stopImmediatePropagation();
                 handleOpenAddToSession(row.original.id);
+                setClientModal(row.original?.modal?.id || "");
               }}
               size="sm"
               variant="outline"
