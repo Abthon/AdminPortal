@@ -234,8 +234,10 @@ const Transactions = ({
       remainingFilters.push(`subscription.status:=${statusFilter}`);
     }
     
-    // Note: Modal filter is not supported by user-sub endpoint due to nested relationship limitations
-    // Modal filtering would need to be done client-side after fetching data
+    // Add modal filter
+    if (modalFilter && modalFilter !== "all") {
+      remainingFilters.push(`subscription.modal.id:=${modalFilter}`);
+    }
     
     // Add remaining filters if any
     if (remainingFilters.length > 0) {
@@ -304,8 +306,10 @@ const Transactions = ({
       remainingFilters.push(`subscription.status:=${statusFilter}`);
     }
     
-    // Note: Modal filter is not supported by user-sub endpoint due to nested relationship limitations
-    // Modal filtering would need to be done client-side after fetching data
+    // Add modal filter
+    if (modalFilter && modalFilter !== "all") {
+      remainingFilters.push(`subscription.modal.id:=${modalFilter}`);
+    }
     
     // Add remaining filters if any
     if (remainingFilters.length > 0) {
@@ -358,8 +362,10 @@ const Transactions = ({
       remainingFilters.push(`subscription.status:=${statusFilter}`);
     }
     
-    // Note: Modal filter is not supported by user-sub endpoint due to nested relationship limitations
-    // Modal filtering would need to be done client-side after fetching data
+    // Add modal filter
+    if (modalFilter && modalFilter !== "all") {
+      remainingFilters.push(`subscription.modal.id:=${modalFilter}`);
+    }
     
     // Add remaining filters if any
     if (remainingFilters.length > 0) {
@@ -386,7 +392,7 @@ const Transactions = ({
   }
 
   const { isLoading: isTransactionLoading, data: TransactionData } = useQuery({
-    queryKey: ["Transactions", searchInput, dateFilter, statusFilter],
+    queryKey: ["Transactions", searchInput, dateFilter, statusFilter, modalFilter],
     queryFn: revalidateTransaction,
     refetchInterval: 50000,
     refetchIntervalInBackground: true,
@@ -1075,10 +1081,8 @@ const Transactions = ({
               </SelectContent>
             </Select>*/}
 
-            {/* Modal Type Filter - DISABLED: Backend doesn't support nested filtering (client.preference.modal)
-                API limitation: user-sub endpoint can only nest one level deep
-                TODO: Implement client-side filtering if needed */}
-            {/* <Select
+            {/* Modal Type Filter */}
+            <Select
               value={modalFilter}
               onValueChange={handleModalFilterChange}
               defaultValue="all"
@@ -1094,7 +1098,7 @@ const Transactions = ({
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select> */}
+            </Select>
 
             <div className="flex items-center gap-2">
               {/* Start Date Filter */}

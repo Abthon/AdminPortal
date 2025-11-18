@@ -175,10 +175,22 @@ const Matches = ({
     
     setIsAssigning(true);
     try {
-      await axiosInstance.post(
-        `/api/v1/match/accept?mockId=${therapistId}`,
-        { matchId: selectedMatch.id }
+      // Step 1: Get client preference for the match
+      const { data: clientData } = await axiosInstance.get(
+        `/api/v1/client/${selectedMatch.client.id}?fields=preference.*`
       );
+      const preferenceId = clientData?.data?.preference?.[0]?.id;
+      
+      if (!preferenceId) {
+        toast.error('Client has no preference set');
+        return;
+      }
+      
+      // Step 2: Patch the existing match with the therapist
+      await axiosInstance.patch(`/api/v1/match/${selectedMatch.id}`, {
+        preferenceId: preferenceId,
+        accepted: therapistId,
+      });
       
       toast.success('Therapist assigned successfully!');
       setIsModalOpen(false);

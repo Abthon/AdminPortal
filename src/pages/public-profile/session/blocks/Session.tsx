@@ -531,6 +531,7 @@ const Sessions = ({
     console.log(data, "the length");
     return data;
   }
+  
 
   const { isLoading: isSessionLoading, data: SessionData } = useQuery({
     queryKey: ["Sessions", searchInput, dateFilter, modalFilter, searchType],
@@ -858,15 +859,14 @@ const Sessions = ({
       // Patch each selected session with the new therapist
       const res = await axiosInstance.get(`/api/v1/client/${clientId}?fields=match.*,preference.*`)
       const preferenceId = res.data.data.preference?.[0].id;
-      console.log(preferenceId, "The preferanceID");
       const promises = res.data.data.match.map((match: any) =>
         axiosInstance.patch(`/api/v1/match/${match.id}`, {
           preferenceId: preferenceId,
           accepted: therapistId,
         })
       );
+
       await Promise.all(promises);
-      console.log(res.data.data.match, "The res");
     },
   
     {
@@ -886,22 +886,37 @@ const Sessions = ({
 
   const createChatMutation = useMutation(
     async ({ clientId, therapistId }: { clientId: string, therapistId: string }) => {
+      // First check if chat already exists between client and therapist
+      const existingChatRes = await axiosInstance.get(`/api/v1/chat?fields=client.*,therapist.*&filters=therapist.id:=${therapistId},client.id:=${clientId}`);
+      
+      if (existingChatRes.data.data && existingChatRes.data.data.length > 0) {
+        // Chat already exists, delete it first
+        const existingChatId = existingChatRes.data.data[0].id;
+        await axiosInstance.delete(`/api/v1/chat/${existingChatId}`);
+        toast("Existing chat deleted, creating new one...");
+      }
+      
+      // Create a new chat
       const res = await axiosInstance.post(`/api/v1/chat?mockId=${therapistId}`, {
         client: clientId,
         therapist: therapistId,
-      })
+      });
+      
+      return res.data;
     },
     {
-      onSuccess: () => {
+      onSuccess: (data) => {
         queryClient.invalidateQueries(["Sessions"]);
-        toast("Chat created successfully!");
+        if (data && data.id) {
+          toast("Chat created successfully!");
+        }
         setReassignModalOpen(false);
         setSelectedSessionIds([]);
         setNewTherapistId("");
       },
       onError: (error: any) => {
-        console.error("Error reassigning therapist:", error);
-        toast(error?.message || "Failed to reassign therapist");
+        console.error("Error creating/checking chat:", error);
+        toast(error?.message || "Failed to create chat");
       },
     }
   );
