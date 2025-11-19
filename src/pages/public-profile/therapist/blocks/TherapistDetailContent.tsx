@@ -91,6 +91,7 @@ const TherapistDetailContent = ({
   console.log(therapistData, "gow gow therapist");
 
   return (
+    <div className="max-w-7xl mx-auto">
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5 mb-4">
       {/* Statistics Header - Full Width */}
       <div className="col-span-1 lg:col-span-3 translate-y-[-70px]">
@@ -134,6 +135,7 @@ const TherapistDetailContent = ({
           <TherapistTabbedContent therapistData={therapistData} />
         </div>
       </div>
+    </div>
     </div>
   );
 };
@@ -730,9 +732,8 @@ const TherapistSessions = ({
   therapistData: ITherapistDetailData;
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedSession, setSelectedSession] = useState<ISessionData | null>(
-    null
-  );
+  const [selectedSessions, setSelectedSessions] = useState<ISessionData[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Fetch sessions for the therapist
   const fetchSessions = async (): Promise<ISessionResponse> => {
@@ -803,7 +804,11 @@ const TherapistSessions = ({
     const dateKey = format(day, "yyyy-MM-dd");
     const daySessions = sessionsByDate[dateKey];
     if (daySessions && daySessions.length > 0) {
-      setSelectedSession(daySessions[0]);
+      setSelectedSessions(daySessions);
+      setSelectedDate(day);
+    } else {
+      setSelectedSessions([]);
+      setSelectedDate(null);
     }
   };
 
@@ -881,31 +886,38 @@ const TherapistSessions = ({
                 {/* Calendar days */}
                 {calendarDays.map((day) => {
                   const dateKey = format(day, "yyyy-MM-dd");
-                  const hasSessions = sessionsByDate[dateKey]?.length > 0;
+                  const daySessions = sessionsByDate[dateKey];
+                  const hasSessions = daySessions && daySessions.length > 0;
+                  const sessionCount = daySessions?.length || 0;
                   const isCurrentMonth = isSameMonth(day, currentDate);
                   const isDayToday = isToday(day);
+                  const isSelected = selectedDate && isSameDay(day, selectedDate);
 
                   return (
                     <button
                       key={day.toISOString()}
                       onClick={() => handleDayClick(day)}
                       className={`
-                        p-2 text-sm rounded-lg transition-colors relative min-h-12
+                        p-2 text-sm rounded-lg transition-colors relative min-h-12 flex flex-col items-center justify-center
                         ${
                           !isCurrentMonth
                             ? "text-gray-300 bg-gray-50 cursor-default hover:bg-gray-50"
-                            : hasSessions
-                              ? "bg-primary text-white hover:bg-primary-dark cursor-pointer"
-                              : isDayToday
-                                ? "bg-gray-100 text-primary font-semibold hover:bg-gray-200 cursor-pointer"
-                                : "text-gray-700 hover:bg-gray-100 cursor-pointer"
+                            : isSelected
+                              ? "bg-primary text-white ring-2 ring-primary-dark cursor-pointer"
+                              : hasSessions
+                                ? "bg-primary text-white hover:bg-primary-dark cursor-pointer"
+                                : isDayToday
+                                  ? "bg-gray-100 text-primary font-semibold hover:bg-gray-200 cursor-pointer"
+                                  : "text-gray-700 hover:bg-gray-100 cursor-pointer"
                         }
                       `}
                       disabled={!isCurrentMonth}
                     >
-                      {format(day, "d")}
-                      {hasSessions && isCurrentMonth && (
-                        <div className="absolute top-1 right-1 w-2 h-2 bg-warning rounded-full"></div>
+                      <span>{format(day, "d")}</span>
+                      {hasSessions && isCurrentMonth && sessionCount > 0 && (
+                        <span className="text-[10px] mt-0.5 font-semibold">
+                          {sessionCount} {sessionCount === 1 ? 'session' : 'sessions'}
+                        </span>
                       )}
                     </button>
                   );
@@ -937,10 +949,14 @@ const TherapistSessions = ({
       </div>
 
       {/* Session Details Card */}
-      {selectedSession && (
-        <TherapistSessionDetailCard
-          session={selectedSession}
-          onClose={() => setSelectedSession(null)}
+      {selectedSessions.length > 0 && selectedDate && (
+        <TherapistSessionsDetailCard
+          sessions={selectedSessions}
+          selectedDate={selectedDate}
+          onClose={() => {
+            setSelectedSessions([]);
+            setSelectedDate(null);
+          }}
         />
       )}
     </div>
@@ -1319,30 +1335,33 @@ const RatingsTable = ({
   );
 };
 
-// Therapist Session Detail Card Component
-const TherapistSessionDetailCard = ({
-  session,
+// Therapist Sessions Detail Card Component - Shows multiple sessions in a scrollable table
+const TherapistSessionsDetailCard = ({
+  sessions,
+  selectedDate,
   onClose,
 }: {
-  session: ISessionData;
+  sessions: ISessionData[];
+  selectedDate: Date;
   onClose: () => void;
 }) => {
-  console.log("session here we go", session.client);
   const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
-
-  const therapistImage = session.therapist.profile
-    ? `${BASE_URL}/${session.therapist.profile}`
-    : avatar;
-
-  const clientImage = session.client.profile
-    ? `${BASE_URL}/${session.client.profile}`
-    : avatar;
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
+  
+  const sortedSessions = sessions.sort((a, b) => new Date(a.schedule).getTime() - new Date(b.schedule).getTime());
+  const totalPages = Math.ceil(sortedSessions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentSessions = sortedSessions.slice(startIndex, endIndex);
 
   return (
     <div className="card">
       <div className="card-header">
         <div className="flex items-center justify-between">
-          <h3 className="card-title">Session Details</h3>
+          <h3 className="card-title">
+            Sessions on {format(selectedDate, "MMMM dd, yyyy")} ({sessions.length} {sessions.length === 1 ? 'session' : 'sessions'})
+          </h3>
           <button
             onClick={onClose}
             className="btn btn-sm btn-icon btn-clear btn-primary"
@@ -1351,137 +1370,152 @@ const TherapistSessionDetailCard = ({
           </button>
         </div>
       </div>
-      <div className="card-body">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Therapist Info */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">
-              Therapist
-            </h4>
-            <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
-              <img
-                src={therapistImage}
-                alt={`${session.therapist.firstName} ${session.therapist.lastName}`}
-                className="w-16 h-16 rounded-full object-cover border-2 border-blue-200"
-              />
-              <div className="flex-1">
-                <h5 className="font-semibold text-gray-900">
-                  {session.therapist.firstName} {session.therapist.lastName}
-                </h5>
-                <p className="text-sm text-gray-600">
-                  {session.therapist.email}
-                </p>
-                <p className="text-sm text-gray-600">
-                  +251{session.therapist.phoneNumber}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span
-                    className={`badge badge-sm ${
-                      session.therapist.status === "active"
-                        ? "badge-success"
-                        : session.therapist.status === "pending"
-                          ? "badge-primary"
-                          : session.therapist.status === "inactive"
-                            ? "badge-warning"
-                            : "badge-danger"
-                    } badge-outline`}
-                  >
-                    {session.therapist.status}
-                  </span>
-                  {session.therapist.verified && (
-                    <span className="badge badge-sm badge-primary badge-outline">
-                      <KeenIcon icon="verify" className="text-xs me-1" />
-                      Verified
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="card-body p-0">
+        <div className="overflow-x-auto">
+          <table className="table table-auto table-border">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left min-w-20">Time</th>
+                <th className="text-left min-w-48">Therapist</th>
+                <th className="text-left min-w-48">Client</th>
+                <th className="text-left min-w-32">Status</th>
+                <th className="text-left min-w-32">Client Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentSessions.map((session, index) => {
+                  const therapistImage = session.therapist?.profile
+                    ? `${BASE_URL}/${session.therapist.profile}`
+                    : avatar;
 
-          {/* Client Info */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">
-              Matched Client
-            </h4>
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <img
-                src={clientImage}
-                alt={`${session.client.firstName} ${session.client.lastName}`}
-                className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-              />
-              <div className="flex-1">
-                <h5 className="font-semibold text-gray-900">
-                  {session.client.firstName} {session.client.lastName}
-                </h5>
-                <p className="text-sm text-gray-600">
-                  @{session.client.username}
-                </p>
-                <p className="text-sm text-gray-600">
-                  +251{session.client.phoneNumber}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span
-                    className={`badge badge-sm ${
-                      session.client.status === "active"
-                        ? "badge-success"
-                        : session.client.status === "pending"
-                          ? "badge-primary"
-                          : session.client.status === "inactive"
-                            ? "badge-warning"
-                            : "badge-danger"
-                    } badge-outline`}
-                  >
-                    {session.client.status}
-                  </span>
-                  {session.client.isOnline && (
-                    <span className="badge badge-sm badge-success badge-outline">
-                      Online
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+                  const clientImage = session.client?.profile
+                    ? `${BASE_URL}/${session.client.profile}`
+                    : avatar;
+
+                  return (
+                    <tr key={session.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      {/* Time Column */}
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <KeenIcon icon="time" className="text-primary text-lg relative z-0" />
+                          <div>
+                            <div className="text-lg font-semibold text-gray-900">
+                              {format(new Date(session.schedule), "HH:mm")}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Session {startIndex + index + 1}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Therapist Column */}
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={therapistImage}
+                            alt={`${session.therapist?.firstName || 'Unknown'} ${session.therapist?.lastName || 'Therapist'}`}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-blue-200"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-gray-900 truncate">
+                              {session.therapist?.firstName || 'Unknown'} {session.therapist?.lastName || 'Therapist'}
+                            </div>
+                            <div className="text-sm text-gray-600 truncate">
+                              {session.therapist?.email || 'No email'}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              +251{session.therapist?.phoneNumber || 'No phone'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Client Column */}
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={clientImage}
+                            alt={`${session.client?.firstName || 'Unknown'} ${session.client?.lastName || 'Client'}`}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-gray-900 truncate">
+                              {session.client?.firstName || 'Unknown'} {session.client?.lastName || 'Client'}
+                            </div>
+                            <div className="text-sm text-gray-600 truncate">
+                              @{session.client?.username || 'no-username'}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              +251{session.client?.phoneNumber || 'No phone'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Session Status Column */}
+                      <td className="py-4 px-4">
+                        <span className={`badge ${session.hasTherapistAttended ? 'badge-success' : 'badge-warning'} badge-outline`}>
+                          {session.hasTherapistAttended ? "Attended" : "Not Attended"}
+                        </span>
+                      </td>
+
+                      {/* Client Status Column */}
+                      <td className="py-4 px-4">
+                        <div className="flex flex-col gap-1">
+                          <span
+                            className={`badge badge-sm ${
+                              session.client?.status === "active"
+                                ? "badge-success"
+                                : session.client?.status === "pending"
+                                  ? "badge-primary"
+                                  : session.client?.status === "inactive"
+                                    ? "badge-warning"
+                                    : "badge-danger"
+                            } badge-outline`}
+                          >
+                            {session.client?.status || 'unknown'}
+                          </span>
+                          {session.client?.isOnline && (
+                            <span className="badge badge-xs badge-success badge-outline">
+                              Online
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
         </div>
-
-        {/* Session Info */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-lg font-semibold text-gray-900 mb-3">
-            Session Information
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-600">
-                Session Status
-              </label>
-              <span className="badge badge-sm badge-primary badge-outline w-fit">
-                {session.hasTherapistAttended ? "Attended" : "Not Attended"}
+        
+        {/* Pagination */}
+        <div className="card-footer">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-600 mr-2">
+              Showing {startIndex + 1}-{Math.min(endIndex, sortedSessions.length)} of {sortedSessions.length} sessions
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="btn btn-sm btn-outline btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <KeenIcon icon="left" />
+                Previous
+              </button>
+              <span className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
               </span>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                Scheduled Date
-              </label>
-              <p className="text-sm text-gray-900">
-                {format(new Date(session.schedule), "MMM dd, yyyy")}
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                Scheduled Time
-              </label>
-              <p className="text-sm text-gray-900">
-                {format(new Date(session.schedule), "HH:mm")}
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">
-                Client Last Seen
-              </label>
-              <p className="text-sm text-gray-900">
-                {timeAgo(session.client.lastSeenAt)}
-              </p>
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="btn btn-sm btn-outline btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+                <KeenIcon icon="right" />
+              </button>
             </div>
           </div>
         </div>

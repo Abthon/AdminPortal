@@ -107,6 +107,8 @@ interface ITransactionData {
   status: string;
   start_date: string;
   end_date: string;
+  price: number | null; // Historical price paid for this transaction
+  old_price: number | null; // Previous price if any
   createdAt: string;
   client: IClientDetailData & {
     preference?: {
@@ -216,7 +218,7 @@ const Transactions = ({
     queryParams.push(`page=${pageIndex}`);
     //queryParams.push(`sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`);
     queryParams.push(`sort=createdAt=DESC`)
-    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,createdAt`);
+    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,createdAt`);
     
     // Add date parameters
     if (dateFilter.startDate) {
@@ -283,7 +285,7 @@ const Transactions = ({
     queryParams.push(`page=${pageIndex}`);
     //queryParams.push(`sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`);
     queryParams.push(`sort=createdAt=DESC`)
-    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,createdAt`);
+    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,createdAt`);
     
     // Add date parameters
     if (dateFilter.startDate) {
@@ -338,7 +340,7 @@ const Transactions = ({
     let queryParams: string[] = [];
     
     // Add fields and sorting
-    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,createdAt`);
+    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,createdAt`);
     queryParams.push(`sort=createdAt=DESC`);
     
     // Add date parameters
@@ -655,8 +657,9 @@ const Transactions = ({
         ),
         enableSorting: false,
         cell: (info) => {
-          const price = info.row.original.subscription?.price;
-          const oldPrice = info.row.original.subscription?.old_price;
+          // Use transaction's historical price, fallback to subscription price
+          const price = info.row.original.price ?? info.row.original.subscription?.price;
+          const oldPrice = info.row.original.old_price ?? info.row.original.subscription?.old_price;
           return (
             <div className="flex flex-col">
               <span className="text-sm font-medium text-gray-900">
@@ -727,15 +730,13 @@ const Transactions = ({
         ),
         enableSorting: false,
         cell: (info) => {
-          const price = info.row.original.subscription?.price || 0;
+          // Use transaction's historical price, fallback to subscription price
+          const price = (info.row.original.price ?? info.row.original.subscription?.price) || 0;
           const vatAmount = calculateVAT(price);
           return (
             <div className="flex flex-col">
               <span className="text-sm font-medium text-gray-900">
                 {vatAmount.toFixed(2)} Birr
-              </span>
-              <span className="text-xs text-gray-500">
-                ({(getConfigValue("vat") * 100).toFixed(1)}%)
               </span>
             </div>
           );
@@ -752,7 +753,8 @@ const Transactions = ({
         enableSorting: false,
         cell: (info) => {
           const therapistModal = info.row.original.subscription?.modal?.name;
-          const price = info.row.original.subscription?.price || 0;
+          // Use transaction's historical price, fallback to subscription price
+          const price = (info.row.original.price ?? info.row.original.subscription?.price) || 0;
           const levelType = info.row.original.subscription?.level?.type || "";
           let therapistAmount = 0;
           let levelRate = 0;
@@ -790,9 +792,20 @@ const Transactions = ({
         ),
         enableSorting: false,
         cell: (info) => {
-          const price = info.row.original.subscription?.price || 0;
+          // Use transaction's historical price, fallback to subscription price
+          const price = (info.row.original.price ?? info.row.original.subscription?.price) || 0;
           const levelType = info.row.original.subscription?.level?.type || "";
-          const companyAmount = calculateCompanyPart(price, levelType);
+          const therapistModal = info.row.original.subscription?.modal?.name;
+          let companyAmount = 0;
+          let levelRate = 0;
+
+          if(therapistModal.toLowerCase().trim() == 'couple therapy' || therapistModal.toLowerCase().trim() == 'group therapy'){
+            levelRate = getConfigValue(`${therapistModal.split(" ")[0].toUpperCase()}_PRICE_PERCENTAGE`);
+            let originalPrice = getOriginalPrice(price);
+            companyAmount = originalPrice - (originalPrice * levelRate)
+          }else{
+            companyAmount = calculateCompanyPart(price, levelType);
+          }
           return (
             <div className="flex flex-col">
               <span className="text-sm font-medium text-gray-900">
@@ -929,7 +942,11 @@ const Transactions = ({
     setDateFilter(prev => {
       const date = parseDate(value);
       if (date) {
-        const dateStr = date.toISOString().split('T')[0];
+        // Add 2 days to the end date to ensure proper range filtering
+        const adjustedDate = new Date(date);
+        adjustedDate.setDate(adjustedDate.getDate() + 2);
+        const dateStr = adjustedDate.toISOString().split('T')[0];
+        
         setEndDateMonth(date);
         return { ...prev, endDateText: value, endDate: dateStr, endDateObj: date };
       }
@@ -971,7 +988,8 @@ const Transactions = ({
     let totalVAT = 0;
     
     transactionList.forEach((transaction: ITransactionData, index: number) => {
-      const price = transaction.subscription?.price || 0;
+      // Use transaction's historical price, fallback to subscription price
+      const price = (transaction.price ?? transaction.subscription?.price) || 0;
       const levelType = transaction.subscription?.level?.type || "";
       
       console.log(`Transaction ${index}:`, {
@@ -1184,12 +1202,16 @@ const Transactions = ({
                       onMonthChange={setEndDateMonth}
                       onSelect={(date) => {
                         if (date) {
-                          const dateStr = date.toISOString().split('T')[0];
+                          // Add 2 days to the end date to ensure proper range filtering
+                          const adjustedDate = new Date(date);
+                          adjustedDate.setDate(adjustedDate.getDate() + 2);
+                          const dateStr = adjustedDate.toISOString().split('T')[0];
+                          
                           setDateFilter(prev => ({ 
                             ...prev, 
                             endDate: dateStr, 
-                            endDateObj: date,
-                            endDateText: formatDate(date)
+                            endDateObj: date, // Keep original date for display
+                            endDateText: formatDate(date) // Display original date to user
                           }));
                         }
                         setEndDateOpen(false);

@@ -179,11 +179,12 @@ const ClientStatistics = ({
           <div className="text-center">
             <div className="text-3xl font-bold text-gray-900 mb-1">
               {(() => {
-                const subscription =
-                  clientData.activeSubscription?.subscription;
-                if (!subscription) return "N/A";
+                const activeSubscription = clientData.activeSubscription;
+                if (!activeSubscription) return "N/A";
 
-                const price = subscription.price;
+                // Use the price from activeSubscription (historical price paid)
+                // Fall back to subscription.price if activeSubscription.price is null
+                const price = activeSubscription.price ?? activeSubscription.subscription?.price;
                 if (price === undefined || price === null) return "N/A";
 
                 return `${price.toLocaleString()} Birr`;
@@ -405,12 +406,39 @@ const ClientSessions = ({ clientData }: { clientData: IClientDetailData }) => {
     null
   );
 
-  // Fetch sessions for the client
+  // Fetch sessions for the client (both individual and group sessions)
   const fetchSessions = async (): Promise<ISessionResponse> => {
-    const { data } = await axiosInstance.get(
-      `/api/v1/session?fields=therapist.*,hasTherapistAttended,schedule&filters=client.id=${clientData.id}&take=0`
-    );
-    return data;
+    try {
+      // Fetch individual sessions
+      const individualResponse = await axiosInstance.get(
+        `/api/v1/session?fields=therapist.*,hasTherapistAttended,schedule,client.*&filters=client.id=${clientData.id}&take=0`
+      );
+      
+      // Fetch group sessions where this client is a member
+      const groupResponse = await axiosInstance.get(
+        `/api/v1/session?fields=therapist.*,hasTherapistAttended,schedule,group.*,groupName&filters=group.id=${clientData.id}&take=0`
+      );
+      
+      // Combine both types of sessions
+      const individualSessions = individualResponse.data?.data || [];
+      const groupSessions = groupResponse.data?.data || [];
+      
+      return {
+        ...individualResponse.data,
+        data: [...individualSessions, ...groupSessions]
+      };
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+      return { 
+        data: [],
+        pagination: { totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 10 },
+        message: "Error fetching sessions",
+        statusCode: 500,
+        method: "GET",
+        path: "",
+        timestamp: new Date().toISOString()
+      };
+    }
   };
 
   const { data: sessionsData, isLoading } = useQuery({
@@ -906,7 +934,9 @@ const ClientOnboardingQuestions = ({
           <div className="flex items-center gap-2">
             <KeenIcon icon="check-circle" className="text-primary text-sm" />
             <span className="text-sm text-gray-900">
-              {answer.singleOption?.text || "No answer"}
+              {answer.singleOption?.text === "Other" && answer.text
+                ? answer.text // Show custom text when "Other" is selected
+                : answer.singleOption?.text || "No answer"}
             </span>
           </div>
         );
@@ -914,15 +944,21 @@ const ClientOnboardingQuestions = ({
         return (
           <div className="space-y-1">
             {answer.multiOption.length > 0 ? (
-              answer.multiOption.map((option, index) => (
-                <div key={option.id} className="flex items-center gap-2">
-                  <KeenIcon
-                    icon="check-circle"
-                    className="text-warning text-sm"
-                  />
-                  <span className="text-sm text-gray-900">{option.text}</span>
-                </div>
-              ))
+              <>
+                {answer.multiOption.map((option, index) => (
+                  <div key={option.id} className="flex items-center gap-2">
+                    <KeenIcon
+                      icon="check-circle"
+                      className="text-warning text-sm"
+                    />
+                    <span className="text-sm text-gray-900">
+                      {option.text === "Other" && answer.text
+                        ? answer.text // Show custom text when "Other" is selected
+                        : option.text}
+                    </span>
+                  </div>
+                ))}
+              </>
             ) : (
               <span className="text-sm text-gray-500 italic">
                 No options selected
@@ -1026,6 +1062,22 @@ const ClientOnboardingQuestions = ({
   );
 };
 
+// Extended session type to handle group sessions
+interface ExtendedSessionData extends ISessionData {
+  group?: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    username: string;
+    phoneNumber: string;
+    status: string;
+    isOnline: boolean;
+    profile: string | null;
+  }>;
+  groupName?: string;
+}
+
 // Session Detail Card Component
 const SessionDetailCard = ({
   session,
@@ -1035,12 +1087,18 @@ const SessionDetailCard = ({
   onClose: () => void;
 }) => {
   const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
+  
+  // Cast to extended type to access group properties
+  const extendedSession = session as ExtendedSessionData;
 
-  const therapistImage = session.therapist.profile
+  const therapistImage = session.therapist?.profile
     ? `${BASE_URL}/${session.therapist.profile}`
     : avatar;
 
-  const clientImage = session.client.profile
+  // Check if this is a group session
+  const isGroupSession = extendedSession.group && Array.isArray(extendedSession.group);
+  
+  const clientImage = session.client?.profile
     ? `${BASE_URL}/${session.client.profile}`
     : avatar;
 
@@ -1059,47 +1117,85 @@ const SessionDetailCard = ({
       </div>
       <div className="card-body">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Client Info */}
+          {/* Client/Group Info */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">Client</h4>
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <img
-                src={clientImage}
-                alt={`${session.client.firstName} ${session.client.lastName}`}
-                className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-              />
-              <div className="flex-1">
-                <h5 className="font-semibold text-gray-900">
-                  {session.client.firstName} {session.client.lastName}
-                </h5>
-                <p className="text-sm text-gray-600">
-                  @{session.client.username}
+            <h4 className="text-lg font-semibold text-gray-900 mb-3">
+              {isGroupSession ? "Group Session" : "Client"}
+            </h4>
+            
+            {isGroupSession ? (
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-3">
+                  <KeenIcon icon="users" className="text-primary text-lg" />
+                  <h5 className="font-semibold text-gray-900">
+                    {extendedSession.groupName || "Group Therapy Session"}
+                  </h5>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">
+                  {extendedSession.group?.length || 0} member{(extendedSession.group?.length || 0) !== 1 ? 's' : ''} in this group
                 </p>
-                <p className="text-sm text-gray-600">
-                  +251{session.client.phoneNumber}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span
-                    className={`badge badge-sm ${
-                      session.client.status === "active"
-                        ? "badge-success"
-                        : session.client.status === "pending"
-                          ? "badge-primary"
-                          : session.client.status === "inactive"
-                            ? "badge-warning"
-                            : "badge-danger"
-                    } badge-outline`}
-                  >
-                    {session.client.status}
-                  </span>
-                  {session.client.isOnline && (
-                    <span className="badge badge-sm badge-success badge-outline">
-                      Online
-                    </span>
+                <div className="space-y-2">
+                  {extendedSession.group?.slice(0, 3).map((member: any, index: number) => (
+                    <div key={member.id} className="flex items-center gap-2 text-sm">
+                      <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs">
+                        {member.firstName?.[0] || 'M'}
+                      </div>
+                      <span className="text-gray-700">
+                        {member.firstName} {member.lastName}
+                      </span>
+                    </div>
+                  ))}
+                  {(extendedSession.group?.length || 0) > 3 && (
+                    <p className="text-xs text-gray-500 ml-8">
+                      +{(extendedSession.group?.length || 0) - 3} more members
+                    </p>
                   )}
                 </div>
               </div>
-            </div>
+            ) : session.client ? (
+              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                <img
+                  src={clientImage}
+                  alt={`${session.client.firstName} ${session.client.lastName}`}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                />
+                <div className="flex-1">
+                  <h5 className="font-semibold text-gray-900">
+                    {session.client.firstName} {session.client.lastName}
+                  </h5>
+                  <p className="text-sm text-gray-600">
+                    @{session.client.username}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    +251{session.client.phoneNumber}
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span
+                      className={`badge badge-sm ${
+                        session.client.status === "active"
+                          ? "badge-success"
+                          : session.client.status === "pending"
+                            ? "badge-primary"
+                            : session.client.status === "inactive"
+                              ? "badge-warning"
+                              : "badge-danger"
+                      } badge-outline`}
+                    >
+                      {session.client.status}
+                    </span>
+                    {session.client.isOnline && (
+                      <span className="badge badge-sm badge-success badge-outline">
+                        Online
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-gray-600">No client information available</p>
+              </div>
+            )}
           </div>
 
           {/* Therapist Info */}

@@ -39,6 +39,7 @@ export interface IActiveSubscription {
   status: string;
   start_date: string;
   end_date: string;
+  price?: number; // Historical price paid by client (optional for backward compatibility)
   therapist: any;
   subscription: ISubscription;
 }

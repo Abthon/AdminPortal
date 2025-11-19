@@ -269,7 +269,8 @@ const ClientGeneralInfo = ({ clientData }: { clientData: any }) => {
 // Client Session Calendar Component
 const ClientSessionCalendar = ({ clientData }: { clientData: any }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedSession, setSelectedSession] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedSessions, setSelectedSessions] = useState<any[]>([]);
 
   // Fetch client sessions
   const fetchClientSessions = async () => {
@@ -356,7 +357,12 @@ const ClientSessionCalendar = ({ clientData }: { clientData: any }) => {
                   ${isToday(day) ? 'bg-primary text-white' : ''}
                   ${hasSession ? 'bg-blue-50 border border-blue-200' : ''}
                 `}
-                onClick={() => hasSession && setSelectedSession(daySessions[0])}
+                onClick={() => {
+                  if (hasSession) {
+                    setSelectedDate(day);
+                    setSelectedSessions(daySessions);
+                  }
+                }}
               >
                 {format(day, 'd')}
                 {hasSession && (
@@ -366,6 +372,46 @@ const ClientSessionCalendar = ({ clientData }: { clientData: any }) => {
             );
           })}
         </div>
+        
+        {/* Selected Date Sessions */}
+        {selectedDate && selectedSessions.length > 0 && (
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-lg font-semibold text-gray-900">
+                Sessions on {format(selectedDate, "MMMM dd, yyyy")}
+              </h4>
+              <button
+                onClick={() => {
+                  setSelectedDate(null);
+                  setSelectedSessions([]);
+                }}
+                className="btn btn-sm btn-icon btn-clear btn-primary"
+              >
+                <KeenIcon icon="cross" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {selectedSessions
+                .sort((a, b) => new Date(a.schedule).getTime() - new Date(b.schedule).getTime())
+                .map((session, index) => (
+                <div key={session.id} className="flex items-center gap-3 p-3 bg-white rounded border">
+                  <KeenIcon icon="time" className="text-primary text-lg" />
+                  <div className="flex-1">
+                    <div className="text-lg font-semibold text-gray-900">
+                      {format(new Date(session.schedule), "HH:mm")}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Session {index + 1} of {selectedSessions.length}
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {format(new Date(session.schedule), "MMM dd, yyyy")}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
