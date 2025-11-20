@@ -276,92 +276,92 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
   });
 
   // Creating matches for each client with the chosen therapist
-  const createGroupMatches = async ({ clientIds, therapistId }: { clientIds: string[], therapistId: string }) => {
-    // Create matches for each client
-    console.log(clientIds, "The client ids");
-    const matchPromises = clientIds.map(async (clientId) => {
-      try {
-        // Get client preferences first
-        const res = await axiosInstance.get(`/api/v1/client/${clientId}?fields=match.*,preference.*`);
-        const preferenceId = res.data.data.preference?.[0]?.id;
+  //const createGroupMatches = async ({ clientIds, therapistId }: { clientIds: string[], therapistId: string }) => {
+  //  // Create matches for each client
+  //  console.log(clientIds, "The client ids");
+  //  const matchPromises = clientIds.map(async (clientId) => {
+  //    try {
+  //      // Get client preferences first
+  //      const res = await axiosInstance.get(`/api/v1/client/${clientId}?fields=match.*,preference.*`);
+  //      const preferenceId = res.data.data.preference?.[0]?.id;
         
-        if (!preferenceId) {
-          console.warn(`No preference found for client ${clientId}`);
-          return null;
-        }
+  //      if (!preferenceId) {
+  //        console.warn(`No preference found for client ${clientId}`);
+  //        return null;
+  //      }
 
-        // Check if match already exists for this client
-        const existingMatches = res.data.data.match || [];
+  //      // Check if match already exists for this client
+  //      const existingMatches = res.data.data.match || [];
         
-        // Create or update match
-        if (existingMatches.length > 0) {
-          // Update all existing matches for this client
-          const updatePromises = existingMatches.map((match: any) =>
-            axiosInstance.patch(`/api/v1/match/${match.id}`, {
-              preferenceId: preferenceId,
-              accepted: therapistId,
-            })
-          );
+  //      // Create or update match
+  //      if (existingMatches.length > 0) {
+  //        // Update all existing matches for this client
+  //        const updatePromises = existingMatches.map((match: any) =>
+  //          axiosInstance.patch(`/api/v1/match/${match.id}`, {
+  //            preferenceId: preferenceId,
+  //            accepted: therapistId,
+  //          })
+  //        );
           
-          const updateResults = await Promise.all(updatePromises);
-          console.log(`Updated ${updateResults.length} matches for client ${clientId}`);
-          return updateResults;
-        } else {
-          // Create new match request first
-          console.log(`Creating new match request for client ${clientId}`);
-          const newMatchPayload = {
-            preferenceId: preferenceId,
-          }; 
-          const newMatchRes = await axiosInstance.post(`/api/v1/match?mockId=${clientId}`, newMatchPayload);
-          console.log(`Created new match request for client ${clientId}:`, newMatchRes.data);
+  //        const updateResults = await Promise.all(updatePromises);
+  //        console.log(`Updated ${updateResults.length} matches for client ${clientId}`);
+  //        return updateResults;
+  //      } else {
+  //        // Create new match request first
+  //        console.log(`Creating new match request for client ${clientId}`);
+  //        const newMatchPayload = {
+  //          preferenceId: preferenceId,
+  //        }; 
+  //        const newMatchRes = await axiosInstance.post(`/api/v1/match?mockId=${clientId}`, newMatchPayload);
+  //        console.log(`Created new match request for client ${clientId}:`, newMatchRes.data);
           
-          // Then patch the match request with the therapist
-          const matchId = newMatchRes.data.data.id;
-          console.log(`Patching match ${matchId} with therapist ${therapistId}`);
-          const patchRes = await axiosInstance.patch(`/api/v1/match/${matchId}`, {
-            preferenceId: preferenceId,
-            accepted: therapistId,
-          });
-          console.log(`Patched match ${matchId} with therapist:`, patchRes.data);
+  //        // Then patch the match request with the therapist
+  //        const matchId = newMatchRes.data.data.id;
+  //        console.log(`Patching match ${matchId} with therapist ${therapistId}`);
+  //        const patchRes = await axiosInstance.patch(`/api/v1/match/${matchId}`, {
+  //          preferenceId: preferenceId,
+  //          accepted: therapistId,
+  //        });
+  //        console.log(`Patched match ${matchId} with therapist:`, patchRes.data);
           
-          return patchRes.data;
-        }
-      } catch (error) {
-        console.error(`Error creating match for client ${clientId}:`, error);
-        return null;
-      }
-    });
+  //        return patchRes.data;
+  //      }
+  //    } catch (error) {
+  //      console.error(`Error creating match for client ${clientId}:`, error);
+  //      return null;
+  //    }
+  //  });
 
-    const results = await Promise.all(matchPromises);
-    return results.filter(result => result !== null);
-  };
+  //  const results = await Promise.all(matchPromises);
+  //  return results.filter(result => result !== null);
+  //};
 
   // Creating matches for each client with the chosen therapist - defined first
-  const queryClient = useQueryClient();
-  const { isLoading: isCreatingMatches, mutate: createMatches } = useMutation({
-    mutationFn: createGroupMatches,
-    onSuccess: () => {
-      toast("Matches created successfully for all clients!");
+  //const { isLoading: isCreatingMatches, mutate: createMatches } = useMutation({
+  //  mutationFn: createGroupMatches,
+  //  onSuccess: () => {
+  //    toast("Matches created successfully for all clients!");
       
-      // Clean up UI after everything is completed
-      setSelectedClients([]);
-      setRowSelection({});
-      setIsSessionModalOpen(false);
-      setSessionForm({
-        schedule: "",
-        scheduleDate: "",
-        scheduleTime: "",
-        therapist: "",
-        groupName: "",
-      });
-    },
-    onError: (error: any) => {
-      console.error("Error creating matches:", error);
-      toast(error?.message || "Error creating matches for clients");
-    },
-  });
+  //    // Clean up UI after everything is completed
+  //    setSelectedClients([]);
+  //    setRowSelection({});
+  //    setIsSessionModalOpen(false);
+  //    setSessionForm({
+  //      schedule: "",
+  //      scheduleDate: "",
+  //      scheduleTime: "",
+  //      therapist: "",
+  //      groupName: "",
+  //    });
+  //  },
+  //  onError: (error: any) => {
+  //    console.error("Error creating matches:", error);
+  //    toast(error?.message || "Error creating matches for clients");
+  //  },
+  //});
 
   // Creating group session for the selected clients
+  const queryClient = useQueryClient();
   const { isLoading: isCreatingSession, mutate: createSession } = useMutation({
     mutationFn: createGroupSession,
     onSuccess: (data, variables) => {
@@ -581,25 +581,24 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
 
     // Combine date and time into schedule
     const schedule = `${sessionForm.scheduleDate}T${sessionForm.scheduleTime}`;
+    createSession({
+      ...sessionForm,
+      schedule,
+      groupClients: selectedClients,
+    });
 
-    //createSession({
-    //  ...sessionForm,
-    //  schedule,
-    //  groupClients: selectedClients,
-    //});
-
-    //// creating group chat
-    //createChat({
-    //  ...sessionForm,
-    //  groupClients: selectedClients,
-    //  therapist: sessionForm.therapist,
-    //});
+    // creating group chat
+    createChat({
+      ...sessionForm,
+      groupClients: selectedClients,
+      therapist: sessionForm.therapist,
+    });
 
     // creating matches for each client with the chosen therapist
-    createMatches({
-      clientIds: selectedClients,
-      therapistId: sessionForm.therapist,
-    });
+    //createMatches({
+    //  clientIds: selectedClients,
+    //  therapistId: sessionForm.therapist,
+    //});
 
     toast.message("Group session created successfully.");
   };

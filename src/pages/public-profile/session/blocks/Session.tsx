@@ -853,36 +853,36 @@ const Sessions = ({
   );
 
   // Reassign therapist mutation
-  const reassignMatchMutation= useMutation(
-    async ({ clientId, therapistId }: { clientId: string, therapistId: string }) => {
-      console.log(clientId, "The clientID");
-      // Patch each selected session with the new therapist
-      const res = await axiosInstance.get(`/api/v1/client/${clientId}?fields=match.*,preference.*`)
-      const preferenceId = res.data.data.preference?.[0].id;
-      const promises = res.data.data.match.map((match: any) =>
-        axiosInstance.patch(`/api/v1/match/${match.id}`, {
-          preferenceId: preferenceId,
-          accepted: therapistId,
-        })
-      );
+  //const reassignMatchMutation= useMutation(
+  //  async ({ clientId, therapistId }: { clientId: string, therapistId: string }) => {
+  //    console.log(clientId, "The clientID");
+  //    // Patch each selected session with the new therapist
+  //    const res = await axiosInstance.get(`/api/v1/client/${clientId}?fields=match.*,preference.*`)
+  //    const preferenceId = res.data.data.preference?.[0].id;
+  //    const promises = res.data.data.match.map((match: any) =>
+  //      axiosInstance.patch(`/api/v1/match/${match.id}`, {
+  //        preferenceId: preferenceId,
+  //        accepted: therapistId,
+  //      })
+  //    );
 
-      await Promise.all(promises);
-    },
+  //    await Promise.all(promises);
+  //  },
   
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(["Sessions"]);
-        toast("Match reassigned successfully!");
-        setReassignModalOpen(false);
-        setSelectedSessionIds([]);
-        setNewTherapistId("");
-      },
-      onError: (error: any) => {
-        console.error("Error reassigning therapist:", error);
-        toast(error?.message || "Failed to reassign therapist");
-      },
-    }
-  );
+  //  {
+  //    onSuccess: () => {
+  //      queryClient.invalidateQueries(["Sessions"]);
+  //      toast("Match reassigned successfully!");
+  //      setReassignModalOpen(false);
+  //      setSelectedSessionIds([]);
+  //      setNewTherapistId("");
+  //    },
+  //    onError: (error: any) => {
+  //      console.error("Error reassigning therapist:", error);
+  //      toast(error?.message || "Failed to reassign therapist");
+  //    },
+  //  }
+  //);
 
   const createChatMutation = useMutation(
     async ({ clientId, therapistId }: { clientId: string, therapistId: string }) => {
@@ -940,10 +940,10 @@ const Sessions = ({
     });
 
     //reassign match
-    reassignMatchMutation.mutate({
-      clientId: clientId,
-      therapistId: newTherapistId,
-    });
+    //reassignMatchMutation.mutate({
+    //  clientId: clientId,
+    //  therapistId: newTherapistId,
+    //});
 
     ////create chat
     createChatMutation.mutate({
@@ -2791,9 +2791,17 @@ const Sessions = ({
                               onClick={(e) => e.stopPropagation()}
                             />
                             <div>
-                              {/* 24hour format */}
+                              {/* Date and 24hour format */}
                               <p className="text-sm text-gray-600">
-                                Schedule: {new Date(session.schedule).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
+                                Schedule: {new Date(session.schedule).toLocaleDateString('en-GB', { 
+                                  year: 'numeric', 
+                                  month: 'short', 
+                                  day: 'numeric' 
+                                })} at {new Date(session.schedule).toLocaleTimeString('en-GB', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit', 
+                                  hour12: false 
+                                })}
                               </p>
                             </div>
                           </div>

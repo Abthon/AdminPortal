@@ -89,16 +89,22 @@ const ModalSubscriptionForm = ({
   const { isLoading: isUpdating, mutate: updateSubscription } = useMutation<
     any,
     Error,
-    { id: string; payload: ISubscriptionUpdatePayload }
+    { id: string; payload: ISubscriptionUpdatePayload; shouldUpdateLevelPrice?: boolean; levelId?: string; newPrice?: number }
   >({
     mutationFn: async ({ id, payload }) => {
       const { data } = await axiosInstance.patch(`/api/v1/subscription/admin/${id}`, payload);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries(["adminSubscriptions"]);
       toast.success("Subscription updated successfully!");
-      onClose();
+      
+      // If we need to update level price, do it after subscription update
+      if (variables.shouldUpdateLevelPrice && variables.levelId && variables.newPrice !== undefined) {
+        updateLevelPrice({ levelId: variables.levelId, price: variables.newPrice });
+      } else {
+        onClose();
+      }
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Error updating subscription");
@@ -122,6 +128,27 @@ const ModalSubscriptionForm = ({
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Error updating level XP range");
+    },
+  });
+
+  // Update level price mutation
+  const { isLoading: isUpdatingLevelPrice, mutate: updateLevelPrice } = useMutation<
+    any,
+    Error,
+    { levelId: string; price: number }
+  >({
+    mutationFn: async ({ levelId, price }) => {
+      const { data } = await axiosInstance.patch(`/api/v1/level/${levelId}`, { price });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["levels"]);
+      queryClient.invalidateQueries(["adminSubscriptions"]);
+      toast.success("Level price updated successfully!");
+      onClose();
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Error updating level price");
     },
   });
 
@@ -158,7 +185,24 @@ const ModalSubscriptionForm = ({
       ...(formData.level && formData.level !== "no-level" && { level: formData.level })
     };
 
-    updateSubscription({ id: subscription.id, payload });
+    // Check if this is a trial/weekly subscription (type 0) and has a level
+    const isTrialWeekly = formData.type === 0;
+    const hasLevel = formData.level && formData.level !== "no-level";
+    const priceChanged = subscription.price !== formData.price;
+    
+    if (isTrialWeekly && hasLevel && priceChanged) {
+      // Update both subscription and level price
+      updateSubscription({ 
+        id: subscription.id, 
+        payload,
+        shouldUpdateLevelPrice: true,
+        levelId: formData.level,
+        newPrice: formData.price
+      });
+    } else {
+      // Just update subscription
+      updateSubscription({ id: subscription.id, payload });
+    }
   };
 
   const handleUpdateLevelXP = () => {

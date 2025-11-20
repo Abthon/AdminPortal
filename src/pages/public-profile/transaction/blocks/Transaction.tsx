@@ -930,9 +930,13 @@ const Transactions = ({
     setDateFilter(prev => {
       const date = parseDate(value);
       if (date) {
-        const dateStr = date.toISOString().split('T')[0];
-        setStartDateMonth(date);
-        return { ...prev, startDateText: value, startDate: dateStr, startDateObj: date };
+        // Add one day to the parsed date
+        const adjustedDate = new Date(date);
+        adjustedDate.setDate(adjustedDate.getDate() - 1);
+        
+        const dateStr = adjustedDate.toISOString().split('T')[0];
+        setStartDateMonth(adjustedDate);
+        return { ...prev, startDateText: value, startDate: dateStr, startDateObj: adjustedDate };
       }
       return { ...prev, startDateText: value };
     });
@@ -942,9 +946,8 @@ const Transactions = ({
     setDateFilter(prev => {
       const date = parseDate(value);
       if (date) {
-        // Add 2 days to the end date to ensure proper range filtering
         const adjustedDate = new Date(date);
-        adjustedDate.setDate(adjustedDate.getDate() + 2);
+        adjustedDate.setDate(adjustedDate.getDate() - 1);
         const dateStr = adjustedDate.toISOString().split('T')[0];
         
         setEndDateMonth(date);
