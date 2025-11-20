@@ -146,13 +146,23 @@ function removeTherapy(text: string): string {
 
 // Therapist Stats Interface
 interface ITherapistStats {
+  period: {
+    start: string;
+    end: string;
+  };
   totalSessions: number;
   totalUsers: number;
-  totalRevenue: number;
+  totalRevenue: string; // Changed to string as backend returns "N/A" or string values
   totalHours: number;
   sessionsOverTime: Array<{ date: string; count: string }>;
   usersTreatedOverTime: Array<{ date: string; treatedUsers: string }>;
-  revenueOverTime: Array<{ date: string; revenue: number | null }>;
+  revenueOverTime: Array<{ date: string; revenueOverTime: string }>; // Changed property name and type
+  therapistWorkload: Array<{
+    therapistId: string;
+    therapistName: string;
+    sessionCount: string;
+    revenue: string;
+  }>;
   therapistHoursPerWeek: Array<{
     year: number;
     week: number;
@@ -419,13 +429,7 @@ const TherapistStatistics = ({
                   {statsWeekLoading ? (
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                   ) : (
-                    statsWeekData?.revenueOverTime
-                      ?.reduce((total: number, revenue: any) => {
-                        return (
-                          total + (parseFloat(revenue.revenueOverTime) || 0)
-                        );
-                      }, 0)
-                      .toFixed(2) || 0
+                    statsWeekData?.totalRevenue || "0"
                   )}
                 </div>
                 <div className="text-sm text-gray-600">Revenue/Week (ETB)</div>
