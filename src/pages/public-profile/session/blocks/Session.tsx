@@ -305,11 +305,13 @@ const Sessions = ({
     queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
     
     // Add date parameters (backend should filter by createdAt, not schedule)
-    if (dateFilter.startDate) {
-      queryParams.push(`startDate=${dateFilter.startDate}`);
+    const startDateParam = getStartDateForAPI();
+    const endDateParam = getEndDateForAPI();
+    if (startDateParam) {
+      queryParams.push(`startDate=${startDateParam}`);
     }
-    if (dateFilter.endDate) {
-      queryParams.push(`endDate=${dateFilter.endDate}`);
+    if (endDateParam) {
+      queryParams.push(`endDate=${endDateParam}`);
     }
     
     // Build remaining filters
@@ -366,11 +368,13 @@ const Sessions = ({
     queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
     
     // Add date parameters (backend should filter by createdAt, not schedule)
-    if (dateFilter.startDate) {
-      queryParams.push(`startDate=${dateFilter.startDate}`);
+    const startDateParam = getStartDateForAPI();
+    const endDateParam = getEndDateForAPI();
+    if (startDateParam) {
+      queryParams.push(`startDate=${startDateParam}`);
     }
-    if (dateFilter.endDate) {
-      queryParams.push(`endDate=${dateFilter.endDate}`);
+    if (endDateParam) {
+      queryParams.push(`endDate=${endDateParam}`);
     }
     
     // Build remaining filters
@@ -429,11 +433,13 @@ const Sessions = ({
     queryParams.push(`sort=createdAt=DESC`);
     
     // Add date parameters (backend should filter by createdAt, not schedule)
-    if (dateFilter.startDate) {
-      queryParams.push(`startDate=${dateFilter.startDate}`);
+    const startDateParam = getStartDateForAPI();
+    const endDateParam = getEndDateForAPI();
+    if (startDateParam) {
+      queryParams.push(`startDate=${startDateParam}`);
     }
-    if (dateFilter.endDate) {
-      queryParams.push(`endDate=${dateFilter.endDate}`);
+    if (endDateParam) {
+      queryParams.push(`endDate=${endDateParam}`);
     }
     
     // Build remaining filters
@@ -777,6 +783,22 @@ const Sessions = ({
       month: "long",
       year: "numeric",
     });
+  };
+
+  // Helper function to get start date with time for API
+  const getStartDateForAPI = () => {
+    if (!dateFilter.startDate) return '';
+    return `${dateFilter.startDate}T00:00:00.000Z`;
+  };
+
+  // Helper function to get end date with time for API
+  const getEndDateForAPI = () => {
+    if (!dateFilter.endDate) return '';
+    // If start and end dates are the same, set end time to end of day
+    if (dateFilter.startDate === dateFilter.endDate) {
+      return `${dateFilter.endDate}T23:59:59.999Z`;
+    }
+    return `${dateFilter.endDate}T00:00:00.000Z`;
   };
 
   // Handle opening reassign therapist modal

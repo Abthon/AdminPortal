@@ -37,7 +37,7 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import axiosInstance from "@/auth/_helpers";
 import { ITherapistsData } from "@/types/therapist";
 import { IClientDetailData, ISubscription } from "@/types/client";
-import { IModal } from "@/types/subscription";
+import { IModal, SUBSCRIPTION_TYPES, SubscriptionTypeKey } from "@/types/subscription";
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
 // Component to handle async modal fetching for transaction
@@ -109,6 +109,7 @@ interface ITransactionData {
   end_date: string;
   price: number | null; // Historical price paid for this transaction
   old_price: number | null; // Previous price if any
+  therapistPercentage: number | null; // Historical therapist percentage for this transaction
   createdAt: string;
   client: IClientDetailData & {
     preference?: {
@@ -218,14 +219,16 @@ const Transactions = ({
     queryParams.push(`page=${pageIndex}`);
     //queryParams.push(`sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`);
     queryParams.push(`sort=createdAt=DESC`)
-    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,createdAt`);
+    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,therapistPercentage,createdAt`);
     
     // Add date parameters
-    if (dateFilter.startDate) {
-      queryParams.push(`startDate=${dateFilter.startDate}`);
+    const startDateParam = getStartDateForAPI();
+    const endDateParam = getEndDateForAPI();
+    if (startDateParam) {
+      queryParams.push(`startDate=${startDateParam}`);
     }
-    if (dateFilter.endDate) {
-      queryParams.push(`endDate=${dateFilter.endDate}`);
+    if (endDateParam) {
+      queryParams.push(`endDate=${endDateParam}`);
     }
     
     // Build remaining filters
@@ -285,14 +288,16 @@ const Transactions = ({
     queryParams.push(`page=${pageIndex}`);
     //queryParams.push(`sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`);
     queryParams.push(`sort=createdAt=DESC`)
-    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,createdAt`);
+    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,therapistPercentage,createdAt`);
     
     // Add date parameters
-    if (dateFilter.startDate) {
-      queryParams.push(`startDate=${dateFilter.startDate}`);
+    const startDateParam = getStartDateForAPI();
+    const endDateParam = getEndDateForAPI();
+    if (startDateParam) {
+      queryParams.push(`startDate=${startDateParam}`);
     }
-    if (dateFilter.endDate) {
-      queryParams.push(`endDate=${dateFilter.endDate}`);
+    if (endDateParam) {
+      queryParams.push(`endDate=${endDateParam}`);
     }
     
     // Build remaining filters
@@ -340,15 +345,17 @@ const Transactions = ({
     let queryParams: string[] = [];
     
     // Add fields and sorting
-    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,createdAt`);
+    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,therapistPercentage,createdAt`);
     queryParams.push(`sort=createdAt=DESC`);
     
     // Add date parameters
-    if (dateFilter.startDate) {
-      queryParams.push(`startDate=${dateFilter.startDate}`);
+    const startDateParam = getStartDateForAPI();
+    const endDateParam = getEndDateForAPI();
+    if (startDateParam) {
+      queryParams.push(`startDate=${startDateParam}`);
     }
-    if (dateFilter.endDate) {
-      queryParams.push(`endDate=${dateFilter.endDate}`);
+    if (endDateParam) {
+      queryParams.push(`endDate=${endDateParam}`);
     }
     
     // Build remaining filters
@@ -494,6 +501,30 @@ const Transactions = ({
     });
   };
 
+  // Helper function to format date as YYYY-MM-DD in local timezone
+  const formatDateForAPI = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Helper function to get start date with time for API
+  const getStartDateForAPI = () => {
+    if (!dateFilter.startDate) return '';
+    return `${dateFilter.startDate}T00:00:00.000Z`;
+  };
+
+  // Helper function to get end date with time for API
+  const getEndDateForAPI = () => {
+    if (!dateFilter.endDate) return '';
+    // If start and end dates are the same, set end time to end of day
+    if (dateFilter.startDate === dateFilter.endDate) {
+      return `${dateFilter.endDate}T23:59:59.999Z`;
+    }
+    return `${dateFilter.endDate}T00:00:00.000Z`;
+  };
+
   const columns = useMemo<ColumnDef<ITransactionData>[]>(
     () => [
       //{
@@ -575,6 +606,7 @@ const Transactions = ({
         ),
         enableSorting: true,
         cell: ({ row }) => {
+          console.log(row.original, "The original row");
           const img = row.original.therapist?.profile ? `${BASE_URL}/${row.original.therapist?.profile}` : null;
 
           const handleImageClick = (e: React.MouseEvent) => {
@@ -636,15 +668,8 @@ const Transactions = ({
         ),
         enableSorting: false,
         cell: (info) => {
-          const subscriptionType = info.row.original.subscription?.type;
-          const typeLabels = {
-            0: "Trial",
-            1: "Monthly",
-            2: "Quarterly", 
-            3: "Semi Annual",
-            4: "Yearly"
-          };
-          return typeLabels[subscriptionType as keyof typeof typeLabels] || "Unknown";
+          const subscriptionType = info.row.original.subscription?.type as SubscriptionTypeKey;
+          return SUBSCRIPTION_TYPES[subscriptionType] || "Unknown";
         },
         meta: {
           headerClassName: "min-w-[120px]",
@@ -752,23 +777,31 @@ const Transactions = ({
         ),
         enableSorting: false,
         cell: (info) => {
-          const therapistModal = info.row.original.subscription?.modal?.name;
           // Use transaction's historical price, fallback to subscription price
           const price = (info.row.original.price ?? info.row.original.subscription?.price) || 0;
-          const levelType = info.row.original.subscription?.level?.type || "";
+          const originalPrice = getOriginalPrice(price);
+          
+          // Use historical therapistPercentage if available, otherwise fall back to config
           let therapistAmount = 0;
           let levelRate = 0;
-          console.log(therapistModal.toLowerCase(), "ttherapist modalllll",therapistModal.toLowerCase().trim() == 'couple therapy' || therapistModal.toLowerCase().trim() == 'group therapy');
-
-          if(therapistModal.toLowerCase().trim() == 'couple therapy' || therapistModal.toLowerCase().trim() == 'group therapy'){
-            levelRate = getConfigValue(`${therapistModal.split(" ")[0].toUpperCase()}_PRICE_PERCENTAGE`);
-            let originalPrice = getOriginalPrice(price);
+          
+          if (info.row.original.therapistPercentage !== null && info.row.original.therapistPercentage !== undefined) {
+            // Use historical therapist percentage from transaction
+            levelRate = info.row.original.therapistPercentage;
             therapistAmount = originalPrice * levelRate;
-          }else{
-            levelRate = getConfigValue(`${levelType?.toUpperCase()}_PRICE_PERCENTAGE`);
-            therapistAmount = calculateTherapistPart(price, levelType);
+          } else {
+            // Fallback to config for old transactions without therapistPercentage
+            const therapistModal = info.row.original.subscription?.modal?.name;
+            const levelType = info.row.original.subscription?.level?.type || "";
+            
+            if(therapistModal && (therapistModal.toLowerCase().trim() == 'couple therapy' || therapistModal.toLowerCase().trim() == 'group therapy')){
+              levelRate = getConfigValue(`${therapistModal.split(" ")[0].toUpperCase()}_PRICE_PERCENTAGE`);
+              therapistAmount = originalPrice * levelRate;
+            }else{
+              levelRate = getConfigValue(`${levelType?.toUpperCase()}_PRICE_PERCENTAGE`);
+              therapistAmount = originalPrice * levelRate;
+            }
           }
-
 
           return (
             <div className="flex flex-col">
@@ -794,18 +827,30 @@ const Transactions = ({
         cell: (info) => {
           // Use transaction's historical price, fallback to subscription price
           const price = (info.row.original.price ?? info.row.original.subscription?.price) || 0;
-          const levelType = info.row.original.subscription?.level?.type || "";
-          const therapistModal = info.row.original.subscription?.modal?.name;
+          const originalPrice = getOriginalPrice(price);
+          
           let companyAmount = 0;
-          let levelRate = 0;
-
-          if(therapistModal.toLowerCase().trim() == 'couple therapy' || therapistModal.toLowerCase().trim() == 'group therapy'){
-            levelRate = getConfigValue(`${therapistModal.split(" ")[0].toUpperCase()}_PRICE_PERCENTAGE`);
-            let originalPrice = getOriginalPrice(price);
-            companyAmount = originalPrice - (originalPrice * levelRate)
-          }else{
-            companyAmount = calculateCompanyPart(price, levelType);
+          
+          // Use historical therapistPercentage if available, otherwise fall back to config
+          if (info.row.original.therapistPercentage !== null && info.row.original.therapistPercentage !== undefined) {
+            // Use historical therapist percentage from transaction
+            const therapistAmount = originalPrice * info.row.original.therapistPercentage;
+            companyAmount = originalPrice - therapistAmount;
+          } else {
+            // Fallback to config for old transactions without therapistPercentage
+            const therapistModal = info.row.original.subscription?.modal?.name;
+            const levelType = info.row.original.subscription?.level?.type || "";
+            
+            if(therapistModal && (therapistModal.toLowerCase().trim() == 'couple therapy' || therapistModal.toLowerCase().trim() == 'group therapy')){
+              const levelRate = getConfigValue(`${therapistModal.split(" ")[0].toUpperCase()}_PRICE_PERCENTAGE`);
+              companyAmount = originalPrice - (originalPrice * levelRate);
+            }else{
+              const levelRate = getConfigValue(`${levelType?.toUpperCase()}_PRICE_PERCENTAGE`);
+              const therapistAmount = originalPrice * levelRate;
+              companyAmount = originalPrice - therapistAmount;
+            }
           }
+          
           return (
             <div className="flex flex-col">
               <span className="text-sm font-medium text-gray-900">
@@ -913,7 +958,7 @@ const Transactions = ({
 
   const data: ITransactionData[] = useMemo(() => TransactionData ?? [], [TransactionData]);
   const handleRowSelection = (state: RowSelectionState) => {
-    const selectedRowIds = Object.keys(state);
+  const selectedRowIds = Object.keys(state);
 
     if (selectedRowIds.length > 0) {
       toast(`Total ${selectedRowIds.length} are selected.`, {
@@ -930,13 +975,9 @@ const Transactions = ({
     setDateFilter(prev => {
       const date = parseDate(value);
       if (date) {
-        // Add one day to the parsed date
-        const adjustedDate = new Date(date);
-        adjustedDate.setDate(adjustedDate.getDate() - 1);
-        
-        const dateStr = adjustedDate.toISOString().split('T')[0];
-        setStartDateMonth(adjustedDate);
-        return { ...prev, startDateText: value, startDate: dateStr, startDateObj: adjustedDate };
+        const dateStr = formatDateForAPI(date);
+        setStartDateMonth(date);
+        return { ...prev, startDateText: value, startDate: dateStr, startDateObj: date };
       }
       return { ...prev, startDateText: value };
     });
@@ -946,10 +987,7 @@ const Transactions = ({
     setDateFilter(prev => {
       const date = parseDate(value);
       if (date) {
-        const adjustedDate = new Date(date);
-        adjustedDate.setDate(adjustedDate.getDate() - 1);
-        const dateStr = adjustedDate.toISOString().split('T')[0];
-        
+        const dateStr = formatDateForAPI(date);
         setEndDateMonth(date);
         return { ...prev, endDateText: value, endDate: dateStr, endDateObj: date };
       }
@@ -993,16 +1031,37 @@ const Transactions = ({
     transactionList.forEach((transaction: ITransactionData, index: number) => {
       // Use transaction's historical price, fallback to subscription price
       const price = (transaction.price ?? transaction.subscription?.price) || 0;
-      const levelType = transaction.subscription?.level?.type || "";
+      const originalPrice = getOriginalPrice(price);
       
       console.log(`Transaction ${index}:`, {
         price,
-        levelType,
+        therapistPercentage: transaction.therapistPercentage,
         subscription: transaction.subscription
       });
       
-      const companyAmount = calculateCompanyPart(price, levelType);
-      const therapistAmount = calculateTherapistPart(price, levelType);
+      let therapistAmount = 0;
+      let companyAmount = 0;
+      
+      // Use historical therapistPercentage if available, otherwise fall back to config
+      if (transaction.therapistPercentage !== null && transaction.therapistPercentage !== undefined) {
+        // Use historical therapist percentage from transaction
+        therapistAmount = originalPrice * transaction.therapistPercentage;
+        companyAmount = originalPrice - therapistAmount;
+      } else {
+        // Fallback to config for old transactions without therapistPercentage
+        const therapistModal = transaction.subscription?.modal?.name;
+        const levelType = transaction.subscription?.level?.type || "";
+        
+        if(therapistModal && (therapistModal.toLowerCase().trim() == 'couple therapy' || therapistModal.toLowerCase().trim() == 'group therapy')){
+          const levelRate = getConfigValue(`${therapistModal.split(" ")[0].toUpperCase()}_PRICE_PERCENTAGE`);
+          therapistAmount = originalPrice * levelRate;
+          companyAmount = originalPrice - therapistAmount;
+        }else{
+          const levelRate = getConfigValue(`${levelType?.toUpperCase()}_PRICE_PERCENTAGE`);
+          therapistAmount = originalPrice * levelRate;
+          companyAmount = originalPrice - therapistAmount;
+        }
+      }
       
       console.log(`Amounts for transaction ${index}:`, {
         companyAmount,
@@ -1155,7 +1214,7 @@ const Transactions = ({
                       onMonthChange={setStartDateMonth}
                       onSelect={(date) => {
                         if (date) {
-                          const dateStr = date.toISOString().split('T')[0];
+                          const dateStr = formatDateForAPI(date);
                           setDateFilter(prev => ({ 
                             ...prev, 
                             startDate: dateStr, 
@@ -1205,16 +1264,13 @@ const Transactions = ({
                       onMonthChange={setEndDateMonth}
                       onSelect={(date) => {
                         if (date) {
-                          // Add 2 days to the end date to ensure proper range filtering
-                          const adjustedDate = new Date(date);
-                          adjustedDate.setDate(adjustedDate.getDate() + 2);
-                          const dateStr = adjustedDate.toISOString().split('T')[0];
+                          const dateStr = formatDateForAPI(date);
                           
                           setDateFilter(prev => ({ 
                             ...prev, 
                             endDate: dateStr, 
-                            endDateObj: date, // Keep original date for display
-                            endDateText: formatDate(date) // Display original date to user
+                            endDateObj: date,
+                            endDateText: formatDate(date)
                           }));
                         }
                         setEndDateOpen(false);

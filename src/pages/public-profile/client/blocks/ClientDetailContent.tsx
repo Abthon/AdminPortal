@@ -164,13 +164,13 @@ const ClientStatistics = ({
                 const type = subscription.type;
                 if (type === undefined || type === null) return "N/A";
 
-                const subscriptionTypes = [
-                  "Weekly",
-                  "Monthly",
-                  "Quarterly",
-                  "Semi-Annual",
-                  "Yearly",
-                ];
+                const subscriptionTypes: Record<number, string> = {
+                  0: "Trial",
+                  1: "Monthly",
+                  3: "Quarterly",
+                  6: "Semi-Annual",
+                  12: "Yearly",
+                };
                 return subscriptionTypes[type] || `Type ${type}`;
               })()}
             </div>
@@ -202,7 +202,13 @@ const ClientStatistics = ({
                 const type = subscription.type;
                 if (type === undefined || type === null) return "N/A";
 
-                const sessionsPerType = [1, 4, 12, 24, 48]; // weekly=1, monthly=4, quarterly=12, semi-annual=24, yearly=48
+                const sessionsPerType: Record<number, number> = {
+                  0: 1,   // Trial = 1 session
+                  1: 4,   // Monthly = 4 sessions
+                  3: 12,  // Quarterly = 12 sessions
+                  6: 24,  // Semi-Annual = 24 sessions
+                  12: 48  // Yearly = 48 sessions
+                };
                 return sessionsPerType[type] || "N/A";
               })()}
             </div>

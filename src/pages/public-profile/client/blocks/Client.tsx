@@ -398,15 +398,13 @@ const Clients = ({
   const getReadablePeriod = (type: number): string => { 
     switch (type) {
       case 0:
-        return "Weekly";
+        return "Trial";
       case 1:
         return "Monthly";
-      case 2:
-        return "Quarterly";
       case 3:
-        return "Semi-Annual";
+        return "Quarterly";
       case 6:
-        return "Yearly";
+        return "Semi-Annual";
       case 12:
         return "Yearly";
       default:
