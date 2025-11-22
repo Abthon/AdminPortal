@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IClientDetailData, IClientRating } from "@/types/client";
 import { ISessionData, ISessionResponse } from "@/types/session";
 import { IAnswerData, IAnswerResponse } from "@/types/answer";
@@ -354,19 +354,63 @@ interface IPreferenceData {
   }[];
 }
 
-// Tabbed Content Component
+// Tabbed Content Component with Preference-based Tabs
 const ClientTabbedContent = ({
   clientData,
 }: {
   clientData: IClientDetailData;
 }) => {
-  const [activeView, setActiveView] = useState<
-    "sessions" | "activity" | "ratings" | "preferences"
-  >("sessions");
+  const [activeView, setActiveView] = useState<"sessions" | "preferences">("sessions");
+  const [selectedPreferenceId, setSelectedPreferenceId] = useState<string | null>(
+    clientData.preference && clientData.preference.length > 0 
+      ? clientData.preference[0].id 
+      : null
+  );
+  const [selectedModalId, setSelectedModalId] = useState<string | null>(null);
+
+  // Fetch modal information for each preference
+  const fetchPreferenceModals = async () => {
+    if (!clientData.preference || clientData.preference.length === 0) return [];
+    
+    const modalPromises = clientData.preference.map(async (pref) => {
+      try {
+        const { data } = await axiosInstance.get(
+          `/api/v1/preference/${pref.id}?fields=modal.*`
+        );
+        return {
+          preferenceId: pref.id,
+          modalName: data?.data?.modal?.name || "Unknown Modal",
+          modalId: data?.data?.modal?.id || null,
+        };
+      } catch (error) {
+        console.error(`Error fetching modal for preference ${pref.id}:`, error);
+        return {
+          preferenceId: pref.id,
+          modalName: "Unknown Modal",
+          modalId: null,
+        };
+      }
+    });
+
+    return Promise.all(modalPromises);
+  };
+
+  const { data: preferenceModals, isLoading: isLoadingModals } = useQuery({
+    queryKey: ["client-preference-modals", clientData.id],
+    queryFn: fetchPreferenceModals,
+    enabled: !!clientData.preference && clientData.preference.length > 0,
+  });
+
+  // Initialize selectedModalId when preferenceModals data is loaded
+  useEffect(() => {
+    if (preferenceModals && preferenceModals.length > 0 && !selectedModalId) {
+      setSelectedModalId(preferenceModals[0].modalId);
+    }
+  }, [preferenceModals, selectedModalId]);
 
   return (
     <div className="flex flex-col gap-5 lg:gap-7.5">
-      {/* Tab Buttons */}
+      {/* Main Tab Buttons */}
       <div className="flex gap-3 justify-center">
         <button
           type="button"
@@ -377,28 +421,50 @@ const ClientTabbedContent = ({
         </button>
         <button
           type="button"
-          className={`btn btn-sm ${activeView === "ratings" ? "btn-primary" : "btn-outline btn-primary"}`}
-          onClick={() => setActiveView("ratings")}
-        >
-          <KeenIcon icon="star" /> Onboarding Questions
-        </button>
-        <button
-          type="button"
           className={`btn btn-sm ${activeView === "preferences" ? "btn-primary" : "btn-outline btn-primary"}`}
           onClick={() => setActiveView("preferences")}
         >
-          <KeenIcon icon="setting-2" /> Preferences
+          <KeenIcon icon="setting-2" /> Preferences & Questions
         </button>
       </div>
 
+      {/* Preference Sub-tabs (only show when Preferences tab is active) */}
+      {activeView === "preferences" && preferenceModals && preferenceModals.length > 0 && (
+        <div className="flex gap-2 justify-center flex-wrap border-b pb-3">
+          {preferenceModals.map((prefModal) => (
+            <button
+              key={prefModal.preferenceId}
+              type="button"
+              className={`btn btn-xs ${
+                selectedPreferenceId === prefModal.preferenceId
+                  ? "btn-secondary"
+                  : "btn-outline btn-secondary"
+              }`}
+              onClick={() => {
+                setSelectedPreferenceId(prefModal.preferenceId);
+                setSelectedModalId(prefModal.modalId);
+              }}
+            >
+              <KeenIcon icon="abstract-26" className="text-xs" />
+              {prefModal.modalName}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Tab Content */}
       {activeView === "sessions" && <ClientSessions clientData={clientData} />}
-      {activeView === "activity" && <ClientActivity clientData={clientData} />}
-      {activeView === "ratings" && (
-        <ClientOnboardingQuestions clientData={clientData} />
-      )}
-      {activeView === "preferences" && (
-        <ClientPreferences clientData={clientData} />
+      {activeView === "preferences" && selectedPreferenceId && selectedModalId && (
+        <div className="space-y-6">
+          <ClientPreferenceDetails 
+            clientData={clientData} 
+            preferenceId={selectedPreferenceId}
+          />
+          <ClientOnboardingQuestions 
+            clientData={clientData} 
+            modalId={selectedModalId}
+          />
+        </div>
       )}
     </div>
   );
@@ -696,27 +762,21 @@ const ClientActivity = ({ clientData }: { clientData: IClientDetailData }) => {
   );
 };
 
-// Client Preferences Component
-const ClientPreferences = ({
+// Client Preference Details Component (for specific preference)
+const ClientPreferenceDetails = ({
   clientData,
+  preferenceId,
 }: {
   clientData: IClientDetailData;
+  preferenceId: string;
 }) => {
-  // Get preference ID from client data
-  const preferenceId = clientData.preference?.[0]?.id;
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  console.log(preferenceId, "The answer to the question 1", clientData);
   // Fetch preference details
   const fetchPreference = async (): Promise<IPreferenceData> => {
-    if (!preferenceId) {
-      throw new Error("No preference ID found");
-    }
     const { data } = await axiosInstance.get(
-      //`/api/v1/preference/${preferenceId}?fields=gender,otherLang,goal,level.*`
-      `/api/v1/preference/${preferenceId}?fields=language.*,gender,goal,availability.*`
+      `/api/v1/preference/${preferenceId}?fields=language.*,gender,goal,availability.*,modal.*`
     );
-
-    console.log(data, "The answer to the question");
     return data.data;
   };
 
@@ -725,7 +785,7 @@ const ClientPreferences = ({
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["client-preference", preferenceId],
+    queryKey: ["client-preference-details", preferenceId],
     queryFn: fetchPreference,
     enabled: !!preferenceId,
   });
@@ -847,49 +907,63 @@ const ClientPreferences = ({
 
   return (
     <div className="card">
-      <div className="card-header">
+      <div 
+        className="card-header cursor-pointer hover:bg-gray-50 transition-colors"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         <div className="flex items-center justify-between w-full">
-          <h3 className="card-title">Client Preferences</h3>
-          <span className="badge badge-sm badge-primary badge-outline">
-            Therapist Matching Criteria
+          <div className="flex items-center gap-3">
+            <KeenIcon 
+              icon={isExpanded ? "down" : "right"} 
+              className="text-gray-600"
+            />
+            <h3 className="card-title">Client Preferences</h3>
+            <span className="badge badge-sm badge-primary badge-outline">
+              Therapist Matching Criteria
+            </span>
+          </div>
+          <span className="text-xs text-gray-500">
+            {isExpanded ? "Click to collapse" : "Click to expand"}
           </span>
         </div>
       </div>
-      <div className="card-body">
-        <div className="space-y-6">
-          {preferenceQuestions.map((item) => (
-            <div
-              key={item.id}
-              className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
-            >
-              <div className="flex items-start gap-4">
-                {/* Question Icon */}
-                <div className="flex-shrink-0">
-                  <div
-                    className={`w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center ${item.color}`}
-                  >
-                    <KeenIcon icon={item.icon} className="text-xl" />
+      {isExpanded && (
+        <div className="card-body">
+          <div className="space-y-2">
+            {preferenceQuestions.map((item) => (
+              <div
+                key={item.id}
+                className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
+              >
+                <div className="flex items-start gap-4">
+                  {/* Question Icon */}
+                  <div className="flex-shrink-0">
+                    <div
+                      className={`w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center ${item.color}`}
+                    >
+                      <KeenIcon icon={item.icon} className="text-xl" />
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex-1 space-y-3">
-                  {/* Question */}
-                  <h4 className="text-base font-semibold text-gray-900">
-                    {item.question}
-                  </h4>
+                  <div className="flex-1 space-y-3">
+                    {/* Question */}
+                    <h4 className="text-base font-semibold text-gray-900">
+                      {item.question}
+                    </h4>
 
-                  {/* Answer */}
-                  <div className="p-4 rounded-lg">
-                    <p className="text-base text-gray-900 font-medium">
-                      {item.answer}
-                    </p>
+                    {/* Answer */}
+                    <div className="p-4 rounded-lg">
+                      <p className="text-base text-gray-900 font-medium">
+                        {item.answer}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
@@ -897,23 +971,32 @@ const ClientPreferences = ({
 // Onboarding Questions Component
 const ClientOnboardingQuestions = ({
   clientData,
+  modalId,
 }: {
   clientData: IClientDetailData;
+  modalId: string;
 }) => {
-  // Fetch answers for the client
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  // Fetch answers for the client filtered by modal
   const fetchAnswers = async (): Promise<IAnswerResponse> => {
-    const { data } = await axiosInstance.get(
-      `/api/v1/answer?fields=question.*,singleOption.*,multiOption.*,text&filters=client.id=${clientData.id}&take=0`
-    );
+    const url = `/api/v1/answer?fields=question.*,singleOption.*,multiOption.*,text&filters=client.id:=${clientData.id},question.modal.id:=${modalId}&take=0`;
+    console.log('Fetching answers with URL:', url);
+    console.log('Client ID:', clientData.id, 'Modal ID:', modalId);
+    
+    const { data } = await axiosInstance.get(url);
+    console.log('Answers response:', data);
+    console.log('Number of answers returned:', data?.data?.length || 0);
     return data;
   };
 
   const { data: answersData, isLoading } = useQuery({
-    queryKey: ["client-answers", clientData.id],
+    queryKey: ["client-answers", clientData.id, modalId],
     queryFn: fetchAnswers,
   });
 
   const answers = answersData?.data || [];
+  console.log('Filtered answers for modal:', modalId, 'Count:', answers.length);
 
   // Sort answers by question order
   const sortedAnswers = answers.sort(
@@ -1007,31 +1090,44 @@ const ClientOnboardingQuestions = ({
 
   return (
     <div className="card">
-      <div className="card-header">
+      <div 
+        className="card-header cursor-pointer hover:bg-gray-50 transition-colors"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         <div className="flex items-center justify-between w-full">
-          <h3 className="card-title">Onboarding Questions</h3>
-          <span className="badge badge-sm badge-outline">
-            {answers.length} Question{answers.length !== 1 ? "s" : ""} Answered
+          <div className="flex items-center gap-3">
+            <KeenIcon 
+              icon={isExpanded ? "down" : "right"} 
+              className="text-gray-600"
+            />
+            <h3 className="card-title">Onboarding Questions</h3>
+            <span className="badge badge-sm badge-outline">
+              {answers.length} Question{answers.length !== 1 ? "s" : ""} Answered
+            </span>
+          </div>
+          <span className="text-xs text-gray-500">
+            {isExpanded ? "Click to collapse" : "Click to expand"}
           </span>
         </div>
       </div>
-      <div className="card-body">
-        {answers.length === 0 ? (
-          <div className="text-center py-8">
-            <KeenIcon
-              icon="questionnaire-tablet"
-              className="text-4xl text-gray-400 mb-4"
-            />
-            <h4 className="text-lg font-medium text-gray-900 mb-2">
-              No Questions Answered
-            </h4>
-            <p className="text-gray-600">
-              This client hasn't completed the onboarding questionnaire yet.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {sortedAnswers.map((answer, index) => (
+      {isExpanded && (
+        <div className="card-body">
+          {answers.length === 0 ? (
+            <div className="text-center py-8">
+              <KeenIcon
+                icon="questionnaire-tablet"
+                className="text-4xl text-gray-400 mb-4"
+              />
+              <h4 className="text-lg font-medium text-gray-900 mb-2">
+                No Questions Answered
+              </h4>
+              <p className="text-gray-600">
+                This client hasn't completed the onboarding questionnaire yet.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {sortedAnswers.map((answer, index) => (
               <div
                 key={answer.id}
                 className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
@@ -1063,7 +1159,8 @@ const ClientOnboardingQuestions = ({
             ))}
           </div>
         )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
