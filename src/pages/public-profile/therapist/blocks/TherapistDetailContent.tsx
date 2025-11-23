@@ -55,87 +55,69 @@ const timeAgo = (dateString: string | null) => {
 const TherapistDetailContent = ({
   therapistData,
 }: TherapistDetailContentProps) => {
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Invalid date";
-    return format(date, "MMM dd, yyyy 'at' HH:mm");
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "text-success";
-      case "pending":
-        return "text-primary";
-      case "inactive":
-        return "text-warning";
-      case "suspended":
-        return "text-danger";
-      default:
-        return "text-gray-600";
-    }
-  };
-
-  const profileImage = therapistData.profile
-    ? `${BASE_URL}/${therapistData.profile}`
-    : avatar;
-
   const { data: licenseData, isLoading: licenseLoading } = useQuery({
     queryKey: ["therapist-license-details", therapistData.id],
     queryFn: () => fetchTherapistLicense(therapistData.id),
   });
 
-  // Get the first license record (assuming one therapist has one license record)
+  // Get the first license record
   const licenseRecord = licenseData?.data?.[0];
-  console.log(therapistData, "gow gow therapist");
 
   return (
-    <div className="max-w-7xl mx-auto">
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5 mb-4">
-      {/* Statistics Header - Full Width */}
-      <div className="col-span-1 lg:col-span-3 translate-y-[-70px]">
-        <TherapistStatistics therapistData={therapistData} />
+    <div className="mb-4">
+      {/* Profile Header - Full Width (Overlapping cover) */}
+      <div className="translate-y-[-70px]">
+        <TherapistProfileHeader therapistData={therapistData} />
       </div>
 
-      {/* Left Column - General Info */}
-      <div className="col-span-1 w-full">
-        <div className="w-full">
-          <TherapistGeneralInfo therapistData={therapistData} />
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5 -mt-8">
+        {/* Full Width Stats */}
+        <div className="col-span-1 lg:col-span-3 space-y-6">
+          <TherapistStatsOverview therapistData={therapistData} />
+          <TherapistWeeklyStats therapistData={therapistData} />
+        </div>
 
-          {/* License Information */}
-          {licenseLoading ? (
-            <div className="card mt-4">
-              <div className="card-body">
-                <div className="flex justify-center items-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                  <span className="ml-2 text-gray-600">
-                    Loading documents...
-                  </span>
+        {/* Left Column - General Info */}
+        <div className="col-span-1 w-full">
+          <div className="sticky top-5 space-y-5">
+            <TherapistGeneralInfo therapistData={therapistData} />
+            
+            {/* License Information */}
+            {licenseLoading ? (
+              <div className="card">
+                <div className="card-body">
+                  <div className="flex justify-center items-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    <span className="ml-2 text-gray-600">
+                      Loading documents...
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : licenseRecord ? (
-            <LicenseInfo data={licenseRecord} layout="horizontal" />
-          ) : (
-            <div className="card mt-4">
-              <div className="card-body">
-                <div className="text-center py-4 text-gray-600">
-                  No professional documents found
+            ) : licenseRecord ? (
+              <LicenseInfo data={licenseRecord} layout="horizontal" />
+            ) : (
+              <div className="card">
+                <div className="card-body">
+                  <div className="text-center py-4 text-gray-600">
+                    No professional documents found
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Right Column - Tabbed Content */}
-      <div className="col-span-2 border-2 rounded-lg border-text-muted">
-        <div className="flex flex-col gap-5 lg:gap-7.5 p-4">
-          <TherapistTabbedContent therapistData={therapistData} />
+        {/* Right Column - Tabbed Content */}
+        <div className="col-span-1 lg:col-span-2">
+          <div className="card border-2 border-gray-200">
+            <div className="card-body p-6">
+              <TherapistTabbedContent therapistData={therapistData} />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };
@@ -170,8 +152,8 @@ interface ITherapistStats {
   }>;
 }
 
-// Statistics Component
-const TherapistStatistics = ({
+// Profile Header Component
+const TherapistProfileHeader = ({
   therapistData,
 }: {
   therapistData: ITherapistDetailData;
@@ -180,55 +162,131 @@ const TherapistStatistics = ({
     ? `${BASE_URL}/${therapistData.profile}`
     : avatar;
 
-  // Fetch therapist license data first, then get modal info
-  const fetchTherapistLicense = async () => {
-    const { data } = await axiosInstance.get(
-      `/api/v1/license?filters=therapist.id=${therapistData.id}`
-    );
-    return data;
-  };
+  return (
+    <div className="relative group mb-6">
+      {/* Animated White Glow Background */}
+      {/*<div className="absolute -inset-0.5 bg-white rounded-2xl opacity-50 blur-lg transition duration-1000 group-hover:opacity-100 group-hover:duration-200 shadow-[0_0_30px_rgba(255,255,255,0.8)]"></div>*/}
+      
+      {/* Main Card Content */}
+      <div className="relative card bg-transparent rounded-xl overflow-hidden transition-transform duration-300">
+        
+        {/* Decorative Background Elements - Subtle Grays */}
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-gray-50 to-transparent opacity-60"></div>
+        <div className="absolute -right-20 -top-20 w-96 h-96 bg-gray-50 rounded-full blur-3xl opacity-50"></div>
+        <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-gray-50 rounded-full blur-3xl opacity-50"></div>
+        
+        <div className="card-body pt-10 pb-8 relative z-10">
+          <div className="flex flex-col items-center text-center">
+            
+            {/* Profile Image Container with Animations */}
+            <div className="relative mb-6 group/avatar">
+              {/* Rotating outer ring */}
+              <div className="absolute inset-[-12px] rounded-full border border-dashed border-gray-300 animate-[spin_12s_linear_infinite] opacity-60 group-hover/avatar:opacity-100 transition-opacity"></div>
+              {/* Counter-rotating inner ring */}
+              <div className="absolute inset-[-6px] rounded-full border border-dotted border-gray-300 animate-[spin_8s_linear_infinite_reverse] opacity-60 group-hover/avatar:opacity-100 transition-opacity"></div>
+              
+              {/* Pulse Effect behind image */}
+              <div className="absolute inset-0 rounded-full bg-gray-100 animate-ping opacity-20 duration-1000"></div>
+              
+              {/* Image */}
+              <div className="relative rounded-full p-1.5 bg-white ring-1 ring-gray-100 shadow-2xl">
+                <img
+                  src={profileImage}
+                  alt={`${therapistData.firstName} ${therapistData.lastName}`}
+                  className="rounded-full size-32 object-cover"
+                />
+              </div>
 
-  const { data: licenseData, isLoading: licenseLoading } = useQuery({
-    queryKey: ["therapist-license", therapistData.id],
-    queryFn: fetchTherapistLicense,
-  });
+              {/* Status Indicator - Heartbeat */}
+              <div className="absolute bottom-2 right-2">
+                <span className="relative flex h-6 w-6">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    therapistData.status === "active" ? "bg-success" : "bg-danger"
+                  }`}></span>
+                  <span className={`relative inline-flex rounded-full h-6 w-6 border-2 border-white shadow-sm ${
+                     therapistData.status === "active" ? "bg-success" : "bg-danger"
+                  }`}></span>
+                </span>
+              </div>
+            </div>
 
-  // Fetch modal data for each license
-  const fetchLicenseModals = async () => {
-    if (!licenseData?.data || licenseData.data.length === 0) return [];
+            {/* Name Section */}
+            <div className="mb-6 relative animate-fade-in-up">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+                  {therapistData.firstName} {therapistData.lastName}
+                </h2>
+                {(therapistData.isEmailAuthenticated ||
+                  therapistData.isPhoneNumberAuthenticated) && (
+                  <div className="p-1 bg-blue-50 rounded-full text-blue-500 animate-bounce duration-[2000ms]">
+                     <KeenIcon icon="verify" className="text-xl" />
+                  </div>
+                )}
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 border border-gray-100">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                <span className="text-xs font-semibold text-gray-500 tracking-widest uppercase">
+                  Professional Therapist
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+              </div>
+            </div>
 
-    const modalPromises = licenseData.data.map(async (license: any) => {
-      try {
-        const { data } = await axiosInstance.get(
-          `/api/v1/license/${license.id}?fields=modal.*`
-        );
-        return data?.data?.modal?.name || null;
-      } catch (error) {
-        console.error("Error fetching license modal:", error);
-        return null;
-      }
-    });
+            {/* Info Pills - Animated */}
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+              <div className="flex items-center cursor-pointer gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-300 group/pill">
+                <div className="cursor-pointer bg-gray-50 rounded-full text-gray-500 group-hover/pill:text-gray-900 group-hover/pill:bg-gray-100 transition-colors">
+                  <KeenIcon icon="sms" className="text-sm" />
+                </div>
+                <span className="text-sm font-medium text-gray-600 group-hover/pill:text-gray-900">{therapistData.email}</span>
+              </div>
+              
+              <div className="flex items-center cursor-pointer gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-300 group/pill">
+                 <div className="cursor-pointer bg-gray-50 rounded-full text-gray-500 group-hover/pill:text-gray-900 group-hover/pill:bg-gray-100 transition-colors">
+                  <KeenIcon icon="phone" className="text-sm" />
+                </div>
+                <span className="text-sm font-medium text-gray-600 group-hover/pill:text-gray-900">+251{therapistData.phoneNumber}</span>
+              </div>
+            </div>
 
-    const modalNames = await Promise.all(modalPromises);
-    return modalNames.filter((name) => name !== null);
-  };
+            {/* Status Badge - Tech Style */}
+            <div className="flex justify-center cursor-pointer">
+              <div className={`
+                px-6 py-2 rounded-full border shadow-sm font-mono text-xs tracking-wider uppercase flex items-center gap-3 transition-all duration-300 hover:shadow-md
+                ${therapistData.status === "active" 
+                  ? "bg-white border-green-200 text-green-700" 
+                  : "bg-white border-gray-200 text-gray-500"}
+              `}>
+                <span className="relative flex h-2 w-2">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    therapistData.status === "active" ? "bg-green-500" : "bg-gray-400"
+                  }`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                    therapistData.status === "active" ? "bg-green-500" : "bg-gray-400"
+                  }`}></span>
+                </span>
+                Account Status: {therapistData.status}
+              </div>
+            </div>
 
-  const { data: modalNames = [], isLoading: modalLoading } = useQuery({
-    queryKey: ["therapist-license-modals", therapistData.id, licenseData],
-    queryFn: fetchLicenseModals,
-    enabled: !!licenseData?.data && licenseData.data.length > 0,
-  });
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-  const uniqueModalNames = [...new Set(modalNames)]; // Remove duplicates
-  const displayModal =
-    uniqueModalNames.length > 0 ? uniqueModalNames.join(", ") : "N/A";
-
-  // Fetch therapist statistics - all time
+// Stats Overview Component
+const TherapistStatsOverview = ({
+  therapistData,
+}: {
+  therapistData: ITherapistDetailData;
+}) => {
+  // Fetch therapist statistics
   const fetchTherapistStats = async (): Promise<ITherapistStats> => {
     const { data } = await axiosInstance.get(
       `/api/v1/therapist/stats?mockId=${therapistData.id}`
     );
-    console.log(data.data, "Total revenue data");
     return data.data;
   };
 
@@ -237,9 +295,114 @@ const TherapistStatistics = ({
     queryFn: fetchTherapistStats,
   });
 
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7.5 mb-6">
+      {/* Sessions Card */}
+      <div className="card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white">
+        <div className="card-body p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 text-primary">
+              <KeenIcon icon="calendar-tick" className="text-2xl" />
+            </div>
+            <div>
+              <div className="text-sm text-gray-600 font-medium">Total Sessions</div>
+              <div className="text-xl font-bold text-gray-900">
+                {statsLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                ) : (
+                  statsData?.totalSessions || 0
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full bg-primary w-full"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Hours Card */}
+      <div className="card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white">
+        <div className="card-body p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-success/10 text-success">
+              <KeenIcon icon="time" className="text-2xl" />
+            </div>
+            <div>
+              <div className="text-sm text-gray-600 font-medium">Total Hours</div>
+              <div className="text-xl font-bold text-gray-900">
+                {statsLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-success"></div>
+                ) : (
+                  statsData?.totalHours || 0
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full bg-success w-full"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Revenue Card */}
+      <div className="card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white">
+        <div className="card-body p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-warning/10 text-warning">
+              <KeenIcon icon="wallet" className="text-2xl" />
+            </div>
+            <div>
+              <div className="text-sm text-gray-600 font-medium">Total Revenue</div>
+              <div className="text-xl font-bold text-gray-900">
+                {statsLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-warning"></div>
+                ) : (
+                  statsData?.totalRevenue || "0 ETB"
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full bg-warning w-full"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Users Card */}
+      <div className="card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white">
+        <div className="card-body p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-info/10 text-info">
+              <KeenIcon icon="people" className="text-2xl" />
+            </div>
+            <div>
+              <div className="text-sm text-gray-600 font-medium">Total Clients</div>
+              <div className="text-xl font-bold text-gray-900">
+                {statsLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-info"></div>
+                ) : (
+                  statsData?.totalUsers || 0
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full bg-info w-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Weekly Stats Component
+const TherapistWeeklyStats = ({
+  therapistData,
+}: {
+  therapistData: ITherapistDetailData;
+}) => {
   // Fetch therapist statistics - last 7 days
-  // Fetch therapist statistics - last 7 days (fixed date calculation)
-  // Fetch therapist statistics - last 7 days (past week)
   const fetchTherapistStatsWeek = async (): Promise<ITherapistStats> => {
     const endDate = new Date(); // Today
     const startDate = new Date();
@@ -253,7 +416,6 @@ const TherapistStatistics = ({
       `/api/v1/therapist/stats?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}T23:59:59.999Z&mockId=${therapistData.id}`
     );
 
-    console.log(data.data, "Last 7 days data");
     return data.data;
   };
 
@@ -263,189 +425,64 @@ const TherapistStatistics = ({
   });
 
   return (
-    <div className="">
-      <div className="">
-        <div className="flex flex-col items-center text-center py-8">
-          {/* Profile Image */}
-          <div className="relative mb-6">
-            <img
-              src={profileImage}
-              alt={`${therapistData.firstName} ${therapistData.lastName}`}
-              className="rounded-full size-20 object-cover border-4 border-gray-200"
-            />
-            <div
-              className={`absolute bottom-1 right-1 size-4 rounded-full border-2 border-white ${
-                therapistData.status === "active" ? "bg-success" : "bg-danger"
-              }`}
-            ></div>
-          </div>
-
-          {/* Name and Verification */}
-          <div className="mb-4">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <h2 className="text-2xl font-semibold text-gray-900">
-                {therapistData.firstName} {therapistData.lastName}
-              </h2>
-              {(therapistData.isEmailAuthenticated ||
-                therapistData.isPhoneNumberAuthenticated) && (
-                <KeenIcon icon="verify" className="text-primary text-lg" />
+    <div className="card bg-gray-50 border border-gray-200">
+      <div className="card-header border-b border-gray-200">
+        <h3 className="card-title text-gray-900">Last 7 Days Performance</h3>
+      </div>
+      <div className="card-body p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Weekly Sessions */}
+          <div className="flex flex-col items-center text-center p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 text-primary">
+              <KeenIcon icon="calendar-tick" className="text-xl" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 mb-1">
+              {statsWeekLoading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mx-auto"></div>
+              ) : (
+                statsWeekData?.sessionsOverTime?.reduce(
+                  (total: number, session: any) => {
+                    return total + (parseInt(session.count) || 0);
+                  },
+                  0
+                ) || 0
               )}
             </div>
-
-            {/* Contact Info */}
-            <div className="flex items-center justify-center gap-4 text-sm text-gray-600 mb-4">
-              <div className="flex items-center gap-1">
-                <KeenIcon icon="email" className="text-xs" />
-                <span>{therapistData.email}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <KeenIcon icon="phone" className="text-xs" />
-                <span>+251{therapistData.phoneNumber}</span>
-              </div>
-            </div>
-
-            {/* Status Badge */}
-            <div className="flex justify-center">
-              <span
-                className={`badge ${
-                  therapistData.status === "active"
-                    ? "badge-success"
-                    : therapistData.status === "pending"
-                      ? "badge-primary"
-                      : therapistData.status === "inactive"
-                        ? "badge-warning"
-                        : "badge-danger"
-                } badge-outline`}
-              >
-                <span
-                  className={`size-1.5 rounded-full ${
-                    therapistData.status === "active"
-                      ? "bg-success"
-                      : therapistData.status === "pending"
-                        ? "bg-primary"
-                        : therapistData.status === "inactive"
-                          ? "bg-warning"
-                          : "bg-danger"
-                  } me-1.5`}
-                ></span>
-                {therapistData.status}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Statistics Grid */}
-        <div className="space-y-6 py-4">
-          <div className="pt-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-              All-Time Statistics
-            </h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-1">
-                  {statsLoading ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-primary mx-auto"></div>
-                  ) : (
-                    statsData?.totalSessions || 0
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">Total Sessions</div>
-              </div>
-
-              <div className="text-center">
-                <div className="text-3xl font-bold text-success mb-1">
-                  {statsLoading ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                  ) : (
-                    statsData?.totalHours || 0
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">Total Hours</div>
-              </div>
-
-              <div className="text-center">
-                <div className="text-3xl font-bold text-warning mb-1">
-                  {statsLoading ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-primary mx-auto"></div>
-                  ) : (
-                    statsData?.totalRevenue || 0
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">Total Revenue (ETB)</div>
-              </div>
-
-              <div className="text-center">
-                <div className="text-3xl font-bold text-info mb-1">
-                  {statsLoading ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                  ) : (
-                    statsData?.totalUsers || 0
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">Total Users</div>
-              </div>
-            </div>
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Sessions</div>
           </div>
 
-          {/* Row 3: Weekly Statistics (Last 7 Days) */}
-          <div className="pt-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-              Last 7 Days
-            </h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-1">
-                  {statsWeekLoading ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                  ) : (
-                      statsWeekData?.sessionsOverTime?.reduce(
-                        (total: number, session: any) => {
-                          return total + (parseInt(session.count) || 0);
-                        },
-                        0
-                      ) || 0
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">Sessions/Week</div>
-              </div>
-
-              <div className="text-center">
-                <div className="text-3xl font-bold text-success mb-1">
-                  {statsWeekLoading ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                  ) : (
-                    statsWeekData?.therapistHoursPerWeek
-                      ?.reduce((total: number, week: any) => {
-                        return total + (parseFloat(week.totalHours) || 0);
-                      }, 0)
-                      .toFixed(2) || 0
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">Hours/Week</div>
-              </div>
-
-              <div className="text-center">
-                <div className="text-3xl font-bold text-warning mb-1">
-                  {statsWeekLoading ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                    ) : (
-                      statsWeekData?.revenueOverTime[0].revenueOverTime
-                    )}
-                </div>
-                <div className="text-sm text-gray-600">Revenue/Week (ETB)</div>
-              </div>
-
-              {/*<div className="text-center">
-      <div className="text-3xl font-bold text-info mb-1">
-        {statsWeekLoading ? (
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-        ) : (
-          statsWeekData?.totalUsers || 0
-        )}
-      </div>
-      <div className="text-sm text-gray-600">Users/Week</div>
-    </div>*/}
+          {/* Weekly Hours */}
+          <div className="flex flex-col items-center text-center p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center mb-3 text-success">
+              <KeenIcon icon="time" className="text-xl" />
             </div>
+            <div className="text-2xl font-bold text-gray-900 mb-1">
+              {statsWeekLoading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-success mx-auto"></div>
+              ) : (
+                statsWeekData?.therapistHoursPerWeek
+                  ?.reduce((total: number, week: any) => {
+                    return total + (parseFloat(week.totalHours) || 0);
+                  }, 0)
+                  .toFixed(2) || 0
+              )}
+            </div>
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Hours</div>
+          </div>
+
+          {/* Weekly Revenue */}
+          <div className="flex flex-col items-center text-center p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center mb-3 text-warning">
+              <KeenIcon icon="wallet" className="text-xl" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 mb-1">
+              {statsWeekLoading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-warning mx-auto"></div>
+              ) : (
+                statsWeekData?.revenueOverTime?.[0]?.revenueOverTime || "0"
+              )}
+            </div>
+            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Revenue (ETB)</div>
           </div>
         </div>
       </div>
@@ -496,7 +533,7 @@ const TherapistGeneralInfo = ({
     },
     { label: "Gender:", info: therapistData.gender },
     {
-      label: "Hours Dedicated Per Week:",
+      label: "Weekly Hours:",
       info: `${therapistData.hoursDedicatedPerWeek}`,
     },
     { label: "Created at:", info: timeAgo(therapistData.createdAt) },
@@ -523,15 +560,15 @@ const TherapistGeneralInfo = ({
           </tbody>
         </table>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-4 mt-4 pt-4 border-t border-gray-100">
           {/* Languages Section */}
-          <div className="mt-4 border-gray-200">
-            <h4 className="text-sm text-gray-600 mb-2">Languages</h4>
+          <div>
+            <h4 className="text-sm font-semibold text-gray-900 mb-2">Languages</h4>
             {languagesLoading ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                 <span className="text-sm text-gray-600">
-                  Loading languages...
+                  Loading...
                 </span>
               </div>
             ) : languages.length > 0 ? (
@@ -539,34 +576,34 @@ const TherapistGeneralInfo = ({
                 {languages.map((language: any) => (
                   <span
                     key={language.id}
-                    className="badge badge-primary badge-outline"
+                    className="badge badge-sm badge-primary badge-outline"
                   >
                     {language.name}
                   </span>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-600">No languages specified</p>
+              <p className="text-sm text-gray-500 italic">No languages specified</p>
             )}
           </div>
 
           {/* Bio Section */}
           {therapistData.bio && (
-            <div className="mt-4 border-gray-200">
-              <h4 className="text-sm text-gray-600 mb-2">Bio</h4>
-              <p className="text-sm text-gray-700">{therapistData.bio}</p>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Bio</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">{therapistData.bio}</p>
             </div>
           )}
 
           {/* Expertise Section */}
           {therapistData.expertise && therapistData.expertise.length > 0 && (
-            <div className="mt-4 border-gray-200">
-              <h4 className="text-sm text-gray-600 mb-2">Areas of Expertise</h4>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Areas of Expertise</h4>
               <div className="flex flex-wrap gap-2">
                 {therapistData.expertise.map((exp) => (
                   <span
                     key={exp.id}
-                    className="badge badge-primary badge-outline"
+                    className="badge badge-sm badge-outline badge-success"
                   >
                     {exp.expertise}
                   </span>
@@ -578,27 +615,30 @@ const TherapistGeneralInfo = ({
           {/* Bank Information Section */}
           {therapistData.therapistBank &&
             therapistData.therapistBank.length > 0 && (
-              <div className="mt-4 border-gray-200">
-                <h4 className="text-sm text-gray-600 mb-2">
-                  Bank Account Details
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                  Bank Details
                 </h4>
                 <div className="space-y-2">
                   {therapistData.therapistBank.map((bank) => (
                     <div
                       key={bank.id}
-                      className="flex items-center gap-2 text-sm"
+                      className="p-3 bg-gray-50 rounded-lg border border-gray-100"
                     >
-                      <span className="text-gray-600">Account:</span>
-                      <span className="font-medium text-gray-900">
-                        {bank.accountNumber}
-                      </span>
-                      {bank.branch && (
-                        <>
-                          <span className="text-gray-400">|</span>
-                          <span className="text-gray-600">Branch:</span>
-                          <span className="text-gray-900">{bank.branch}</span>
-                        </>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        <div className="flex justify-between items-center">
+                           <span className="text-xs text-gray-500">Account</span>
+                           <span className="text-sm font-medium text-gray-900 font-mono">
+                            {bank.accountNumber}
+                          </span>
+                        </div>
+                        {bank.branch && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-500">Branch</span>
+                            <span className="text-sm text-gray-700">{bank.branch}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

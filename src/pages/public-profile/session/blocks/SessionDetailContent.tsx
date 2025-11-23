@@ -88,7 +88,10 @@ const SessionDetailContent = ({ sessionData }: any) => {
               <ClientSessionCalendar clientData={client} />
             </div>
             <div className="col-span-1 lg:col-span-3">
-              <ClientOnboardingQuestions clientData={client} />
+              <ClientOnboardingQuestions 
+                clientData={client} 
+                modalId={sessionData.modal?.id}
+              />
             </div>
           </>
         )}
@@ -418,15 +421,28 @@ const ClientSessionCalendar = ({ clientData }: { clientData: any }) => {
 };
 
 // Client Onboarding Questions Component
-const ClientOnboardingQuestions = ({ clientData }: { clientData: any }) => {
-  // Fetch answers for the client
+const ClientOnboardingQuestions = ({ 
+  clientData, 
+  modalId 
+}: { 
+  clientData: any;
+  modalId?: string;
+}) => {
+  // Fetch answers for the client filtered by modal
   const fetchAnswers = async () => {
-    const { data } = await axiosInstance.get(`/api/v1/answer?fields=question.*,singleOption.*,multiOption.*,text&filters=client.id=${clientData.id}`);
+    let url = `/api/v1/answer?fields=question.*,question.modal.*,singleOption.*,multiOption.*,text&filters=client.id=${clientData.id}`;
+    
+    // Add modal filter if modalId is provided
+    if (modalId) {
+      url += `,question.modal.id=${modalId}`;
+    }
+    
+    const { data } = await axiosInstance.get(url);
     return data;
   };
 
   const { data: answersData, isLoading } = useQuery({
-    queryKey: ["client-answers", clientData.id],
+    queryKey: ["client-answers", clientData.id, modalId],
     queryFn: fetchAnswers,
   });
 
@@ -508,7 +524,9 @@ const ClientOnboardingQuestions = ({ clientData }: { clientData: any }) => {
     <div className="card">
       <div className="card-header">
         <div className="flex items-center justify-between w-full">
-          <h3 className="card-title">Client Onboarding Questions</h3>
+          <h3 className="card-title">
+            {modalId ? 'Session-Specific' : 'Client'} Onboarding Questions
+          </h3>
           <span className="badge badge-sm badge-outline">
             {answers.length} Question{answers.length !== 1 ? 's' : ''} Answered
           </span>

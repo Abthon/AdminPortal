@@ -19,6 +19,68 @@ import avatar from "@/media/avatars/blank.png";
 
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
+// User Subscription Interface
+interface IUserSubscription {
+  id: string;
+  updatedAt: string;
+  createdAt: string;
+  therapistPercentage: number | null;
+  status: string;
+  start_date: string;
+  end_date: string;
+  old_price: number | null;
+  price: number;
+  client: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  therapist: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
+  subscription: {
+    id: string;
+    type: number;
+    old_price: number;
+    price: number;
+    is_admin_created: boolean;
+    modal: {
+      id: string;
+      name: string;
+      order: number;
+      code: string | null;
+      description: string;
+    };
+    level: {
+      id: string;
+      type: string;
+      minXP: number;
+      maxXP: number | null;
+      price: number;
+    } | null;
+  };
+  session: any[];
+}
+
+interface IUserSubscriptionResponse {
+  data: IUserSubscription[];
+  pagination: {
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+  };
+  message: string;
+  statusCode: number;
+  method: string;
+  path: string;
+  timestamp: string;
+}
+
 interface ClientDetailContentProps {
   clientData: IClientDetailData;
 }
@@ -31,6 +93,8 @@ const timeAgo = (dateString: string | null) => {
 };
 
 const ClientDetailContent = ({ clientData }: ClientDetailContentProps) => {
+  const [selectedSubscription, setSelectedSubscription] = useState<IUserSubscription | null>(null);
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -42,36 +106,264 @@ const ClientDetailContent = ({ clientData }: ClientDetailContentProps) => {
     ? `${BASE_URL}/${clientData.profile}`
     : avatar;
 
+  // Fetch all user subscriptions
+  const fetchUserSubscriptions = async (): Promise<IUserSubscriptionResponse> => {
+    const { data } = await axiosInstance.get(
+      `/api/v1/subscription/user-sub?filters=client.id=${clientData.id}&take=0`
+    );
+    return data;
+  };
+
+  const { data: userSubscriptionsData, isLoading: isLoadingSubscriptions } = useQuery({
+    queryKey: ["user-subscriptions", clientData.id],
+    queryFn: fetchUserSubscriptions,
+  });
+
+  const userSubscriptions = userSubscriptionsData?.data || [];
+
+  // Set initial selected subscription to active one or most recent
+  useEffect(() => {
+    if (userSubscriptions.length > 0 && !selectedSubscription) {
+      const activeSubscription = userSubscriptions.find(sub => sub.status === "active");
+      setSelectedSubscription(activeSubscription || userSubscriptions[0]);
+    }
+  }, [userSubscriptions, selectedSubscription]);
+
   console.log(clientData.rating, "gow gow rating");
 
   return (
-    //<div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5">
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5 mb-4">
-      {/* Statistics Header - Full Width */}
-      <div className="col-span-1 lg:col-span-3 translate-y-[-70px]">
-        <ClientStatistics clientData={clientData} />
+    <div className="mb-4">
+      {/* Profile Header - Full Width (Overlapping cover) */}
+      <div className="translate-y-[-70px]">
+        <ClientProfileHeader clientData={clientData} />
       </div>
 
-      {/* Left Column - General Info */}
-      <div className="col-span-1 w-full">
-        <div className="w-full">
-          <ClientGeneralInfo clientData={clientData} />
-          {/*<ClientAccountInfo clientData={clientData} />*/}
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5 -mt-8">
+        {/* Full Width Subscription Stats */}
+        <div className="col-span-1 lg:col-span-3">
+          <ClientSubscriptionStats 
+            clientData={clientData}
+            selectedSubscription={selectedSubscription}
+          />
         </div>
-      </div>
 
-      {/* Right Column - Tabbed Content */}
-      <div className="col-span-2 border-2 rounded-lg border-text-muted">
-        <div className="flex flex-col gap-5 lg:gap-7.5 p-4">
-          <ClientTabbedContent clientData={clientData} />
+        {/* Full Width Timeline */}
+        <div className="col-span-1 lg:col-span-3">
+          <SubscriptionHistoryTimeline 
+            subscriptions={userSubscriptions}
+            selectedSubscription={selectedSubscription}
+            onSelectSubscription={setSelectedSubscription}
+            isLoading={isLoadingSubscriptions}
+          />
+        </div>
+
+        {/* Left Column - General Info */}
+        <div className="col-span-1 w-full">
+          <div className="sticky top-5">
+            <ClientGeneralInfo clientData={clientData} />
+          </div>
+        </div>
+
+        {/* Right Column - Tabbed Content */}
+        <div className="col-span-1 lg:col-span-2">
+          <div className="card border-2 border-gray-200">
+            <div className="card-body p-6">
+              <ClientTabbedContent 
+                clientData={clientData} 
+                selectedSubscription={selectedSubscription}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-// Statistics Component
-const ClientStatistics = ({
+// Subscription History Timeline Component
+const SubscriptionHistoryTimeline = ({
+  subscriptions,
+  selectedSubscription,
+  onSelectSubscription,
+  isLoading,
+}: {
+  subscriptions: IUserSubscription[];
+  selectedSubscription: IUserSubscription | null;
+  onSelectSubscription: (subscription: IUserSubscription) => void;
+  isLoading: boolean;
+}) => {
+  if (isLoading) {
+    return (
+      <div className="card">
+        <div className="card-body">
+          <div className="text-center py-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600">Loading subscription history...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (subscriptions.length === 0) {
+    return (
+      <div className="card">
+        <div className="card-body">
+          <div className="text-center py-4">
+            <KeenIcon icon="information" className="text-2xl text-gray-400 mb-2" />
+            <p className="text-sm text-gray-600">No subscription history available</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Group subscriptions by modal
+  const groupedByModal = subscriptions.reduce((acc, sub) => {
+    const modalName = sub.subscription.modal.name;
+    if (!acc[modalName]) {
+      acc[modalName] = [];
+    }
+    acc[modalName].push(sub);
+    return acc;
+  }, {} as Record<string, IUserSubscription[]>);
+
+  return (
+    <div className="card h-full">
+      <div className="card-header border-b border-gray-200 pb-4">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <KeenIcon icon="calendar-tick" className="text-primary text-xl" />
+            </div>
+            <div>
+              <h3 className="card-title text-gray-900 font-bold">Subscription History</h3>
+              <p className="text-xs text-gray-500 font-medium mt-0.5">
+                {subscriptions.length} Total Record{subscriptions.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="card-body p-6">
+        <div className="relative space-y-8 before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gray-200 before:content-['']">
+          {Object.entries(groupedByModal).map(([modalName, modalSubs], groupIndex) => (
+            <div key={modalName} className="relative pl-12">
+              {/* Timeline Node */}
+              <div className="absolute left-0 top-0 w-10 h-10 rounded-full border-4 border-white bg-primary/10 flex items-center justify-center z-10">
+                <div className="w-3 h-3 rounded-full bg-primary"></div>
+              </div>
+
+              {/* Group Header */}
+              <div className="flex items-center gap-3 mb-4">
+                <h4 className="text-lg font-bold text-gray-900">{modalName}</h4>
+                <span className="badge badge-xs badge-secondary badge-outline">
+                  {modalSubs.length} period{modalSubs.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              {/* Subscription Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {modalSubs.map((sub) => {
+
+                  console.log(sub, "What is this sub");
+                  const isSelected = selectedSubscription?.id === sub.id;
+                  const isActive = sub.status === "active";
+                  const subscriptionTypes: Record<number, string> = {
+                    0: "Trial",
+                    1: "Monthly",
+                    3: "Quarterly",
+                    6: "Semi-Annual",
+                    12: "Yearly",
+                  };
+                  const typeName = subscriptionTypes[sub.subscription.type] || `Type ${sub.subscription.type}`;
+                  
+                  // Safe date formatting with validation
+                  const formatSafeDate = (dateString: string) => {
+                    try {
+                      const date = new Date(dateString);
+                      if (isNaN(date.getTime())) return "N/A";
+                      return format(date, "MMM dd, yyyy");
+                    } catch {
+                      return "N/A";
+                    }
+                  };
+                  
+                  return (
+                    <div
+                      key={sub.id}
+                      onClick={() => onSelectSubscription(sub)}
+                      className={`
+                        relative group cursor-pointer rounded-xl border-2 transition-all duration-300 p-4
+                        hover:shadow-lg hover:border-primary/50 hover:-translate-y-1
+                        ${isSelected 
+                          ? "border-primary bg-primary/5 shadow-md" 
+                          : "border-gray-200 bg-white hover:bg-gray-50"
+                        }
+                      `}
+                    >
+                      {/* Active Badge */}
+                      {isActive && (
+                        <div className="absolute -top-3 -right-2">
+                          <span className="badge badge-success shadow-sm border-2 border-white">
+                            Active
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Selection Indicator */}
+                      {isSelected && (
+                        <div className="absolute top-4 right-4 text-primary">
+                          <KeenIcon icon="check-circle" className="text-xl" />
+                        </div>
+                      )}
+
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`
+                            w-10 h-10 rounded-lg flex items-center justify-center transition-colors
+                            ${isSelected ? "bg-primary text-white" : "bg-gray-100 text-gray-500 group-hover:bg-primary/10 group-hover:text-primary"}
+                          `}>
+                            <KeenIcon icon="calendar" className="text-lg" />
+                          </div>
+                          <div>
+                            <h5 className={`font-bold text-sm ${isSelected ? "text-primary" : "text-gray-900"}`}>
+                              {typeName} Plan
+                            </h5>
+                            <p className="text-xs text-gray-500 font-medium">
+                              {(sub.subscription.price ?? 0).toLocaleString()} Birr
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-dashed border-gray-200">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-gray-500">Start Date</span>
+                              <span className="font-medium text-gray-700">{formatSafeDate(sub.start_date)}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-gray-500">End Date</span>
+                              <span className="font-medium text-gray-700">{formatSafeDate(sub.end_date)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Profile Header Component
+const ClientProfileHeader = ({
   clientData,
 }: {
   clientData: IClientDetailData;
@@ -81,138 +373,222 @@ const ClientStatistics = ({
     : avatar;
 
   return (
-    <div className="">
-      <div className="">
-        <div className="flex flex-col items-center text-center py-8">
-          {/* Profile Image */}
-          <div className="relative mb-6">
-            <img
-              src={profileImage}
-              alt={`${clientData.firstName} ${clientData.lastName}`}
-              className="rounded-full size-20 object-cover border-4 border-gray-200"
-            />
-            <div
-              className={`absolute bottom-1 right-1 size-4 rounded-full border-2 border-white ${
-                clientData.status === "active" ? "bg-success" : "bg-danger"
-              }`}
-            ></div>
-          </div>
+    <div className="relative group mb-6">
+      {/* Main Card Content */}
+      <div className="relative card overflow-hidden">
+        
+        {/* Decorative Background Elements - Subtle Grays */}
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-gray-50 to-transparent opacity-60"></div>
+        <div className="absolute -right-20 -top-20 w-96 h-96 bg-gray-50 rounded-full blur-3xl opacity-50"></div>
+        <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-gray-50 rounded-full blur-3xl opacity-50"></div>
+        
+        <div className="card-body pt-10 pb-8 relative z-10">
+          <div className="flex flex-col items-center text-center">
+            
+            {/* Profile Image Container with Animations */}
+            <div className="relative mb-6 group/avatar">
+              {/* Rotating outer ring */}
+              <div className="absolute inset-[-12px] rounded-full border border-dashed border-gray-300 animate-[spin_12s_linear_infinite] opacity-60 group-hover/avatar:opacity-100 transition-opacity"></div>
+              {/* Counter-rotating inner ring */}
+              <div className="absolute inset-[-6px] rounded-full border border-dotted border-gray-300 animate-[spin_8s_linear_infinite_reverse] opacity-60 group-hover/avatar:opacity-100 transition-opacity"></div>
+              
+              {/* Pulse Effect behind image */}
+              <div className="absolute inset-0 rounded-full bg-gray-100 animate-ping opacity-20 duration-1000"></div>
+              
+              {/* Image */}
+              <div className="relative rounded-full p-1.5 bg-white ring-1 ring-gray-100 shadow-2xl">
+                <img
+                  src={profileImage}
+                  alt={`${clientData.firstName} ${clientData.lastName}`}
+                  className="rounded-full size-32 object-cover"
+                />
+              </div>
 
-          {/* Name and Verification */}
-          <div className="mb-4">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <h2 className="text-2xl font-semibold text-gray-900">
-                {clientData.firstName} {clientData.lastName}
-              </h2>
-              {(clientData.isEmailAuthenticated ||
-                clientData.isPhoneNumberAuthenticated) && (
-                <KeenIcon icon="verify" className="text-primary text-lg" />
-              )}
+              {/* Status Indicator - Heartbeat */}
+              <div className="absolute bottom-2 right-2">
+                <span className="relative flex h-6 w-6">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    clientData.status === "active" ? "bg-success" : "bg-danger"
+                  }`}></span>
+                  <span className={`relative inline-flex rounded-full h-6 w-6 border-2 border-white shadow-sm ${
+                     clientData.status === "active" ? "bg-success" : "bg-danger"
+                  }`}></span>
+                </span>
+              </div>
             </div>
 
-            {/* Contact Info */}
-            <div className="flex items-center justify-center gap-4 text-sm text-gray-600 mb-4">
-              <div className="flex items-center gap-1">
-                <KeenIcon icon="email" className="text-xs" />
-                <span>{clientData.email}</span>
+            {/* Name Section */}
+            <div className="mb-6 relative animate-fade-in-up">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+                  {clientData.firstName} {clientData.lastName}
+                </h2>
+                {(clientData.isEmailAuthenticated ||
+                  clientData.isPhoneNumberAuthenticated) && (
+                  <div className="p-1 bg-blue-50 rounded-full text-blue-500 animate-bounce duration-[2000ms]">
+                     <KeenIcon icon="verify" className="text-xl" />
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-1">
-                <KeenIcon icon="phone" className="text-xs" />
-                <span>+251{clientData.phoneNumber}</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 border border-gray-100">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                <span className="text-xs font-semibold text-gray-500 tracking-widest uppercase">
+                  Valued Client
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
               </div>
             </div>
 
-            {/* Status Badge */}
+            {/* Info Pills - Animated */}
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+              <div className="flex items-center cursor-pointer gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-300 group/pill">
+                <div className="p-bg-gray-50 text-gray-500 group-hover/pill:text-gray-900 group-hover/pill:bg-gray-100 transition-colors">
+                  <KeenIcon icon="sms" className="text-sm" />
+                </div>
+                <span className="text-sm font-medium text-gray-600 group-hover/pill:text-gray-900">{clientData.email}</span>
+              </div>
+              
+              <div className="flex items-center cursor-pointer gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-300 group/pill">
+                 <div className="bg-gray-50 rounded-full text-gray-500 group-hover/pill:text-gray-900 group-hover/pill:bg-gray-100 transition-colors">
+                  <KeenIcon icon="phone" className="text-sm" />
+                </div>
+                <span className="text-sm font-medium text-gray-600 group-hover/pill:text-gray-900">+251{clientData.phoneNumber}</span>
+              </div>
+              
+              <div className="flex items-center cursor-pointer gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-300 group/pill">
+                 <div className="bg-gray-50 rounded-full text-gray-500 group-hover/pill:text-gray-900 group-hover/pill:bg-gray-100 transition-colors">
+                  <KeenIcon icon="profile-circle" className="text-sm" />
+                </div>
+                <span className="text-sm font-medium text-gray-600 group-hover/pill:text-gray-900">@{clientData.username}</span>
+              </div>
+            </div>
+
+            {/* Status Badge - Tech Style */}
             <div className="flex justify-center">
-              <span
-                className={`badge ${
-                  clientData.status === "active"
-                    ? "badge-success"
-                    : clientData.status === "pending"
-                      ? "badge-primary"
-                      : clientData.status === "inactive"
-                        ? "badge-warning"
-                        : "badge-danger"
-                } badge-outline`}
-              >
-                <span
-                  className={`size-1.5 rounded-full ${
-                    clientData.status === "active"
-                      ? "bg-success"
-                      : clientData.status === "pending"
-                        ? "bg-primary"
-                        : clientData.status === "inactive"
-                          ? "bg-warning"
-                          : "bg-danger"
-                  } me-1.5`}
-                ></span>
-                {clientData.status}
-              </span>
+              <div className={`
+                px-6 py-2 rounded-full cursor-pointer border shadow-sm font-mono text-xs tracking-wider uppercase flex items-center gap-3 transition-all duration-300 hover:shadow-md
+                ${clientData.status === "active" 
+                  ? "bg-white border-green-200 text-green-700" 
+                  : "bg-white border-gray-200 text-gray-500"}
+              `}>
+                <span className="relative flex h-2 w-2">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    clientData.status === "active" ? "bg-green-500" : "bg-gray-400"
+                  }`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                    clientData.status === "active" ? "bg-green-500" : "bg-gray-400"
+                  }`}></span>
+                </span>
+                System Status: {clientData.status}
+              </div>
             </div>
+
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
 
-        {/* Statistics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-4 border-t">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 mb-1">
-              {(() => {
-                const subscription =
-                  clientData.activeSubscription?.subscription;
-                if (!subscription) return "No Subscription";
+// Subscription Stats Component
+const ClientSubscriptionStats = ({
+  clientData,
+  selectedSubscription,
+}: {
+  clientData: IClientDetailData;
+  selectedSubscription: IUserSubscription | null;
+}) => {
+  // Use selected subscription if available, otherwise fall back to activeSubscription
+  const displaySubscription = selectedSubscription || clientData.activeSubscription;
+  const isActive = displaySubscription?.status === "active";
 
-                const type = subscription.type;
-                if (type === undefined || type === null) return "N/A";
-
-                const subscriptionTypes: Record<number, string> = {
-                  0: "Trial",
-                  1: "Monthly",
-                  3: "Quarterly",
-                  6: "Semi-Annual",
-                  12: "Yearly",
-                };
-                return subscriptionTypes[type] || `Type ${type}`;
-              })()}
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-7.5 mb-6">
+      {/* Type Card */}
+      <div className={`card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${isActive ? "bg-primary/5 border-primary/20" : "bg-white"}`}>
+        <div className="card-body p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isActive ? "bg-primary text-white" : "bg-gray-100 text-gray-500"}`}>
+              <KeenIcon icon="category" className="text-2xl" />
             </div>
-            <div className="text-sm text-gray-600">Subscription Type</div>
+            <div>
+              <div className="text-sm text-gray-600 font-medium">Plan Type</div>
+              <div className="text-xl font-bold text-gray-900">
+                {(() => {
+                  const subscription = displaySubscription?.subscription;
+                  if (!subscription) return "No Subscription";
+
+                  const type = subscription.type;
+                  if (type === undefined || type === null) return "N/A";
+
+                  const subscriptionTypes: Record<number, string> = {
+                    0: "Trial",
+                    1: "Monthly",
+                    3: "Quarterly",
+                    6: "Semi-Annual",
+                    12: "Yearly",
+                  };
+                  return subscriptionTypes[type] || `Type ${type}`;
+                })()}
+              </div>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 mb-1">
-              {(() => {
-                const activeSubscription = clientData.activeSubscription;
-                if (!activeSubscription) return "N/A";
-
-                // Use the price from activeSubscription (historical price paid)
-                // Fall back to subscription.price if activeSubscription.price is null
-                const price = activeSubscription.price ?? activeSubscription.subscription?.price;
-                if (price === undefined || price === null) return "N/A";
-
-                return `${price.toLocaleString()} Birr`;
-              })()}
-            </div>
-            <div className="text-sm text-gray-600">Subscription Price</div>
+          <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className={`h-full ${isActive ? "bg-primary" : "bg-gray-400"} w-full`}></div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 mb-1">
-              {(() => {
-                const subscription =
-                  clientData.activeSubscription?.subscription;
-                if (!subscription) return "N/A";
+        </div>
+      </div>
 
-                const type = subscription.type;
-                if (type === undefined || type === null) return "N/A";
-
-                const sessionsPerType: Record<number, number> = {
-                  0: 1,   // Trial = 1 session
-                  1: 4,   // Monthly = 4 sessions
-                  3: 12,  // Quarterly = 12 sessions
-                  6: 24,  // Semi-Annual = 24 sessions
-                  12: 48  // Yearly = 48 sessions
-                };
-                return sessionsPerType[type] || "N/A";
-              })()}
+      {/* Price Card */}
+      <div className={`card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${isActive ? "bg-primary/5 border-primary/20" : "bg-white"}`}>
+        <div className="card-body p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isActive ? "bg-primary text-white" : "bg-gray-100 text-gray-500"}`}>
+              <KeenIcon icon="wallet" className="text-2xl" />
             </div>
-            <div className="text-sm text-gray-600">Total Sessions</div>
+            <div>
+              <div className="text-sm text-gray-600 font-medium">Plan Price</div>
+              <div className="text-xl font-bold text-gray-900">
+                {(() => {
+                  if (!displaySubscription) return "N/A";
+                  const price = displaySubscription.price ?? displaySubscription.subscription?.price;
+                  if (price === undefined || price === null) return "N/A";
+                  return `${price.toLocaleString()} Birr`;
+                })()}
+              </div>
+            </div>
+          </div>
+          <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className={`h-full ${isActive ? "bg-primary" : "bg-gray-400"} w-full`}></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sessions Card */}
+      <div className={`card transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${isActive ? "bg-primary/5 border-primary/20" : "bg-white"}`}>
+        <div className="card-body p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isActive ? "bg-primary text-white" : "bg-gray-100 text-gray-500"}`}>
+              <KeenIcon icon="calendar-tick" className="text-2xl" />
+            </div>
+            <div>
+              <div className="text-sm text-gray-600 font-medium">Total Sessions</div>
+              <div className="text-xl font-bold text-gray-900">
+                {(() => {
+                  const subscription = displaySubscription?.subscription;
+                  if (!subscription) return "N/A";
+                  const type = subscription.type;
+                  if (type === undefined || type === null) return "N/A";
+                  const sessionsPerType: Record<number, number> = {
+                    0: 1, 1: 4, 3: 12, 6: 24, 12: 48
+                  };
+                  return sessionsPerType[type] || "N/A";
+                })()}
+              </div>
+            </div>
+          </div>
+          <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className={`h-full ${isActive ? "bg-primary" : "bg-gray-400"} w-full`}></div>
           </div>
         </div>
       </div>
@@ -357,15 +733,13 @@ interface IPreferenceData {
 // Tabbed Content Component with Preference-based Tabs
 const ClientTabbedContent = ({
   clientData,
+  selectedSubscription,
 }: {
   clientData: IClientDetailData;
+  selectedSubscription: IUserSubscription | null;
 }) => {
   const [activeView, setActiveView] = useState<"sessions" | "preferences">("sessions");
-  const [selectedPreferenceId, setSelectedPreferenceId] = useState<string | null>(
-    clientData.preference && clientData.preference.length > 0 
-      ? clientData.preference[0].id 
-      : null
-  );
+  const [selectedPreferenceId, setSelectedPreferenceId] = useState<string | null>(null);
   const [selectedModalId, setSelectedModalId] = useState<string | null>(null);
 
   // Fetch modal information for each preference
@@ -401,12 +775,25 @@ const ClientTabbedContent = ({
     enabled: !!clientData.preference && clientData.preference.length > 0,
   });
 
-  // Initialize selectedModalId when preferenceModals data is loaded
+  // Initialize selectedModalId and preferenceId based on selected subscription
   useEffect(() => {
-    if (preferenceModals && preferenceModals.length > 0 && !selectedModalId) {
+    if (selectedSubscription && preferenceModals && preferenceModals.length > 0) {
+      const modalId = selectedSubscription.subscription.modal.id;
+      const matchingPreference = preferenceModals.find(pm => pm.modalId === modalId);
+      
+      if (matchingPreference) {
+        setSelectedModalId(matchingPreference.modalId);
+        setSelectedPreferenceId(matchingPreference.preferenceId);
+      } else if (!selectedModalId) {
+        // Fallback to first preference if no match
+        setSelectedModalId(preferenceModals[0].modalId);
+        setSelectedPreferenceId(preferenceModals[0].preferenceId);
+      }
+    } else if (preferenceModals && preferenceModals.length > 0 && !selectedModalId) {
       setSelectedModalId(preferenceModals[0].modalId);
+      setSelectedPreferenceId(preferenceModals[0].preferenceId);
     }
-  }, [preferenceModals, selectedModalId]);
+  }, [preferenceModals, selectedSubscription, selectedModalId]);
 
   return (
     <div className="flex flex-col gap-5 lg:gap-7.5">

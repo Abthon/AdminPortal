@@ -392,18 +392,29 @@ const TherapistDocuments = ({ therapistData }: { therapistData: any }) => {
   );
 };
 
-// Client Onboarding Questions Component for Individual Sessions
-const ClientOnboardingQuestions = ({ clientData }: { clientData: any }) => {
-  // Fetch answers for the client
+// Client Onboarding Questions Component for Group Sessions
+const ClientOnboardingQuestions = ({ 
+  clientData, 
+  modalId 
+}: { 
+  clientData: any;
+  modalId?: string;
+}) => {
+  // Fetch answers for the client filtered by modal
   const fetchAnswers = async () => {
-    const { data } = await axiosInstance.get(
-      `/api/v1/answer?fields=question.*,singleOption.*,multiOption.*,text&filters=client.id=${clientData.id}`
-    );
+    let url = `/api/v1/answer?fields=question.*,question.modal.*,singleOption.*,multiOption.*,text&filters=client.id=${clientData.id}`;
+    
+    // Add modal filter if modalId is provided
+    if (modalId) {
+      url += `,question.modal.id=${modalId}`;
+    }
+    
+    const { data } = await axiosInstance.get(url);
     return data;
   };
 
   const { data: answersData, isLoading } = useQuery({
-    queryKey: ["client-answers", clientData.id],
+    queryKey: ["client-answers", clientData.id, modalId],
     queryFn: fetchAnswers,
   });
 
@@ -495,7 +506,9 @@ const ClientOnboardingQuestions = ({ clientData }: { clientData: any }) => {
     <div className="card">
       <div className="card-header">
         <div className="flex items-center justify-between w-full">
-          <h3 className="card-title">Client Onboarding Questions</h3>
+          <h3 className="card-title">
+            {modalId ? 'Session-Specific' : 'Client'} Onboarding Questions
+          </h3>
           <span className="badge badge-sm badge-outline">
             {answers.length} Question{answers.length !== 1 ? "s" : ""} Answered
           </span>
@@ -1199,7 +1212,10 @@ const SessionGroupDetailContent = ({ sessionData }: any) => {
                 <TherapistDocuments therapistData={sessionData.therapist} />
               </div>
             ) : sessionData.client ? (
-              <ClientOnboardingQuestions clientData={sessionData.client} />
+              <ClientOnboardingQuestions 
+                clientData={sessionData.client} 
+                modalId={sessionData.modal?.id}
+              />
             ) : (
               <div className="card">
                 <div className="card-body">
