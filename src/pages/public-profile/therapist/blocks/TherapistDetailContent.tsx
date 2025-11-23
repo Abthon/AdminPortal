@@ -250,7 +250,7 @@ const TherapistStatistics = ({
     };
 
     const { data } = await axiosInstance.get(
-      `/api/v1/therapist/stats?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}&mockId=${therapistData.id}`
+      `/api/v1/therapist/stats?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}T23:59:59.999Z&mockId=${therapistData.id}`
     );
 
     console.log(data.data, "Last 7 days data");
@@ -398,12 +398,12 @@ const TherapistStatistics = ({
                   {statsWeekLoading ? (
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                   ) : (
-                    statsWeekData?.sessionsOverTime?.reduce(
-                      (total: number, session: any) => {
-                        return total + (parseInt(session.count) || 0);
-                      },
-                      0
-                    ) || 0
+                      statsWeekData?.sessionsOverTime?.reduce(
+                        (total: number, session: any) => {
+                          return total + (parseInt(session.count) || 0);
+                        },
+                        0
+                      ) || 0
                   )}
                 </div>
                 <div className="text-sm text-gray-600">Sessions/Week</div>
@@ -428,9 +428,9 @@ const TherapistStatistics = ({
                 <div className="text-3xl font-bold text-warning mb-1">
                   {statsWeekLoading ? (
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                  ) : (
-                    statsWeekData?.totalRevenue || "0"
-                  )}
+                    ) : (
+                      statsWeekData?.revenueOverTime[0].revenueOverTime
+                    )}
                 </div>
                 <div className="text-sm text-gray-600">Revenue/Week (ETB)</div>
               </div>
