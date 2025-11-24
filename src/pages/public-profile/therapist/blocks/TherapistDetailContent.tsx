@@ -412,8 +412,12 @@ const TherapistWeeklyStats = ({
       return date.toISOString().split("T")[0];
     };
 
+    const formatDateTime = (date: Date) => {
+      return date.toISOString();
+    };
+
     const { data } = await axiosInstance.get(
-      `/api/v1/therapist/stats?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}T23:59:59.999Z&mockId=${therapistData.id}`
+      `/api/v1/therapist/stats?startDate=${formatDateTime(startDate)}&endDate=${formatDateTime(endDate)}&mockId=${therapistData.id}`
     );
 
     return data.data;
