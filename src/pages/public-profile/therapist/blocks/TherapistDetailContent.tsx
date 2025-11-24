@@ -402,15 +402,14 @@ const TherapistWeeklyStats = ({
 }: {
   therapistData: ITherapistDetailData;
 }) => {
-  // Fetch therapist statistics - last 7 days
+  // Fetch therapist statistics - current week (starting Monday)
   const fetchTherapistStatsWeek = async (): Promise<ITherapistStats> => {
     const endDate = new Date(); // Today
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 7); // 7 days ago
-
-    const formatDate = (date: Date) => {
-      return date.toISOString().split("T")[0];
-    };
+    const startDate = new Date(endDate);
+    const day = startDate.getDay();
+    const diff = day === 0 ? 6 : day - 1; // Calculate days to subtract to get to Monday
+    startDate.setDate(startDate.getDate() - diff);
+    startDate.setHours(0, 0, 0, 0); // Set to start of the day
 
     const formatDateTime = (date: Date) => {
       return date.toISOString();
