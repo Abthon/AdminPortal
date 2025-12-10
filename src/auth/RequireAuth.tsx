@@ -51,10 +51,14 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
 
       if (accessToken && refreshToken) {
         console.log("Tokens found in cookies, storing in localStorage");
-        setAuth({ accessToken, refreshToken });
         
         // Decode and set user type and status
         const decoded = decodeJWT(accessToken);
+
+        if(userStatus == "active"){
+          setAuth({ accessToken, refreshToken });
+        }
+
         setUserType(decoded);
       }
     }
