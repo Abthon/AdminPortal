@@ -14,10 +14,6 @@ const Login = () => {
     if (varificationMessage) {
       toast(`Info`, {
         description: varificationMessage,
-        action: {
-          label: "Ok",
-          onClick: () => console.log("Ok"),
-        },
       });
     }
   }, []);
