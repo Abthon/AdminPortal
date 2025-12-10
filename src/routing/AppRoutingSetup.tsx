@@ -20,7 +20,6 @@ import { QuestionPage } from "@/pages/public-profile/question";
 import { SessionDetailPage } from "@/pages/public-profile/session/SessionDetailPage";
 import { MatchPage } from "@/pages/public-profile/match";
 import { AdminPage } from "@/pages/public-profile/admin";
-import { GoogleCallback } from "@/auth/pages/jwt";
 
 const AppRoutingSetup = (): ReactElement => {
   return (
@@ -150,7 +149,6 @@ const AppRoutingSetup = (): ReactElement => {
         </Route>
       </Route>
       <Route path="error/*" element={<ErrorsRouting />} />
-      <Route path="dev/api/v1/auth/google/callback" element={<GoogleCallback />} />
       <Route path="auth/*" element={<AuthPage />} />
       <Route path="*" element={<Navigate to="/error/404" />} />
     </Routes>

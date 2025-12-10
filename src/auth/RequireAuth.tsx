@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { ScreenLoader } from "@/components/loaders";
 import { useAuthContext } from "./useAuthContext";
 import { useState, useEffect, ReactNode } from "react";
+import { setAuth, getAuth } from "./_helpers";
 
 interface ProtectedRouteProps {
   allowedRoles: string[];
@@ -13,6 +14,16 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const location = useLocation();
   const [userType, setUserType] = useState(decodeJWT(auth?.accessToken || ""));
   const [userStatus, setUserStatus] = useState("");
+
+  // Helper function to get cookie value by name
+  const getCookie = (name: string): string | null => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop()?.split(';').shift() || null;
+    }
+    return null;
+  };
 
   function decodeJWT(token: string) {
     if (token !== "") {
@@ -32,6 +43,22 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
   }
 
   useEffect(() => {
+    // Check if tokens exist in cookies but not in localStorage
+    const storedAuth = getAuth();
+    if (!storedAuth) {
+      const accessToken = getCookie('accessToken');
+      const refreshToken = getCookie('refreshToken');
+
+      if (accessToken && refreshToken) {
+        console.log("Tokens found in cookies, storing in localStorage");
+        setAuth({ accessToken, refreshToken });
+        
+        // Decode and set user type and status
+        const decoded = decodeJWT(accessToken);
+        setUserType(decoded);
+      }
+    }
+
     console.log(getUserType(auth?.accessToken || ""), "user type");
   }, []);
 
