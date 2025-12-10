@@ -10,13 +10,25 @@ const Login = () => {
   const varificationMessage = location.state?.message;
   const [inactiveMessage, setInactiveMessage] = useState(false);
 
+  //useEffect(() => {
+  //  if (varificationMessage) {
+  //    toast(`Info`, {
+  //      description: varificationMessage,
+  //    });
+  //  }
+  //}, []);
   useEffect(() => {
-    if (varificationMessage) {
-      toast(`Info`, {
-        description: varificationMessage,
-      });
-    }
-  }, []);
+      if (varificationMessage) {
+        const timer = setTimeout(() => {
+          toast(`Info`, {
+            description: varificationMessage,
+          });
+        }, 1000); // Wait 1 second before showing toast
+
+        return () => clearTimeout(timer); // Cleanup timer on unmount
+      }
+  }, [varificationMessage]); // Add dependency to re-run when message changes
+
 
   return (
     <div className="card max-w-[390px] w-full">
