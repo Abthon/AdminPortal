@@ -55,6 +55,7 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
         
         // Decode and set user type and status
         const decoded = decodeJWT(accessToken);
+        console.log(decoded, "decoded user data");
 
         console.log({userStatus}, "user status");
 
