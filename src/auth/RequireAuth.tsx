@@ -56,6 +56,8 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
         // Decode and set user type and status
         const decoded = decodeJWT(accessToken);
 
+        console.log({userStatus}, "user status");
+
         if(userStatus == "active"){
           console.log("User is active broski");
           setAuth({ accessToken, refreshToken });
