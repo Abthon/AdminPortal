@@ -12,7 +12,7 @@ interface ProtectedRouteProps {
 const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const { auth, loading, getUserType } = useAuthContext();
   const location = useLocation();
-  const [userType, setUserType] = useState(decodeJWT(auth?.accessToken || ""));
+  const [userRole, setUserRole] = useState(decodeJWT(auth?.accessToken || ""));
   const [userStatus, setUserStatus] = useState("");
 
   // Helper function to get cookie value by name
@@ -48,6 +48,7 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
     if (!storedAuth) {
       const accessToken = getCookie('accessToken');
       const refreshToken = getCookie('refreshToken');
+      console.log(accessToken, refreshToken, "user tokens");
 
       if (accessToken && refreshToken) {
         console.log("Tokens found in cookies, storing in localStorage");
@@ -56,10 +57,11 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
         const decoded = decodeJWT(accessToken);
 
         if(userStatus == "active"){
+          console.log("User is active broski");
           setAuth({ accessToken, refreshToken });
         }
 
-        setUserType(decoded);
+        setUserRole(decoded);
       }
     }
 
@@ -75,7 +77,7 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
     return <Navigate to="/auth/login" state={{ from: location, message: "Your account is inactive. Please wait for admin activation." }} replace />;
   }
 
-  if (!allowedRoles.includes(userType)) {
+  if (!allowedRoles.includes(userRole)) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 

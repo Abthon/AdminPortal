@@ -10,13 +10,6 @@ const Login = () => {
   const varificationMessage = location.state?.message;
   const [inactiveMessage, setInactiveMessage] = useState(false);
 
-  //useEffect(() => {
-  //  if (varificationMessage) {
-  //    toast(`Info`, {
-  //      description: varificationMessage,
-  //    });
-  //  }
-  //}, []);
   useEffect(() => {
       if (varificationMessage) {
         const timer = setTimeout(() => {
