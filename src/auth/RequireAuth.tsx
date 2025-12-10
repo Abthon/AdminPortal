@@ -37,6 +37,7 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
       );
 
       const decoded = JSON.parse(jsonPayload);
+      console.log(decoded, "decodeddd");
       setUserStatus(decoded.status);
       return decoded.type;
     }
