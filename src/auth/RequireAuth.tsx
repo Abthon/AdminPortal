@@ -12,6 +12,7 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const { auth, loading, getUserType } = useAuthContext();
   const location = useLocation();
   const [userType, setUserType] = useState(decodeJWT(auth?.accessToken || ""));
+  const [userStatus, setUserStatus] = useState("");
 
   function decodeJWT(token: string) {
     if (token !== "") {
@@ -24,7 +25,9 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
           .join("")
       );
 
-      return JSON.parse(jsonPayload).type;
+      const decoded = JSON.parse(jsonPayload);
+      setUserStatus(decoded.status);
+      return decoded.type;
     }
   }
 
@@ -34,6 +37,11 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
 
   if (loading) {
     return <ScreenLoader />;
+  }
+
+  // Check if user status is inactive
+  if (userStatus === "inactive") {
+    return <Navigate to="/auth/login" state={{ from: location, message: "Your account is inactive. Please wait for admin activation." }} replace />;
   }
 
   if (!allowedRoles.includes(userType)) {

@@ -174,7 +174,7 @@ const Sessions = ({
   const [itemsOnPage, setItemsOnPage] = useState(0);
   const [filterInput, setFilterInput] = useState("all");
   const [modalFilter, setModalFilter] = useState("all");
-  const [searchType, setSearchType] = useState<"therapist" | "client">("therapist");
+  const [searchType, setSearchType] = useState<"therapist" | "client" | "group">("therapist");
   const [dateFilter, setDateFilter] = useState({
     startDate: "",
     endDate: "",
@@ -385,19 +385,24 @@ const Sessions = ({
       remainingFilters.push(`modal.id:=${modalFilter}`);
     }
     
-    // Handle search input based on search type (therapist or client)
+    // Handle search input based on search type (therapist, client, or group)
     const searchTerm = search.trim();
     if (searchTerm) {
-      const searchPrefix = searchType === "therapist" ? "therapist" : "client";
-      
-      if (searchTerm.includes(' ')) {
-        const searchParts = searchTerm.split(/\s+/);
-        // Search for first name and last name matching the parts
-        remainingFilters.push(`${searchPrefix}.firstName=${searchParts[0]}`);
-        remainingFilters.push(`${searchPrefix}.lastName=${searchParts[1]}`);
+      if (searchType === "group") {
+        // Search by group name
+        remainingFilters.push(`groupName=${searchTerm}`);
       } else {
-        // Single word - search only firstName
-        remainingFilters.push(`${searchPrefix}.firstName=${searchTerm}`);
+        const searchPrefix = searchType === "therapist" ? "therapist" : "client";
+        
+        if (searchTerm.includes(' ')) {
+          const searchParts = searchTerm.split(/\s+/);
+          // Search for first name and last name matching the parts
+          remainingFilters.push(`${searchPrefix}.firstName=${searchParts[0]}`);
+          remainingFilters.push(`${searchPrefix}.lastName=${searchParts[1]}`);
+        } else {
+          // Single word - search only firstName
+          remainingFilters.push(`${searchPrefix}.firstName=${searchTerm}`);
+        }
       }
     }
     
@@ -450,19 +455,25 @@ const Sessions = ({
       remainingFilters.push(`modal.id:=${modalFilter}`);
     }
     
-    // Handle search input based on search type (therapist or client)
+    // Handle search input based on search type (therapist, client, or group)
     if (searchInput && searchInput.trim()) {
       const searchTerm = searchInput.trim();
-      const searchPrefix = searchType === "therapist" ? "therapist" : "client";
       
-      if (searchTerm.includes(' ')) {
-        const searchParts = searchTerm.split(/\s+/);
-        // Search for first name and last name matching the parts
-        remainingFilters.push(`${searchPrefix}.firstName=${searchParts[0]}`);
-        remainingFilters.push(`${searchPrefix}.lastName=${searchParts[1]}`);
+      if (searchType === "group") {
+        // Search by group name
+        remainingFilters.push(`groupName=${searchTerm}`);
       } else {
-        // Single word - search only firstName
-        remainingFilters.push(`${searchPrefix}.firstName=${searchTerm}`);
+        const searchPrefix = searchType === "therapist" ? "therapist" : "client";
+        
+        if (searchTerm.includes(' ')) {
+          const searchParts = searchTerm.split(/\s+/);
+          // Search for first name and last name matching the parts
+          remainingFilters.push(`${searchPrefix}.firstName=${searchParts[0]}`);
+          remainingFilters.push(`${searchPrefix}.lastName=${searchParts[1]}`);
+        } else {
+          // Single word - search only firstName
+          remainingFilters.push(`${searchPrefix}.firstName=${searchTerm}`);
+        }
       }
     }
     
@@ -1769,7 +1780,7 @@ const Sessions = ({
               </label>
               <Select
                 value={searchType}
-                onValueChange={(value: "therapist" | "client") => setSearchType(value)}
+                onValueChange={(value: "therapist" | "client" | "group") => setSearchType(value)}
               >
                 <SelectTrigger className="w-32">
                   <SelectValue />
@@ -1777,6 +1788,7 @@ const Sessions = ({
                 <SelectContent>
                   <SelectItem value="therapist">Therapist</SelectItem>
                   <SelectItem value="client">Client</SelectItem>
+                  <SelectItem value="group">Group</SelectItem>
                 </SelectContent>
               </Select>
             </div>

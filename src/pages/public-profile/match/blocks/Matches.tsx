@@ -111,15 +111,18 @@ const Matches = ({
   const [therapists, setTherapists] = useState<ITherapist[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<IMatchData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAssigning, setIsAssigning] = useState(false);
+  const [assigningTherapistId, setAssigningTherapistId] = useState<string | null>(null);
   
   // Session scheduling states
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [availabilityData, setAvailabilityData] = useState<any[]>([]);
   const [modalData, setModalData] = useState<any[]>([]);
   const [selectedTimes, setSelectedTimes] = useState<{[key: string]: string[]}>({});
-  const [assignedTherapistId, setAssignedTherapistId] = useState<string>("");
+  const [selectedTherapistId, setSelectedTherapistId] = useState<string>("");
   const [isCreatingSessions, setIsCreatingSessions] = useState(false);
+  
+  // Track if time selection is complete
+  const [hasSelectedTimes, setHasSelectedTimes] = useState(false);
 
   useEffect(() => {
     console.log(pageIndex, "current page Index is: ");
@@ -168,12 +171,12 @@ const Matches = ({
     }
   };
 
-  // Handle therapist assignment
+  // Handle therapist assignment - only called after time selection
   const handleAssignTherapist = async (therapistId: string) => {
     console.log('Assigning therapist:', therapistId);
     if (!selectedMatch) return;
     
-    setIsAssigning(true);
+    setAssigningTherapistId(therapistId);
     try {
       // Step 1: Get client preference for the match
       const { data: clientData } = await axiosInstance.get(
@@ -193,16 +196,21 @@ const Matches = ({
       });
       
       toast.success('Therapist assigned successfully!');
-      setIsModalOpen(false);
-      //setSelectedMatch(null);
       
-      // Refresh the data
-      //window.location.reload();
+      // Store therapist ID for session creation
+      setSelectedTherapistId(therapistId);
+      
+      // Close therapist modal and proceed to create sessions
+      setIsModalOpen(false);
+      
+      // Create sessions with the selected times
+      await createSessionsWithTherapist(therapistId);
+      
     } catch (error) {
       console.error('Error assigning therapist:', error);
       toast.error('Failed to assign therapist');
     } finally {
-      setIsAssigning(false);
+      setAssigningTherapistId(null);
     }
   };
 
@@ -276,23 +284,23 @@ const Matches = ({
     }
   };
 
-  async function createChat() {
+  async function createChat(therapistId: string) {
     const payload = {
       client: selectedMatch?.client?.id,
-      therapist: assignedTherapistId,
+      therapist: therapistId,
     };
 
     console.log(payload, "My payload baby");
     console.log(payload, "created group chat payload");
-    const { data } = await axiosInstance.post(`/api/v1/chat?mockId=${assignedTherapistId}`, payload);
+    const { data } = await axiosInstance.post(`/api/v1/chat?mockId=${therapistId}`, payload);
     console.log(data, "the chat data baby");
     return data;
   }
 
-  // Handle session creation
-  const createSessions = async () => {
+  // Handle session creation with assigned therapist
+  const createSessionsWithTherapist = async (therapistId: string) => {
     console.log(selectedMatch, "The selected match for session");
-    if (!selectedMatch || !assignedTherapistId) return;
+    if (!selectedMatch || !therapistId) return;
     
     setIsCreatingSessions(true);
     try {
@@ -310,8 +318,6 @@ const Matches = ({
       }
       
       const sessionData = {
-        //note: "Session scheduled through match assignment",
-        //groupName: "Therapy Session",
         duration: 60,
         type: "video",
         modal: modalData,
@@ -320,18 +326,21 @@ const Matches = ({
       };
       
       await axiosInstance.post(
-        `/api/v1/session?mockId=${assignedTherapistId}`,
+        `/api/v1/session?mockId=${therapistId}`,
         sessionData
       );
       
       toast.success('Sessions created successfully!');
       // Creating chat for them
-      createChat();
-      toast.message("created chat between them sucessfully");
+      await createChat(therapistId);
+      toast.message("Created chat between them successfully");
 
+      // Reset all states
       setIsScheduleModalOpen(false);
       setSelectedTimes({});
-      setAssignedTherapistId("");
+      setSelectedTherapistId("");
+      setSelectedMatch(null);
+      setHasSelectedTimes(false);
       
       // Refresh the data
       window.location.reload();
@@ -344,43 +353,55 @@ const Matches = ({
     }
   };
 
-  const handleMatchAssignment = async (match: IMatchData, therapistId: string) => {
-    if(!therapistId){
-      toast.error("No therapist to assign");
+  // Handle proceeding to therapist selection after time selection
+  const proceedToTherapistSelection = () => {
+    // Validate that at least one time slot is selected
+    const dates = Object.entries(selectedTimes)
+      .filter(([_, times]) => times.length > 0);
+    
+    if (dates.length === 0) {
+      toast.error("Please select at least one time slot");
       return;
     }
     
-    try {
-      // Step 1: Assign therapist
-      await handleAssignTherapist(therapistId);
-      // Step 2: Store therapist ID for session creation
-      setAssignedTherapistId(therapistId);
-      
-      // Step 3: Fetch client availability and open scheduling modal
-      await fetchClientAvailability(match.client.id);
-      
-    } catch (error) {
-      console.error('Error in match assignment flow:', error);
-      toast.error('Failed to complete match assignment');
+    // Mark that times have been selected
+    setHasSelectedTimes(true);
+    
+    // Close schedule modal and open therapist modal
+    setIsScheduleModalOpen(false);
+    setIsModalOpen(true);
+    
+    // Fetch therapist candidates if not already loaded
+    if (selectedMatch?.client?.id && therapists.length === 0) {
+      fetchTherapists(selectedMatch.client.id);
     }
   };
 
-
-  // Open assignment modal
-  const openAssignmentModal = (match: IMatchData, event: React.MouseEvent) => {
+  // Start the assignment flow - opens time selection modal first
+  const startMatchAssignment = async (match: IMatchData, event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
     event.nativeEvent.stopImmediatePropagation();
     
     setSelectedMatch(match);
-    setIsModalOpen(true);
     
-    // Fetch therapist candidates based on client preference
-    if (match.client?.id) {
-      fetchTherapists(match.client.id);
+    // If times are already selected, go directly to therapist selection
+    if (hasSelectedTimes && Object.values(selectedTimes).some(times => times.length > 0)) {
+      setIsModalOpen(true);
+      if (therapists.length === 0) {
+        fetchTherapists(match.client.id);
+      }
     } else {
-      toast.error('Client ID not found');
+      // Otherwise, start with time selection
+      await fetchClientAvailability(match.client.id);
     }
+  };
+
+
+  // Handle going back to time selection from therapist modal
+  const goBackToTimeSelection = () => {
+    setIsModalOpen(false);
+    setIsScheduleModalOpen(true);
   };
 
   async function getMatches({
@@ -521,12 +542,7 @@ const Matches = ({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    event.nativeEvent.stopImmediatePropagation();
-                    openAssignmentModal(row.original, event);
-                  }}
+                  onClick={(event) => startMatchAssignment(row.original, event)}
                   className="h-7 px-2 text-xs"
                 >
                   <KeenIcon icon="user-plus" className="mr-1" />
@@ -662,90 +678,11 @@ const Matches = ({
         />
       </div>
       
-      {/* Therapist Assignment Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Assign Therapist to Match</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 p-4">
-            <h4 className="font-medium">Select a Therapist</h4>
-            <div className="max-h-96 overflow-y-auto space-y-2">
-              {therapists.length === 0 ? (
-                <div className="text-center py-8 space-y-4">
-                  <p className="text-gray-500">No verified therapists available</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => selectedMatch?.client?.id && fetchTherapists(selectedMatch.client.id)}
-                    className="mx-auto"
-                  >
-                    <KeenIcon icon="refresh" className="mr-2" />
-                    Refresh List
-                  </Button>
-                </div>
-              ) : (
-                therapists.map((therapist) => (
-                  <div
-                    key={therapist.id}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center shrink-0 rounded-full bg-gray-100 border border-gray-200 size-10">
-                        {therapist.profile ? (
-                          <img
-                            className="rounded-full size-8"
-                            src={`${BASE_URL}/${therapist.profile}`}
-                            alt={`${therapist.firstName} ${therapist.lastName}`}
-                          />
-                        ) : (
-                          <img
-                            className="rounded-full size-8"
-                            src={avatar}
-                            alt={`${therapist.firstName} ${therapist.lastName}`}
-                          />
-                        )}
-                      </div>
-                      <div>
-                        <Link
-                          to={`/therapists/${therapist.id}`}
-                          className="font-medium text-gray-900 hover:text-primary-active transition-colors"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {therapist.firstName} {therapist.lastName}
-                        </Link>
-                        <p className="text-sm text-gray-600">{therapist.email}</p>
-                        <div className="flex items-center gap-1 mt-1">
-                          <div className="size-2 bg-green-500 rounded-full"></div>
-                          <span className="text-xs text-green-600">{therapist.status}</span>
-                        </div>
-                        </div>
-                    </div>
-                    <Button
-                      onClick={() => selectedMatch && handleMatchAssignment(selectedMatch, therapist.id)}
-                      disabled={isAssigning}
-                      size="sm"
-                      className="min-w-20"
-                    >
-                      {isAssigning ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Assigning...
-                        </div>
-                      ) : (
-                        'Assign'
-                      )}
-                    </Button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Session Scheduling Modal */}
-      <Dialog open={isScheduleModalOpen} onOpenChange={setIsScheduleModalOpen}>
+      {/* Session Scheduling Modal - Step 1 */}
+      <Dialog open={isScheduleModalOpen} onOpenChange={(open) => {
+        setIsScheduleModalOpen(open);
+        // Preserve selected times when modal is closed
+      }}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto px-4">
           <DialogHeader>
             <DialogTitle>Schedule Sessions</DialogTitle>
@@ -809,17 +746,118 @@ const Matches = ({
                 variant="outline"
                 onClick={() => {
                   setIsScheduleModalOpen(false);
-                  setSelectedTimes({});
+                  // Don't clear selected times - preserve them
                 }}
               >
                 Cancel
               </Button>
               <Button
-                onClick={createSessions}
-                disabled={isCreatingSessions || Object.values(selectedTimes).every(times => times.length === 0)}
+                onClick={proceedToTherapistSelection}
+                disabled={Object.values(selectedTimes).every(times => times.length === 0)}
               >
-                {isCreatingSessions ? 'Creating Sessions...' : 'Create Sessions'}
+                Next: Select Therapist
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Therapist Assignment Modal - Step 2 */}
+      <Dialog open={isModalOpen} onOpenChange={(open) => {
+        setIsModalOpen(open);
+        // Don't reset anything when closing - preserve state
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Assign Therapist to Match</DialogTitle>
+            <p className="text-sm text-gray-600 mt-2">
+              {hasSelectedTimes && Object.values(selectedTimes).some(times => times.length > 0) 
+                ? `✓ Time slots selected (${Object.values(selectedTimes).flat().length} slots)` 
+                : 'Select time slots first'}
+            </p>
+          </DialogHeader>
+          <div className="space-y-4 p-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium">Select a Therapist</h4>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goBackToTimeSelection}
+                className="text-xs"
+              >
+                <KeenIcon icon="arrow-left" className="mr-1" />
+                Back to Time Selection
+              </Button>
+            </div>
+            <div className="max-h-96 overflow-y-auto space-y-2">
+              {therapists.length === 0 ? (
+                <div className="text-center py-8 space-y-4">
+                  <p className="text-gray-500">No verified therapists available</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => selectedMatch?.client?.id && fetchTherapists(selectedMatch.client.id)}
+                    className="mx-auto"
+                  >
+                    <KeenIcon icon="refresh" className="mr-2" />
+                    Refresh List
+                  </Button>
+                </div>
+              ) : (
+                therapists.map((therapist) => (
+                  <div
+                    key={therapist.id}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center shrink-0 rounded-full bg-gray-100 border border-gray-200 size-10">
+                        {therapist.profile ? (
+                          <img
+                            className="rounded-full size-8"
+                            src={`${BASE_URL}/${therapist.profile}`}
+                            alt={`${therapist.firstName} ${therapist.lastName}`}
+                          />
+                        ) : (
+                          <img
+                            className="rounded-full size-8"
+                            src={avatar}
+                            alt={`${therapist.firstName} ${therapist.lastName}`}
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <Link
+                          to={`/therapists/${therapist.id}`}
+                          className="font-medium text-gray-900 hover:text-primary-active transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {therapist.firstName} {therapist.lastName}
+                        </Link>
+                        <p className="text-sm text-gray-600">{therapist.email}</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <div className="size-2 bg-green-500 rounded-full"></div>
+                          <span className="text-xs text-green-600">{therapist.status}</span>
+                        </div>
+                        </div>
+                    </div>
+                    <Button
+                      onClick={() => handleAssignTherapist(therapist.id)}
+                      disabled={assigningTherapistId !== null}
+                      size="sm"
+                      className="min-w-20"
+                    >
+                      {assigningTherapistId === therapist.id ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Assigning...
+                        </div>
+                      ) : (
+                        'Assign'
+                      )}
+                    </Button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </DialogContent>

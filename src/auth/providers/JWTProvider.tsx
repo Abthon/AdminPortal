@@ -20,6 +20,7 @@ export const REGISTER_URL = `${API_URL}/dev/api/v1/auth/signup/admin`;
 export const FORGOT_PASSWORD_URL = `${API_URL}/dev/api/v1/auth/forgotPassword/admin`;
 export const RESET_PASSWORD_URL = `${API_URL}/dev/api/v1/auth/resetPassword/admin`;
 export const GET_USER_URL = `${API_URL}/dev/api/v1/admin/me`;
+export const GOOGLE_LOGIN_URL = `${API_URL}/dev/api/v1/auth/google/admin?client=web`;
 
 interface AuthContextProps {
   loading: boolean;
@@ -30,7 +31,7 @@ interface AuthContextProps {
   setCurrentUser: Dispatch<SetStateAction<UserModel | undefined>>;
   login: (phoneNumber: string, password: string) => Promise<AuthModel>;
   varifyAccount: (email: string, otp: string) => Promise<void>;
-  loginWithGoogle?: () => Promise<void>;
+  loginWithGoogle?: (firebaseToken: string) => Promise<void>;
   loginWithFacebook?: () => Promise<void>;
   loginWithGithub?: () => Promise<void>;
   resetPassword?: (
@@ -122,6 +123,19 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
+  const loginWithGoogle = async (firebaseToken: string) => {
+    try {
+      const { data } = await axios.post<{ data: AuthModel }>(GOOGLE_LOGIN_URL, {
+        firebaseToken,
+      });
+      saveAuth(data.data);
+    } catch (error) {
+      console.error("Google login error", error);
+      saveAuth(undefined);
+      throw error;
+    }
+  };
+
   const varifyAccount = async (email: string, otp: string) => {
     try {
       const { data: auth } = await axios.post<AuthModel>(VARIFY_ACCOUNT_URL, {
@@ -198,6 +212,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
         currentUser,
         setCurrentUser,
         login,
+        loginWithGoogle,
         varifyAccount,
         register,
         forgotPassword,

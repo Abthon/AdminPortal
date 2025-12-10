@@ -1610,21 +1610,21 @@ const SessionDetailCard = ({
           {/* Client/Group Info */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-gray-900 mb-3">
-              {isGroupSession ? "Group Session" : "Client"}
+              {isGroupSession ? "Group Name" : "Client"}
             </h4>
             
             {isGroupSession ? (
-              <div className="p-4 bg-gray-50 rounded-lg">
+              <div className="p-4 bg-gray-50 h-[130px] rounded-lg">
                 <div className="flex items-center gap-2 mb-3">
                   <KeenIcon icon="users" className="text-primary text-lg" />
                   <h5 className="font-semibold text-gray-900">
                     {extendedSession.groupName || "Group Therapy Session"}
                   </h5>
                 </div>
-                <p className="text-sm text-gray-600 mb-3">
+                {/*<p className="text-sm text-gray-600 mb-3">
                   {extendedSession.group?.length || 0} member{(extendedSession.group?.length || 0) !== 1 ? 's' : ''} in this group
-                </p>
-                <div className="space-y-2">
+                </p>*/}
+                {/*<div className="space-y-2">
                   {extendedSession.group?.slice(0, 3).map((member: any, index: number) => (
                     <div key={member.id} className="flex items-center gap-2 text-sm">
                       <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs">
@@ -1640,7 +1640,7 @@ const SessionDetailCard = ({
                       +{(extendedSession.group?.length || 0) - 3} more members
                     </p>
                   )}
-                </div>
+                </div>*/}
               </div>
             ) : session.client ? (
               <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
