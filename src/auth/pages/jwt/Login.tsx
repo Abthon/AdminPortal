@@ -1,27 +1,60 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { KeenIcon } from "@/components";
 import { toast } from "sonner";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { useAuthContext } from "@/auth";
 
-const API_URL = import.meta.env.VITE_APP_API_URL;
+const loginSchema = Yup.object().shape({
+  email: Yup.string()
+    .email("Invalid email format")
+    .required("Email is required"),
+  password: Yup.string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
+
+const initialValues = {
+  email: "",
+  password: "",
+};
 
 const Login = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { login } = useAuthContext();
   const varificationMessage = location.state?.message;
-  const [inactiveMessage, setInactiveMessage] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-      if (varificationMessage) {
-        const timer = setTimeout(() => {
-          toast(`Info`, {
-            description: varificationMessage,
-          });
-        }, 1000); // Wait 1 second before showing toast
+    if (varificationMessage) {
+      const timer = setTimeout(() => {
+        toast.info(varificationMessage);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [varificationMessage]);
 
-        return () => clearTimeout(timer); // Cleanup timer on unmount
+  const formik = useFormik({
+    initialValues,
+    validationSchema: loginSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      setLoading(true);
+      try {
+        await login(values.email, values.password);
+        const from = location.state?.from?.pathname || "/";
+        navigate(from, { replace: true });
+      } catch (error: any) {
+        console.error(error);
+        toast.error(error?.response?.data?.message || "Login failed. Please check your credentials.");
+      } finally {
+        setLoading(false);
+        setSubmitting(false);
       }
-  }, [varificationMessage]); // Add dependency to re-run when message changes
-
+    },
+  });
 
   return (
     <div className="card max-w-[390px] w-full">
@@ -30,31 +63,55 @@ const Login = () => {
           <h3 className="text-lg font-semibold text-gray-900 leading-none mb-2.5">
             Sign in
           </h3>
-          <p className="text-sm text-gray-600">Sign in with your Google account</p>
+          <p className="text-sm text-gray-600">Enter your email and password to login</p>
         </div>
 
-        {inactiveMessage && (
-          <div className="alert alert-warning">
-            <div className="flex items-center gap-2">
-              <KeenIcon icon="information-2" className="text-warning text-xl" />
-              <div>
-                <h4 className="font-semibold">Account Pending Activation</h4>
-                <p className="text-sm">
-                  Your account is currently inactive. Please wait for a super admin to activate your account before you can log in.
-                </p>
-              </div>
-            </div>
+        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="form-label text-gray-900">Email</label>
+            <input
+              type="email"
+              placeholder="email@example.com"
+              {...formik.getFieldProps("email")}
+              className={`input ${
+                formik.touched.email && formik.errors.email ? "input-error" : ""
+              }`}
+            />
+            {formik.touched.email && formik.errors.email && (
+              <span className="text-danger text-xs">{formik.errors.email}</span>
+            )}
           </div>
-        )}
 
-        <form method="POST" action={`${API_URL}/dev/api/v1/auth/google/admin?client=web`}>
-          <input type="hidden" name="firebaseToken" value="abc123" required />
+          <div className="flex flex-col gap-1">
+            <label className="form-label text-gray-900">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                {...formik.getFieldProps("password")}
+                className={`input ${
+                  formik.touched.password && formik.errors.password ? "input-error" : ""
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="btn btn-sm btn-icon btn-clear absolute right-0 top-1/2 -translate-y-1/2"
+              >
+                <KeenIcon icon={showPassword ? "eye-slash" : "eye"} />
+              </button>
+            </div>
+            {formik.touched.password && formik.errors.password && (
+              <span className="text-danger text-xs">{formik.errors.password}</span>
+            )}
+          </div>
+
           <button
             type="submit"
-            className="btn btn-primary flex justify-center gap-2 w-full"
+            className="btn btn-primary w-full"
+            disabled={loading || formik.isSubmitting}
           >
-            <KeenIcon icon="google" className="text-lg" />
-            Login with Google
+            {loading ? "Please wait..." : "Sign In"}
           </button>
         </form>
       </div>

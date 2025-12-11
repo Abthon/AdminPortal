@@ -22,9 +22,9 @@ interface AdminUser {
 
 const AdminPage = () => {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
+  const [filteredAdmins, setFilteredAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(false);
-  const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchAdmins = async () => {
     setLoading(true);
@@ -35,6 +35,7 @@ const AdminPage = () => {
         admin.role === AdminRoles.DISPATCH || admin.role === AdminRoles.SUPPORT
       );
       setAdmins(filtered);
+      setFilteredAdmins(filtered);
     } catch (error) {
       console.error(error);
       toast.error("Failed to fetch admins");
@@ -47,21 +48,44 @@ const AdminPage = () => {
     fetchAdmins();
   }, []);
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingAdmin) return;
-    
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredAdmins(admins);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = admins.filter(admin => 
+        admin.firstName?.toLowerCase().includes(query) ||
+        admin.lastName?.toLowerCase().includes(query) ||
+        admin.email?.toLowerCase().includes(query) ||
+        admin.role?.toLowerCase().includes(query)
+      );
+      setFilteredAdmins(filtered);
+    }
+  }, [searchQuery, admins]);
+
+  const handleStatusUpdate = async (adminId: string, newStatus: string) => {
     try {
-      await axios.patch(`/dev/api/v1/admin/${editingAdmin.id}`, {
-        role: editingAdmin.role,
-        status: editingAdmin.status
+      await axios.patch(`/dev/api/v1/admin/${adminId}`, {
+        status: newStatus
       });
-      toast.success("Admin updated successfully");
-      setIsModalOpen(false);
+      toast.success("Status updated successfully");
       fetchAdmins();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update admin");
+      toast.error("Failed to update status");
+    }
+  };
+
+  const handleRoleUpdate = async (adminId: string, newRole: string) => {
+    try {
+      await axios.patch(`/dev/api/v1/admin/${adminId}`, {
+        role: newRole
+      });
+      toast.success("Role updated successfully");
+      fetchAdmins();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update role");
     }
   };
 
@@ -75,44 +99,104 @@ const AdminPage = () => {
         </Toolbar>
         
         <div className="card">
-            <div className="card-header">
-                <h3 className="card-title">Admins</h3>
+            <div className="card-header gap-2">
+                <h3 className="card-title">Admin Management</h3>
+                <div className="flex items-center gap-2 flex-1 justify-end">
+                  <div className="relative w-64">
+                    <KeenIcon icon="magnifier" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <input
+                      type="text"
+                      placeholder="Search admins..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="input pl-10 w-full"
+                    />
+                  </div>
+                </div>
             </div>
             <div className="card-table scrollable-x-auto">
                 <table className="table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th className="min-w-[50px]">
+                              <KeenIcon icon="profile-circle" className="text-lg" />
+                            </th>
+                            <th className="min-w-[200px]">Name</th>
+                            <th className="min-w-[250px]">
+                              <div className="flex items-center gap-2">
+                                <KeenIcon icon="sms" className="text-lg" />
+                                <span>Email</span>
+                              </div>
+                            </th>
+                            <th className="min-w-[150px]">
+                              <div className="flex items-center gap-2">
+                                <KeenIcon icon="shield-tick" className="text-lg" />
+                                <span>Role</span>
+                              </div>
+                            </th>
+                            <th className="min-w-[150px]">
+                              <div className="flex items-center gap-2">
+                                <KeenIcon icon="toggle-on-circle" className="text-lg" />
+                                <span>Status</span>
+                              </div>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading ? (
                             <tr><td colSpan={5} className="text-center p-4">Loading...</td></tr>
-                        ) : admins.length === 0 ? (
+                        ) : filteredAdmins.length === 0 ? (
                             <tr><td colSpan={5} className="text-center p-4">No admins found</td></tr>
-                        ) : admins.map(admin => (
+                        ) : filteredAdmins.map(admin => (
                             <tr key={admin.id}>
-                                <td>{admin.firstName} {admin.lastName}</td>
-                                <td>{admin.email}</td>
                                 <td>
-                                    <span className="badge badge-light-primary">{admin.role}</span>
+                                  <div className="flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center">
+                                      <span className="text-primary font-semibold">
+                                        {admin.firstName?.charAt(0)}{admin.lastName?.charAt(0)}
+                                      </span>
+                                    </div>
+                                  </div>
                                 </td>
                                 <td>
-                                    <span className={`badge badge-${admin.status === 'active' ? 'success' : 'danger'}`}>
-                                        {admin.status}
+                                  <div className="flex flex-col">
+                                    <span className="font-medium text-gray-900">
+                                      {admin.firstName} {admin.lastName}
                                     </span>
+                                  </div>
                                 </td>
                                 <td>
-                                    <button className="btn btn-sm btn-light btn-active-light-primary" onClick={() => {
-                                        setEditingAdmin(admin);
-                                        setIsModalOpen(true);
-                                    }}>
-                                        Edit
-                                    </button>
+                                  <span className="text-gray-700">{admin.email}</span>
+                                </td>
+                                <td>
+                                  <select 
+                                    className="form-select form-select-sm w-auto"
+                                    value={admin.role}
+                                    onChange={(e) => handleRoleUpdate(admin.id, e.target.value)}
+                                  >
+                                    <option value={AdminRoles.DISPATCH}>
+                                      🚀 Dispatch
+                                    </option>
+                                    <option value={AdminRoles.SUPPORT}>
+                                      💬 Support
+                                    </option>
+                                  </select>
+                                </td>
+                                <td>
+                                  <select 
+                                    className={`form-select form-select-sm w-auto ${
+                                      admin.status === 'active' ? 'text-success' : 'text-danger'
+                                    }`}
+                                    value={admin.status}
+                                    onChange={(e) => handleStatusUpdate(admin.id, e.target.value)}
+                                  >
+                                    <option value="active" className="text-success">
+                                      ✓ Active
+                                    </option>
+                                    <option value="inactive" className="text-danger">
+                                      ✗ Inactive
+                                    </option>
+                                  </select>
                                 </td>
                             </tr>
                         ))}
@@ -120,51 +204,6 @@ const AdminPage = () => {
                 </table>
             </div>
         </div>
-
-        {isModalOpen && editingAdmin && (
-             <div className="modal fade show block" tabIndex={-1} style={{ background: 'rgba(0,0,0,0.5)' }}>
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title">Edit Admin</h5>
-                            <button className="btn btn-icon btn-sm btn-active-light-primary ms-2" onClick={() => setIsModalOpen(false)}>
-                                <KeenIcon icon="cross" className="fs-2" />
-                            </button>
-                        </div>
-                        <form onSubmit={handleUpdate}>
-                            <div className="modal-body">
-                                <div className="mb-3">
-                                    <label className="form-label">Role</label>
-                                    <select 
-                                        className="form-select" 
-                                        value={editingAdmin.role}
-                                        onChange={e => setEditingAdmin({...editingAdmin, role: e.target.value})}
-                                    >
-                                        <option value={AdminRoles.DISPATCH}>Dispatch</option>
-                                        <option value={AdminRoles.SUPPORT}>Support</option>
-                                    </select>
-                                </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Status</label>
-                                    <select 
-                                        className="form-select" 
-                                        value={editingAdmin.status}
-                                        onChange={e => setEditingAdmin({...editingAdmin, status: e.target.value})}
-                                    >
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-light" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                                <button type="submit" className="btn btn-primary">Save changes</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-             </div>
-        )}
       </Container>
     </Fragment>
   );

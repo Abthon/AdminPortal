@@ -14,7 +14,7 @@ import { type AuthModel, type UserModel } from "@/auth";
 import { useNavigate } from "react-router";
 
 const API_URL = import.meta.env.VITE_APP_API_URL;
-export const LOGIN_URL = `${API_URL}/dev/api/v1/auth/login/admin`;
+export const LOGIN_URL = `${API_URL}/dev/api/v1/auth/login-email/admin`;
 export const VARIFY_ACCOUNT_URL = `${API_URL}/dev/api/v1/auth/verify/admin`;
 export const REGISTER_URL = `${API_URL}/dev/api/v1/auth/signup/admin`;
 export const FORGOT_PASSWORD_URL = `${API_URL}/dev/api/v1/auth/forgotPassword/admin`;
@@ -29,7 +29,7 @@ interface AuthContextProps {
   saveAuth: (auth: AuthModel | undefined) => void;
   currentUser: UserModel | undefined;
   setCurrentUser: Dispatch<SetStateAction<UserModel | undefined>>;
-  login: (phoneNumber: string, password: string) => Promise<AuthModel>;
+  login: (email: string, password: string) => Promise<AuthModel>;
   varifyAccount: (email: string, otp: string) => Promise<void>;
   loginWithGoogle?: (firebaseToken: string) => Promise<void>;
   loginWithFacebook?: () => Promise<void>;
@@ -107,10 +107,10 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
-  const login = async (phoneNumber: string, password: string): Promise<AuthModel> => {
+  const login = async (email: string, password: string): Promise<AuthModel> => {
     try {
       const { data } = await axios.post<{ data: AuthModel }>(LOGIN_URL, {
-        phoneNumber,
+        email,
         password,
         firebaseToken: "1234567890",
       });
