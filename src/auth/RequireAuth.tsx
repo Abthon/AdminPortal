@@ -13,6 +13,7 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const location = useLocation();
   const [userRole, setUserRole] = useState("");
   const [userStatus, setUserStatus] = useState("");
+  const [isDecodingRole, setIsDecodingRole] = useState(true);
 
   function decodeJWT(token: string) {
     if (token !== "") {
@@ -27,6 +28,7 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
         );
 
         const decoded = JSON.parse(jsonPayload);
+        console.log(decoded, decoded.role, "Whatttt");
         return { role: decoded.role, status: decoded.status };
       } catch (error) {
         console.error("Error decoding JWT:", error);
@@ -42,10 +44,14 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
       setUserRole(decoded.role);
       setUserStatus(decoded.status);
       console.log(getUserType(auth.accessToken), "user type");
+      console.log(decoded.role, "user role");
+      setIsDecodingRole(false);
+    } else {
+      setIsDecodingRole(false);
     }
   }, [auth?.accessToken]);
 
-  if (loading) {
+  if (loading || isDecodingRole) {
     return <ScreenLoader />;
   }
 
@@ -54,7 +60,9 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
     return <Navigate to="/auth/login" state={{ from: location, message: "Your account is inactive. Please wait for admin activation." }} replace />;
   }
 
+  console.log(allowedRoles.includes(userRole), allowedRoles, "My user role");
   if (!allowedRoles.includes(userRole)) {
+    console.log(allowedRoles, userRole, "ke wusttt");
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
