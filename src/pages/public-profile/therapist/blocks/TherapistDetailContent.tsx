@@ -785,7 +785,7 @@ const TherapistSessions = ({
   // Fetch sessions for the therapist
   const fetchSessions = async (): Promise<ISessionResponse> => {
     const { data } = await axiosInstance.get(
-      `/api/v1/session?fields=client.*,hasTherapistAttended,schedule&filters=therapist.id=${therapistData.id}&take=0`
+      `/api/v1/session?fields=client.*,hasTherapistAttended,schedule,groupName&filters=therapist.id=${therapistData.id}&take=0`
     );
     return data;
   };
@@ -1483,19 +1483,25 @@ const TherapistSessionsDetailCard = ({
                         <div className="flex items-center gap-3">
                           <img
                             src={clientImage}
-                            alt={`${session.client?.firstName || 'Unknown'} ${session.client?.lastName || 'Client'}`}
+                            alt={`${session.client?.firstName || 'Unknown'} ${session.groupName || 'Client'}`}
                             className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
                           />
                           <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-gray-900 truncate">
-                              {session.client?.firstName || 'Unknown'} {session.client?.lastName || 'Client'}
-                            </div>
-                            <div className="text-sm text-gray-600 truncate">
-                              @{session.client?.username || 'no-username'}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              +251{session.client?.phoneNumber || 'No phone'}
-                            </div>
+                            {
+                              session.groupName ? session.groupName : (
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-semibold text-gray-900 truncate">
+                                      {session.client?.firstName || 'Unknown'} {session.client?.lastName || 'Client'}
+                                    </div>
+                                    <div className="text-sm text-gray-600 truncate">
+                                      @{session.client?.username || 'no-username'}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      +251{session.client?.phoneNumber || 'No phone'}
+                                    </div>
+                                </div>
+                              )
+                            }
                           </div>
                         </div>
                       </td>

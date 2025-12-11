@@ -108,7 +108,7 @@ const Login = () => {
 
           <button
             type="submit"
-            className="btn btn-primary w-full"
+            className="btn btn-primary w-full flex items-center justify-center"
             disabled={loading || formik.isSubmitting}
           >
             {loading ? "Please wait..." : "Sign In"}

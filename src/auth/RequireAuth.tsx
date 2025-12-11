@@ -57,6 +57,7 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
 
   // Check if user status is inactive
   if (userStatus === "inactive") {
+    console.log("Yayyyy");
     return <Navigate to="/auth/login" state={{ from: location, message: "Your account is inactive. Please wait for admin activation." }} replace />;
   }
 

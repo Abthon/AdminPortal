@@ -16,7 +16,7 @@ export const getMenuSidebar = (
     {
       heading: getUserType(authToken),
     },
-    getUserType(authToken) === "admin"
+    ["supper", "support"].includes(getUserType(authToken))
       ? {
           title: "Client",
           icon: "people",
@@ -28,7 +28,7 @@ export const getMenuSidebar = (
           ],
         }
       : null, // Use null when the condition fails
-    getUserType(authToken) === "admin"
+    getUserType(authToken) === "super"
       ? {
           title: "Therapist",
           icon: "user-tick",
@@ -40,7 +40,7 @@ export const getMenuSidebar = (
           ],
         }
       : null, // Use null when the condition fails
-    getUserType(authToken) === "admin"
+    ["supper", "support"].includes(getUserType(authToken))
       ? {
           title: "Session",
           icon: "calendar-tick",
@@ -52,7 +52,7 @@ export const getMenuSidebar = (
           ],
         }
       : null, // Use null when the condition fails
-    getUserType(authToken) === "admin"
+    getUserType(authToken) === "super"
       ? {
           title: "Transaction",
           icon: "dollar",
@@ -64,7 +64,7 @@ export const getMenuSidebar = (
           ],
         }
       : null, // Use null when the condition fails
-    getUserType(authToken) === "admin"
+    getUserType(authToken) === "super"
       ? {
           title: "Question",
           icon: "questionnaire-tablet",
@@ -76,7 +76,7 @@ export const getMenuSidebar = (
           ],
         }
       : null,
-    getUserType(authToken) === "admin"
+    getUserType(authToken) === "super"
       ? {
           title: "Daily Quotes",
           icon: "message-text",
@@ -88,10 +88,10 @@ export const getMenuSidebar = (
           ],
         }
       : null, // Use null when the condition fails
-    getUserType(authToken) === "admin"
+    getUserType(authToken) === "super"
       ? {
-          title: "Admin",
-          icon: "message-text",
+          title: "Admins",
+          icon: "user",
           children: [
             {
               title: "Admin",
@@ -100,7 +100,7 @@ export const getMenuSidebar = (
           ],
         }
       : null, // Use null when the condition fails
-    //getUserType(authToken) === "admin"
+    //getUserType(authToken) === "super"
     //  ? {
     //      title: "Vehicle",
     //      icon: "car",
@@ -134,7 +134,7 @@ export const getMenuSidebar = (
     //    },
     //  ],
     //},
-    getUserType(authToken) === "admin"
+    getUserType(authToken) === "super"
       ? {
           title: "Banks",
           icon: "bank",
@@ -146,7 +146,7 @@ export const getMenuSidebar = (
           ],
         }
       : null,
-    getUserType(authToken) === "admin"
+    getUserType(authToken) === "super"
       ? {
           title: "Match",
           icon: "heart",
@@ -158,7 +158,7 @@ export const getMenuSidebar = (
           ],
         }
       : null,
-     getUserType(authToken) === "admin"
+     getUserType(authToken) === "super"
        ? {
            title: "Config",
            icon: "setting-2",
@@ -170,7 +170,7 @@ export const getMenuSidebar = (
            ],
          }
        : null,
-    //getUserType(authToken) === "admin"
+    //getUserType(authToken) === "super"
     //  ? {
     //      title: "Dispatchers",
     //      icon: "user",
@@ -182,12 +182,12 @@ export const getMenuSidebar = (
     //      ],
     //    }
     //  : null,
-    //getUserType(authToken) === "admin"
+    //getUserType(authToken) === "super"
     //  ? {
     //      heading: "Report",
     //    }
     //  : null,
-    //getUserType(authToken) === "admin"
+    //getUserType(authToken) === "super"
     //  ? {
     //      title: "Report",
     //      icon: "questionnaire-tablet",

@@ -150,7 +150,7 @@ const AdminPage = () => {
                         ) : filteredAdmins.map(admin => (
                             <tr key={admin.id}>
                                 <td>
-                                  <div className="flex items-center justify-center">
+                                  <div className="flex items-center justify-start -translate-x-2">
                                     <div className="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center">
                                       <span className="text-primary font-semibold">
                                         {admin.firstName?.charAt(0)}{admin.lastName?.charAt(0)}

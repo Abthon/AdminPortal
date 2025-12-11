@@ -1162,7 +1162,7 @@ const ClientPreferenceDetails = ({
   // Fetch preference details
   const fetchPreference = async (): Promise<IPreferenceData> => {
     const { data } = await axiosInstance.get(
-      `/api/v1/preference/${preferenceId}?fields=language.*,gender,goal,availability.*,modal.*`
+      `/api/v1/preference/${preferenceId}?fields=otherLang,language.*,gender,goal,availability.*,modal.*`
     );
     return data.data;
   };
@@ -1189,11 +1189,10 @@ const ClientPreferenceDetails = ({
     {
       id: 2,
       question: "Do you speak any other languages?",
-      answer: preferenceData?.otherLang
-        ? preferenceData.otherLang
-        : preferenceData?.language && preferenceData.language.length > 0
-          ? preferenceData.language.map((lang) => lang.name).join(", ")
+      answer: preferenceData?.language && preferenceData.language.length > 0
+          ? preferenceData.language.map((lang) => lang.name).join(", ") + ( preferenceData.otherLang ? preferenceData.otherLang : "" )
           : "Not specified",
+      
       icon: "message-text",
       color: "text-success",
     },

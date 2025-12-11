@@ -29,7 +29,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route
             path="/"
             element={
-              <RequireAuth allowedRoles={["super"]}>
+              <RequireAuth allowedRoles={["super","support"]}>
                 <DefaultPage />
               </RequireAuth>
             }
@@ -69,7 +69,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route
             path="/clients"
             element={
-              <RequireAuth allowedRoles={["super", "dispatch"]}>
+              <RequireAuth allowedRoles={["super", "support"]}>
                 <ClientPage />
               </RequireAuth>
             }
@@ -93,7 +93,7 @@ const AppRoutingSetup = (): ReactElement => {
           <Route
             path="/sessions"
             element={
-              <RequireAuth allowedRoles={["super", "dispatch"]}>
+              <RequireAuth allowedRoles={["super", "support"]}>
                 <SessionPage />
               </RequireAuth>
             }

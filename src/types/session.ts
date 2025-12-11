@@ -56,6 +56,7 @@ export interface ISessionData {
   status?: "scheduled" | "completed" | "cancelled" | "in_progress";
   duration?: number;
   notes?: string;
+  groupName?: string;
 }
 
 export interface ISessionResponse {
