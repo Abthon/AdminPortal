@@ -1,1 +1,2 @@
-export * from './AdminPage';
+export { AdminPage } from "./AdminPage";
+export { AdminContent } from "./AdminContent";

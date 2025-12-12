@@ -16,7 +16,7 @@ export const getMenuSidebar = (
     {
       heading: getUserType(authToken),
     },
-    ["supper", "support"].includes(getUserType(authToken))
+    ["super", "support"].includes(getUserType(authToken))
       ? {
           title: "Client",
           icon: "people",
@@ -40,7 +40,7 @@ export const getMenuSidebar = (
           ],
         }
       : null, // Use null when the condition fails
-    ["supper", "support"].includes(getUserType(authToken))
+    ["super", "support"].includes(getUserType(authToken))
       ? {
           title: "Session",
           icon: "calendar-tick",
