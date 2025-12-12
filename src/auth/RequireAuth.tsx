@@ -61,7 +61,7 @@ const RequireAuth = ({ allowedRoles, children }: ProtectedRouteProps) => {
     return <Navigate to="/auth/login" state={{ from: location, message: "Your account is inactive. Please wait for admin activation." }} replace />;
   }
 
-  console.log(allowedRoles.includes(userRole), allowedRoles, "My user role");
+  //console.log(allowedRoles.includes(userRole), allowedRoles, "My user role");
   if (!allowedRoles.includes(userRole)) {
     console.log(allowedRoles, userRole, "ke wusttt");
     return <Navigate to="/auth/login" state={{ from: location }} replace />;

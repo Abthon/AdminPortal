@@ -44,8 +44,8 @@ const Login = () => {
       setLoading(true);
       try {
         await login(values.email, values.password);
-        const from = location.state?.from?.pathname || "/";
-        navigate(from, { replace: true });
+        //const from = location.state?.from?.pathname || "/";
+        navigate("/", { replace: true });
       } catch (error: any) {
         console.error(error);
         toast.error(error?.response?.data?.message || "Login failed. Please check your credentials.");
