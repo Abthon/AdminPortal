@@ -768,9 +768,9 @@ const Matches = ({
         // Don't reset anything when closing - preserve state
       }}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader>
+          <DialogHeader className="mt-10">
             <DialogTitle>Assign Therapist to Match</DialogTitle>
-            <p className="text-sm text-gray-600 mt-2">
+            <p className="text-sm text-gray-600">
               {hasSelectedTimes && Object.values(selectedTimes).some(times => times.length > 0) 
                 ? `✓ Time slots selected (${Object.values(selectedTimes).flat().length} slots)` 
                 : 'Select time slots first'}

@@ -81,6 +81,8 @@ const Admins = ({
     pageSize: number;
     sort: any;
   }) {
+
+	console.log(pageIndex, pageSize, sort, "the page index");
     // Build filters - always exclude super admins
     const filters: string[] = ["role!=super"];
     
@@ -100,7 +102,18 @@ const Admins = ({
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
 
-    console.log(data, "The admin data");
+    console.log(data, "The admin data - full response");
+    
+    // Check if pagination exists in response
+    if (!data.pagination) {
+      console.error("No pagination data in response:", data);
+      // Handle case where API doesn't return pagination
+      const itemCount = data.data?.length || 0;
+      setItemsOnPage(itemCount);
+      setTotalItems(itemCount);
+      handleAdminNum(itemCount);
+      return data;
+    }
     
     // calculating how many items are there on the current page
     const startIndex =
@@ -113,7 +126,7 @@ const Admins = ({
 
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
-    handleAdminNum(data.data.length);
+    handleAdminNum(data.data?.length || 0);
     return data;
   }
 
@@ -147,6 +160,16 @@ const Admins = ({
     const url = `/api/v1/admin?filters=${filters.join(',')}&take=${pageSize}&page=${pageIndex}&sort=createdAt=DESC,firstName=${sort[0].desc ? "DESC" : "ASC"}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,role,createdAt,updatedAt`;
     const { data } = await axiosInstance.get(url);
 
+    // Check if pagination exists in response
+    if (!data.pagination) {
+      console.error("No pagination data in search response:", data);
+      const itemCount = data.data?.length || 0;
+      setItemsOnPage(itemCount);
+      setTotalItems(itemCount);
+      handleAdminNum(itemCount);
+      return data;
+    }
+
     // calculating how many items are there on the current page
     const startIndex =
       (data.pagination.currentPage - 1) * data.pagination.pageSize + 1;
@@ -157,7 +180,7 @@ const Admins = ({
     const itemsOnPage = endIndex - startIndex + 1;
     setItemsOnPage(itemsOnPage);
     setTotalItems(data.pagination.totalItems);
-    handleAdminNum(data.data.length);
+    handleAdminNum(data.data?.length || 0);
     return data;
   }
 
@@ -182,8 +205,8 @@ const Admins = ({
     
     const url = `/api/v1/admin?filters=${filters.join(',')}&fields=id,firstName,lastName,phoneNumber,gender,status,profile,email,avatar,isEmailAuthenticated,isPhoneNumberAuthenticated,firebaseToken,dob,isLinked,isOnline,lastSeenAt,role,createdAt,updatedAt&sort=createdAt=DESC`;
     const { data } = await axiosInstance.get(url);
-    console.log(data, "the admin data");
-    handleAdminNum(data.data.length);
+    console.log(data, "the admin data - revalidate");
+    handleAdminNum(data.data?.length || 0);
     console.log(data.data, "admin data");
     return data;
   }
@@ -240,13 +263,6 @@ const Admins = ({
   const handleRoleUpdate = (adminId: string, newRole: string) => {
     updateRoleMutation({ adminId, role: newRole });
   };
-
-  useEffect(
-    function () {
-      isAddOpen && _handleAddOpen(false);
-    },
-    [isAddOpen]
-  );
 
   const columns = useMemo<ColumnDef<IAdminData>[]>(
     () => [
