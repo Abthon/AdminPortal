@@ -215,6 +215,7 @@ const Transactions = ({
     let queryParams: string[] = [];
     
     // Add pagination and sorting
+    //queryParams.push(`take=${pageSize}`);
     queryParams.push(`take=${pageSize}`);
     queryParams.push(`page=${pageIndex}`);
     //queryParams.push(`sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`);
@@ -345,7 +346,7 @@ const Transactions = ({
     let queryParams: string[] = [];
     
     // Add fields and sorting
-    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,therapistPercentage,createdAt`);
+    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,therapistPercentage,createdAt&take=0`);
     queryParams.push(`sort=createdAt=DESC`);
     
     // Add date parameters
