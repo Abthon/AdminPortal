@@ -220,7 +220,7 @@ const Transactions = ({
     queryParams.push(`page=${pageIndex}`);
     //queryParams.push(`sort=createdAt=${sort[0].desc ? "DESC" : "ASC"}`);
     queryParams.push(`sort=createdAt=DESC`)
-    queryParams.push(`fields=client.*,status,subscription.*,start_date,end_date,price,old_price,therapistPercentage,createdAt`);
+    queryParams.push(`fields=client.*,therapist.*,status,subscription.*,start_date,end_date,price,old_price,therapistPercentage,createdAt`);
     
     // Add date parameters
     const startDateParam = getStartDateForAPI();
@@ -253,6 +253,8 @@ const Transactions = ({
     const url = `/api/v1/subscription/user-sub?${queryParams.join('&')}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
+
+    console.log(data, "tttransactionnn data");
 
     console.log(data, "The data");
     // calculating how many items are there on the current page
