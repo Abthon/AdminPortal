@@ -817,7 +817,7 @@ const TherapistSessionCalendar = ({
                   return (
                     <button
                       key={day.toISOString()}
-                      onClick={() => {}}
+                      onClick={() => handleDayClick(day)}
                       className={`
                         p-2 text-sm rounded-lg transition-colors relative min-h-12
                         ${
@@ -884,27 +884,11 @@ const TherapistSessionDetailCard = ({
   session: any;
   onClose: () => void;
 }) => {
-  const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
-
-  const therapistImage = session.therapist?.profile
-    ? `${BASE_URL}/${session.therapist.profile}`
-    : avatar;
-
-  const clientImage = session.group?.[0]?.profile
-    ? `${BASE_URL}/${session.group?.[0]?.profile}`
-    : avatar;
-
-  const timeAgo = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-  };
-
-  console.log("session", session.group);
-
   return (
     <div className="card">
       <div className="card-header">
-        <div className="flex items-center justify-between">
-          <h3 className="card-title">Session Details</h3>
+        <div className="flex items-center justify-between w-full">
+          <h3 className="card-title">Session Schedule</h3>
           <button
             onClick={onClose}
             className="btn btn-sm btn-icon btn-clear btn-primary"
@@ -914,147 +898,27 @@ const TherapistSessionDetailCard = ({
         </div>
       </div>
       <div className="card-body">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Therapist Info */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">
-              Therapist
-            </h4>
-            <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
-              <img
-                src={therapistImage}
-                alt={`${session.therapist?.firstName} ${session.therapist?.lastName}`}
-                className="w-16 h-16 rounded-full object-cover border-2 border-blue-200"
-              />
-              <div className="flex-1">
-                <h5 className="font-semibold text-gray-900">
-                  {session.therapist?.firstName} {session.therapist?.lastName}
-                </h5>
-                <p className="text-sm text-gray-600">
-                  {session.therapist?.email}
-                </p>
-                <p className="text-sm text-gray-600">
-                  +251{session.therapist?.phoneNumber}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span
-                    className={`badge badge-sm ${
-                      session.therapist?.status === "active"
-                        ? "badge-success"
-                        : session.therapist?.status === "pending"
-                          ? "badge-primary"
-                          : session.therapist?.status === "inactive"
-                            ? "badge-warning"
-                            : "badge-danger"
-                    } badge-outline`}
-                  >
-                    {session.therapist?.status}
-                  </span>
-                  {session.therapist?.verified && (
-                    <span className="badge badge-sm badge-primary badge-outline">
-                      <KeenIcon icon="verify" className="text-xs me-1" />
-                      Verified
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Client Info */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">
-              Matched Client
-            </h4>
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <img
-                src={clientImage}
-                // alt={`${session.client?.firstName} ${session.client?.lastName}`}
-                className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-              />
-              {session.group.map((member: any) => (
-                <div key={member.id} className="flex-1">
-                  <h5 className="font-semibold text-gray-900">
-                    {member.firstName} {member.lastName}
-                  </h5>
-                </div>
-              ))}
-
-              {/* <div className="flex-1">
-                <h5 className="font-semibold text-gray-900">
-                  {session.group?.[0]?.firstName} {session.group?.[0]?.lastName}
-                </h5>
-                <p className="text-sm text-gray-600">
-                  @{session.group?.[0]?.username}
-                </p>
-                <p className="text-sm text-gray-600">
-                  +251{session.group?.[0]?.phoneNumber}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span
-                    className={`badge badge-sm ${
-                      session.group?.[0]?.status === "active"
-                        ? "badge-success"
-                        : session.group?.[0]?.status === "pending"
-                          ? "badge-primary"
-                          : session.group?.[0]?.status === "inactive"
-                            ? "badge-warning"
-                            : "badge-danger"
-                    } badge-outline`}
-                  >
-                    {session.group?.[0]?.status}
-                  </span>
-                  {session.group?.[0]?.isOnline && (
-                    <span className="badge badge-sm badge-success badge-outline">
-                      Online
-                    </span>
-                  )}
-                </div>
-              </div> */}
-            </div>
-          </div>
-        </div>
-
-        {/* Session Info */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-lg font-semibold text-gray-900 mb-3">
-            Session Information
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-600">
-                Therapist Attendance
-              </label>
-              <span
-                className={`badge badge-sm w-fit ${session.hasTherapistAttended ? "badge-success" : "badge-warning"} badge-outline`}
-              >
-                {session.hasTherapistAttended ? "Attended" : "Not Attended"}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-600">
-                Client Attendance
-              </label>
-              <span
-                className={`badge badge-sm w-fit ${session.hasclientAttended ? "badge-success" : "badge-warning"} badge-outline`}
-              >
-                {session.hasclientAttended ? "Attended" : "Not Attended"}
-              </span>
+        <div className="flex items-center justify-center gap-8 py-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <KeenIcon icon="calendar" className="text-primary text-2xl" />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-600">
-                Scheduled Date
-              </label>
-              <p className="text-sm text-gray-900">
+              <p className="text-sm text-gray-500">Date</p>
+              <p className="text-lg font-semibold text-gray-900">
                 {format(new Date(session.schedule), "MMM dd, yyyy")}
               </p>
             </div>
+          </div>
+          <div className="w-px h-12 bg-gray-200"></div>
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-success/10 rounded-full">
+              <KeenIcon icon="time" className="text-success text-2xl" />
+            </div>
             <div>
-              <label className="text-sm font-medium text-gray-600">
-                Scheduled Time
-              </label>
-              <p className="text-sm text-gray-900">
-                {format(new Date(session.schedule), "HH:mm")}
+              <p className="text-sm text-gray-500">Time</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {format(new Date(session.schedule), "hh:mm a")}
               </p>
             </div>
           </div>

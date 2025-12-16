@@ -48,7 +48,26 @@ interface IStatsCard {
 
 const ChannelStats2 = () => {
   const [analyticsData, setAnalyticsData] = useState<IAnalyticsData | null>(null);
+  const [netTransaction, setNetTransaction] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+
+  // Fetch net transaction
+  useQuery(
+    'net-transaction',
+    async () => {
+      const { data } = await axiosInstance.get('/api/v1/subscription/user-sub?take=0&fields=price,subscription.price');
+      const total = data.data.reduce((acc: number, item: any) => {
+        // Use logic similar to Transaction.tsx: priority to historical price, then subscription price
+        const price = item.price ?? item.subscription?.price ?? 0;
+        return acc + price;
+      }, 0);
+      setNetTransaction(total);
+      return total;
+    },
+    {
+      refetchInterval: 30000,
+    }
+  );
 
   // Fetch analytics data
   const { data, isLoading, error } = useQuery(
@@ -105,10 +124,17 @@ const ChannelStats2 = () => {
       },
       {
         icon: "dollar",
-        title: "Total Company Revenue",
+        title: "Gross Revenue",
         value: `${parseFloat(analyticsData.revenueStats.totalRevenue).toLocaleString()} Birr`,
         color: "text-emerald-600",
         bgColor: "bg-emerald-50"
+      },
+      {
+        icon: "bill",
+        title: "Net Revenue",
+        value: `${netTransaction.toLocaleString()} Birr`,
+        color: "text-blue-600",
+        bgColor: "bg-blue-50"
       },
       {
         icon: "crown",
