@@ -919,14 +919,19 @@ const Sessions = ({
 
   const createChatMutation = useMutation(
     async ({ clientId, therapistId }: { clientId: string, therapistId: string }) => {
-      // First check if chat already exists between client and therapist
-      const existingChatRes = await axiosInstance.get(`/api/v1/chat?fields=client.*,therapist.*&filters=therapist.id:=${therapistId},client.id:=${clientId}`);
-      
-      if (existingChatRes.data.data && existingChatRes.data.data.length > 0) {
-        // Chat already exists, delete it first
-        const existingChatId = existingChatRes.data.data[0].id;
-        await axiosInstance.delete(`/api/v1/chat/${existingChatId}`);
-        toast("Existing chat deleted, creating new one...");
+      // Fetch all chats for the client
+      const allChatsRes = await axiosInstance.get(`/api/v1/chat?fields=client.*&filters=client.id:=${clientId}`);
+      if (allChatsRes.data.data && allChatsRes.data.data.length > 0) {
+        // Delete all chats that are not closed (backend will set closed:true on delete)
+        const openChats = allChatsRes.data.data.filter((chat: { closed: boolean }) => !chat.closed);
+        
+        if (openChats.length > 0) {
+          console.log(`Found ${openChats.length} open chats, closing them...`);
+          await Promise.all(
+            openChats.map((chat: { id: string }) => axiosInstance.delete(`/api/v1/chat/${chat.id}`))
+          );
+          toast(`Closed ${openChats.length} existing chat(s)`);
+        }
       }
       
       // Create a new chat
