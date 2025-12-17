@@ -14,6 +14,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogBody,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "react-query";
 import axiosInstance from "@/auth/_helpers";
@@ -83,8 +93,8 @@ const Admins = ({
   }) {
 
 	console.log(pageIndex, pageSize, sort, "the page index");
-    // Build filters - always exclude super admins
-    const filters: string[] = ["role!=super"];
+    // Build filters
+    const filters: string[] = [];
     
     // Add status filter
     if (filterInput && filterInput !== "all") {
@@ -141,8 +151,8 @@ const Admins = ({
     search: any;
     sort: any;
   }) {
-    // Build filters - always exclude super admins
-    const filters: string[] = ["role!=super"];
+    // Build filters
+    const filters: string[] = [];
     
     // Add search filter
     filters.push(`firstName=${search}`);
@@ -185,8 +195,8 @@ const Admins = ({
   }
 
   async function revalidateAdmin() {
-    // Build filters - always exclude super admins
-    const filters: string[] = ["role!=super"];
+    // Build filters
+    const filters: string[] = [];
     
     // Add search filter if exists
     if (searchInput && searchInput.trim()) {
@@ -217,6 +227,46 @@ const Admins = ({
     refetchInterval: 5000,
     refetchIntervalInBackground: true,
   });
+
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [selectedAdminId, setSelectedAdminId] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+
+  const { mutate: updatePasswordMutation } = useMutation({
+    mutationFn: async ({ adminId, password }: { adminId: string; password: string }) => {
+      const { data } = await axiosInstance.patch(`/api/v1/admin/${adminId}`, {
+        password
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["Admins"],
+      });
+      toast.success("Password updated successfully!");
+      handleClosePasswordModal();
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Error updating password");
+    },
+  });
+
+  const handleOpenPasswordModal = (adminId: string) => {
+    setSelectedAdminId(adminId);
+    setIsPasswordModalOpen(true);
+  };
+
+  const handleClosePasswordModal = () => {
+    setSelectedAdminId(null);
+    setIsPasswordModalOpen(false);
+    setNewPassword("");
+  };
+
+  const handlePasswordSubmit = () => {
+    if (!selectedAdminId || !newPassword) return;
+    updatePasswordMutation({ adminId: selectedAdminId, password: newPassword });
+  };
+
 
   // Update admin status mutation
   const { mutate: updateStatusMutation } = useMutation({
@@ -336,6 +386,9 @@ const Admins = ({
               value={admin.role}
               onChange={(e) => handleRoleUpdate(admin.id, e.target.value)}
             >
+              <option value={AdminRoles.SUPER}>
+                ⚡ Super
+              </option>
               <option value={AdminRoles.DISPATCH}>
                 🚀 Dispatch
               </option>
@@ -393,6 +446,29 @@ const Admins = ({
         },
         meta: {
           headerClassName: "min-w-[100px]",
+        },
+      },
+      {
+        id: "actions",
+        header: ({ column }) => (
+          <DataGridColumnHeader title="Actions" column={column} />
+        ),
+        enableSorting: false,
+        cell: (info) => {
+          return (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleOpenPasswordModal(info.row.original.id)}
+              className="flex items-center gap-2"
+            >
+              <KeenIcon icon="key" />
+              Reset Password
+            </Button>
+          );
+        },
+        meta: {
+          headerClassName: "min-w-[150px]",
         },
       },
     ],
@@ -453,6 +529,7 @@ const Admins = ({
               </SelectTrigger>
               <SelectContent className="w-32">
                 <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="super">Super</SelectItem>
                 <SelectItem value="dispatch">Dispatch</SelectItem>
                 <SelectItem value="support">Support</SelectItem>
               </SelectContent>
@@ -480,6 +557,41 @@ const Admins = ({
           layout={{ card: true }}
         />
       </div>
+
+      <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Admin Password</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="new-password" className="text-sm font-medium text-gray-700">
+                  New Password
+                </label>
+                <Input
+                  id="new-password"
+                  type="text"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <p className="text-xs text-gray-500">
+                  Enter a secure password for the admin.
+                </p>
+              </div>
+            </div>
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleClosePasswordModal}>
+              Cancel
+            </Button>
+            <Button onClick={handlePasswordSubmit} disabled={!newPassword}>
+              Update Password
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

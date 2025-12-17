@@ -800,13 +800,15 @@ const TherapistSessions = ({
   // Group sessions by date using the schedule field
   const sessionsByDate = sessions.reduce(
     (acc: { [key: string]: ISessionData[] }, session) => {
-      const date = format(new Date(session.schedule), "yyyy-MM-dd");
+      const date = session.schedule.split("T")[0];
       if (!acc[date]) acc[date] = [];
       acc[date].push(session);
       return acc;
     },
     {}
   );
+
+  console.log(sessionsByDate, "By dateeee");
 
   // Fixed calendar logic
   const getCalendarDays = (date: Date) => {
