@@ -808,8 +808,6 @@ const TherapistSessions = ({
     {}
   );
 
-  console.log(sessionsByDate, "By dateeee");
-
   // Fixed calendar logic
   const getCalendarDays = (date: Date) => {
     const monthStart = startOfMonth(date);
