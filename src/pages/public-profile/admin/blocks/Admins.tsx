@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "react-query";
 import axiosInstance from "@/auth/_helpers";
+import { ModalAdminForm } from "@/partials/modals/admin/ModalAdminForm";
 
 const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
 
@@ -231,6 +232,8 @@ const Admins = ({
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [selectedAdminId, setSelectedAdminId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedAdminData, setSelectedAdminData] = useState<IAdminData | null>(null);
 
   const { mutate: updatePasswordMutation } = useMutation({
     mutationFn: async ({ adminId, password }: { adminId: string; password: string }) => {
@@ -260,6 +263,16 @@ const Admins = ({
     setSelectedAdminId(null);
     setIsPasswordModalOpen(false);
     setNewPassword("");
+  };
+
+  const handleOpenEditModal = (admin: IAdminData) => {
+    setSelectedAdminData(admin);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setSelectedAdminData(null);
+    setIsEditModalOpen(false);
   };
 
   const handlePasswordSubmit = () => {
@@ -456,19 +469,30 @@ const Admins = ({
         enableSorting: false,
         cell: (info) => {
           return (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleOpenPasswordModal(info.row.original.id)}
-              className="flex items-center gap-2"
-            >
-              <KeenIcon icon="key" />
-              Reset Password
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleOpenEditModal(info.row.original)}
+                className="flex items-center gap-2"
+              >
+                <KeenIcon icon="pencil" />
+                Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleOpenPasswordModal(info.row.original.id)}
+                className="flex items-center gap-2"
+              >
+                <KeenIcon icon="key" />
+                Reset
+              </Button>
+            </div>
           );
         },
         meta: {
-          headerClassName: "min-w-[150px]",
+          headerClassName: "min-w-[250px]",
         },
       },
     ],
@@ -592,6 +616,12 @@ const Admins = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ModalAdminForm
+        open={isEditModalOpen}
+        onOpenChange={handleCloseEditModal}
+        adminData={selectedAdminData}
+      />
     </div>
   );
 };

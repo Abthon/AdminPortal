@@ -26,8 +26,9 @@ import {
   isSameDay,
   isToday,
 } from "date-fns";
-import { useQuery } from "react-query";
+import { useQuery, useMutation, useQueryClient } from "react-query";
 import axiosInstance from "@/auth/_helpers";
+import { toast } from "sonner";
 import avatar from "@/media/avatars/blank.png";
 import { LicenseInfo } from "./GeneralInfo";
 //gov_id,licence,degree
@@ -402,6 +403,27 @@ const TherapistWeeklyStats = ({
 }: {
   therapistData: ITherapistDetailData;
 }) => {
+  const queryClient = useQueryClient();
+
+  // Calculate week dates (Monday to Sunday)
+  const getWeekDates = () => {
+    const endDate = new Date();
+    const startDate = new Date(endDate);
+    const day = startDate.getDay();
+    const diff = day === 0 ? 6 : day - 1; // Calculate days to subtract to get to Monday
+    startDate.setDate(startDate.getDate() - diff);
+    startDate.setHours(0, 0, 0, 0);
+    
+    // Set end date to Sunday of the current week
+    const sundayDate = new Date(startDate);
+    sundayDate.setDate(startDate.getDate() + 6);
+    sundayDate.setHours(23, 59, 59, 999);
+    
+    return { startDate, endDate: sundayDate };
+  };
+
+  const { startDate: weekStart, endDate: weekEnd } = getWeekDates();
+
   // Fetch therapist statistics - current week (starting Monday)
   const fetchTherapistStatsWeek = async (): Promise<ITherapistStats> => {
     const endDate = new Date(); // Today
@@ -427,12 +449,55 @@ const TherapistWeeklyStats = ({
     queryFn: fetchTherapistStatsWeek,
   });
 
+  // Mark as Paid mutation
+  const { mutate: markAsPaid, isLoading: isMarkingPaid } = useMutation({
+    mutationFn: async () => {
+      const totalRevenue = parseFloat(statsWeekData?.revenueOverTime?.[0]?.revenueOverTime || "0");
+      
+      const payload = {
+        therapist: therapistData.id,
+        startDate: weekStart.toISOString(),
+        endDate: weekEnd.toISOString(),
+        totalRevenue: totalRevenue,
+        sessionIds: [], // Empty array as per user's instruction
+      };
+
+      const { data } = await axiosInstance.post('/api/v1/therapist-payment-period', payload);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Payment recorded successfully!");
+      queryClient.invalidateQueries(["therapist-stats-week", therapistData.id]);
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error.message || "Failed to record payment";
+      toast.error(errorMessage);
+    },
+  });
+
+  // Check if today is Sunday
+  const isSunday = new Date().getDay() === 0;
+
   return (
     <div className="card bg-gray-50 border border-gray-200">
-      <div className="card-header border-b border-gray-200">
+      <div className="card-header border-b border-gray-200 flex justify-between items-center">
         <h3 className="card-title text-gray-900">Last 7 Days Performance</h3>
+        <button
+          className="btn btn-success btn-sm flex items-center gap-2"
+          onClick={() => markAsPaid()}
+          disabled={isMarkingPaid || statsWeekLoading}
+        >
+          <KeenIcon icon="dollar" className="text-sm" />
+          {isMarkingPaid ? "Processing..." : "Mark as Paid"}
+        </button>
       </div>
       <div className="card-body p-6">
+        {/* Week Date Range Display */}
+        <div className="mb-4 text-center">
+          <span className="text-sm text-gray-600">
+            Week: {format(weekStart, "MMM dd")} - {format(weekEnd, "MMM dd, yyyy")}
+          </span>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Weekly Sessions */}
           <div className="flex flex-col items-center text-center p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
