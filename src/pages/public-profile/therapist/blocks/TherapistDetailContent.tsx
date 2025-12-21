@@ -441,6 +441,7 @@ const TherapistWeeklyStats = ({
       `/api/v1/therapist/stats?startDate=${formatDateTime(startDate)}&endDate=${formatDateTime(endDate)}&mockId=${therapistData.id}`
     );
 
+    console.log(formatDateTime(startDate), formatDateTime(endDate), "Therapist stat date");
     return data.data;
   };
 
@@ -872,6 +873,8 @@ const TherapistSessions = ({
     },
     {}
   );
+
+  console.log(sessionsByDate, "Sessions by date");
 
   // Fixed calendar logic
   const getCalendarDays = (date: Date) => {

@@ -235,6 +235,7 @@ const Sessions = ({
   const [removeSessionData, setRemoveSessionData] = useState<ISessionsData | null>(null);
   const [selectedUsersToRemove, setSelectedUsersToRemove] = useState<string[]>([]);
   const [clientModal, setClientModal] = useState<string>("");
+  const [clientLevel, setClientLevel] = useState<string>("");
   const [clientId, setClientId] = useState<string>("");
   const [clientsId, setClientsId] = useState<string[]>([]);
   const [therpaistId, setTherapistId] = useState<string>("");
@@ -503,9 +504,18 @@ const Sessions = ({
 
   // Fetch therapists for session creation
   async function fetchTherapists(search: string = "") {
-    const url = search
-      ? `/api/v1/therapist?filters=firstName=${search},license.modal.id:=${clientModal}&fields=id,firstName,lastName,profile`
-      : `/api/v1/therapist?fields=id,firstName,lastName,profile&filters=license.modal.id:=${clientModal}`;
+    const filters = [];
+    if (search) filters.push(`firstName=${search}`);
+    if (clientModal) filters.push(`license.modal.id:=${clientModal}`);
+    if (clientLevel) filters.push(`level.id:=${clientLevel}`);
+
+    const queryParams = [
+      `take=0`,
+      `fields=id,firstName,lastName,profile,phoneNumber,level.*`,
+      filters.length > 0 ? `filters=${filters.join(',')}` : ''
+    ].filter(Boolean).join('&');
+
+    const url = `/api/v1/therapist?${queryParams}`;
     const { data } = await axiosInstance.get(url);
     return data;
   }
@@ -565,7 +575,7 @@ const Sessions = ({
 
   // Fetch therapists query
   const { data: therapistsData } = useQuery({
-    queryKey: ["therapists", therapistSearch],
+    queryKey: ["therapists", therapistSearch, clientModal, clientLevel],
     queryFn: () => fetchTherapists(therapistSearch),
     enabled: isAddSessionOpen || reassignModalOpen,
   });
@@ -822,12 +832,34 @@ const Sessions = ({
     setReassignSessionData(sessionData);
     setReassignModalOpen(true);
     setClientModal(sessionData.modal?.id || "");
+    setClientLevel(""); // Reset level
     setClientId(sessionData.client?.id || "");
     setClientsId(sessionData.groupClients || []);
     setTherapistId(sessionData.therapist?.id || "");
     setLoadingSessions(true);
     setSelectedSessionIds([]);
     setNewTherapistId("");
+
+    // Fetch client level
+    if (sessionData.client?.id) {
+      try {
+        const { data: clientData } = await axiosInstance.get(
+          `/api/v1/client/${sessionData.client.id}?fields=preference.*`
+        );
+        const preferences = clientData?.data?.preference;
+        if (preferences && preferences.length > 0) {
+          const preferenceId = preferences[0].id;
+          const { data: preferenceData } = await axiosInstance.get(
+            `/api/v1/preference/${preferenceId}?fields=level.*`
+          );
+          if (preferenceData?.data?.level?.id) {
+            setClientLevel(preferenceData.data.level.id);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching client level:", error);
+      }
+    }
 
     try {
       // Fetch all sessions for this subscription
