@@ -57,6 +57,7 @@ export interface ISessionData {
   duration?: number;
   notes?: string;
   groupName?: string;
+  group: [];
 }
 
 export interface ISessionResponse {

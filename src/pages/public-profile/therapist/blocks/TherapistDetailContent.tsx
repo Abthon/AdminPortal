@@ -1556,7 +1556,7 @@ const TherapistSessionsDetailCard = ({
                           />
                           <div className="flex-1 min-w-0">
                             {
-                              session.groupName ? session.groupName : (
+                              session.group ? session.groupName : (
                                 <div className="flex-1 min-w-0">
                                     <div className="font-semibold text-gray-900 truncate">
                                       {session.client?.firstName || 'Unknown'} {session.client?.lastName || 'Client'}
