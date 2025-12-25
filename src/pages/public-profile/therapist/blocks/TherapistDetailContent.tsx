@@ -405,24 +405,27 @@ const TherapistWeeklyStats = ({
 }) => {
   const queryClient = useQueryClient();
 
-  // Calculate week dates (Monday to Sunday)
-  const getWeekDates = () => {
-    const endDate = new Date();
-    const startDate = new Date(endDate);
-    const day = startDate.getDay();
-    const diff = day === 0 ? 6 : day - 1; // Calculate days to subtract to get to Monday
-    startDate.setDate(startDate.getDate() - diff);
-    startDate.setHours(0, 0, 0, 0);
+  // Calculate last week dates (Monday to Sunday)
+  const getLastWeekDates = () => {
+    const today = new Date();
+    const currentDay = today.getDay();
     
-    // Set end date to Sunday of the current week
-    const sundayDate = new Date(startDate);
-    sundayDate.setDate(startDate.getDate() + 6);
-    sundayDate.setHours(23, 59, 59, 999);
+    // Calculate days to go back to last Monday
+    const daysToLastMonday = currentDay === 0 ? 6 : currentDay + 6;
     
-    return { startDate, endDate: sundayDate };
+    const lastMonday = new Date(today);
+    lastMonday.setDate(today.getDate() - daysToLastMonday);
+    lastMonday.setHours(0, 0, 0, 0);
+    
+    // Last Sunday is 6 days after last Monday
+    const lastSunday = new Date(lastMonday);
+    lastSunday.setDate(lastMonday.getDate() + 6);
+    lastSunday.setHours(23, 59, 59, 999);
+    
+    return { startDate: lastMonday, endDate: lastSunday };
   };
 
-  const { startDate: weekStart, endDate: weekEnd } = getWeekDates();
+  const { startDate: weekStart, endDate: weekEnd } = getLastWeekDates();
 
   // Fetch therapist statistics - current week (starting Monday)
   const fetchTherapistStatsWeek = async (): Promise<ITherapistStats> => {
@@ -455,14 +458,23 @@ const TherapistWeeklyStats = ({
   // Mark as Paid mutation
   const { mutate: markAsPaid, isLoading: isMarkingPaid } = useMutation({
     mutationFn: async () => {
-      const totalRevenue = parseFloat(statsWeekData?.revenueOverTime?.[0]?.revenueOverTime || "0");
+      // Fetch last week's sessions for this therapist
+      const startDateISO = weekStart.toISOString();
+      const endDateISO = weekEnd.toISOString();
       
+      const sessionsResponse = await axiosInstance.get<ISessionResponse>(
+        `/api/v1/session?filters=therapist.id=${therapistData.id},schedule>=${startDateISO},schedule<=${endDateISO}&fields=id`
+      );
+      
+      const sessionIds = sessionsResponse.data.data.map((session: ISessionData) => session.id);
+      const totalRevenue = parseFloat(statsWeekData?.revenueOverTime?.[0]?.revenueOverTime || "0");
+      console.log(sessionIds, "The Ids baby");
       const payload = {
         therapist: therapistData.id,
-        startDate: weekStart.toISOString(),
-        endDate: weekEnd.toISOString(),
+        startDate: startDateISO,
+        endDate: endDateISO,
         totalRevenue: totalRevenue,
-        sessionIds: [], // Empty array as per user's instruction
+        sessionIds: sessionIds,
       };
 
       const { data } = await axiosInstance.post('/api/v1/therapist-payment-period', payload);
