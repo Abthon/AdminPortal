@@ -797,7 +797,7 @@ const TherapistTabbedContent = ({
   therapistData: ITherapistDetailData;
 }) => {
   const [activeView, setActiveView] = useState<
-    "sessions" | "activity" | "ratings" | "clients"
+    "sessions" | "activity" | "ratings" | "clients" | "payments"
   >("sessions");
 
   return (
@@ -832,6 +832,13 @@ const TherapistTabbedContent = ({
         >
           <KeenIcon icon="star" /> Client Ratings
         </button>
+        <button
+          type="button"
+          className={`btn btn-sm ${activeView === "payments" ? "btn-primary" : "btn-outline btn-primary"}`}
+          onClick={() => setActiveView("payments")}
+        >
+          <KeenIcon icon="wallet" /> Payment History
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -846,6 +853,9 @@ const TherapistTabbedContent = ({
       )}
       {activeView === "clients" && (
         <TherapistClients therapistData={therapistData} />
+      )}
+      {activeView === "payments" && (
+        <TherapistPaymentHistory therapistData={therapistData} />
       )}
     </div>
   );
@@ -2009,6 +2019,330 @@ const TherapistClients = ({
       toolbar={Toolbar}
       layout={{ card: true }}
     />
+  );
+};
+
+// Payment History Component
+interface IPaymentPeriod {
+  date: string;
+  revenueOverTime: number;
+  sessionIds: string[];
+}
+
+interface IPaymentPeriodResponse {
+  data: IPaymentPeriod[];
+  message: string;
+  statusCode: number;
+}
+
+const TherapistPaymentHistory = ({
+  therapistData,
+}: {
+  therapistData: ITherapistDetailData;
+}) => {
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedWeek, setSelectedWeek] = useState<IPaymentPeriod | null>(null);
+
+  // Calculate year date range
+  const yearStart = new Date(selectedYear, 0, 1);
+  const yearEnd = new Date(selectedYear, 11, 31);
+
+  // Fetch payment periods for the year
+  const fetchPaymentPeriods = async (): Promise<IPaymentPeriodResponse> => {
+    const { data } = await axiosInstance.get(
+      `/api/v1/therapist-payment-period/rot?startDate=${yearStart.toISOString()}&endDate=${yearEnd.toISOString()}&mockId=${therapistData.id}`
+    );
+    return data;
+  };
+
+  const { data: paymentData, isLoading } = useQuery({
+    queryKey: ["therapist-payment-periods", therapistData.id, selectedYear],
+    queryFn: fetchPaymentPeriods,
+  });
+
+  const paymentPeriods = paymentData?.data || [];
+
+  // Generate 4 weeks per month (48 weeks total)
+  // Payment timing: When you pay on week N (e.g., days 8-14), you're paying for work done in week N-1 (days 1-7)
+  const generateWeeks = useCallback(() => {
+    const weeks: { weekNumber: number; startDate: Date; endDate: Date; monthKey: string; paymentWeekStart: Date }[] = [];
+    let weekNumber = 1;
+
+    // Generate 4 weeks for each of the 12 months
+    for (let month = 0; month < 12; month++) {
+      const monthKey = format(new Date(selectedYear, month, 1), "MMMM yyyy");
+      
+      // Week 1: Days 1-7 (payment made on day 8 of this month for this work)
+      const week1Start = new Date(selectedYear, month, 1);
+      const week1PaymentDate = new Date(selectedYear, month, 8);
+      weeks.push({
+        weekNumber: weekNumber++,
+        startDate: week1Start,
+        endDate: new Date(selectedYear, month, 7),
+        monthKey,
+        paymentWeekStart: week1PaymentDate,
+      });
+
+      // Week 2: Days 8-14 (payment made on day 15 of this month for this work)
+      const week2Start = new Date(selectedYear, month, 8);
+      const week2PaymentDate = new Date(selectedYear, month, 15);
+      weeks.push({
+        weekNumber: weekNumber++,
+        startDate: week2Start,
+        endDate: new Date(selectedYear, month, 14),
+        monthKey,
+        paymentWeekStart: week2PaymentDate,
+      });
+
+      // Week 3: Days 15-21 (payment made on day 22 of this month for this work)
+      const week3Start = new Date(selectedYear, month, 15);
+      const week3PaymentDate = new Date(selectedYear, month, 22);
+      weeks.push({
+        weekNumber: weekNumber++,
+        startDate: week3Start,
+        endDate: new Date(selectedYear, month, 21),
+        monthKey,
+        paymentWeekStart: week3PaymentDate,
+      });
+
+      // Week 4: Days 22-28 (payment made on day 1 of NEXT month for this work)
+      const week4Start = new Date(selectedYear, month, 22);
+      const nextMonth = month === 11 ? 0 : month + 1;
+      const nextYear = month === 11 ? selectedYear + 1 : selectedYear;
+      const week4PaymentDate = new Date(nextYear, nextMonth, 1);
+      weeks.push({
+        weekNumber: weekNumber++,
+        startDate: week4Start,
+        endDate: new Date(selectedYear, month, 28),
+        monthKey,
+        paymentWeekStart: week4PaymentDate,
+      });
+    }
+
+    return weeks;
+  }, [selectedYear]);
+
+  // Create a map of payment dates for quick lookup
+  // Since API can return multiple payment records for different dates in the same week,
+  // we need to aggregate them by the work week they belong to
+  const paymentMap = useMemo(() => {
+    const map = new Map<string, IPaymentPeriod>();
+    const allWeeks = generateWeeks();
+    
+    paymentPeriods.forEach((period) => {
+      const paymentDate = new Date(period.date);
+      
+      // Find which work week this payment date corresponds to
+      // The payment date should match the work week it was paid for
+      for (const week of allWeeks) {
+        // Check if payment date falls within the work week range (days 1-7, 8-14, 15-21, 22-28)
+        const workWeekStart = new Date(week.startDate);
+        const workWeekEnd = new Date(week.endDate);
+        workWeekStart.setHours(0, 0, 0, 0);
+        workWeekEnd.setHours(23, 59, 59, 999);
+        
+        if (paymentDate >= workWeekStart && paymentDate <= workWeekEnd) {
+          // Use the work week start date as the key for aggregation
+          const weekKey = format(week.startDate, "yyyy-MM-dd");
+          const existing = map.get(weekKey);
+          
+          if (existing) {
+            // Aggregate: combine session IDs and revenue from multiple payment records
+            existing.sessionIds = [...existing.sessionIds, ...period.sessionIds];
+            existing.revenueOverTime += period.revenueOverTime;
+            console.log(`Aggregating: Week ${week.weekNumber} (${format(week.startDate, "MMM dd")}-${format(week.endDate, "dd")}): Adding ${period.sessionIds.length} sessions from ${format(paymentDate, "MMM dd")}. Total: ${existing.sessionIds.length} sessions, ${existing.revenueOverTime.toFixed(2)} ETB`);
+          } else {
+            // First payment record for this work week
+            map.set(weekKey, {
+              date: period.date,
+              revenueOverTime: period.revenueOverTime,
+              sessionIds: [...period.sessionIds],
+            });
+            console.log(`First payment: Week ${week.weekNumber} (${format(week.startDate, "MMM dd")}-${format(week.endDate, "dd")}): ${period.sessionIds.length} sessions from ${format(paymentDate, "MMM dd")}`);
+          }
+          break;
+        }
+      }
+    });
+    
+    console.log("Final payment map:", Array.from(map.entries()));
+    return map;
+  }, [paymentPeriods, selectedYear, generateWeeks]);
+
+  const weeks = useMemo(() => generateWeeks(), [generateWeeks]);
+
+  // Group weeks by month for better visualization
+  const weeksByMonth = useMemo(() => {
+    const grouped: { [key: string]: typeof weeks } = {};
+    weeks.forEach((week) => {
+      if (!grouped[week.monthKey]) {
+        grouped[week.monthKey] = [];
+      }
+      grouped[week.monthKey].push(week);
+    });
+    return grouped;
+  }, [weeks]);
+
+  const handleYearChange = (direction: "prev" | "next") => {
+    setSelectedYear((prev) => (direction === "prev" ? prev - 1 : prev + 1));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Year Selector */}
+      <div className="card bg-white">
+        <div className="card-body p-6">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => handleYearChange("prev")}
+              className="btn btn-sm btn-outline btn-primary"
+            >
+              <KeenIcon icon="left" className="text-sm" />
+            </button>
+            <h3 className="text-2xl font-bold text-gray-900">{selectedYear}</h3>
+            <button
+              onClick={() => handleYearChange("next")}
+              className="btn btn-sm btn-outline btn-primary"
+            >
+              <KeenIcon icon="right" className="text-sm" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Weekly Calendar Grid */}
+      {isLoading ? (
+        <div className="card">
+          <div className="card-body p-12 flex justify-center items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-3 text-gray-600">Loading payment history...</span>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {Object.entries(weeksByMonth).map(([monthKey, monthWeeks]) => (
+            <div key={monthKey} className="card bg-white">
+              <div className="card-header border-b border-gray-200">
+                <h4 className="card-title text-lg font-semibold text-gray-900">
+                  {monthKey}
+                </h4>
+              </div>
+              <div className="card-body p-8">
+                <div className="grid grid-cols-4 gap-6">
+                  {monthWeeks.map((week) => {
+                    // Match payment using the work week start date (aggregated payments for this week)
+                    const weekKey = format(week.startDate, "yyyy-MM-dd");
+                    const payment = paymentMap.get(weekKey);
+                    const isPaid = !!payment;
+                    const isSelected = selectedWeek?.date === payment?.date;
+
+                    return (
+                      <div
+                        key={week.weekNumber}
+                        onClick={() => payment && setSelectedWeek(payment)}
+                        className={`
+                          relative p-5 rounded-2xl border transition-all duration-300 group
+                          ${
+                            isPaid
+                              ? "bg-white border-success/30 hover:border-success shadow-sm hover:shadow-lg cursor-pointer hover:-translate-y-1"
+                              : "bg-gray-50 border-gray-100 opacity-50 cursor-default"
+                          }
+                          ${isSelected ? "ring-2 ring-primary ring-offset-2 border-primary shadow-xl scale-[1.02] z-10" : ""}
+                        `}
+                      >
+                        {/* Background Decoration for Paid */}
+                        {isPaid && (
+                          <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br from-success/5 to-transparent transition-opacity duration-300 ${isSelected ? "opacity-100" : "opacity-50 group-hover:opacity-100"}`} />
+                        )}
+
+                        {/* Session Count Badge - Top Right */}
+                        {isPaid && payment && (
+                          <div className="absolute -top-3 -right-3 z-20 transform transition-transform duration-300 group-hover:scale-110">
+                            <div className="w-8 h-8 rounded-full bg-gray-900 text-white shadow-lg flex items-center justify-center border-2 border-white ring-1 ring-gray-100">
+                              <span className="text-xs font-bold">
+                                {payment.sessionIds.length}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="relative z-10 flex flex-col items-center">
+                          {/* Week Label */}
+                          <div className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${isPaid ? "text-success" : "text-gray-400"}`}>
+                            Week {week.weekNumber}
+                          </div>
+
+                          {/* Status Icon */}
+                          <div className="mb-3 transform transition-transform duration-300 group-hover:scale-110">
+                            {isPaid ? (
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-success to-emerald-500 flex items-center justify-center shadow-md text-white">
+                                <KeenIcon icon="check" className="text-lg" />
+                              </div>
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400">
+                                <KeenIcon icon="cross" className="text-lg" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Date Range */}
+                          <div className={`text-sm font-semibold ${isPaid ? "text-gray-800" : "text-gray-400"}`}>
+                            {format(week.startDate, "MMM dd")} - {format(week.endDate, "dd")}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Selected Week Details Modal */}
+      {selectedWeek && (
+        <div className="card bg-white border-2 border-primary">
+          <div className="card-header border-b border-gray-200 flex justify-between items-center">
+            <div>
+              <h4 className="card-title text-lg font-semibold text-gray-900">
+                Paid Amount
+              </h4>
+              <div className="text-2xl font-bold text-success mt-2">
+                {selectedWeek.revenueOverTime.toFixed(2)} ETB
+              </div>
+            </div>
+            <button
+              onClick={() => setSelectedWeek(null)}
+              className="btn btn-sm btn-icon btn-light"
+            >
+              <KeenIcon icon="cross" className="text-sm" />
+            </button>
+          </div>
+          <div className="card-body p-6">
+            {/* Session IDs List */}
+            <div>
+              <h5 className="text-sm font-semibold text-gray-900 mb-3">
+                Session IDs for this week ({selectedWeek.sessionIds.length} sessions)
+              </h5>
+              <div className="max-h-60 overflow-y-auto bg-gray-50 rounded-lg p-4">
+                <div className="space-y-2">
+                  {selectedWeek.sessionIds.map((sessionId, index) => (
+                    <div
+                      key={sessionId}
+                      className="text-xs font-mono text-gray-700 bg-white px-3 py-2 rounded border border-gray-200 hover:border-primary transition-colors"
+                    >
+                      <span className="text-gray-500 mr-2">{index + 1}.</span>
+                      {sessionId}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
