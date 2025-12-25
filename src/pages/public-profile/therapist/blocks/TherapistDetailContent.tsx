@@ -427,6 +427,7 @@ const TherapistWeeklyStats = ({
   // Fetch therapist statistics - current week (starting Monday)
   const fetchTherapistStatsWeek = async (): Promise<ITherapistStats> => {
     const endDate = new Date(); // Today
+    endDate.setHours(endDate.getHours() + 3);
     const startDate = new Date(endDate);
     const day = startDate.getDay();
     const diff = day === 0 ? 6 : day - 1; // Calculate days to subtract to get to Monday
@@ -441,6 +442,7 @@ const TherapistWeeklyStats = ({
       `/api/v1/therapist/stats?startDate=${formatDateTime(startDate)}&endDate=${formatDateTime(endDate)}&mockId=${therapistData.id}`
     );
 
+    console.log(data, "The data haah");
     console.log(formatDateTime(startDate), formatDateTime(endDate), "Therapist stat date");
     return data.data;
   };
@@ -514,7 +516,7 @@ const TherapistWeeklyStats = ({
                     return total + (parseInt(session.count) || 0);
                   },
                   0
-                ) || 0
+                )
               )}
             </div>
             <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Sessions</div>
