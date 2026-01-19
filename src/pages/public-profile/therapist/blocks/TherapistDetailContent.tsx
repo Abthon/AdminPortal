@@ -458,13 +458,34 @@ const TherapistWeeklyStats = ({
       const startDateISO = weekStart.toISOString();
       const endDateISO = weekEnd.toISOString();
 
-      const sessionsResponse = await axiosInstance.get<ISessionResponse>(
-        `/api/v1/session?filters=therapist.id=${therapistData.id},schedule>=${startDateISO},schedule<=${endDateISO}&fields=id`
+      // Calculate dates for ROT endpoint (7 days before current to current)
+      const currentDate = new Date();
+      const sevenDaysAgo = new Date(currentDate);
+      sevenDaysAgo.setDate(currentDate.getDate() - 7);
+
+      // Format dates for the ROT endpoint (YYYY-MM-DD format)
+      const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+      // Fetch revenue from the ROT endpoint
+      const rotResponse = await axiosInstance.get<{
+        data: Array<{ date: string; revenueOverTime: number; sessionIds: string[] }>;
+        message: string;
+        statusCode: number;
+      }>(
+        `/api/v1/therapist-payment-period/rot?startDate=${formatDate(sevenDaysAgo)}&endDate=${formatDate(currentDate)}&mockId=${therapistData.id}`
       );
 
-      const sessionIds = sessionsResponse.data.data.map((session: ISessionData) => session.id);
-      const totalRevenue = parseFloat(statsWeekData?.revenueOverTime?.[0]?.revenueOverTime || "0");
+      // Calculate total revenue by summing up revenueOverTime from all entries
+      const totalRevenue = rotResponse.data.data.reduce((sum, entry) => {
+        return sum + (entry.revenueOverTime || 0);
+      }, 0);
+
+      // Collect all session IDs from the ROT response
+      const sessionIds = rotResponse.data.data.flatMap((entry) => entry.sessionIds || []);
+
       console.log(sessionIds, "The Ids baby");
+      console.log(totalRevenue, "Total Revenue from ROT endpoint");
+
       const payload = {
         therapist: therapistData.id,
         startDate: startDateISO,
