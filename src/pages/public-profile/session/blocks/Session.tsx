@@ -4,7 +4,7 @@ import { toAbsoluteUrl } from "@/utils";
 import { cn } from "@/lib/utils";
 import { DataGridLoader } from "@/components/data-grid";
 import avatar from "@/media/avatars/blank.png";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   DataGrid,
   DataGridColumnHeader,
@@ -61,7 +61,7 @@ const SessionLevelCell = ({ client }: { client: any }) => {
         const { data: clientData } = await axiosInstance.get(
           `/api/v1/client/${client.id}?fields=preference.*`
         );
-        
+
         const preferences = clientData?.data?.preference;
         if (!preferences || preferences.length === 0) {
           setLevelData(null);
@@ -78,7 +78,7 @@ const SessionLevelCell = ({ client }: { client: any }) => {
         const { data: preferenceData } = await axiosInstance.get(
           `/api/v1/preference/${preferenceId}?fields=level.*`
         );
-        
+
         setLevelData(preferenceData?.data?.level || null);
       } catch (error) {
         console.error("Error fetching client level:", error);
@@ -298,13 +298,13 @@ const Sessions = ({
     // }
     // Build query parameters
     let queryParams: string[] = [];
-    
+
     // Add pagination and sorting
     queryParams.push(`take=${pageSize}`);
     queryParams.push(`page=${pageIndex}`);
     queryParams.push(`sort=createdAt=DESC`);
     queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
-    
+
     // Add date parameters (backend should filter by createdAt, not schedule)
     const startDateParam = getStartDateForAPI();
     const endDateParam = getEndDateForAPI();
@@ -314,20 +314,20 @@ const Sessions = ({
     if (endDateParam) {
       queryParams.push(`endDate=${endDateParam}`);
     }
-    
+
     // Build remaining filters
     let remainingFilters: string[] = [];
-    
+
     // Add modal filter
     if (modalFilter && modalFilter !== "all") {
       remainingFilters.push(`modal.id:=${modalFilter}`);
     }
-    
+
     // Add remaining filters if any
     if (remainingFilters.length > 0) {
       queryParams.push(`filters=${remainingFilters.join(',')}`);
     }
-    
+
     const url = `/api/v1/session?${queryParams.join('&')}`;
     console.log(url, "url");
     const { data } = await axiosInstance.get(url);
@@ -361,13 +361,13 @@ const Sessions = ({
   }) {
     // Build query parameters
     let queryParams: string[] = [];
-    
+
     // Add pagination and sorting
     queryParams.push(`take=${pageSize}`);
     queryParams.push(`page=${pageIndex}`);
     queryParams.push(`sort=createdAt=DESC`);
     queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
-    
+
     // Add date parameters (backend should filter by createdAt, not schedule)
     const startDateParam = getStartDateForAPI();
     const endDateParam = getEndDateForAPI();
@@ -377,15 +377,15 @@ const Sessions = ({
     if (endDateParam) {
       queryParams.push(`endDate=${endDateParam}`);
     }
-    
+
     // Build remaining filters
     let remainingFilters: string[] = [];
-    
+
     // Add modal filter
     if (modalFilter && modalFilter !== "all") {
       remainingFilters.push(`modal.id:=${modalFilter}`);
     }
-    
+
     // Handle search input based on search type (therapist, client, or group)
     const searchTerm = search.trim();
     if (searchTerm) {
@@ -394,7 +394,7 @@ const Sessions = ({
         remainingFilters.push(`groupName=${searchTerm}`);
       } else {
         const searchPrefix = searchType === "therapist" ? "therapist" : "client";
-        
+
         if (searchTerm.includes(' ')) {
           const searchParts = searchTerm.split(/\s+/);
           // Search for first name and last name matching the parts
@@ -406,12 +406,12 @@ const Sessions = ({
         }
       }
     }
-    
+
     // Add remaining filters if any
     if (remainingFilters.length > 0) {
       queryParams.push(`filters=${remainingFilters.join(',')}`);
     }
-    
+
     const url = `/api/v1/session?${queryParams.join('&')}`;
     const { data } = await axiosInstance.get(url);
 
@@ -433,11 +433,11 @@ const Sessions = ({
   async function revalidateSession() {
     // Build query parameters
     let queryParams: string[] = [];
-    
+
     // Add fields and sorting
     queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
     queryParams.push(`sort=createdAt=DESC`);
-    
+
     // Add date parameters (backend should filter by createdAt, not schedule)
     const startDateParam = getStartDateForAPI();
     const endDateParam = getEndDateForAPI();
@@ -447,25 +447,25 @@ const Sessions = ({
     if (endDateParam) {
       queryParams.push(`endDate=${endDateParam}`);
     }
-    
+
     // Build remaining filters
     let remainingFilters: string[] = [];
-    
+
     // Add modal filter
     if (modalFilter && modalFilter !== "all") {
       remainingFilters.push(`modal.id:=${modalFilter}`);
     }
-    
+
     // Handle search input based on search type (therapist, client, or group)
     if (searchInput && searchInput.trim()) {
       const searchTerm = searchInput.trim();
-      
+
       if (searchType === "group") {
         // Search by group name
         remainingFilters.push(`groupName=${searchTerm}`);
       } else {
         const searchPrefix = searchType === "therapist" ? "therapist" : "client";
-        
+
         if (searchTerm.includes(' ')) {
           const searchParts = searchTerm.split(/\s+/);
           // Search for first name and last name matching the parts
@@ -477,12 +477,12 @@ const Sessions = ({
         }
       }
     }
-    
+
     // Add remaining filters if any
     if (remainingFilters.length > 0) {
       queryParams.push(`filters=${remainingFilters.join(',')}`);
     }
-    
+
     const url = `/api/v1/session?${queryParams.join('&')}`;
     const { data } = await axiosInstance.get(url);
     console.log(data, "the data");
@@ -558,7 +558,7 @@ const Sessions = ({
     console.log(data, "the length");
     return data;
   }
-  
+
 
   const { isLoading: isSessionLoading, data: SessionData } = useQuery({
     queryKey: ["Sessions", searchInput, dateFilter, modalFilter, searchType],
@@ -824,6 +824,7 @@ const Sessions = ({
 
   // Handle opening reassign therapist modal
   const handleOpenReassignModal = async (sessionData: ISessionsData) => {
+    console.log(sessionData, "The data baby");
     if (!sessionData.subscription?.id) {
       toast("No subscription found for this session");
       return;
@@ -933,7 +934,7 @@ const Sessions = ({
 
   //    await Promise.all(promises);
   //  },
-  
+
   //  {
   //    onSuccess: () => {
   //      queryClient.invalidateQueries(["Sessions"]);
@@ -956,7 +957,7 @@ const Sessions = ({
       if (allChatsRes.data.data && allChatsRes.data.data.length > 0) {
         // Delete all chats that are not closed (backend will set closed:true on delete)
         const openChats = allChatsRes.data.data.filter((chat: { closed: boolean }) => !chat.closed);
-        
+
         if (openChats.length > 0) {
           console.log(`Found ${openChats.length} open chats, closing them...`);
           await Promise.all(
@@ -965,13 +966,13 @@ const Sessions = ({
           toast(`Closed ${openChats.length} existing chat(s)`);
         }
       }
-      
+
       // Create a new chat
       const res = await axiosInstance.post(`/api/v1/chat?mockId=${therapistId}`, {
         client: clientId,
         therapist: therapistId,
       });
-      
+
       return res.data;
     },
     {
@@ -1061,7 +1062,7 @@ const Sessions = ({
                   {/* First client avatar */}
                   <div
                     className="relative group cursor-pointer"
-                    //onClick={handleGroupImageClick}
+                  //onClick={handleGroupImageClick}
                   >
                     <img
                       src={avatar}
@@ -1171,7 +1172,7 @@ const Sessions = ({
         accessorFn: (row) => row.therapist?.firstName,
         id: "Therapist",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Therapist" column={column} className="min-w-[180px]"/>
+          <DataGridColumnHeader title="Therapist" column={column} className="min-w-[180px]" />
         ),
         enableSorting: true,
         cell: ({ row }) => {
@@ -1270,7 +1271,7 @@ const Sessions = ({
         cell: (info) => {
           const createdAt = info.row.original.createdAt;
           if (!createdAt) return "N/A";
-          
+
           try {
             const date = new Date(createdAt);
             const options: Intl.DateTimeFormatOptions = {
@@ -1317,12 +1318,12 @@ const Sessions = ({
       {
         id: "Level",
         header: ({ column }) => (
-          <DataGridColumnHeader title= "Level" column={column} />
+          <DataGridColumnHeader title="Level" column={column} />
         ),
         enableSorting: false,
         cell: ({ row }) => {
           const modalName = row.original.modal?.name?.toLowerCase();
-          
+
           // Don't show levels for group and couple therapy
           if (modalName && (modalName.includes('group') || modalName.includes('couple'))) {
             return (
@@ -1331,7 +1332,7 @@ const Sessions = ({
               </span>
             );
           }
-          
+
           // For individual therapy, show client level
           const client = row.original.client;
           return client ? <SessionLevelCell client={client} /> : (
@@ -1356,7 +1357,7 @@ const Sessions = ({
 
             // For group therapy, we need to handle multiple clients
             const isGroupTherapy = row.original.group && row.original.group.length > 0;
-            
+
             if (isGroupTherapy) {
               toast.info("Group therapy sessions have multiple receipts. Please check individual client details.");
               return;
@@ -1372,7 +1373,7 @@ const Sessions = ({
               // Fetch client's active subscription to get payment receipt
               const { data: clientData } = await axiosInstance.get(`/api/v1/client/${client.id}?fields=activeSubscription.*`);
               const activeSubscription = clientData?.data?.activeSubscription;
-              
+
               if (!activeSubscription?.id) {
                 toast.error("No active subscription found for this client");
                 return;
@@ -1380,7 +1381,7 @@ const Sessions = ({
 
               const { data: receiptData } = await axiosInstance.get(`/api/v1/subscription/user-sub?fields=payment.*&ids=${activeSubscription.id}`);
               const payment = receiptData?.data?.[0]?.payment?.[0];
-              
+
               if (!payment?.filename) {
                 toast.error("No receipt found for this client");
                 return;
@@ -1473,7 +1474,7 @@ const Sessions = ({
         cell: ({ row }) => {
           // Check if this is a group therapy session
           const isGroupTherapy = row.original.group && row.original.group.length > 0;
-          
+
           // Only show the button for group therapy sessions
           if (!isGroupTherapy) {
             return (
@@ -1514,7 +1515,7 @@ const Sessions = ({
         cell: ({ row }) => {
           // Check if this is a group therapy session
           const isGroupTherapy = row.original.group && row.original.group.length > 0;
-          
+
           // Only show the button for group therapy sessions
           if (!isGroupTherapy) {
             return (
@@ -1864,20 +1865,18 @@ const Sessions = ({
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab("sessions")}
-            className={`btn btn-sm ${
-              activeTab === "sessions" ? "btn-primary" : "btn-light btn-outline"
-            }`}
+            className={`btn btn-sm ${activeTab === "sessions" ? "btn-primary" : "btn-light btn-outline"
+              }`}
           >
             <KeenIcon icon="calendar" />
             Sessions
           </button>
           <button
             onClick={() => setActiveTab("group-therapy")}
-            className={`btn btn-sm ${
-              activeTab === "group-therapy"
-                ? "btn-primary"
-                : "btn-light btn-outline"
-            }`}
+            className={`btn btn-sm ${activeTab === "group-therapy"
+              ? "btn-primary"
+              : "btn-light btn-outline"
+              }`}
           >
             <KeenIcon icon="users" />
             Group Therapy
@@ -1986,11 +1985,10 @@ const Sessions = ({
                           `${therapist.firstName} ${therapist.lastName}`
                         );
                       }}
-                      className={`p-3 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3 ${
-                        sessionForm.therapistId === therapist.id
-                          ? "bg-blue-50 border-blue-200"
-                          : ""
-                      }`}
+                      className={`p-3 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3 ${sessionForm.therapistId === therapist.id
+                        ? "bg-blue-50 border-blue-200"
+                        : ""
+                        }`}
                     >
                       <img
                         src={
@@ -2041,11 +2039,10 @@ const Sessions = ({
                           `${client.firstName} ${client.lastName}`
                         );
                       }}
-                      className={`p-3 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3 ${
-                        sessionForm.clientId === client.id
-                          ? "bg-blue-50 border-blue-200"
-                          : ""
-                      }`}
+                      className={`p-3 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 flex items-center gap-3 ${sessionForm.clientId === client.id
+                        ? "bg-blue-50 border-blue-200"
+                        : ""
+                        }`}
                     >
                       <img
                         src={
@@ -2202,11 +2199,10 @@ const Sessions = ({
                   {usersData.data.map((user: any) => (
                     <div
                       key={user.id}
-                      className={`p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 transition-colors ${
-                        selectedUsers.includes(user.id)
-                          ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
-                          : ""
-                      }`}
+                      className={`p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 transition-colors ${selectedUsers.includes(user.id)
+                        ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                        : ""
+                        }`}
                       onClick={() => handleUserToggle(user.id)}
                     >
                       <div className="flex items-center gap-4">
@@ -2352,11 +2348,10 @@ const Sessions = ({
                   {removeSessionData.group.map((user: any) => (
                     <div
                       key={user.id}
-                      className={`p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 transition-colors ${
-                        selectedUsersToRemove.includes(user.id)
-                          ? "bg-red-50 border-red-200 hover:bg-red-100"
-                          : ""
-                      }`}
+                      className={`p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 transition-colors ${selectedUsersToRemove.includes(user.id)
+                        ? "bg-red-50 border-red-200 hover:bg-red-100"
+                        : ""
+                        }`}
                       onClick={() => handleUserToRemoveToggle(user.id)}
                     >
                       <div className="flex items-center gap-4">
@@ -2561,13 +2556,13 @@ const Sessions = ({
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-gray-900">
                   {selectedSessionDetail.group &&
-                  selectedSessionDetail.group.length > 0
+                    selectedSessionDetail.group.length > 0
                     ? "Group Clients"
                     : "Client"}
                 </h3>
 
                 {selectedSessionDetail.group &&
-                selectedSessionDetail.group.length > 0 ? (
+                  selectedSessionDetail.group.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {selectedSessionDetail.group.map(
                       (client: any, index: number) => (
@@ -2640,26 +2635,24 @@ const Sessions = ({
                         </div>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`badge ${
-                              selectedSessionDetail.client.status === "active"
-                                ? "badge-success"
-                                : selectedSessionDetail.client.status === "pending"
+                            className={`badge ${selectedSessionDetail.client.status === "active"
+                              ? "badge-success"
+                              : selectedSessionDetail.client.status === "pending"
                                 ? "badge-primary"
                                 : selectedSessionDetail.client.status === "inactive"
-                                ? "badge-warning"
-                                : "badge-danger"
-                            } badge-outline badge-sm`}
+                                  ? "badge-warning"
+                                  : "badge-danger"
+                              } badge-outline badge-sm`}
                           >
                             <span
-                              className={`size-1.5 rounded-full ${
-                                selectedSessionDetail.client.status === "active"
-                                  ? "bg-success"
-                                  : selectedSessionDetail.client.status === "pending"
+                              className={`size-1.5 rounded-full ${selectedSessionDetail.client.status === "active"
+                                ? "bg-success"
+                                : selectedSessionDetail.client.status === "pending"
                                   ? "bg-primary"
                                   : selectedSessionDetail.client.status === "inactive"
-                                  ? "bg-warning"
-                                  : "bg-danger"
-                              } me-1.5`}
+                                    ? "bg-warning"
+                                    : "bg-danger"
+                                } me-1.5`}
                             ></span>
                             {selectedSessionDetail.client.status}
                           </span>
@@ -2700,7 +2693,7 @@ const Sessions = ({
                         <div>
                           <label className="text-sm font-medium text-gray-500">Last Seen</label>
                           <p className="text-sm text-gray-900">
-                            {selectedSessionDetail.client.lastSeenAt 
+                            {selectedSessionDetail.client.lastSeenAt
                               ? new Date(selectedSessionDetail.client.lastSeenAt).toLocaleString()
                               : "Never"}
                           </p>
@@ -2753,7 +2746,7 @@ const Sessions = ({
                   </button>
                 )}
               </div>
-              
+
               {/* Therapist Results */}
               {therapistsData?.data && therapistsData.data.length > 0 && (
                 <div className="mt-2 border rounded-lg max-h-64 overflow-y-auto w-full">
@@ -2793,7 +2786,7 @@ const Sessions = ({
                   ))}
                 </div>
               )}
-              
+
               {/* Selected Therapist Display */}
               {newTherapistId && !therapistSearch && (
                 <div className="mt-2 flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200 w-80">
@@ -2834,7 +2827,7 @@ const Sessions = ({
               <h4 className="font-semibold text-gray-900 mb-3">
                 Select Sessions to Re-assign ({subscriptionSessions.length} sessions)
               </h4>
-              
+
               {loadingSessions ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
@@ -2864,14 +2857,14 @@ const Sessions = ({
                             <div>
                               {/* Date and 24hour format */}
                               <p className="text-sm text-gray-600">
-                                Schedule: {new Date(session.schedule).toLocaleDateString('en-GB', { 
-                                  year: 'numeric', 
-                                  month: 'short', 
-                                  day: 'numeric' 
-                                })} at {new Date(session.schedule).toLocaleTimeString('en-GB', { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit', 
-                                  hour12: false 
+                                Schedule: {new Date(session.schedule).toLocaleDateString('en-GB', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })} at {new Date(session.schedule).toLocaleTimeString('en-GB', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: false
                                 })}
                               </p>
                             </div>
@@ -2884,8 +2877,8 @@ const Sessions = ({
                               session.approvalStatus === "confirmed"
                                 ? "badge-success"
                                 : session.approvalStatus === "pending"
-                                ? "badge-warning"
-                                : "badge-danger"
+                                  ? "badge-warning"
+                                  : "badge-danger"
                             )}
                           >
                             {session.approvalStatus}

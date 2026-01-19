@@ -83,7 +83,7 @@ const TherapistDetailContent = ({
         <div className="col-span-1 w-full">
           <div className="sticky top-5 space-y-5">
             <TherapistGeneralInfo therapistData={therapistData} />
-            
+
             {/* License Information */}
             {licenseLoading ? (
               <div className="card">
@@ -167,28 +167,28 @@ const TherapistProfileHeader = ({
     <div className="relative group mb-6">
       {/* Animated White Glow Background */}
       {/*<div className="absolute -inset-0.5 bg-white rounded-2xl opacity-50 blur-lg transition duration-1000 group-hover:opacity-100 group-hover:duration-200 shadow-[0_0_30px_rgba(255,255,255,0.8)]"></div>*/}
-      
+
       {/* Main Card Content */}
       <div className="relative card bg-transparent rounded-xl overflow-hidden transition-transform duration-300">
-        
+
         {/* Decorative Background Elements - Subtle Grays */}
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-gray-50 to-transparent opacity-60"></div>
         <div className="absolute -right-20 -top-20 w-96 h-96 bg-gray-50 rounded-full blur-3xl opacity-50"></div>
         <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-gray-50 rounded-full blur-3xl opacity-50"></div>
-        
+
         <div className="card-body pt-10 pb-8 relative z-10">
           <div className="flex flex-col items-center text-center">
-            
+
             {/* Profile Image Container with Animations */}
             <div className="relative mb-6 group/avatar">
               {/* Rotating outer ring */}
               <div className="absolute inset-[-12px] rounded-full border border-dashed border-gray-300 animate-[spin_12s_linear_infinite] opacity-60 group-hover/avatar:opacity-100 transition-opacity"></div>
               {/* Counter-rotating inner ring */}
               <div className="absolute inset-[-6px] rounded-full border border-dotted border-gray-300 animate-[spin_8s_linear_infinite_reverse] opacity-60 group-hover/avatar:opacity-100 transition-opacity"></div>
-              
+
               {/* Pulse Effect behind image */}
               <div className="absolute inset-0 rounded-full bg-gray-100 animate-ping opacity-20 duration-1000"></div>
-              
+
               {/* Image */}
               <div className="relative rounded-full p-1.5 bg-white ring-1 ring-gray-100 shadow-2xl">
                 <img
@@ -201,12 +201,10 @@ const TherapistProfileHeader = ({
               {/* Status Indicator - Heartbeat */}
               <div className="absolute bottom-2 right-2">
                 <span className="relative flex h-6 w-6">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    therapistData.status === "active" ? "bg-success" : "bg-danger"
-                  }`}></span>
-                  <span className={`relative inline-flex rounded-full h-6 w-6 border-2 border-white shadow-sm ${
-                     therapistData.status === "active" ? "bg-success" : "bg-danger"
-                  }`}></span>
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${therapistData.status === "active" ? "bg-success" : "bg-danger"
+                    }`}></span>
+                  <span className={`relative inline-flex rounded-full h-6 w-6 border-2 border-white shadow-sm ${therapistData.status === "active" ? "bg-success" : "bg-danger"
+                    }`}></span>
                 </span>
               </div>
             </div>
@@ -219,10 +217,10 @@ const TherapistProfileHeader = ({
                 </h2>
                 {(therapistData.isEmailAuthenticated ||
                   therapistData.isPhoneNumberAuthenticated) && (
-                  <div className="p-1 bg-blue-50 rounded-full text-blue-500 animate-bounce duration-[2000ms]">
-                     <KeenIcon icon="verify" className="text-xl" />
-                  </div>
-                )}
+                    <div className="p-1 bg-blue-50 rounded-full text-blue-500 animate-bounce duration-[2000ms]">
+                      <KeenIcon icon="verify" className="text-xl" />
+                    </div>
+                  )}
               </div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 border border-gray-100">
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
@@ -241,9 +239,9 @@ const TherapistProfileHeader = ({
                 </div>
                 <span className="text-sm font-medium text-gray-600 group-hover/pill:text-gray-900">{therapistData.email}</span>
               </div>
-              
+
               <div className="flex items-center cursor-pointer gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-300 group/pill">
-                 <div className="cursor-pointer bg-gray-50 rounded-full text-gray-500 group-hover/pill:text-gray-900 group-hover/pill:bg-gray-100 transition-colors">
+                <div className="cursor-pointer bg-gray-50 rounded-full text-gray-500 group-hover/pill:text-gray-900 group-hover/pill:bg-gray-100 transition-colors">
                   <KeenIcon icon="phone" className="text-sm" />
                 </div>
                 <span className="text-sm font-medium text-gray-600 group-hover/pill:text-gray-900">+251{therapistData.phoneNumber}</span>
@@ -254,17 +252,15 @@ const TherapistProfileHeader = ({
             <div className="flex justify-center cursor-pointer">
               <div className={`
                 px-6 py-2 rounded-full border shadow-sm font-mono text-xs tracking-wider uppercase flex items-center gap-3 transition-all duration-300 hover:shadow-md
-                ${therapistData.status === "active" 
-                  ? "bg-white border-green-200 text-green-700" 
+                ${therapistData.status === "active"
+                  ? "bg-white border-green-200 text-green-700"
                   : "bg-white border-gray-200 text-gray-500"}
               `}>
                 <span className="relative flex h-2 w-2">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    therapistData.status === "active" ? "bg-green-500" : "bg-gray-400"
-                  }`}></span>
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                    therapistData.status === "active" ? "bg-green-500" : "bg-gray-400"
-                  }`}></span>
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${therapistData.status === "active" ? "bg-green-500" : "bg-gray-400"
+                    }`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${therapistData.status === "active" ? "bg-green-500" : "bg-gray-400"
+                    }`}></span>
                 </span>
                 Account Status: {therapistData.status}
               </div>
@@ -409,19 +405,19 @@ const TherapistWeeklyStats = ({
   const getLastWeekDates = () => {
     const today = new Date();
     const currentDay = today.getDay();
-    
+
     // Calculate days to go back to last Monday
     const daysToLastMonday = currentDay === 0 ? 6 : currentDay + 6;
-    
+
     const lastMonday = new Date(today);
     lastMonday.setDate(today.getDate() - daysToLastMonday);
     lastMonday.setHours(0, 0, 0, 0);
-    
+
     // Last Sunday is 6 days after last Monday
     const lastSunday = new Date(lastMonday);
     lastSunday.setDate(lastMonday.getDate() + 6);
     lastSunday.setHours(23, 59, 59, 999);
-    
+
     return { startDate: lastMonday, endDate: lastSunday };
   };
 
@@ -461,11 +457,11 @@ const TherapistWeeklyStats = ({
       // Fetch last week's sessions for this therapist
       const startDateISO = weekStart.toISOString();
       const endDateISO = weekEnd.toISOString();
-      
+
       const sessionsResponse = await axiosInstance.get<ISessionResponse>(
         `/api/v1/session?filters=therapist.id=${therapistData.id},schedule>=${startDateISO},schedule<=${endDateISO}&fields=id`
       );
-      
+
       const sessionIds = sessionsResponse.data.data.map((session: ISessionData) => session.id);
       const totalRevenue = parseFloat(statsWeekData?.revenueOverTime?.[0]?.revenueOverTime || "0");
       console.log(sessionIds, "The Ids baby");
@@ -604,15 +600,14 @@ const TherapistGeneralInfo = ({
     { label: "Email:", info: therapistData.email },
     {
       label: "Status:",
-      info: `<span class="badge badge-sm ${
-        therapistData.status === "suspended"
-          ? "badge-danger"
-          : therapistData.status === "inactive"
-            ? "badge-warning"
-            : therapistData.status === "active"
-              ? "badge-success"
-              : "badge-primary"
-      } badge-outline">${therapistData.status}</span>`,
+      info: `<span class="badge badge-sm ${therapistData.status === "suspended"
+        ? "badge-danger"
+        : therapistData.status === "inactive"
+          ? "badge-warning"
+          : therapistData.status === "active"
+            ? "badge-success"
+            : "badge-primary"
+        } badge-outline">${therapistData.status}</span>`,
     },
     { label: "Gender:", info: therapistData.gender },
     {
@@ -710,8 +705,8 @@ const TherapistGeneralInfo = ({
                     >
                       <div className="flex flex-col gap-1">
                         <div className="flex justify-between items-center">
-                           <span className="text-xs text-gray-500">Account</span>
-                           <span className="text-sm font-medium text-gray-900 font-mono">
+                          <span className="text-xs text-gray-500">Account</span>
+                          <span className="text-sm font-medium text-gray-900 font-mono">
                             {bank.accountNumber}
                           </span>
                         </div>
@@ -745,11 +740,11 @@ const TherapistAccountInfo = ({
       label: "Date of Birth:",
       info: therapistData.dob
         ? (() => {
-            const date = new Date(therapistData.dob);
-            return isNaN(date.getTime())
-              ? "Invalid date"
-              : format(date, "MMM dd, yyyy");
-          })()
+          const date = new Date(therapistData.dob);
+          return isNaN(date.getTime())
+            ? "Invalid date"
+            : format(date, "MMM dd, yyyy");
+        })()
         : "N/A",
     },
     {
@@ -1038,16 +1033,15 @@ const TherapistSessions = ({
                       onClick={() => handleDayClick(day)}
                       className={`
                         p-2 text-sm rounded-lg transition-colors relative min-h-12 flex flex-col items-center justify-center
-                        ${
-                          !isCurrentMonth
-                            ? "text-gray-300 bg-gray-50 cursor-default hover:bg-gray-50"
-                            : isSelected
-                              ? "bg-primary text-white ring-2 ring-primary-dark cursor-pointer"
-                              : hasSessions
-                                ? "bg-primary text-white hover:bg-primary-dark cursor-pointer"
-                                : isDayToday
-                                  ? "bg-gray-100 text-primary font-semibold hover:bg-gray-200 cursor-pointer"
-                                  : "text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        ${!isCurrentMonth
+                          ? "text-gray-300 bg-gray-50 cursor-default hover:bg-gray-50"
+                          : isSelected
+                            ? "bg-primary text-white ring-2 ring-primary-dark cursor-pointer"
+                            : hasSessions
+                              ? "bg-primary text-white hover:bg-primary-dark cursor-pointer"
+                              : isDayToday
+                                ? "bg-gray-100 text-primary font-semibold hover:bg-gray-200 cursor-pointer"
+                                : "text-gray-700 hover:bg-gray-100 cursor-pointer"
                         }
                       `}
                       disabled={!isCurrentMonth}
@@ -1337,11 +1331,10 @@ const RatingsTable = ({
         <button
           key={i}
           onClick={() => handlePageChange(i)}
-          className={`px-3 py-1 mx-1 rounded ${
-            currentPage === i
-              ? "bg-primary text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-          }`}
+          className={`px-3 py-1 mx-1 rounded ${currentPage === i
+            ? "bg-primary text-white"
+            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
         >
           {i}
         </button>
@@ -1487,7 +1480,7 @@ const TherapistSessionsDetailCard = ({
   const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
-  
+
   const sortedSessions = sessions.sort((a, b) => new Date(a.schedule).getTime() - new Date(b.schedule).getTime());
   const totalPages = Math.ceil(sortedSessions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -1516,108 +1509,118 @@ const TherapistSessionsDetailCard = ({
               <tr>
                 <th className="text-left min-w-20">Time</th>
                 <th className="text-left min-w-48">Therapist</th>
-                <th className="text-left min-w-48">Client</th>
+                <th className="text-left min-w-48">Client / Group</th>
                 <th className="text-left min-w-32">Status</th>
-                <th className="text-left min-w-32">Client Status</th>
+                {!currentSessions.some(s => s.groupName) && (
+                  <th className="text-left min-w-32">Client Status</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {currentSessions.map((session, index) => {
-                  const therapistImage = session.therapist?.profile
-                    ? `${BASE_URL}/${session.therapist.profile}`
-                    : avatar;
+                const therapistImage = session.therapist?.profile
+                  ? `${BASE_URL}/${session.therapist.profile}`
+                  : avatar;
 
-                  const clientImage = session.client?.profile
-                    ? `${BASE_URL}/${session.client.profile}`
-                    : avatar;
+                const clientImage = session.client?.profile
+                  ? `${BASE_URL}/${session.client.profile}`
+                  : avatar;
 
-                  return (
-                    <tr key={session.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      {/* Time Column */}
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <KeenIcon icon="time" className="text-primary text-lg relative z-0" />
-                          <div>
-                            <div className="text-lg font-semibold text-gray-900">
-                              {format(new Date(session.schedule), "HH:mm")}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              Session {startIndex + index + 1}
-                            </div>
+                return (
+                  <tr key={session.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    {/* Time Column */}
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2">
+                        <KeenIcon icon="time" className="text-primary text-lg relative z-0" />
+                        <div>
+                          <div className="text-lg font-semibold text-gray-900">
+                            {format(new Date(session.schedule), "HH:mm")}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Session {startIndex + index + 1}
                           </div>
                         </div>
-                      </td>
+                      </div>
+                    </td>
 
-                      {/* Therapist Column */}
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={therapistImage}
-                            alt={`${session.therapist?.firstName || 'Unknown'} ${session.therapist?.lastName || 'Therapist'}`}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-blue-200"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-gray-900 truncate">
-                              {session.therapist?.firstName || 'Unknown'} {session.therapist?.lastName || 'Therapist'}
-                            </div>
-                            <div className="text-sm text-gray-600 truncate">
-                              {session.therapist?.email || 'No email'}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              +251{session.therapist?.phoneNumber || 'No phone'}
-                            </div>
+                    {/* Therapist Column */}
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={therapistImage}
+                          alt={`${session.therapist?.firstName || 'Unknown'} ${session.therapist?.lastName || 'Therapist'}`}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-blue-200"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-gray-900 truncate">
+                            {session.therapist?.firstName || 'Unknown'} {session.therapist?.lastName || 'Therapist'}
+                          </div>
+                          <div className="text-sm text-gray-600 truncate">
+                            {session.therapist?.email || 'No email'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            +251{session.therapist?.phoneNumber || 'No phone'}
                           </div>
                         </div>
-                      </td>
+                      </div>
+                    </td>
 
-                      {/* Client Column */}
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={clientImage}
-                            alt={`${session.client?.firstName || 'Unknown'} ${session.groupName || 'Client'}`}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
-                          />
-                          <div className="flex-1 min-w-0">
-                            {
-                              session.group ? session.groupName : (
+                    {/* Client Column */}
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={clientImage}
+                          alt={`${session.client?.firstName || 'Unknown'} ${session.groupName || 'Client'}`}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                        />
+                        <div className="flex-1 min-w-0">
+                          {
+                            session.groupName ? (
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-gray-900 truncate">
+                                  {session.groupName}
+                                </div>
+                              </div>
+                            ) : (
+                              (
                                 <div className="flex-1 min-w-0">
-                                    <div className="font-semibold text-gray-900 truncate">
-                                      {session.client?.firstName || 'Unknown'} {session.client?.lastName || 'Client'}
-                                    </div>
-                                    <div className="text-sm text-gray-600 truncate">
-                                      @{session.client?.username || 'no-username'}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                      +251{session.client?.phoneNumber || 'No phone'}
-                                    </div>
+                                  <div className="font-semibold text-gray-900 truncate">
+                                    {session.client?.firstName || 'Unknown'} {session.client?.lastName || 'Client'}
+                                  </div>
+                                  <div className="text-sm text-gray-600 truncate">
+                                    @{session.client?.username || 'no-username'}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    +251{session.client?.phoneNumber || 'No phone'}
+                                  </div>
                                 </div>
                               )
-                            }
-                          </div>
+                            )
+                          }
                         </div>
-                      </td>
+                      </div>
+                    </td>
 
-                      {/* Session Status Column */}
-                      <td className="py-4 px-4">
-                        <span className={`badge ${session.hasTherapistAttended ? 'badge-success' : 'badge-warning'} badge-outline`}>
-                          {session.hasTherapistAttended ? "Attended" : "Not Attended"}
-                        </span>
-                      </td>
+                    {/* Session Status Column */}
+                    <td className="py-4 px-4">
+                      <span className={`badge ${session.hasTherapistAttended ? 'badge-success' : 'badge-warning'} badge-outline`}>
+                        {session.hasTherapistAttended ? "Attended" : "Not Attended"}
+                      </span>
+                    </td>
 
-                      {/* Client Status Column */}
+                    {/* Client Status Column - Only show for non-group sessions */}
+                    {!session.groupName && (
                       <td className="py-4 px-4">
                         <div className="flex flex-col gap-1">
                           <span
-                            className={`badge badge-sm ${
-                              session.client?.status === "active"
-                                ? "badge-success"
-                                : session.client?.status === "pending"
-                                  ? "badge-primary"
-                                  : session.client?.status === "inactive"
-                                    ? "badge-warning"
-                                    : "badge-danger"
-                            } badge-outline`}
+                            className={`badge badge-sm ${session.client?.status === "active"
+                              ? "badge-success"
+                              : session.client?.status === "pending"
+                                ? "badge-primary"
+                                : session.client?.status === "inactive"
+                                  ? "badge-warning"
+                                  : "badge-danger"
+                              } badge-outline`}
                           >
                             {session.client?.status || 'unknown'}
                           </span>
@@ -1628,13 +1631,14 @@ const TherapistSessionsDetailCard = ({
                           )}
                         </div>
                       </td>
-                    </tr>
-                  );
-                })}
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination */}
         <div className="card-footer">
           <div className="flex items-center justify-between">
@@ -1889,26 +1893,24 @@ const TherapistClients = ({
           const client = row.original.client;
           return (
             <span
-              className={`badge badge-sm ${
-                client.status === "active"
-                  ? "badge-success"
-                  : client.status === "pending"
-                    ? "badge-primary"
-                    : client.status === "inactive"
-                      ? "badge-warning"
-                      : "badge-danger"
-              } badge-outline rounded-[30px]`}
+              className={`badge badge-sm ${client.status === "active"
+                ? "badge-success"
+                : client.status === "pending"
+                  ? "badge-primary"
+                  : client.status === "inactive"
+                    ? "badge-warning"
+                    : "badge-danger"
+                } badge-outline rounded-[30px]`}
             >
               <span
-                className={`size-1.5 rounded-full ${
-                  client.status === "active"
-                    ? "bg-success"
-                    : client.status === "pending"
-                      ? "bg-primary"
-                      : client.status === "inactive"
-                        ? "bg-warning"
-                        : "bg-danger"
-                } me-1.5`}
+                className={`size-1.5 rounded-full ${client.status === "active"
+                  ? "bg-success"
+                  : client.status === "pending"
+                    ? "bg-primary"
+                    : client.status === "inactive"
+                      ? "bg-warning"
+                      : "bg-danger"
+                  } me-1.5`}
               ></span>
               {client.status}
             </span>
@@ -1929,9 +1931,8 @@ const TherapistClients = ({
           return (
             <div className="flex items-center gap-2">
               <span
-                className={`size-2 rounded-full ${
-                  client.isOnline ? "bg-success" : "bg-gray-400"
-                }`}
+                className={`size-2 rounded-full ${client.isOnline ? "bg-success" : "bg-gray-400"
+                  }`}
               ></span>
               <span className="text-sm text-gray-600">
                 {client.isOnline ? "Online" : "Offline"}
@@ -2071,7 +2072,7 @@ const TherapistPaymentHistory = ({
     // Generate 4 weeks for each of the 12 months
     for (let month = 0; month < 12; month++) {
       const monthKey = format(new Date(selectedYear, month, 1), "MMMM yyyy");
-      
+
       // Week 1: Days 1-7 (payment made on day 8 of this month for this work)
       const week1Start = new Date(selectedYear, month, 1);
       const week1PaymentDate = new Date(selectedYear, month, 8);
@@ -2128,10 +2129,10 @@ const TherapistPaymentHistory = ({
   const paymentMap = useMemo(() => {
     const map = new Map<string, IPaymentPeriod>();
     const allWeeks = generateWeeks();
-    
+
     paymentPeriods.forEach((period) => {
       const paymentDate = new Date(period.date);
-      
+
       // Find which work week this payment date corresponds to
       // The payment date should match the work week it was paid for
       for (const week of allWeeks) {
@@ -2140,12 +2141,12 @@ const TherapistPaymentHistory = ({
         const workWeekEnd = new Date(week.endDate);
         workWeekStart.setHours(0, 0, 0, 0);
         workWeekEnd.setHours(23, 59, 59, 999);
-        
+
         if (paymentDate >= workWeekStart && paymentDate <= workWeekEnd) {
           // Use the work week start date as the key for aggregation
           const weekKey = format(week.startDate, "yyyy-MM-dd");
           const existing = map.get(weekKey);
-          
+
           if (existing) {
             // Aggregate: combine session IDs and revenue from multiple payment records
             existing.sessionIds = [...existing.sessionIds, ...period.sessionIds];
@@ -2164,7 +2165,7 @@ const TherapistPaymentHistory = ({
         }
       }
     });
-    
+
     console.log("Final payment map:", Array.from(map.entries()));
     return map;
   }, [paymentPeriods, selectedYear, generateWeeks]);
@@ -2242,10 +2243,9 @@ const TherapistPaymentHistory = ({
                         onClick={() => payment && setSelectedWeek(payment)}
                         className={`
                           relative p-5 rounded-2xl border transition-all duration-300 group
-                          ${
-                            isPaid
-                              ? "bg-white border-success/30 hover:border-success shadow-sm hover:shadow-lg cursor-pointer hover:-translate-y-1"
-                              : "bg-gray-50 border-gray-100 opacity-50 cursor-default"
+                          ${isPaid
+                            ? "bg-white border-success/30 hover:border-success shadow-sm hover:shadow-lg cursor-pointer hover:-translate-y-1"
+                            : "bg-gray-50 border-gray-100 opacity-50 cursor-default"
                           }
                           ${isSelected ? "ring-2 ring-primary ring-offset-2 border-primary shadow-xl scale-[1.02] z-10" : ""}
                         `}
