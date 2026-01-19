@@ -483,9 +483,6 @@ const TherapistWeeklyStats = ({
       // Collect all session IDs from the ROT response
       const sessionIds = rotResponse.data.data.flatMap((entry) => entry.sessionIds || []);
 
-      console.log(sessionIds, "The Ids baby");
-      console.log(totalRevenue, "Total Revenue from ROT endpoint");
-
       const payload = {
         therapist: therapistData.id,
         startDate: startDateISO,
