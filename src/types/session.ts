@@ -58,6 +58,7 @@ export interface ISessionData {
   notes?: string;
   groupName?: string;
   group?: any[];
+  groupAttendance?: any[];
 }
 
 export interface ISessionResponse {

@@ -142,7 +142,7 @@ const ClientDetailContent = ({ clientData }: ClientDetailContentProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-7.5 -mt-8">
         {/* Full Width Subscription Stats */}
         <div className="col-span-1 lg:col-span-3">
-          <ClientSubscriptionStats 
+          <ClientSubscriptionStats
             clientData={clientData}
             selectedSubscription={selectedSubscription}
           />
@@ -150,7 +150,7 @@ const ClientDetailContent = ({ clientData }: ClientDetailContentProps) => {
 
         {/* Full Width Timeline */}
         <div className="col-span-1 lg:col-span-3">
-          <SubscriptionHistoryTimeline 
+          <SubscriptionHistoryTimeline
             subscriptions={userSubscriptions}
             selectedSubscription={selectedSubscription}
             onSelectSubscription={setSelectedSubscription}
@@ -169,8 +169,8 @@ const ClientDetailContent = ({ clientData }: ClientDetailContentProps) => {
         <div className="col-span-1 lg:col-span-2">
           <div className="card border-2 border-gray-200">
             <div className="card-body p-6">
-              <ClientTabbedContent 
-                clientData={clientData} 
+              <ClientTabbedContent
+                clientData={clientData}
                 selectedSubscription={selectedSubscription}
               />
             </div>
@@ -278,7 +278,7 @@ const SubscriptionHistoryTimeline = ({
                     12: "Yearly",
                   };
                   const typeName = subscriptionTypes[sub.subscription.type] || `Type ${sub.subscription.type}`;
-                  
+
                   // Safe date formatting with validation
                   const formatSafeDate = (dateString: string) => {
                     try {
@@ -289,7 +289,7 @@ const SubscriptionHistoryTimeline = ({
                       return "N/A";
                     }
                   };
-                  
+
                   return (
                     <div
                       key={sub.id}
@@ -297,8 +297,8 @@ const SubscriptionHistoryTimeline = ({
                       className={`
                         relative group cursor-pointer rounded-xl border-2 transition-all duration-300 p-4
                         hover:shadow-lg hover:border-primary/50 hover:-translate-y-1
-                        ${isSelected 
-                          ? "border-primary bg-primary/5 shadow-md" 
+                        ${isSelected
+                          ? "border-primary bg-primary/5 shadow-md"
                           : "border-gray-200 bg-white hover:bg-gray-50"
                         }
                       `}
@@ -376,25 +376,25 @@ const ClientProfileHeader = ({
     <div className="relative group mb-6">
       {/* Main Card Content */}
       <div className="relative card overflow-hidden">
-        
+
         {/* Decorative Background Elements - Subtle Grays */}
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-gray-50 to-transparent opacity-60"></div>
         <div className="absolute -right-20 -top-20 w-96 h-96 bg-gray-50 rounded-full blur-3xl opacity-50"></div>
         <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-gray-50 rounded-full blur-3xl opacity-50"></div>
-        
+
         <div className="card-body pt-10 pb-8 relative z-10">
           <div className="flex flex-col items-center text-center">
-            
+
             {/* Profile Image Container with Animations */}
             <div className="relative mb-6 group/avatar">
               {/* Rotating outer ring */}
               <div className="absolute inset-[-12px] rounded-full border border-dashed border-gray-300 animate-[spin_12s_linear_infinite] opacity-60 group-hover/avatar:opacity-100 transition-opacity"></div>
               {/* Counter-rotating inner ring */}
               <div className="absolute inset-[-6px] rounded-full border border-dotted border-gray-300 animate-[spin_8s_linear_infinite_reverse] opacity-60 group-hover/avatar:opacity-100 transition-opacity"></div>
-              
+
               {/* Pulse Effect behind image */}
               <div className="absolute inset-0 rounded-full bg-gray-100 animate-ping opacity-20 duration-1000"></div>
-              
+
               {/* Image */}
               <div className="relative rounded-full p-1.5 bg-white ring-1 ring-gray-100 shadow-2xl">
                 <img
@@ -407,12 +407,10 @@ const ClientProfileHeader = ({
               {/* Status Indicator - Heartbeat */}
               <div className="absolute bottom-2 right-2">
                 <span className="relative flex h-6 w-6">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    clientData.status === "active" ? "bg-success" : "bg-danger"
-                  }`}></span>
-                  <span className={`relative inline-flex rounded-full h-6 w-6 border-2 border-white shadow-sm ${
-                     clientData.status === "active" ? "bg-success" : "bg-danger"
-                  }`}></span>
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${clientData.status === "active" ? "bg-success" : "bg-danger"
+                    }`}></span>
+                  <span className={`relative inline-flex rounded-full h-6 w-6 border-2 border-white shadow-sm ${clientData.status === "active" ? "bg-success" : "bg-danger"
+                    }`}></span>
                 </span>
               </div>
             </div>
@@ -425,10 +423,10 @@ const ClientProfileHeader = ({
                 </h2>
                 {(clientData.isEmailAuthenticated ||
                   clientData.isPhoneNumberAuthenticated) && (
-                  <div className="p-1 bg-blue-50 rounded-full text-blue-500 animate-bounce duration-[2000ms]">
-                     <KeenIcon icon="verify" className="text-xl" />
-                  </div>
-                )}
+                    <div className="p-1 bg-blue-50 rounded-full text-blue-500 animate-bounce duration-[2000ms]">
+                      <KeenIcon icon="verify" className="text-xl" />
+                    </div>
+                  )}
               </div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 border border-gray-100">
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
@@ -447,16 +445,16 @@ const ClientProfileHeader = ({
                 </div>
                 <span className="text-sm font-medium text-gray-600 group-hover/pill:text-gray-900">{clientData.email}</span>
               </div>
-              
+
               <div className="flex items-center cursor-pointer gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-300 group/pill">
-                 <div className="bg-gray-50 rounded-full text-gray-500 group-hover/pill:text-gray-900 group-hover/pill:bg-gray-100 transition-colors">
+                <div className="bg-gray-50 rounded-full text-gray-500 group-hover/pill:text-gray-900 group-hover/pill:bg-gray-100 transition-colors">
                   <KeenIcon icon="phone" className="text-sm" />
                 </div>
                 <span className="text-sm font-medium text-gray-600 group-hover/pill:text-gray-900">+251{clientData.phoneNumber}</span>
               </div>
-              
+
               <div className="flex items-center cursor-pointer gap-2 px-5 py-2.5 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-300 group/pill">
-                 <div className="bg-gray-50 rounded-full text-gray-500 group-hover/pill:text-gray-900 group-hover/pill:bg-gray-100 transition-colors">
+                <div className="bg-gray-50 rounded-full text-gray-500 group-hover/pill:text-gray-900 group-hover/pill:bg-gray-100 transition-colors">
                   <KeenIcon icon="profile-circle" className="text-sm" />
                 </div>
                 <span className="text-sm font-medium text-gray-600 group-hover/pill:text-gray-900">@{clientData.username}</span>
@@ -467,17 +465,15 @@ const ClientProfileHeader = ({
             <div className="flex justify-center">
               <div className={`
                 px-6 py-2 rounded-full cursor-pointer border shadow-sm font-mono text-xs tracking-wider uppercase flex items-center gap-3 transition-all duration-300 hover:shadow-md
-                ${clientData.status === "active" 
-                  ? "bg-white border-green-200 text-green-700" 
+                ${clientData.status === "active"
+                  ? "bg-white border-green-200 text-green-700"
                   : "bg-white border-gray-200 text-gray-500"}
               `}>
                 <span className="relative flex h-2 w-2">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    clientData.status === "active" ? "bg-green-500" : "bg-gray-400"
-                  }`}></span>
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                    clientData.status === "active" ? "bg-green-500" : "bg-gray-400"
-                  }`}></span>
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${clientData.status === "active" ? "bg-green-500" : "bg-gray-400"
+                    }`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${clientData.status === "active" ? "bg-green-500" : "bg-gray-400"
+                    }`}></span>
                 </span>
                 System Status: {clientData.status}
               </div>
@@ -608,15 +604,14 @@ const ClientGeneralInfo = ({
     { label: "Email:", info: clientData.email },
     {
       label: "Status:",
-      info: `<span class="badge badge-sm ${
-        clientData.status === "suspended"
+      info: `<span class="badge badge-sm ${clientData.status === "suspended"
           ? "badge-danger"
           : clientData.status === "inactive"
             ? "badge-warning"
             : clientData.status === "active"
               ? "badge-success"
               : "badge-primary"
-      } badge-outline">${clientData.status}</span>`,
+        } badge-outline">${clientData.status}</span>`,
     },
     { label: "Gender:", info: clientData.gender },
     { label: "Username:", info: `@${clientData.username}` },
@@ -660,11 +655,11 @@ const ClientAccountInfo = ({
       label: "Date of Birth:",
       info: clientData.dob
         ? (() => {
-            const date = new Date(clientData.dob);
-            return isNaN(date.getTime())
-              ? "Invalid date"
-              : format(date, "MMM dd, yyyy");
-          })()
+          const date = new Date(clientData.dob);
+          return isNaN(date.getTime())
+            ? "Invalid date"
+            : format(date, "MMM dd, yyyy");
+        })()
         : "N/A",
     },
     {
@@ -745,7 +740,7 @@ const ClientTabbedContent = ({
   // Fetch modal information for each preference
   const fetchPreferenceModals = async () => {
     if (!clientData.preference || clientData.preference.length === 0) return [];
-    
+
     const modalPromises = clientData.preference.map(async (pref) => {
       try {
         const { data } = await axiosInstance.get(
@@ -780,7 +775,7 @@ const ClientTabbedContent = ({
     if (selectedSubscription && preferenceModals && preferenceModals.length > 0) {
       const modalId = selectedSubscription.subscription.modal.id;
       const matchingPreference = preferenceModals.find(pm => pm.modalId === modalId);
-      
+
       if (matchingPreference) {
         setSelectedModalId(matchingPreference.modalId);
         setSelectedPreferenceId(matchingPreference.preferenceId);
@@ -822,11 +817,10 @@ const ClientTabbedContent = ({
             <button
               key={prefModal.preferenceId}
               type="button"
-              className={`btn btn-xs ${
-                selectedPreferenceId === prefModal.preferenceId
+              className={`btn btn-xs ${selectedPreferenceId === prefModal.preferenceId
                   ? "btn-secondary"
                   : "btn-outline btn-secondary"
-              }`}
+                }`}
               onClick={() => {
                 setSelectedPreferenceId(prefModal.preferenceId);
                 setSelectedModalId(prefModal.modalId);
@@ -843,12 +837,12 @@ const ClientTabbedContent = ({
       {activeView === "sessions" && <ClientSessions clientData={clientData} />}
       {activeView === "preferences" && selectedPreferenceId && selectedModalId && (
         <div className="space-y-6">
-          <ClientPreferenceDetails 
-            clientData={clientData} 
+          <ClientPreferenceDetails
+            clientData={clientData}
             preferenceId={selectedPreferenceId}
           />
-          <ClientOnboardingQuestions 
-            clientData={clientData} 
+          <ClientOnboardingQuestions
+            clientData={clientData}
             modalId={selectedModalId}
           />
         </div>
@@ -872,23 +866,23 @@ const ClientSessions = ({ clientData }: { clientData: IClientDetailData }) => {
       const individualResponse = await axiosInstance.get(
         `/api/v1/session?fields=therapist.*,hasTherapistAttended,schedule,client.*&filters=client.id=${clientData.id}&take=0`
       );
-      
+
       // Fetch group sessions where this client is a member
       const groupResponse = await axiosInstance.get(
         `/api/v1/session?fields=therapist.*,hasTherapistAttended,schedule,group.*,groupName&filters=group.id=${clientData.id}&take=0`
       );
-      
+
       // Combine both types of sessions
       const individualSessions = individualResponse.data?.data || [];
       const groupSessions = groupResponse.data?.data || [];
-      
+
       return {
         ...individualResponse.data,
         data: [...individualSessions, ...groupSessions]
       };
     } catch (error) {
       console.error('Error fetching sessions:', error);
-      return { 
+      return {
         data: [],
         pagination: { totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 10 },
         message: "Error fetching sessions",
@@ -1049,14 +1043,13 @@ const ClientSessions = ({ clientData }: { clientData: IClientDetailData }) => {
                       onClick={() => handleDayClick(day)}
                       className={`
                         p-2 text-sm rounded-lg transition-colors relative min-h-12
-                        ${
-                          !isCurrentMonth
-                            ? "text-gray-300 bg-gray-50 cursor-default hover:bg-gray-50"
-                            : hasSessions
-                              ? "bg-primary text-white hover:bg-primary-dark cursor-pointer"
-                              : isDayToday
-                                ? "bg-gray-100 text-primary font-semibold hover:bg-gray-200 cursor-pointer"
-                                : "text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        ${!isCurrentMonth
+                          ? "text-gray-300 bg-gray-50 cursor-default hover:bg-gray-50"
+                          : hasSessions
+                            ? "bg-primary text-white hover:bg-primary-dark cursor-pointer"
+                            : isDayToday
+                              ? "bg-gray-100 text-primary font-semibold hover:bg-gray-200 cursor-pointer"
+                              : "text-gray-700 hover:bg-gray-100 cursor-pointer"
                         }
                       `}
                       disabled={!isCurrentMonth}
@@ -1190,9 +1183,9 @@ const ClientPreferenceDetails = ({
       id: 2,
       question: "Do you speak any other languages?",
       answer: preferenceData?.language && preferenceData.language.length > 0
-          ? preferenceData.language.map((lang) => lang.name).join(", ") + ( preferenceData.otherLang ? preferenceData.otherLang : "" )
-          : "Not specified",
-      
+        ? preferenceData.language.map((lang) => lang.name).join(", ") + (preferenceData.otherLang ? preferenceData.otherLang : "")
+        : "Not specified",
+
       icon: "message-text",
       color: "text-success",
     },
@@ -1218,8 +1211,8 @@ const ClientPreferenceDetails = ({
       answer: preferenceData?.availability
         ? preferenceData?.availability && preferenceData.availability.length > 0
           ? preferenceData.availability
-              .map((lang) => `${lang.day} ${lang.day_period}`)
-              .join(", ")
+            .map((lang) => `${lang.day} ${lang.day_period}`)
+            .join(", ")
           : "Not specified"
         : "Not specified",
       icon: "message-text",
@@ -1293,14 +1286,14 @@ const ClientPreferenceDetails = ({
 
   return (
     <div className="card">
-      <div 
+      <div
         className="card-header cursor-pointer hover:bg-gray-50 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-3">
-            <KeenIcon 
-              icon={isExpanded ? "down" : "right"} 
+            <KeenIcon
+              icon={isExpanded ? "down" : "right"}
               className="text-gray-600"
             />
             <h3 className="card-title">Client Preferences</h3>
@@ -1369,7 +1362,7 @@ const ClientOnboardingQuestions = ({
     const url = `/api/v1/answer?fields=question.*,singleOption.*,multiOption.*,text&filters=client.id:=${clientData.id},question.modal.id:=${modalId}&take=0`;
     console.log('Fetching answers with URL:', url);
     console.log('Client ID:', clientData.id, 'Modal ID:', modalId);
-    
+
     const { data } = await axiosInstance.get(url);
     console.log('Answers response:', data);
     console.log('Number of answers returned:', data?.data?.length || 0);
@@ -1476,14 +1469,14 @@ const ClientOnboardingQuestions = ({
 
   return (
     <div className="card">
-      <div 
+      <div
         className="card-header cursor-pointer hover:bg-gray-50 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-3">
-            <KeenIcon 
-              icon={isExpanded ? "down" : "right"} 
+            <KeenIcon
+              icon={isExpanded ? "down" : "right"}
               className="text-gray-600"
             />
             <h3 className="card-title">Onboarding Questions</h3>
@@ -1514,37 +1507,37 @@ const ClientOnboardingQuestions = ({
           ) : (
             <div className="space-y-6">
               {sortedAnswers.map((answer, index) => (
-              <div
-                key={answer.id}
-                className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
-              >
-                <div className="flex items-start gap-4">
-                  {/* Question Number */}
-                  <div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
-                    {index + 1}
-                  </div>
-
-                  <div className="flex-1 space-y-3">
-                    {/* Question Header */}
-                    <div className="flex items-start justify-between gap-4">
-                      <h4 className="text-base font-medium text-gray-900 leading-relaxed">
-                        {answer.question.text}
-                      </h4>
-                      <span
-                        className={`badge badge-sm ${getQuestionTypeColor(answer.question.type)} badge-outline flex-shrink-0`}
-                      >
-                        {answer.question.type}
-                      </span>
+                <div
+                  key={answer.id}
+                  className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Question Number */}
+                    <div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
+                      {index + 1}
                     </div>
 
-                    {/* Answer */}
-                    <div className="ml-0">{renderAnswer(answer)}</div>
+                    <div className="flex-1 space-y-3">
+                      {/* Question Header */}
+                      <div className="flex items-start justify-between gap-4">
+                        <h4 className="text-base font-medium text-gray-900 leading-relaxed">
+                          {answer.question.text}
+                        </h4>
+                        <span
+                          className={`badge badge-sm ${getQuestionTypeColor(answer.question.type)} badge-outline flex-shrink-0`}
+                        >
+                          {answer.question.type}
+                        </span>
+                      </div>
+
+                      {/* Answer */}
+                      <div className="ml-0">{renderAnswer(answer)}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -1576,7 +1569,7 @@ const SessionDetailCard = ({
   onClose: () => void;
 }) => {
   const BASE_URL = import.meta.env.VITE_APP_STATIC_URL;
-  
+
   // Cast to extended type to access group properties
   const extendedSession = session as ExtendedSessionData;
 
@@ -1586,7 +1579,7 @@ const SessionDetailCard = ({
 
   // Check if this is a group session
   const isGroupSession = extendedSession.group && Array.isArray(extendedSession.group);
-  
+
   const clientImage = session.client?.profile
     ? `${BASE_URL}/${session.client.profile}`
     : avatar;
@@ -1611,7 +1604,7 @@ const SessionDetailCard = ({
             <h4 className="text-lg font-semibold text-gray-900 mb-3">
               {isGroupSession ? "Group Name" : "Client"}
             </h4>
-            
+
             {isGroupSession ? (
               <div className="p-4 bg-gray-50 h-[130px] rounded-lg">
                 <div className="flex items-center gap-2 mb-3">
@@ -1660,15 +1653,14 @@ const SessionDetailCard = ({
                   </p>
                   <div className="flex items-center gap-2 mt-2">
                     <span
-                      className={`badge badge-sm ${
-                        session.client.status === "active"
+                      className={`badge badge-sm ${session.client.status === "active"
                           ? "badge-success"
                           : session.client.status === "pending"
                             ? "badge-primary"
                             : session.client.status === "inactive"
                               ? "badge-warning"
                               : "badge-danger"
-                      } badge-outline`}
+                        } badge-outline`}
                     >
                       {session.client.status}
                     </span>
@@ -1710,15 +1702,14 @@ const SessionDetailCard = ({
                 </p>
                 <div className="flex items-center gap-2 mt-2">
                   <span
-                    className={`badge badge-sm ${
-                      session.therapist.status === "active"
+                    className={`badge badge-sm ${session.therapist.status === "active"
                         ? "badge-success"
                         : session.therapist.status === "pending"
                           ? "badge-primary"
                           : session.therapist.status === "inactive"
                             ? "badge-warning"
                             : "badge-danger"
-                    } badge-outline`}
+                      } badge-outline`}
                   >
                     {session.therapist.status}
                   </span>
@@ -1744,9 +1735,17 @@ const SessionDetailCard = ({
               <label className="text-sm font-medium text-gray-600">
                 Session Status
               </label>
-              <span className="badge badge-sm badge-primary badge-outline w-fit">
-                {session.hasTherapistAttended ? "Attended" : "Not Attended"}
-              </span>
+              {extendedSession.groupName ? (
+                // For group sessions, check if groupAttendance array has entries
+                <span className={`badge badge-sm ${(extendedSession as any).groupAttendance && (extendedSession as any).groupAttendance.length > 0 ? 'badge-success' : 'badge-warning'} badge-outline w-fit`}>
+                  {(extendedSession as any).groupAttendance && (extendedSession as any).groupAttendance.length > 0 ? "Attended" : "Not Attended"}
+                </span>
+              ) : (
+                // For individual sessions, use hasTherapistAttended
+                <span className="badge badge-sm badge-primary badge-outline w-fit">
+                  {session.hasTherapistAttended ? "Attended" : "Not Attended"}
+                </span>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">

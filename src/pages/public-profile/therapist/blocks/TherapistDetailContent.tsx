@@ -1621,9 +1621,17 @@ const TherapistSessionsDetailCard = ({
 
                     {/* Session Status Column */}
                     <td className="py-4 px-4">
-                      <span className={`badge ${session.hasTherapistAttended ? 'badge-success' : 'badge-warning'} badge-outline`}>
-                        {session.hasTherapistAttended ? "Attended" : "Not Attended"}
-                      </span>
+                      {session.groupName ? (
+                        // For group sessions, check if groupAttendance array has entries
+                        <span className={`badge ${session.groupAttendance && session.groupAttendance.length > 0 ? 'badge-success' : 'badge-warning'} badge-outline`}>
+                          {session.groupAttendance && session.groupAttendance.length > 0 ? "Attended" : "Not Attended"}
+                        </span>
+                      ) : (
+                        // For individual sessions, use hasTherapistAttended
+                        <span className={`badge ${session.hasTherapistAttended ? 'badge-success' : 'badge-warning'} badge-outline`}>
+                          {session.hasTherapistAttended ? "Attended" : "Not Attended"}
+                        </span>
+                      )}
                     </td>
 
                     {/* Client Status Column - Only show for non-group sessions */}
