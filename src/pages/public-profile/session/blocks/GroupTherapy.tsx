@@ -261,6 +261,7 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
       therapist: sessionData.therapist,
     };
     console.log(payload, "created group chat payload");
+    console.log(sessionData.groupClients, "The group clients");
     const { data } = await axiosInstance.post(
       `/api/v1/chat?mockId=${sessionData.therapist}`,
       payload
@@ -284,7 +285,7 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
   //      // Get client preferences first
   //      const res = await axiosInstance.get(`/api/v1/client/${clientId}?fields=match.*,preference.*`);
   //      const preferenceId = res.data.data.preference?.[0]?.id;
-        
+
   //      if (!preferenceId) {
   //        console.warn(`No preference found for client ${clientId}`);
   //        return null;
@@ -292,7 +293,7 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
 
   //      // Check if match already exists for this client
   //      const existingMatches = res.data.data.match || [];
-        
+
   //      // Create or update match
   //      if (existingMatches.length > 0) {
   //        // Update all existing matches for this client
@@ -302,7 +303,7 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
   //            accepted: therapistId,
   //          })
   //        );
-          
+
   //        const updateResults = await Promise.all(updatePromises);
   //        console.log(`Updated ${updateResults.length} matches for client ${clientId}`);
   //        return updateResults;
@@ -314,7 +315,7 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
   //        }; 
   //        const newMatchRes = await axiosInstance.post(`/api/v1/match?mockId=${clientId}`, newMatchPayload);
   //        console.log(`Created new match request for client ${clientId}:`, newMatchRes.data);
-          
+
   //        // Then patch the match request with the therapist
   //        const matchId = newMatchRes.data.data.id;
   //        console.log(`Patching match ${matchId} with therapist ${therapistId}`);
@@ -323,7 +324,7 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
   //          accepted: therapistId,
   //        });
   //        console.log(`Patched match ${matchId} with therapist:`, patchRes.data);
-          
+
   //        return patchRes.data;
   //      }
   //    } catch (error) {
@@ -341,7 +342,7 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
   //  mutationFn: createGroupMatches,
   //  onSuccess: () => {
   //    toast("Matches created successfully for all clients!");
-      
+
   //    // Clean up UI after everything is completed
   //    setSelectedClients([]);
   //    setRowSelection({});
@@ -667,11 +668,10 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
                     therapistsData.data.map((therapist: ITherapist) => (
                       <div
                         key={therapist.id}
-                        className={`p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 transition-colors ${
-                          sessionForm.therapist === therapist.id
-                            ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
-                            : ""
-                        }`}
+                        className={`p-4 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 transition-colors ${sessionForm.therapist === therapist.id
+                          ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                          : ""
+                          }`}
                         onClick={() =>
                           setSessionForm((prev) => ({
                             ...prev,
@@ -691,12 +691,12 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
                           />
                           <div className="flex-1">
                             <p className="text-base font-medium text-gray-900">
-                            <Link
-                              className="text-sm font-medium text-gray-900 hover:text-primary-active"
-                              to={`/therapists/${therapist.id}`}
-                            >
-                              {therapist.firstName} {therapist.lastName}
-                            </Link>
+                              <Link
+                                className="text-sm font-medium text-gray-900 hover:text-primary-active"
+                                to={`/therapists/${therapist.id}`}
+                              >
+                                {therapist.firstName} {therapist.lastName}
+                              </Link>
                             </p>
                             <p className="text-sm text-gray-500">
                               {therapist.email}

@@ -144,6 +144,17 @@ interface ISessionsData {
     price: number | null;
   };
   groupClients?: string[];
+  groupSubscription?: {
+    id: string;
+    updatedAt: string;
+    createdAt: string;
+    therapistPercentage: number | null;
+    status: string;
+    start_date: string;
+    end_date: string;
+    old_price: number | null;
+    price: number | null;
+  }[];
 }
 
 const Sessions = ({
@@ -435,7 +446,7 @@ const Sessions = ({
     let queryParams: string[] = [];
 
     // Add fields and sorting
-    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,groupSubscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
     queryParams.push(`sort=createdAt=DESC`);
 
     // Add date parameters (backend should filter by createdAt, not schedule)
@@ -825,27 +836,49 @@ const Sessions = ({
   // Handle opening reassign therapist modal
   const handleOpenReassignModal = async (sessionData: ISessionsData) => {
     console.log(sessionData, "The data baby");
-    if (!sessionData.subscription?.id) {
-      toast("No subscription found for this session");
+
+    let currentSessionData = { ...sessionData };
+
+    // Fallback: If it looks like a group session (has group members) but missing groupSubscription
+    // we fetch the session details again to ensure we have the latest data including groupSubscription
+    const hasGroupMembers = sessionData.group && sessionData.group.length > 0;
+    if (hasGroupMembers && (!sessionData.groupSubscription || sessionData.groupSubscription.length === 0)) {
+      try {
+        const { data } = await axiosInstance.get(
+          `/api/v1/session?filters=id=${sessionData.id}&fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,groupSubscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`
+        );
+        if (data?.data && data.data.length > 0) {
+          currentSessionData = data.data[0];
+          console.log("Fetched fresh session data:", currentSessionData);
+        }
+      } catch (error) {
+        console.error("Error fetching fresh session data:", error);
+      }
+    }
+
+    const isGroupSession = currentSessionData.groupSubscription && currentSessionData.groupSubscription.length > 0;
+
+    if (!currentSessionData.subscription?.id && !isGroupSession) {
+      toast("No subscription found for this session eshiii");
       return;
     }
 
-    setReassignSessionData(sessionData);
+    setReassignSessionData(currentSessionData);
     setReassignModalOpen(true);
-    setClientModal(sessionData.modal?.id || "");
+    setClientModal(currentSessionData.modal?.id || "");
     setClientLevel(""); // Reset level
-    setClientId(sessionData.client?.id || "");
-    setClientsId(sessionData.groupClients || []);
-    setTherapistId(sessionData.therapist?.id || "");
+    setClientId(currentSessionData.client?.id || "");
+    setClientsId(currentSessionData.groupClients || []);
+    setTherapistId(currentSessionData.therapist?.id || "");
     setLoadingSessions(true);
     setSelectedSessionIds([]);
     setNewTherapistId("");
 
     // Fetch client level
-    if (sessionData.client?.id) {
+    if (currentSessionData.client?.id) {
       try {
         const { data: clientData } = await axiosInstance.get(
-          `/api/v1/client/${sessionData.client.id}?fields=preference.*`
+          `/api/v1/client/${currentSessionData.client.id}?fields=preference.*`
         );
         const preferences = clientData?.data?.preference;
         if (preferences && preferences.length > 0) {
@@ -863,13 +896,59 @@ const Sessions = ({
     }
 
     try {
-      // Fetch all sessions for this subscription
+      let idsToFetch = "";
+
+      if (isGroupSession && currentSessionData.groupSubscription) {
+        // Collect all IDs from group subscriptions
+        const ids = currentSessionData.groupSubscription.map(sub => sub.id);
+        idsToFetch = ids.join(',');
+      } else if (currentSessionData.subscription?.id) {
+        idsToFetch = currentSessionData.subscription.id;
+      }
+
+      if (!idsToFetch) {
+        setSubscriptionSessions([]);
+        toast("No subscription IDs found to fetch sessions");
+        return;
+      }
+
+      // Fetch all sessions for this subscription(s)
+      console.log("Fetching sessions for subscription IDs:", idsToFetch);
       const { data } = await axiosInstance.get(
-        `/api/v1/subscription/user-sub?ids=${sessionData.subscription.id}`
+        `/api/v1/subscription/user-sub?ids=${idsToFetch}`
       );
 
-      if (data?.data?.[0]?.session) {
-        setSubscriptionSessions(data.data[0].session);
+      console.log("session dataaaa", data);
+
+      if (data?.data && Array.isArray(data.data)) {
+        // Aggregate sessions from all returned subscription objects
+        const allSessions = data.data.flatMap((sub: any) => {
+          if (isGroupSession) {
+            return sub.groupSessions || [];
+          }
+          return sub.session || [];
+        });
+
+        // Deduplicate sessions by ID
+        const uniqueSessions = Array.from(new Map(allSessions.map((s: any) => [s.id, s])).values());
+
+        console.log("Fetched & Deduplicated:", uniqueSessions);
+
+        if (uniqueSessions.length > 0) {
+          setSubscriptionSessions(uniqueSessions);
+
+          // For group sessions, auto-select all found sessions that are in the future
+          if (isGroupSession) {
+            const now = new Date();
+            const futureSessionIds = uniqueSessions
+              .filter((s: any) => new Date(s.schedule) > now)
+              .map((s: any) => s.id);
+            setSelectedSessionIds(futureSessionIds);
+          }
+        } else {
+          setSubscriptionSessions([]);
+          toast("No sessions found for this subscription");
+        }
       } else {
         setSubscriptionSessions([]);
         toast("No sessions found for this subscription");
@@ -951,29 +1030,95 @@ const Sessions = ({
   //);
 
   const createChatMutation = useMutation(
-    async ({ clientId, therapistId }: { clientId: string, therapistId: string }) => {
-      // Fetch all chats for the client
-      const allChatsRes = await axiosInstance.get(`/api/v1/chat?fields=client.*&filters=client.id:=${clientId}`);
-      if (allChatsRes.data.data && allChatsRes.data.data.length > 0) {
-        // Delete all chats that are not closed (backend will set closed:true on delete)
-        const openChats = allChatsRes.data.data.filter((chat: { closed: boolean }) => !chat.closed);
+    async ({ clientId, therapistId, groupClients, groupName }: { clientId?: string, therapistId: string, groupClients?: string[], groupName?: string }) => {
+      // For group sessions, close chats for all group clients
+      // For individual sessions, close chats for the single client
+      const clientsToClose = groupClients || (clientId ? [clientId] : []);
+      console.log(clientsToClose, "clientsToCloseeeeee");
+      console.log(groupClients, "groupClients");
+      console.log(groupName, "groupName");
 
-        if (openChats.length > 0) {
-          console.log(`Found ${openChats.length} open chats, closing them...`);
-          await Promise.all(
-            openChats.map((chat: { id: string }) => axiosInstance.delete(`/api/v1/chat/${chat.id}`))
-          );
-          toast(`Closed ${openChats.length} existing chat(s)`);
+      for (const currentClientId of clientsToClose) {
+        try {
+          const allChatsRes = await axiosInstance.get(`/api/v1/chat?fields=client.*&filters=client.id:=${currentClientId}`);
+          if (allChatsRes.data.data && allChatsRes.data.data.length > 0) {
+            const openChats = allChatsRes.data.data.filter((chat: { closed: boolean }) => !chat.closed);
+
+            if (openChats.length > 0) {
+              console.log(`Found ${openChats.length} open chats for client ${currentClientId}, closing them...`);
+              await Promise.all(
+                openChats.map((chat: { id: string }) => axiosInstance.delete(`/api/v1/chat/${chat.id}`))
+              );
+            }
+          }
+        } catch (error) {
+          console.error(`Error closing chats for client ${currentClientId}`, error);
         }
       }
 
-      // Create a new chat
-      const res = await axiosInstance.post(`/api/v1/chat?mockId=${therapistId}`, {
-        client: clientId,
-        therapist: therapistId,
-      });
+      // Create new chat
+      let res;
+      if (groupClients) {
+        // Create a group chat
+        console.log("Creating group chat:", { groupName, groupClients, therapist: therapistId });
+        res = await axiosInstance.post(`/api/v1/chat?mockId=${therapistId}`, {
+          groupName: groupName,
+          groupClients: groupClients,
+          therapist: therapistId,
+        });
+      } else if (clientId) {
+        // For individual chat - first check for any existing chat with this client and therapist
+        try {
+          // Get all chats for this client
+          const allClientChatsRes = await axiosInstance.get(
+            `/api/v1/chat?fields=client.*,therapist.*,closed&filters=client.id:=${clientId}`
+          );
 
-      return res.data;
+          console.log(allClientChatsRes, "The client chattttttt");
+
+          // Find chat with the target therapist (closed or open)
+          const chatsWithTherapist = allClientChatsRes.data.data?.filter(
+            (chat: any) => chat.therapist?.id === therapistId
+          ) || [];
+
+          if (chatsWithTherapist.length > 0) {
+            const existingChat = chatsWithTherapist[0];
+
+            if (existingChat.closed) {
+              // Chat exists but is closed - reopen it
+              console.log("Found closed chat with therapist, reopening it...", existingChat.id);
+              const reopenRes = await axiosInstance.patch(`/api/v1/chat/toggleChat/${existingChat.id}`, {
+                closed: false,
+              });
+              res = reopenRes;
+              toast("Chat reopened successfully!");
+            } else {
+              // Chat exists and is open - just use it
+              console.log("Chat already exists and is open with therapist");
+              res = { data: existingChat };
+            }
+          } else {
+            // No existing chat with this therapist, create a new one
+            console.log("Creating new chat with therapist...");
+            res = await axiosInstance.post(`/api/v1/chat?mockId=${therapistId}`, {
+              client: clientId,
+              therapist: therapistId,
+            });
+          }
+        } catch (error: any) {
+          // Handle 409 Conflict gracefully - don't show error toast
+          if (error?.response?.status === 409) {
+            console.log("409 conflict - chat already exists, this is OK");
+            // Chat exists, which is what we wanted anyway
+            return { message: "Chat already exists" };
+          }
+          // For other errors, log but don't throw (to prevent error toast)
+          console.error("Error in chat creation/reopen:", error);
+          return null;
+        }
+      }
+
+      return res?.data;
     },
     {
       onSuccess: (data) => {
@@ -1016,11 +1161,26 @@ const Sessions = ({
     //  therapistId: newTherapistId,
     //});
 
-    ////create chat
-    createChatMutation.mutate({
-      clientId: clientId,
-      therapistId: newTherapistId,
-    });
+    // Create chat - group or individual
+    if (reassignSessionData?.group && reassignSessionData.group.length > 0) {
+      // Group session - create group chat
+      const groupClientIds = reassignSessionData.group.map((c: any) => c.id);
+      // Get groupName from session data or from the first subscription session
+      const groupName = reassignSessionData.groupName ||
+        (subscriptionSessions.length > 0 ? subscriptionSessions[0].groupName : undefined);
+      console.log("Using groupName:", groupName);
+      createChatMutation.mutate({
+        therapistId: newTherapistId,
+        groupClients: groupClientIds,
+        groupName: groupName,
+      });
+    } else {
+      // Individual session - create one-to-one chat
+      createChatMutation.mutate({
+        clientId: clientId,
+        therapistId: newTherapistId,
+      });
+    }
 
   };
 
@@ -2890,82 +3050,86 @@ const Sessions = ({
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Actions */}
-            <div className="flex items-center justify-between pt-4 border-t">
-              <p className="text-sm text-gray-600">
-                {selectedSessionIds.length} session(s) selected
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setReassignModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleReassignTherapist}
-                  disabled={selectedSessionIds.length === 0 || !newTherapistId || reassignTherapistMutation.isLoading}
-                >
-                  {reassignTherapistMutation.isLoading ? "Reassigning..." : "Re-assign Therapist"}
-                </Button>
-              </div>
+          {/* Actions */}
+          <div className="flex items-center justify-between pt-4 border-t">
+            <p className="text-sm text-gray-600">
+              {selectedSessionIds.length} session(s) selected
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setReassignModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleReassignTherapist}
+                disabled={selectedSessionIds.length === 0 || !newTherapistId || reassignTherapistMutation.isLoading}
+              >
+                {reassignTherapistMutation.isLoading ? "Reassigning..." : "Re-assign Therapist"}
+              </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Receipt Modal */}
-      {selectedReceipt && (
-        <div
-          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6"
-          onClick={() => setSelectedReceipt(null)}
-        >
-          <div className="relative max-w-4xl max-h-[90vh] overflow-auto">
-            {/* Close button */}
-            <button
-              onClick={() => setSelectedReceipt(null)}
-              className="absolute -top-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
-            >
-              <KeenIcon icon="cross" className="text-gray-600 text-sm" />
-            </button>
+      {
+        selectedReceipt && (
+          <div
+            className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6"
+            onClick={() => setSelectedReceipt(null)}
+          >
+            <div className="relative max-w-4xl max-h-[90vh] overflow-auto">
+              {/* Close button */}
+              <button
+                onClick={() => setSelectedReceipt(null)}
+                className="absolute -top-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
+              >
+                <KeenIcon icon="cross" className="text-gray-600 text-sm" />
+              </button>
 
-            {/* Receipt Image */}
-            <img
-              src={selectedReceipt.url}
-              alt={`Receipt for ${selectedReceipt.clientName}`}
-              className="rounded-lg shadow-2xl max-h-[80vh] w-auto object-contain bg-white"
-              onClick={(e) => e.stopPropagation()}
-              onError={(e) => {
-                console.error("Failed to load receipt image");
-                toast.error("Failed to load receipt image");
-                setSelectedReceipt(null);
-              }}
-            />
+              {/* Receipt Image */}
+              <img
+                src={selectedReceipt.url}
+                alt={`Receipt for ${selectedReceipt.clientName}`}
+                className="rounded-lg shadow-2xl max-h-[80vh] w-auto object-contain bg-white"
+                onClick={(e) => e.stopPropagation()}
+                onError={(e) => {
+                  console.error("Failed to load receipt image");
+                  toast.error("Failed to load receipt image");
+                  setSelectedReceipt(null);
+                }}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Conditional Content Based on Active Tab */}
-      {activeTab === "sessions" ? (
-        <DataGrid
-          onFetchData={getSessions}
-          onSearchData={searchSession}
-          data={data}
-          link={"sessions"}
-          columns={columns}
-          //filterInput={filterInput}
-          rowSelection={true}
-          onRowSelectionChange={handleRowSelection}
-          searchInput={searchInput}
-          pagination={{ size: 5 }}
-          sorting={[{ id: "createdAt", desc: true }]}
-          toolbar={Toolbar}
-          layout={{ card: true }}
-        />
-      ) : (
-        <GroupTherapy searchInput={searchInput} />
-      )}
+      {
+        activeTab === "sessions" ? (
+          <DataGrid
+            onFetchData={getSessions}
+            onSearchData={searchSession}
+            data={data}
+            link={"sessions"}
+            columns={columns}
+            //filterInput={filterInput}
+            rowSelection={true}
+            onRowSelectionChange={handleRowSelection}
+            searchInput={searchInput}
+            pagination={{ size: 5 }}
+            sorting={[{ id: "createdAt", desc: true }]}
+            toolbar={Toolbar}
+            layout={{ card: true }}
+          />
+        ) : (
+          <GroupTherapy searchInput={searchInput} />
+        )
+      }
     </>
   );
 };
