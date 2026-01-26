@@ -1737,7 +1737,60 @@ const TherapistClients = ({
     const filters = statusFilter ? `&filters=${statusFilter}` : "";
     const url = `/api/v1/match?fields=client.*&filters=accepted.id=${therapistData.id}${statusFilter ? `,${statusFilter}` : ""}&take=${pageSize}&page=${pageIndex}`;
 
-    const { data } = await axiosInstance.get(url);
+    // Fetch matches (individual sessions)
+    const { data: matchData } = await axiosInstance.get(url);
+
+    // Fetch group therapy users
+    let groupUsers: any[] = [];
+    try {
+      const { data: groupData } = await axiosInstance.get(
+        `/api/v1/therapist/usersTreated?mockId=${therapistData.id}`
+      );
+      groupUsers = groupData.data || [];
+    } catch (error) {
+      console.error("Failed to fetch group users", error);
+    }
+
+    // Normalize group users to match structure
+    const normalizedGroupUsers = groupUsers.map((user: any) => ({
+      id: `group-${user.id}`, // specific ID to avoid collision
+      client: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        // Default values for missing fields
+        avatar: 0,
+        phoneNumber: "",
+        username: user.email?.split('@')[0] || "",
+        status: "active", // Assumed active for treated users
+        isOnline: false,
+        isEmailAuthenticated: false,
+        isPhoneNumberAuthenticated: false,
+        isInGroup: true,
+      },
+      accepted: therapistData,
+    }));
+
+    // Merge data: Match data (paginated) + All Group Users (since we don't have pagination for them yet)
+    // Note: This simply adds all group users to the current page view. 
+    // Ideally, we'd handle pagination for the merged set, but for now we append.
+    const combinedData = [...matchData.data, ...normalizedGroupUsers];
+
+    // Remove duplicates based on client ID if any
+    const uniqueData = Array.from(new Map(combinedData.map(item => [item.client.id, item])).values());
+
+    const response = {
+      ...matchData,
+      data: uniqueData,
+      pagination: {
+        ...matchData.pagination,
+        totalItems: matchData.pagination.totalItems + groupUsers.length
+      }
+    };
+
+    const data = response;
+
 
     // Calculate items on current page
     const startIndex =
@@ -1790,7 +1843,62 @@ const TherapistClients = ({
 
     const url = `/api/v1/match?fields=client.*&filters=${searchFilters}${statusFilter}&take=${pageSize}&page=${pageIndex}`;
 
-    const { data } = await axiosInstance.get(url);
+    // Fetch matches
+    const { data: matchData } = await axiosInstance.get(url);
+
+    // Fetch group users (we need to filter them manually since the endpoint might not support the same filters)
+    let groupUsers: any[] = [];
+    try {
+      const { data: groupData } = await axiosInstance.get(
+        `/api/v1/therapist/usersTreated?mockId=${therapistData.id}`
+      );
+      groupUsers = groupData.data || [];
+    } catch (error) {
+      console.error("Failed to fetch group users", error);
+    }
+
+    // Filter group users locally based on search term
+    const searchTermLower = searchTerm.toLowerCase();
+    const filteredGroupUsers = groupUsers.filter((user: any) => {
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      const email = (user.email || "").toLowerCase();
+      return fullName.includes(searchTermLower) || email.includes(searchTermLower);
+    });
+
+    // Normalize
+    const normalizedGroupUsers = filteredGroupUsers.map((user: any) => ({
+      id: `group-${user.id}`,
+      client: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        avatar: 0,
+        phoneNumber: "",
+        username: user.email?.split('@')[0] || "",
+        status: "active",
+        isOnline: false,
+        isEmailAuthenticated: false,
+        isPhoneNumberAuthenticated: false,
+        isInGroup: true,
+      },
+      accepted: therapistData,
+    }));
+
+    const combinedData = [...matchData.data, ...normalizedGroupUsers];
+    const uniqueData = Array.from(new Map(combinedData.map(item => [item.client.id, item])).values());
+
+    const response = {
+      ...matchData,
+      data: uniqueData,
+      pagination: {
+        ...matchData.pagination,
+        totalItems: matchData.pagination.totalItems + filteredGroupUsers.length
+      }
+    };
+
+    const data = response;
+
 
     // Calculate items on current page
     const startIndex =
@@ -1831,7 +1939,41 @@ const TherapistClients = ({
 
     const url = `/api/v1/match?fields=client.*&filters=${searchFilters}${statusFilter}`;
 
-    const { data } = await axiosInstance.get(url);
+    const { data: matchData } = await axiosInstance.get(url);
+
+    // Fetch group users
+    let groupUsers: any[] = [];
+    try {
+      const { data: groupData } = await axiosInstance.get(
+        `/api/v1/therapist/usersTreated?mockId=${therapistData.id}`
+      );
+      groupUsers = groupData.data || [];
+    } catch (error) {
+      console.error("Failed to fetch group users", error);
+    }
+
+    // Filter logic for revalidation (if needed, though revalidation usually just refreshes counts)
+    let filteredGroupUsers = groupUsers;
+    if (debouncedSearchInput && debouncedSearchInput.trim()) {
+      const term = debouncedSearchInput.trim().toLowerCase();
+      filteredGroupUsers = groupUsers.filter((u: any) =>
+        `${u.firstName} ${u.lastName}`.toLowerCase().includes(term) ||
+        (u.email || "").toLowerCase().includes(term)
+      );
+    }
+
+    // Create a mock merged response for total request
+    const totalCount = (matchData.pagination?.totalItems || matchData.data.length || 0) + filteredGroupUsers.length;
+
+    // We construct a data object that mimics what's needed for the hook
+    const data = {
+      ...matchData,
+      pagination: {
+        ...matchData.pagination,
+        totalItems: totalCount
+      }
+    };
+
     setTotalItems(data.pagination?.totalItems || data.data.length);
     return data;
   }
