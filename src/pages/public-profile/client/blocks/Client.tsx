@@ -114,7 +114,7 @@ const ClientLevelCell = ({ client }: { client: IClientsData }) => {
         const { data: clientData } = await axiosInstance.get(
           `/api/v1/client/${client.id}?fields=preference.*`
         );
-        
+
         const preferences = clientData?.data?.preference;
         if (!preferences || preferences.length === 0) {
           setLevelData(null);
@@ -133,7 +133,7 @@ const ClientLevelCell = ({ client }: { client: IClientsData }) => {
         const { data: preferenceData } = await axiosInstance.get(
           `/api/v1/preference/${preferenceId}?fields=modal.*,level.*`
         );
-        
+
         setModalData(preferenceData?.data?.modal || null);
         setLevelData(preferenceData?.data?.level || null);
       } catch (error) {
@@ -395,7 +395,7 @@ const Clients = ({
     return data;
   }
 
-  const getReadablePeriod = (type: number): string => { 
+  const getReadablePeriod = (type: number): string => {
     switch (type) {
       case 0:
         return "Trial";
@@ -416,7 +416,7 @@ const Clients = ({
   //  const end = new Date(endDate);
   //  const diffTime = Math.abs(end.getTime() - start.getTime());
   //  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
   //  if (diffDays === 1) {
   //    return "1 day";
   //  } else if (diffDays < 7) {
@@ -523,7 +523,7 @@ const Clients = ({
       toast("Please select a status");
       return;
     }
-    
+
     if (!selectedSubscription?.id) {
       toast("Subscription information not found");
       return;
@@ -558,7 +558,7 @@ const Clients = ({
         accessorFn: (row) => row.firstName,
         id: "Client",
         header: ({ column }) => (
-          <DataGridColumnHeader title="Client" column={column} className="min-w-[180px]"/>
+          <DataGridColumnHeader title="Client" column={column} className="min-w-[180px]" />
         ),
         enableSorting: true,
         cell: ({ row }) => {
@@ -602,7 +602,7 @@ const Clients = ({
               </div>
 
               <div className="flex flex-col gap-0.5">
-                <Link 
+                <Link
                   to={`/clients/${row.original.id}`}
                   className="text-sm font-medium text-gray-900 hover:text-primary-active mb-px text-left"
                 >
@@ -679,24 +679,22 @@ const Clients = ({
 
           return (
             <span
-              className={`badge ${
-                subscriptionStatus === "active" ? "badge-success" :
+              className={`badge ${subscriptionStatus === "active" ? "badge-success" :
                 subscriptionStatus === "pending" ? "badge-warning" :
-                subscriptionStatus === "canceled" ? "badge-danger" :
-                subscriptionStatus === "paused" ? "badge-info" :
-                subscriptionStatus === "inactive" ? "badge-secondary" :
-                "badge-secondary"
-              } shrink-0 badge-outline rounded-[30px]`}
+                  subscriptionStatus === "canceled" ? "badge-danger" :
+                    subscriptionStatus === "paused" ? "badge-info" :
+                      subscriptionStatus === "inactive" ? "badge-secondary" :
+                        "badge-secondary"
+                } shrink-0 badge-outline rounded-[30px]`}
             >
               <span
-                className={`size-1.5 rounded-full ${
-                  subscriptionStatus === "active" ? "bg-success" :
+                className={`size-1.5 rounded-full ${subscriptionStatus === "active" ? "bg-success" :
                   subscriptionStatus === "pending" ? "bg-warning" :
-                  subscriptionStatus === "canceled" ? "bg-danger" :
-                  subscriptionStatus === "paused" ? "bg-info" :
-                  subscriptionStatus === "inactive" ? "bg-secondary" :
-                  "bg-secondary"
-                } me-1.5`}
+                    subscriptionStatus === "canceled" ? "bg-danger" :
+                      subscriptionStatus === "paused" ? "bg-info" :
+                        subscriptionStatus === "inactive" ? "bg-secondary" :
+                          "bg-secondary"
+                  } me-1.5`}
               ></span>
               {subscriptionStatus}
             </span>
@@ -780,11 +778,11 @@ const Clients = ({
         enableSorting: false,
         cell: ({ row }) => {
           const client = row.original;
-          
+
           const handlePaymentClick = async (e: React.MouseEvent) => {
             e.preventDefault();
             e.stopPropagation();
-            
+
             if (client.activeSubscription) {
               setSelectedClient(client);
               setSelectedSubscription(client.activeSubscription);
@@ -830,7 +828,7 @@ const Clients = ({
             try {
               const receiptData = await fetchPaymentReceipt(activeSubscription.id);
               const payment = receiptData?.data?.[0]?.payment?.[0];
-              
+
               if (!payment?.filename) {
                 toast.error("No receipt found for this client");
                 return;
@@ -975,20 +973,19 @@ const Clients = ({
               Manage Payment for {selectedClient?.firstName} {selectedClient?.lastName}
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4 p-6">
             {/* Show current subscription info */}
             {selectedSubscription && (
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="text-sm text-gray-700">
-                  <strong>Current Status:</strong> 
-                  <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                    selectedSubscription.status === 'active' ? 'bg-green-100 text-green-800' :
+                  <strong>Current Status:</strong>
+                  <span className={`ml-2 px-2 py-1 rounded text-xs ${selectedSubscription.status === 'active' ? 'bg-green-100 text-green-800' :
                     selectedSubscription.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    selectedSubscription.status === 'canceled' ? 'bg-red-100 text-red-800' :
-                    selectedSubscription.status === 'paused' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
+                      selectedSubscription.status === 'canceled' ? 'bg-red-100 text-red-800' :
+                        selectedSubscription.status === 'paused' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                    }`}>
                     {selectedSubscription.status}
                   </span>
                 </p>
@@ -1004,7 +1001,7 @@ const Clients = ({
                 }
               </div>
             )}
-            
+
             <div>
               <label className="block text-sm font-medium mb-2">Update Status</label>
               <Select
@@ -1023,7 +1020,7 @@ const Clients = ({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex gap-2 pt-4">
               <Button
                 onClick={() => setPaymentModalOpen(false)}
@@ -1081,30 +1078,86 @@ const Clients = ({
       {/* Receipt Modal */}
       {selectedReceipt && (
         <div
-          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-6"
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedReceipt(null)}
         >
-          <div className="relative max-w-4xl max-h-[90vh] overflow-auto">
-            {/* Close button */}
-            <button
-              onClick={() => setSelectedReceipt(null)}
-              className="absolute -top-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-xl hover:bg-gray-100 z-10 transition-colors"
-            >
-              <KeenIcon icon="cross" className="text-gray-600 text-sm" />
-            </button>
+          <div
+            className="relative bg-white rounded-xl shadow-2xl flex flex-col"
+            style={{ maxWidth: '90vw', maxHeight: '90vh', width: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with title and close button */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 shrink-0">
+              <h3 className="font-semibold text-gray-900 text-lg">
+                Receipt for {selectedReceipt.clientName}
+              </h3>
+              <button
+                onClick={() => setSelectedReceipt(null)}
+                className="bg-gray-100 hover:bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+              >
+                <KeenIcon icon="cross" className="text-gray-600 text-sm" />
+              </button>
+            </div>
 
-            {/* Receipt Image */}
-            <img
-              src={selectedReceipt.url}
-              alt={`Receipt for ${selectedReceipt.clientName}`}
-              className="rounded-lg shadow-2xl max-h-[80vh] w-auto object-contain bg-white"
-              onClick={(e) => e.stopPropagation()}
-              onError={(e) => {
-                console.error("Failed to load receipt image");
-                toast.error("Failed to load receipt image");
-                setSelectedReceipt(null);
-              }}
-            />
+            {/* Scrollable image container */}
+            <div className="flex-1 overflow-auto p-4" style={{ maxHeight: 'calc(90vh - 140px)' }}>
+              <img
+                src={selectedReceipt.url}
+                alt={`Receipt for ${selectedReceipt.clientName}`}
+                className="rounded-lg shadow-md w-auto h-auto max-w-full mx-auto"
+                style={{ maxHeight: 'calc(90vh - 180px)', objectFit: 'contain' }}
+                onError={(e) => {
+                  console.error("Failed to load receipt image");
+                  toast.error("Failed to load receipt image");
+                  setSelectedReceipt(null);
+                }}
+              />
+            </div>
+
+            {/* Footer with download buttons */}
+            <div className="flex items-center justify-center gap-3 px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-xl shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    // Extract the path from the URL to go through the local proxy
+                    // This bypasses CORS by treating it as a same-origin request
+                    const urlObj = new URL(selectedReceipt.url);
+                    const localPath = urlObj.pathname + urlObj.search; // e.g. /dev/static/...
+
+                    const response = await axiosInstance.get(localPath, {
+                      responseType: 'blob',
+                      baseURL: '', // Override baseURL to use current origin (localhost)
+                    });
+
+                    const blob = new Blob([response.data], { type: response.headers['content-type'] || 'image/jpeg' });
+                    const url = window.URL.createObjectURL(blob);
+
+                    // Create temporary link and trigger download
+                    const link = document.createElement('a');
+                    link.href = url;
+                    const extension = selectedReceipt.filename.split('.').pop() || 'png';
+                    link.download = `receipt_${selectedReceipt.clientName.replace(/\s+/g, '_')}.${extension}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    toast.success("Receipt downloaded successfully!");
+                  } catch (error) {
+                    console.error("Error downloading receipt:", error);
+                    // Fallback: open in new tab
+                    window.open(selectedReceipt.url, '_blank');
+                    toast.info("Opening receipt in new tab as fallback.");
+                  }
+                }}
+                className="gap-2"
+              >
+                <KeenIcon icon="file-down" />
+                Download Image
+              </Button>
+
+            </div>
           </div>
         </div>
       )}
