@@ -561,12 +561,13 @@ const Sessions = ({
 
   // Fetch users for adding to session
   async function fetchUsers(search: string = "") {
-    console.log(clientModal, "My modalll");
-    const url = search
-      ? `/api/v1/client?filters=firstName=${search},isInGroup=0,preference.modal.id=${clientModal},isInGroup=0&fields=id,firstName,lastName,profile,email`
-      : `/api/v1/client?fields=id,firstName,lastName,profile,email&filters=preference.modal.id=aa4c9839-e031-417a-b319-2da4bf1092c3,isInGroup=0,`;
+    const filters = ["isInGroup=0"];
+    if (search) filters.push(`firstName=${search}`);
+    if (clientModal) filters.push(`preference.modal.id=${clientModal}`);
+
+    const url = `/api/v1/answer/user-ans?filters=${filters.join(",")}&fields=id,firstName,lastName,profile,email`;
     const { data } = await axiosInstance.get(url);
-    console.log(data, "the length");
+    console.log(data, "fetched candidates");
     return data;
   }
 

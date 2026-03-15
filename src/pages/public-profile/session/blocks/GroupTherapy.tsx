@@ -102,6 +102,9 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
     groupName: "",
   });
 
+  const GROUP_THERAPY_MODAL_ID = "aa4c9839-e031-417a-b319-2da4bf1092c3";
+
+
   async function getGroupTherapyCandidates({
     pageIndex,
     pageSize,
@@ -172,51 +175,11 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
   );
 
   async function getTherapists(search?: string) {
-    // Fetch all therapists with license data
-    const url = `/api/v1/therapist?take=0${search ? `&filters=firstName=${search}` : ""}&fields=id,firstName,lastName,email,phoneNumber,profile,license.*`;
+    const url = `/api/v1/therapist?take=0${search ? `&filters=firstName=${search},license.modal.id:=${GROUP_THERAPY_MODAL_ID}` : `&filters=license.modal.id:=${GROUP_THERAPY_MODAL_ID}`}&fields=id,firstName,lastName,email,phoneNumber,profile`;
     const { data } = await axiosInstance.get(url);
-
-    // Filter therapists who have licenses and check their modals
-    const therapistsWithLicenses = data.data.filter(
-      (therapist: ITherapist) =>
-        therapist.license && therapist.license.length > 0
-    );
-
-    // Fetch modal info for each therapist's license and filter for Group Therapy
-    const groupTherapyTherapists = await Promise.all(
-      therapistsWithLicenses.map(async (therapist: ITherapist) => {
-        try {
-          const licenseId = therapist.license![0].id;
-          const { data: licenseData } = await axiosInstance.get(
-            `/api/v1/license/${licenseId}?fields=modal.*`
-          );
-
-          // Check if modal name is "Group Therapy"
-          if (
-            licenseData.data.modal &&
-            licenseData.data.modal.name === "Group Therapy"
-          ) {
-            return therapist;
-          }
-          return null;
-        } catch (error) {
-          console.error(
-            `Error fetching license for therapist ${therapist.id}:`,
-            error
-          );
-          return null;
-        }
-      })
-    );
-
-    // Filter out null values (therapists who don't have Group Therapy modal)
-    const filteredTherapists = groupTherapyTherapists.filter((t) => t !== null);
-
-    return {
-      ...data,
-      data: filteredTherapists,
-    };
+    return data;
   }
+
 
   async function createGroupSession(
     sessionData: ISessionForm & { groupClients: string[] }
@@ -361,15 +324,29 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
   //  },
   //});
 
+  const handleCleanup = () => {
+    setSelectedClients([]);
+    setRowSelection({});
+    setIsSessionModalOpen(false);
+    setSessionForm({
+      schedule: "",
+      scheduleDate: "",
+      scheduleTime: "",
+      therapist: "",
+      groupName: "",
+    });
+  };
+
   // Creating group session for the selected clients
   const queryClient = useQueryClient();
   const { isLoading: isCreatingSession, mutate: createSession } = useMutation({
     mutationFn: createGroupSession,
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["GroupTherapyCandidates"],
       });
       toast("Group session successfully created!");
+      handleCleanup();
     },
     onError: (error: any) => {
       toast(error?.message || "Error creating group session");
@@ -389,6 +366,7 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
       toast(error?.message || "Error creating group chat");
     },
   });
+
 
   const columns = useMemo<ColumnDef<IGroupTherapyCandidate>[]>(
     () => [
