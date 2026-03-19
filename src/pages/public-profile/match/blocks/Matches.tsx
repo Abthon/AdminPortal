@@ -112,15 +112,15 @@ const Matches = ({
   const [selectedMatch, setSelectedMatch] = useState<IMatchData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [assigningTherapistId, setAssigningTherapistId] = useState<string | null>(null);
-  
+
   // Session scheduling states
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [availabilityData, setAvailabilityData] = useState<any[]>([]);
   const [modalData, setModalData] = useState<any[]>([]);
-  const [selectedTimes, setSelectedTimes] = useState<{[key: string]: string[]}>({});
+  const [selectedTimes, setSelectedTimes] = useState<{ [key: string]: string[] }>({});
   const [selectedTherapistId, setSelectedTherapistId] = useState<string>("");
   const [isCreatingSessions, setIsCreatingSessions] = useState(false);
-  
+
   // Track if time selection is complete
   const [hasSelectedTimes, setHasSelectedTimes] = useState(false);
 
@@ -131,36 +131,50 @@ const Matches = ({
   // Fetch therapist candidates for assignment modal based on client preference
   const fetchTherapists = async (clientId: string) => {
     try {
-      console.log('Fetching client preference for client:', clientId);
-      
-      // Step 1: Get client preference
+      console.log('Fetching client data for:', clientId);
+
+      // Step 1: Get client data to extract the active subscription modal
       const { data: clientData } = await axiosInstance.get(
-        `/api/v1/client/${clientId}?fields=preference.*`
+        `/api/v1/client/${clientId}`
       );
-      console.log('Client data with preference:', clientData);
-      
-      const preference = clientData?.data?.preference?.[0];
-      
-      if (!preference || !preference.id) {
-        console.warn('No preference found for client');
-        toast.error('Client has no preference set');
+
+      console.log('Client data:', clientData);
+      const modalId = clientData?.data?.activeSubscription?.subscription?.modal?.id;
+      if (!modalId) {
+        console.warn('No active subscription modal found for client');
+        toast.error('Client has no active subscription with a therapy type');
         setTherapists([]);
         return;
       }
-      
+
+      // Step 2: Fetch the preference that matches the active subscription modal
+      const filters = `modal.id=${modalId},client.id=${clientId}`;
+      const { data: preferenceData } = await axiosInstance.get(
+        `/api/v1/preference?filters=${encodeURIComponent(filters)}`
+      );
+
+      console.log('Preference data:', preferenceData);
+      const preference = preferenceData?.data?.[0];
+      if (!preference || !preference.id) {
+        console.warn('No preference found for client modal');
+        toast.error('Client has no preference set for the current therapy type');
+        setTherapists([]);
+        return;
+      }
+
       const preferenceId = preference.id;
       console.log('Fetching therapist candidates for preference:', preferenceId);
-      
-      // Step 2: Get therapist candidates using preference ID
+
+      // Step 3: Get therapist candidates using preference ID
       const { data: therapistData } = await axiosInstance.get(
         `/api/v1/therapist/candidates/${preferenceId}?take=0`
       );
       console.log('Therapist candidates response:', therapistData);
-      
+
       const therapistList = therapistData.data || [];
       console.log('Therapist candidate list:', therapistList);
       setTherapists(therapistList);
-      
+
       if (therapistList.length === 0) {
         toast.info('No matching therapist candidates found');
       }
@@ -175,37 +189,48 @@ const Matches = ({
   const handleAssignTherapist = async (therapistId: string) => {
     console.log('Assigning therapist:', therapistId);
     if (!selectedMatch) return;
-    
+
     setAssigningTherapistId(therapistId);
     try {
-      // Step 1: Get client preference for the match
+      // Step 1: Get client data to extract the active subscription modal
       const { data: clientData } = await axiosInstance.get(
-        `/api/v1/client/${selectedMatch.client.id}?fields=preference.*`
+        `/api/v1/client/${selectedMatch.client.id}`
       );
-      const preferenceId = clientData?.data?.preference?.[0]?.id;
-      
-      if (!preferenceId) {
-        toast.error('Client has no preference set');
+      const modalId = clientData?.data?.activeSubscription?.subscription?.modal?.id;
+      if (!modalId) {
+        toast.error('Client has no active subscription with a therapy type');
         return;
       }
-      
+
+      // Step 2: Fetch the preference matching the active subscription modal
+      const filters = `modal.id=${modalId},client.id=${selectedMatch.client.id}`;
+      const { data: preferenceData } = await axiosInstance.get(
+        `/api/v1/preference?filters=${encodeURIComponent(filters)}`
+      );
+      const preferenceId = preferenceData?.data?.[0]?.id;
+
+      if (!preferenceId) {
+        toast.error('Client has no preference set for the current therapy type');
+        return;
+      }
+
       // Step 2: Patch the existing match with the therapist
       await axiosInstance.patch(`/api/v1/match/${selectedMatch.id}`, {
         preferenceId: preferenceId,
         accepted: therapistId,
       });
-      
+
       toast.success('Therapist assigned successfully!');
-      
+
       // Store therapist ID for session creation
       setSelectedTherapistId(therapistId);
-      
+
       // Close therapist modal and proceed to create sessions
       setIsModalOpen(false);
-      
+
       // Create sessions with the selected times
       await createSessionsWithTherapist(therapistId);
-      
+
     } catch (error) {
       console.error('Error assigning therapist:', error);
       toast.error('Failed to assign therapist');
@@ -217,7 +242,7 @@ const Matches = ({
   // Helper function to generate time slots based on day period
   const generateTimeSlots = (dayPeriod: string): string[] => {
     const timeSlots: string[] = [];
-    
+
     switch (dayPeriod.toLowerCase()) {
       case 'morning':
         for (let hour = 8; hour <= 11; hour++) {
@@ -244,40 +269,53 @@ const Matches = ({
           timeSlots.push(`${hour.toString().padStart(2, '0')}:30`);
         }
     }
-    
+
     return timeSlots;
   };
 
   // Fetch client availability data
   const fetchClientAvailability = async (clientId: string) => {
     try {
-      // Step 1: Get client preferences
+      // Step 1: Get client data to extract the active subscription modal
       const { data: clientResponse } = await axiosInstance.get(
-        `/api/v1/client/${clientId}?fields=preference.*`
+        `/api/v1/client/${clientId}`
       );
-      
-      if (!clientResponse.data.preference || clientResponse.data.preference.length === 0) {
-        toast.error("Client has no preferences set");
+
+      const modalId = clientResponse?.data?.activeSubscription?.subscription?.modal?.id;
+      if (!modalId) {
+        toast.error("Client has no active subscription with a therapy type");
         return;
       }
-      
-      const preferenceId = clientResponse.data.preference[0].id;
-      
-      // Step 2: Get availability from preference
+
+      // Step 2: Fetch the preference matching the active subscription modal
+      const filters = `modal.id=${modalId},client.id=${clientId}`;
+      const { data: preferenceListData } = await axiosInstance.get(
+        `/api/v1/preference?filters=${encodeURIComponent(filters)}`
+      );
+
+      const matchedPreference = preferenceListData?.data?.[0];
+      if (!matchedPreference?.id) {
+        toast.error("Client has no preference set for the current therapy type");
+        return;
+      }
+
+      const preferenceId = matchedPreference.id;
+
+      // Step 3: Get availability from the matched preference
       const { data: preferenceResponse } = await axiosInstance.get(
         `/api/v1/preference/${preferenceId}?fields=availability.*,modal.*`
       );
-      
+
       if (!preferenceResponse.data.availability || preferenceResponse.data.availability.length === 0) {
         toast.error("Client has no availability set");
         return;
       }
-      
+
       setAvailabilityData(preferenceResponse.data.availability);
       setModalData(preferenceResponse.data.modal.id);
       console.log("the modal yene qonjo", preferenceResponse.data.modal.id)
       setIsScheduleModalOpen(true);
-      
+
     } catch (error) {
       console.error('Error fetching client availability:', error);
       toast.error('Failed to fetch client availability');
@@ -301,7 +339,7 @@ const Matches = ({
   const createSessionsWithTherapist = async (therapistId: string) => {
     console.log(selectedMatch, "The selected match for session");
     if (!selectedMatch || !therapistId) return;
-    
+
     setIsCreatingSessions(true);
     try {
       // Format selected times for API
@@ -311,12 +349,12 @@ const Matches = ({
           date,
           startTimes
         }));
-      
+
       if (dates.length === 0) {
         toast.error("Please select at least one time slot");
         return;
       }
-      
+
       const sessionData = {
         duration: 60,
         type: "video",
@@ -324,12 +362,12 @@ const Matches = ({
         client: selectedMatch.client.id,
         dates
       };
-      
+
       await axiosInstance.post(
         `/api/v1/session?mockId=${therapistId}`,
         sessionData
       );
-      
+
       toast.success('Sessions created successfully!');
       // Creating chat for them
       await createChat(therapistId);
@@ -341,10 +379,10 @@ const Matches = ({
       setSelectedTherapistId("");
       setSelectedMatch(null);
       setHasSelectedTimes(false);
-      
+
       // Refresh the data
       window.location.reload();
-      
+
     } catch (error) {
       console.error('Error creating sessions:', error);
       toast.error('Failed to create sessions');
@@ -358,19 +396,19 @@ const Matches = ({
     // Validate that at least one time slot is selected
     const dates = Object.entries(selectedTimes)
       .filter(([_, times]) => times.length > 0);
-    
+
     if (dates.length === 0) {
       toast.error("Please select at least one time slot");
       return;
     }
-    
+
     // Mark that times have been selected
     setHasSelectedTimes(true);
-    
+
     // Close schedule modal and open therapist modal
     setIsScheduleModalOpen(false);
     setIsModalOpen(true);
-    
+
     // Fetch therapist candidates if not already loaded
     if (selectedMatch?.client?.id && therapists.length === 0) {
       fetchTherapists(selectedMatch.client.id);
@@ -382,9 +420,9 @@ const Matches = ({
     event.preventDefault();
     event.stopPropagation();
     event.nativeEvent.stopImmediatePropagation();
-    
+
     setSelectedMatch(match);
-    
+
     // If times are already selected, go directly to therapist selection
     if (hasSelectedTimes && Object.values(selectedTimes).some(times => times.length > 0)) {
       setIsModalOpen(true);
@@ -595,13 +633,11 @@ const Matches = ({
           return (
             <div className="flex items-center gap-2">
               <div
-                className={`size-2 rounded-full ${
-                  isActive ? "bg-green-500" : "bg-red-500"
-                }`}
+                className={`size-2 rounded-full ${isActive ? "bg-green-500" : "bg-red-500"
+                  }`}
               />
-              <span className={`text-sm ${
-                isActive ? "text-green-600" : "text-red-600"
-              }`}>
+              <span className={`text-sm ${isActive ? "text-green-600" : "text-red-600"
+                }`}>
                 {isActive ? "Active" : "Expired"}
               </span>
             </div>
@@ -677,7 +713,7 @@ const Matches = ({
           layout={{ card: true }}
         />
       </div>
-      
+
       {/* Session Scheduling Modal - Step 1 */}
       <Dialog open={isScheduleModalOpen} onOpenChange={(open) => {
         setIsScheduleModalOpen(open);
@@ -687,24 +723,24 @@ const Matches = ({
           <DialogHeader>
             <DialogTitle>Schedule Sessions</DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-6 p-4">
             <div className="space-y-4">
               <h3 className="font-semibold">Available Time Slots</h3>
               {availabilityData.map((availability, index) => {
                 const timeSlots = generateTimeSlots(availability.day_period);
                 const dayKey = availability.day;
-                
+
                 return (
                   <div key={index} className="border rounded-lg p-4">
                     <h4 className="font-medium mb-3">
                       {availability.day} - {availability.day_period}
                     </h4>
-                    
+
                     <div className="grid grid-cols-4 gap-2">
                       {timeSlots.map((time) => {
                         const isSelected = selectedTimes[dayKey]?.includes(time) || false;
-                        
+
                         return (
                           <Button
                             key={time}
@@ -716,7 +752,7 @@ const Matches = ({
                                 const newDayTimes = isSelected
                                   ? dayTimes.filter(t => t !== time)
                                   : [...dayTimes, time];
-                                
+
                                 return {
                                   ...prev,
                                   [dayKey]: newDayTimes
@@ -730,7 +766,7 @@ const Matches = ({
                         );
                       })}
                     </div>
-                    
+
                     {selectedTimes[dayKey] && selectedTimes[dayKey].length > 0 && (
                       <div className="mt-2 text-sm text-green-600">
                         Selected: {selectedTimes[dayKey].join(', ')}
@@ -740,7 +776,7 @@ const Matches = ({
                 );
               })}
             </div>
-            
+
             <div className="flex justify-end space-x-2 pt-4 border-t">
               <Button
                 variant="outline"
@@ -771,8 +807,8 @@ const Matches = ({
           <DialogHeader className="mt-10">
             <DialogTitle>Assign Therapist to Match</DialogTitle>
             <p className="text-sm text-gray-600">
-              {hasSelectedTimes && Object.values(selectedTimes).some(times => times.length > 0) 
-                ? `✓ Time slots selected (${Object.values(selectedTimes).flat().length} slots)` 
+              {hasSelectedTimes && Object.values(selectedTimes).some(times => times.length > 0)
+                ? `✓ Time slots selected (${Object.values(selectedTimes).flat().length} slots)`
                 : 'Select time slots first'}
             </p>
           </DialogHeader>
@@ -793,9 +829,9 @@ const Matches = ({
               {therapists.length === 0 ? (
                 <div className="text-center py-8 space-y-4">
                   <p className="text-gray-500">No verified therapists available</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => selectedMatch?.client?.id && fetchTherapists(selectedMatch.client.id)}
                     className="mx-auto"
                   >
@@ -838,7 +874,7 @@ const Matches = ({
                           <div className="size-2 bg-green-500 rounded-full"></div>
                           <span className="text-xs text-green-600">{therapist.status}</span>
                         </div>
-                        </div>
+                      </div>
                     </div>
                     <Button
                       onClick={() => handleAssignTherapist(therapist.id)}
