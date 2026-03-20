@@ -215,23 +215,23 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
     return data;
   }
 
-  async function createGroupChats(
-    sessionData: ISessionForm & { groupClients: string[] }
-  ) {
-    const payload = {
-      groupName: sessionData.groupName,
-      groupClients: sessionData.groupClients,
-      therapist: sessionData.therapist,
-    };
-    console.log(payload, "created group chat payload");
-    console.log(sessionData.groupClients, "The group clients");
-    const { data } = await axiosInstance.post(
-      `/api/v1/chat?mockId=${sessionData.therapist}`,
-      payload
-    );
-    console.log(data, "created group chat");
-    return data;
-  }
+  // async function createGroupChats(
+  //   sessionData: ISessionForm & { groupClients: string[] }
+  // ) {
+  //   const payload = {
+  //     groupName: sessionData.groupName,
+  //     groupClients: sessionData.groupClients,
+  //     therapist: sessionData.therapist,
+  //   };
+  //   console.log(payload, "created group chat payload");
+  //   console.log(sessionData.groupClients, "The group clients");
+  //   const { data } = await axiosInstance.post(
+  //     `/api/v1/chat?mockId=${sessionData.therapist}`,
+  //     payload
+  //   );
+  //   console.log(data, "created group chat");
+  //   return data;
+  // }
 
   const { data: therapistsData, isLoading: isLoadingTherapists } = useQuery({
     queryKey: ["Therapists", therapistSearch],
@@ -354,18 +354,18 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
   });
 
   // Creating group chats after creating the group session for the clients
-  const { isLoading: isCreatingChat, mutate: createChat } = useMutation({
-    mutationFn: createGroupChats,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["GroupChats"],
-      });
-      toast("Group chat successfully created!");
-    },
-    onError: (error: any) => {
-      toast(error?.message || "Error creating group chat");
-    },
-  });
+  // const { isLoading: isCreatingChat, mutate: createChat } = useMutation({
+  //   mutationFn: createGroupChats,
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({
+  //       queryKey: ["GroupChats"],
+  //     });
+  //     toast("Group chat successfully created!");
+  //   },
+  //   onError: (error: any) => {
+  //     toast(error?.message || "Error creating group chat");
+  //   },
+  // });
 
 
   const columns = useMemo<ColumnDef<IGroupTherapyCandidate>[]>(
@@ -566,12 +566,12 @@ const GroupTherapy = ({ searchInput }: { searchInput?: string }) => {
       groupClients: selectedClients,
     });
 
-    // creating group chat
-    createChat({
-      ...sessionForm,
-      groupClients: selectedClients,
-      therapist: sessionForm.therapist,
-    });
+    // creating group chat ( Not doing this anymore as its going to be handled from the backend side )
+    // createChat({
+    //   ...sessionForm,
+    //   groupClients: selectedClients,
+    //   therapist: sessionForm.therapist,
+    // });
 
     // creating matches for each client with the chosen therapist
     //createMatches({
