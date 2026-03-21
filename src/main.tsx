@@ -23,7 +23,9 @@ root.render(
   <React.StrictMode>
     {/* <ProvidersWrapper> */}
     {/* <App /> */}
-    Admin Portal is Down currently
+    <div className="flex justify-center items-center h-screen">
+      Admin Portal is Down currently
+    </div>
     {/* </ProvidersWrapper> */}
   </React.StrictMode>
 );
