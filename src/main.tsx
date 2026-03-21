@@ -22,7 +22,8 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     {/* <ProvidersWrapper> */}
-      <App />
+    {/* <App /> */}
+    Admin Portal is Down currently
     {/* </ProvidersWrapper> */}
   </React.StrictMode>
 );
