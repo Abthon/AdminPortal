@@ -21,8 +21,8 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    {/* <ProvidersWrapper> */}
-    {/* <App /> */}
-    {/* </ProvidersWrapper> */}
+    <ProvidersWrapper>
+      <App />
+    </ProvidersWrapper>
   </React.StrictMode>
 );
