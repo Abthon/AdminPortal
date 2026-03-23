@@ -5,7 +5,7 @@ import axios from "axios";
 import ReactDOM from "react-dom/client";
 
 import { App } from "./App";
-// import { ProvidersWrapper } from "./providers";
+import { ProvidersWrapper } from "./providers";
 import React from "react";
 // import { setupAxios } from "./auth";
 
