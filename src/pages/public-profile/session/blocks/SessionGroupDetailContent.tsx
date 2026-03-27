@@ -50,15 +50,14 @@ const TherapistInfo: React.FC<GeneralInfoProps> = ({ data }) => {
     { label: "Email:", info: data.email },
     {
       label: "Status:",
-      info: `<span class="badge badge-sm ${
-        data.status === "suspended"
-          ? "badge-danger"
-          : data.status === "inactive"
-            ? "badge-warning"
-            : data.status === "active"
-              ? "badge-success"
-              : "badge-primary"
-      } badge-outline">${data.status}</span>`,
+      info: `<span class="badge badge-sm ${data.status === "suspended"
+        ? "badge-danger"
+        : data.status === "inactive"
+          ? "badge-warning"
+          : data.status === "active"
+            ? "badge-success"
+            : "badge-primary"
+        } badge-outline">${data.status}</span>`,
     },
     { label: "Gender:", info: data.gender },
     {
@@ -393,22 +392,22 @@ const TherapistDocuments = ({ therapistData }: { therapistData: any }) => {
 };
 
 // Client Onboarding Questions Component for Group Sessions
-const ClientOnboardingQuestions = ({ 
-  clientData, 
-  modalId 
-}: { 
+const ClientOnboardingQuestions = ({
+  clientData,
+  modalId
+}: {
   clientData: any;
   modalId?: string;
 }) => {
   // Fetch answers for the client filtered by modal
   const fetchAnswers = async () => {
     let url = `/api/v1/answer?fields=question.*,question.modal.*,singleOption.*,multiOption.*,text&filters=client.id=${clientData.id}`;
-    
+
     // Add modal filter if modalId is provided
     if (modalId) {
       url += `,question.modal.id=${modalId}`;
     }
-    
+
     const { data } = await axiosInstance.get(url);
     return data;
   };
@@ -569,6 +568,7 @@ const ClientOnboardingQuestions = ({
 
 // Session Statistics Component
 const SessionStatistics = ({ sessionData }: { sessionData: any }) => {
+  console.log("=== Group Session Statistics Data ===", sessionData);
   const stats = [
     {
       label: "Session Type",
@@ -584,10 +584,10 @@ const SessionStatistics = ({ sessionData }: { sessionData: any }) => {
       color: sessionData.therapist?.isOnline ? "text-success" : "text-warning",
     },
     {
-      label: "Therapist Attendance",
-      value: sessionData.hasTherapistAttended ? "Attended" : "Not Attended",
-      icon: sessionData.hasTherapistAttended ? "check" : "cross",
-      color: sessionData.hasTherapistAttended ? "text-success" : "text-danger",
+      label: "Group Attended",
+      value: sessionData.groupAttendance?.length > 0 ? "Attended" : "Not Attended",
+      icon: sessionData.groupAttendance?.length > 0 ? "check" : "cross",
+      color: sessionData.groupAttendance?.length > 0 ? "text-success" : "text-danger",
     },
     {
       label: "Group Size",
@@ -643,7 +643,7 @@ const TherapistSessionCalendar = ({
       // Fetch sessions for each group client with this therapist
       const sessionPromises = clientIds.map((clientId) =>
         axiosInstance.get(
-          `/api/v1/session?fields=client.*,therapist.*,schedule,hasTherapistAttended,hasclientAttended&filters=group.id=${clientId}&take=0`
+          `/api/v1/session?fields=client.*,therapist.*,schedule,hasTherapistAttended,hasclientAttended,groupAttendance.*&filters=group.id=${clientId}&take=0`
         )
       );
 
@@ -820,14 +820,13 @@ const TherapistSessionCalendar = ({
                       onClick={() => handleDayClick(day)}
                       className={`
                         p-2 text-sm rounded-lg transition-colors relative min-h-12
-                        ${
-                          !isCurrentMonth
-                            ? "text-gray-300 bg-gray-50 cursor-default hover:bg-gray-50"
-                            : hasSessions
-                              ? "bg-primary text-white hover:bg-primary-dark cursor-pointer"
-                              : isDayToday
-                                ? "bg-gray-100 text-primary font-semibold hover:bg-gray-200 cursor-pointer"
-                                : "text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        ${!isCurrentMonth
+                          ? "text-gray-300 bg-gray-50 cursor-default hover:bg-gray-50"
+                          : hasSessions
+                            ? "bg-primary text-white hover:bg-primary-dark cursor-pointer"
+                            : isDayToday
+                              ? "bg-gray-100 text-primary font-semibold hover:bg-gray-200 cursor-pointer"
+                              : "text-gray-700 hover:bg-gray-100 cursor-pointer"
                         }
                       `}
                       disabled={!isCurrentMonth}
@@ -943,9 +942,10 @@ interface INetworkItem {
   statistics: Array<{ total: string; description: string }>;
 }
 
-interface INetworkItems extends Array<INetworkItem> {}
+interface INetworkItems extends Array<INetworkItem> { }
 
 const SessionGroupDetailContent = ({ sessionData }: any) => {
+  console.log("=== SessionGroupDetailContent Data ===", sessionData);
   const [activeView, setActiveView] = useState("cards");
 
   // Transform session data into card format
@@ -1076,8 +1076,8 @@ const SessionGroupDetailContent = ({ sessionData }: any) => {
                 <TherapistDocuments therapistData={sessionData.therapist} />
               </div>
             ) : sessionData.client ? (
-              <ClientOnboardingQuestions 
-                clientData={sessionData.client} 
+              <ClientOnboardingQuestions
+                clientData={sessionData.client}
                 modalId={sessionData.modal?.id}
               />
             ) : (

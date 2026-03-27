@@ -112,6 +112,7 @@ const Matches = ({
   const [selectedMatch, setSelectedMatch] = useState<IMatchData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [assigningTherapistId, setAssigningTherapistId] = useState<string | null>(null);
+  const [therapistSearchInput, setTherapistSearchInput] = useState("");
 
   // Session scheduling states
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -825,6 +826,18 @@ const Matches = ({
                 Back to Time Selection
               </Button>
             </div>
+            
+            <div className="relative mb-2 mt-2">
+              <KeenIcon icon="magnifier" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <Input
+                type="text"
+                placeholder="Search therapist by name..."
+                className="pl-10"
+                value={therapistSearchInput}
+                onChange={(e) => setTherapistSearchInput(e.target.value)}
+              />
+            </div>
+
             <div className="max-h-96 overflow-y-auto space-y-2">
               {therapists.length === 0 ? (
                 <div className="text-center py-8 space-y-4">
@@ -840,7 +853,13 @@ const Matches = ({
                   </Button>
                 </div>
               ) : (
-                therapists.map((therapist) => (
+                therapists.filter(therapist => {
+                  if (!therapistSearchInput) return true;
+                  const searchTerm = therapistSearchInput.toLowerCase();
+                  return therapist.firstName.toLowerCase().includes(searchTerm) || 
+                         therapist.lastName.toLowerCase().includes(searchTerm) ||
+                         `${therapist.firstName} ${therapist.lastName}`.toLowerCase().includes(searchTerm);
+                }).map((therapist) => (
                   <div
                     key={therapist.id}
                     className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"

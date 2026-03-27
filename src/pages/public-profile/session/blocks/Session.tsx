@@ -126,6 +126,7 @@ interface ISessionsData {
   therapist: any;
   client: any;
   group?: any[];
+  groupAttendance?: any[];
   createdAt: string;
   modal?: {
     id: string;
@@ -314,7 +315,7 @@ const Sessions = ({
     queryParams.push(`take=${pageSize}`);
     queryParams.push(`page=${pageIndex}`);
     queryParams.push(`sort=createdAt=DESC`);
-    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,groupAttendance.*,schedule,duration,createdAt,groupName`);
 
     // Add date parameters (backend should filter by createdAt, not schedule)
     const startDateParam = getStartDateForAPI();
@@ -377,7 +378,7 @@ const Sessions = ({
     queryParams.push(`take=${pageSize}`);
     queryParams.push(`page=${pageIndex}`);
     queryParams.push(`sort=createdAt=DESC`);
-    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt,groupName`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,id,hasclientAttended,hasTherapistAttended,groupAttendance.*,schedule,duration,createdAt,groupName`);
 
     // Add date parameters (backend should filter by createdAt, not schedule)
     const startDateParam = getStartDateForAPI();
@@ -446,7 +447,7 @@ const Sessions = ({
     let queryParams: string[] = [];
 
     // Add fields and sorting
-    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,groupSubscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`);
+    queryParams.push(`fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,groupSubscription.*,id,hasclientAttended,hasTherapistAttended,groupAttendance.*,schedule,duration,createdAt`);
     queryParams.push(`sort=createdAt=DESC`);
 
     // Add date parameters (backend should filter by createdAt, not schedule)
@@ -846,7 +847,7 @@ const Sessions = ({
     if (hasGroupMembers && (!sessionData.groupSubscription || sessionData.groupSubscription.length === 0)) {
       try {
         const { data } = await axiosInstance.get(
-          `/api/v1/session?filters=id=${sessionData.id}&fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,groupSubscription.*,id,hasclientAttended,hasTherapistAttended,schedule,duration,createdAt`
+          `/api/v1/session?filters=id=${sessionData.id}&fields=therapist.*,modal.*,client.*,client.preference.*,group.*,subscription.*,groupSubscription.*,id,hasclientAttended,hasTherapistAttended,groupAttendance.*,schedule,duration,createdAt`
         );
         if (data?.data && data.data.length > 0) {
           currentSessionData = data.data[0];
@@ -942,7 +943,11 @@ const Sessions = ({
           if (isGroupSession) {
             const now = new Date();
             const futureSessionIds = uniqueSessions
-              .filter((s: any) => new Date(s.schedule) > now)
+              .filter((s: any) => {
+                const isGroupLoc = s.group && s.group.length > 0;
+                const isCompleted = isGroupLoc ? (s.groupAttendance?.length > 0) : s.hasTherapistAttended;
+                return new Date(s.schedule) > now && !isCompleted;
+              })
               .map((s: any) => s.id);
             setSelectedSessionIds(futureSessionIds);
           }
@@ -1608,7 +1613,11 @@ const Sessions = ({
         ),
         enableSorting: true,
         cell: (info) => {
-          const hasAttended = info.row.original.hasTherapistAttended;
+          let hasAttended = info.row.original.hasTherapistAttended;
+          const isGroupTherapy = info.row.original.group && info.row.original.group.length > 0;
+          if (isGroupTherapy) {
+             hasAttended = (info.row.original.groupAttendance?.length ?? 0) > 0;
+          }
           return (
             <div className="flex justify-start relative">
               <span
@@ -2666,12 +2675,22 @@ const Sessions = ({
 
                     <div>
                       <label className="text-sm font-medium text-gray-500">
-                        Therapist Attended
+                        {selectedSessionDetail.group && selectedSessionDetail.group.length > 0 
+                          ? "Group Attended" 
+                          : "Therapist Attended"}
                       </label>
                       <span
-                        className={`badge ${selectedSessionDetail.hasTherapistAttended ? "badge-success" : "badge-danger"} badge-outline`}
+                        className={`badge ${
+                          (selectedSessionDetail.group && selectedSessionDetail.group.length > 0
+                            ? (selectedSessionDetail.groupAttendance && selectedSessionDetail.groupAttendance.length > 0)
+                            : selectedSessionDetail.hasTherapistAttended)
+                              ? "badge-success"
+                              : "badge-danger"
+                        } badge-outline`}
                       >
-                        {selectedSessionDetail.hasTherapistAttended
+                        {(selectedSessionDetail.group && selectedSessionDetail.group.length > 0
+                          ? (selectedSessionDetail.groupAttendance && selectedSessionDetail.groupAttendance.length > 0)
+                          : selectedSessionDetail.hasTherapistAttended)
                           ? "Yes"
                           : "No"}
                       </span>
@@ -2997,57 +3016,72 @@ const Sessions = ({
                 <p className="text-gray-500 text-center py-8">No sessions found</p>
               ) : (
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {subscriptionSessions.map((session: any) => (
-                    <div
-                      key={session.id}
-                      className={cn(
-                        "p-4 border rounded-lg cursor-pointer transition-all",
-                      )}
-                      onClick={() => handleToggleSessionSelection(session.id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={selectedSessionIds.includes(session.id)}
-                              onChange={() => handleToggleSessionSelection(session.id)}
-                              className="rounded border-gray-300"
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <div>
-                              {/* Date and 24hour format */}
-                              <p className="text-sm text-gray-600">
-                                Schedule: {new Date(session.schedule).toLocaleDateString('en-GB', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric'
-                                })} at {new Date(session.schedule).toLocaleTimeString('en-GB', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                  hour12: false
-                                })}
-                              </p>
+                  {subscriptionSessions.map((session: any) => {
+                    const isGroupTherapy = session.group && session.group.length > 0;
+                    const isCompleted = isGroupTherapy 
+                      ? (session.groupAttendance && session.groupAttendance.length > 0) 
+                      : session.hasTherapistAttended;
+
+                    return (
+                      <div
+                        key={session.id}
+                        className={cn(
+                          "p-4 border rounded-lg transition-all",
+                          isCompleted ? "bg-gray-50 opacity-80 cursor-not-allowed" : "cursor-pointer"
+                        )}
+                        onClick={() => !isCompleted && handleToggleSessionSelection(session.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={selectedSessionIds.includes(session.id)}
+                                onChange={() => !isCompleted && handleToggleSessionSelection(session.id)}
+                                className={cn("rounded border-gray-300", isCompleted && "opacity-50 cursor-not-allowed")}
+                                disabled={isCompleted}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <div>
+                                {/* Date and 24hour format */}
+                                <p className="text-sm text-gray-600">
+                                  Schedule: {new Date(session.schedule).toLocaleDateString('en-GB', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })} at {new Date(session.schedule).toLocaleTimeString('en-GB', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false
+                                  })}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={cn(
-                              "badge badge-sm",
-                              session.approvalStatus === "confirmed"
-                                ? "badge-success"
-                                : session.approvalStatus === "pending"
-                                  ? "badge-warning"
-                                  : "badge-danger"
+                          <div className="flex items-center gap-2">
+                            {isCompleted ? (
+                              <span className="badge badge-sm badge-success">
+                                Completed
+                              </span>
+                            ) : (
+                              <span
+                                className={cn(
+                                  "badge badge-sm",
+                                  session.approvalStatus === "confirmed"
+                                    ? "badge-success"
+                                    : session.approvalStatus === "pending"
+                                      ? "badge-warning"
+                                      : "badge-danger"
+                                )}
+                              >
+                                {session.approvalStatus}
+                              </span>
                             )}
-                          >
-                            {session.approvalStatus}
-                          </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
