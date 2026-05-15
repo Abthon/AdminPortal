@@ -70,7 +70,7 @@ export default defineConfig({
             // Append the API key from environment variables
             url.searchParams.set(
               "key",
-              "AIzaSyDBbmSw9fX9vAjkgPpJ3ahoYsmzagGr4LI"
+              "AIzaSyDBbmSw9fX9vAjkgPpJ3ahoYsmzagGr4LI",
             );
             // Update the proxy request path with the new query string
             proxyReq.path = url.pathname + url.search;
@@ -79,7 +79,7 @@ export default defineConfig({
       },
       // Add proxy for API requests
       "/dev": {
-        target: "https://app.navigo.et",
+        target: "https://app.navithera.com",
         changeOrigin: true,
         secure: false,
       },

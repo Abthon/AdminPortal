@@ -31,7 +31,7 @@ export function truncateString(str: string) {
 }
 
 const removeBaseUrl = (url: any) => {
-  const baseUrl = "https://app.navigo.et/dev/static/profile/";
+  const baseUrl = "https://app.navithera.com/dev/static/profile/";
   console.log(url.replace(baseUrl, url, "here here"));
   return url.replace(baseUrl, "");
 };
@@ -49,17 +49,17 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
     try {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
-      
+
       // Create a temporary URL for the blob
       const url = window.URL.createObjectURL(blob);
-      
+
       // Create a temporary anchor element and trigger download
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = `driver-document-${Date.now()}.jpg`; // Generate filename with timestamp
       document.body.appendChild(link);
       link.click();
-      
+
       // Clean up
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
@@ -78,7 +78,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
     queryFn: async () => {
       if (!data?.id) return null; // Don't fetch if ID is not available
       const response = await axiosInstance.get(
-        `/api/v1/drivers/rating/${data.id}`
+        `/api/v1/drivers/rating/${data.id}`,
       );
       return response.data.data.averageRating; // Extract the averageRating
     },
@@ -114,7 +114,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ data }) => {
   ].filter(Boolean); // Filter out any falsy values (like undefined or null)
 
   const renderItems = (item: IGeneralInfoItem, index: number) => {
-    const baseUrl = "https://app.navigo.et/dev/static/";
+    const baseUrl = "https://app.navithera.com/dev/static/";
 
     const openDriverLicenseModal = async (fileName: any) => {
       try {

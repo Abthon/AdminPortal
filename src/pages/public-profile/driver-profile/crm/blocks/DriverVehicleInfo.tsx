@@ -25,7 +25,7 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
 
       try {
         const response = await axiosInstance.get(
-          `/api/v1/vehicles/${data.id}?fields=vehicleType.* `
+          `/api/v1/vehicles/${data.id}?fields=vehicleType.* `,
         );
         if (response.status === 200) {
           setVehicleType(response.data.data.vehicleType.name);
@@ -58,17 +58,17 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
     try {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
-      
+
       // Create a temporary URL for the blob
       const url = window.URL.createObjectURL(blob);
-      
+
       // Create a temporary anchor element and trigger download
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = `vehicle-document-${Date.now()}.jpg`; // Generate filename with timestamp
       document.body.appendChild(link);
       link.click();
-      
+
       // Clean up
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
@@ -94,7 +94,7 @@ const DriverVehicleInfo: React.FC<DriverVehicleInfoProps> = ({ data }) => {
   ];
 
   const renderItem = (item: IDriverVehicleInfoItem, index: number) => {
-    const baseUrl = "https://app.navigo.et/dev/static/";
+    const baseUrl = "https://app.navithera.com/dev/static/";
 
     const openVehicleLibraeModal = async (fileName: any) => {
       try {
